@@ -1,0 +1,17 @@
+# Sphinx build dosyaları
+source/build/
+source/_build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+tokentoken
