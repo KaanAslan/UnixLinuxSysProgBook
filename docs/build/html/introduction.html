@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Giriş &mdash; Unix/Linux Sistem Programlama 1.0.0 belgelendirmesi</title>
+  <title>Temel Kavramlar ve İşletim Sistemi Yapıları &mdash; Unix/Linux Sistem Programlama 1.0.0 belgelendirmesi</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
@@ -48,8 +48,15 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Giriş</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#linux-nedir">Linux Nedir?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Temel Kavramlar ve İşletim Sistemi Yapıları</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#sistem-programlama-kavrami">Sistem Programlama Kavramı</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isletim-sistemleri-ve-kaynak-yonetimi">İşletim Sistemleri ve Kaynak Yönetimi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#isletim-sistemlerinin-siniflandirilmasi">İşletim Sistemlerinin Sınıflandırılması</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mikro-cekirdekli-sistem-ornekleri">Mikro Çekirdekli Sistem Örnekleri</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monolitik-cekirdekli-sistem-ornekleri">Monolitik Çekirdekli Sistem Örnekleri</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mimari-karsilastirmasi">Mimari Karşılaştırması</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -68,7 +75,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Giriş</li>
+      <li class="breadcrumb-item active">Temel Kavramlar ve İşletim Sistemi Yapıları</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/introduction.rst.txt" rel="nofollow"> Sayfa kaynağını görüntüle</a>
       </li>
@@ -78,11 +85,296 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="giris">
-<h1>Giriş<a class="headerlink" href="#giris" title="Link to this heading"></a></h1>
-<section id="linux-nedir">
-<h2>Linux Nedir?<a class="headerlink" href="#linux-nedir" title="Link to this heading"></a></h2>
-<p>Falanca filanca</p>
+  <section id="temel-kavramlar-ve-isletim-sistemi-yapilari">
+<h1>Temel Kavramlar ve İşletim Sistemi Yapıları<a class="headerlink" href="#temel-kavramlar-ve-isletim-sistemi-yapilari" title="Link to this heading"></a></h1>
+<p>Kursumuzun başında iki hafta bazı temel kavramlar ve konular üzerinde duracağız.</p>
+<section id="sistem-programlama-kavrami">
+<h2>Sistem Programlama Kavramı<a class="headerlink" href="#sistem-programlama-kavrami" title="Link to this heading"></a></h2>
+<p>Bilgisayar donanımıyla arayüz oluşturan, uygulama programlarına çeşitli bakımlardan hizmet veren programlara
+<em>sistem programları</em>, programlamanın bunlarla ilgili alanına da <em>sistem programlama (system programming)</em>
+denilmektedir. Sistem programlama etkinlikleri aşağı seviyeli olma eğilimindedir. Bunları yazmak için önemli ölçüde
+teorik bilgiye ve uygulama becerisine gereksinim duyulmektedir. Sistem programlama <em>programlamanın yükte hafif pahada
+ağır</em> bir alanını oluşturmaktadır. Bu yönüyle adeta yazılımın ağır sanayisi niteliğindedir. Bilişim sektöründeki
+Microsoft, Apple, Google gibi pek manyak büyük kurum geliştirdikleri sistem yazılımları sayesinde bu hale
+gelmişlerdir. Tipik sistem programlama uygulamalarından bazıları şunlardır:</p>
+<ul class="simple">
+<li><p>İşletim Sistemleri</p></li>
+<li><p>Derleyiciler ve Yorumlayıcılar</p></li>
+<li><p>Editörler</p></li>
+<li><p>Gömülü Sistem Uygulamaları</p></li>
+<li><p>Debug Programları</p></li>
+<li><p>Aşağı Seviyeli Haberleşme Programları</p></li>
+<li><p>Virüs ve Antivirüs Yazılımları</p></li>
+<li><p>Çevre Birimlerinin ve Diğer Donanımsal Aygıtların Programlanması ve Aygıt Sürücüleri</p></li>
+<li><p>Veritabanı Motorları</p></li>
+<li><p>Sanallaştırma Yazılımları ve Emülatör Yazılımları</p></li>
+<li><p>Oyun Motorları</p></li>
+<li><p>…</p></li>
+</ul>
+<p>Sistem programlama etkinlikleri için en çok kullanılan programlama dilleri C, C++ ve Sembolik Makine Dilleridir.
+Rust Programlama Dili de son yıllarda bu alanda bir yer edinmeye çalışmaktadır. Her ne kadar sistem programlama
+denildiğinde akla C, C++, Rust ve sembolik makine dilleri geliyorsa da bazı sistem programları Java ve C# gibi yüksek
+seviyeli dillerle de yazılabilmektedir.</p>
+</section>
+<section id="isletim-sistemleri-ve-kaynak-yonetimi">
+<h2>İşletim Sistemleri ve Kaynak Yönetimi<a class="headerlink" href="#isletim-sistemleri-ve-kaynak-yonetimi" title="Link to this heading"></a></h2>
+<p>İşletim sistemleri bilgisayar donanımının kaynaklarını yöneten, bilgisayar donanımı ile kullanıcı arasında arayüz
+oluşturan sistem programlarıdır. Bilgisayar bilimlerinin akademik öncülerinin çoğu işletim sistemlerini bir kaynak
+yöneticisi <em>resource manager</em> olarak tanımlamıştır. Uygulama programları işletim sisteminin sağladığı olanaklardan
+faydalanmaktadır.</p>
+<img alt="İşletim Sistemi Katmanları" class="align-center" src="_static/isletim_sistemi_katmanlari.png" />
+<p><em>programın çıktısı gibidir</em></p>
+<p>İşletim sistemlerinin yönettigi kaynakların en önemlileri şunlardır:</p>
+<dl class="simple">
+<dt>CPU</dt><dd><p>İşletim sistemi hangi programın ne zaman, ne kadar süre için CPU’ya atanacağına karar verip bu işlemleri
+gerçekleştirmektedir.</p>
+</dd>
+<dt>Ana Bellek (Main Memory (RAM))</dt><dd><p>İşletim sistemi programların ana belleğin neresine yükleneceğine karar verir ve ana bellek kullanımını düzenler.</p>
+</dd>
+<dt>İkincil Bellekler</dt><dd><p>İşletim sistemi bir dosya sistemi <em>file system</em> oluşturarak dosyaların parçalarını ikincil belleklerde etkin bir
+biçimde tutar ve kullanıcılara bir dosya kavramıyla sunar.</p>
+</dd>
+<dt>Çevre Birimleri (klavye, fare, yazıcı vs.)</dt><dd><p>İşletim sistemi fare, klavye, yazıcı gibi çevre birimlerini yöneterek onları kullanıma hazır hale getirir.
+Yardımcı işlemcileri (denetleyicileri) programlayarak onların işlev görmesini sağlamaktadır.</p>
+</dd>
+<dt>Ağ İşlemleri</dt><dd><p>İşletim sistemi ağa ilişkin donanım birimlerini yöneterek ve çeşitli ağ protokollerini oluşturarak dışarıdan gelen
+bilgileri onları talep eden programlara iletir.</p>
+</dd>
+</dl>
+<p>İşletim sistemleri kaynak yönetimine göre alt sistemlere ayrılarak da incelenebilmektedir. Örneğin işletim sisteminin
+<em>çizelgeleyici (scheduler)</em> alt sistemi demekle CPU yönetimini sağlayan alt sistemi kastedilmektedir. Ana bellek
+yönetimi <em>memory management</em> yine soyutlanarak incelenen önemli alt sistemlerden biridir. İşletim sistemlerinin
+ikincil bellek yönetimine <em>dosya sistemi (file system)</em> da denilmektedir. Tabii bütün bu sistemler birbirinden kopuk
+olarak değil birbirleriyle ilişkili bir biçimde işlev görmektedir. Bu durumu insanın <em>solunum sistemi</em>, <em>dolaşım
+sistemi</em>, <em>sinir sistemi</em>, <em>boşaltım sistemi</em> gibi alt sistemlerine benzetebiliriz. Bu alt sistemlerin birinde bile
+çalışma bozukluğu oluşsa insan yaşamını yitirebilmektedir.</p>
+<p>İşletim sistemleri yapı olarak iki kısımdan oluşmaktadır: Çekirdek <em>kernel</em> ve kabuk <em>shell</em>. Çekirdek işletim
+sisteminin donanımı kontrol eden ve kaynakları yöneten motor kısmıdır. Aslında işletim sistemi denildiğinde akla
+çekirdek gelmektedir. Kabuk ise işletim sisteminin kullanıcı ile arayüz oluşturan önyüzüdür. Örneğin UNIX/Linux
+sistemlerinde <em>bash</em> gibi komut satırı, GNOME, KDE gibi pencere yöneticileri, Windows’taki masaüstü (Explorer),
+macOS’teki masaüstü (Aqua) bu işletim sistemlerinin kabuk kısımlarını oluşturmaktadır.</p>
+<img alt="Çekirdek Kabuk Yapısı" class="align-center" src="_static/cekirdek_kabuk_yapisi.png" />
+<p><em>programın çıktısı gibidir</em></p>
+<p>Peki işletim sistemi bu kadar temel donanım yönetimini sağlıyorsa işletimi olmadan programlama yapılabilir mi?
+İşletim sistemi olmadan programlama faaliyetine halk arasında <em>bare metal programlama</em> denilmektedir. Bare metal
+programlama genellikle mikrodenetleyicilerin kullanıldığı gömülü sistemlerde uygulanmaktadır. Bare metal
+programlama özel bir amaca hizmet edecek biçimde yapılmaktadır. Amaçlar fazlalaştığı zaman ve sistem karmaşıklaştığı
+zaman artık işletim sistemlerine gereksinim duyulmektedir.</p>
+<p>Bazı kontrol yazılımları işletim sistemlerinin bazı etkinliklerini de sağlamaktadır. Bir kontrol yazılımının
+işletim sistemi olarak isimlendirilmesi için yukarıda açıkladığımız kaynak yönetimlerinin önemli bir bölümününü
+sağlıyor olması gerekir. Bu kaynak yönetimlerinin çoğunu sağlamayan kontrol yazılımlarına genel olarak <em>firmware</em>
+de denilmektedir.</p>
+</section>
+<section id="isletim-sistemlerinin-siniflandirilmasi">
+<h2>İşletim Sistemlerinin Sınıflandırılması<a class="headerlink" href="#isletim-sistemlerinin-siniflandirilmasi" title="Link to this heading"></a></h2>
+<p>İşletim sistemleri çeşitli biçimlerde sınıflandırılabilmektedir:</p>
+<dl class="simple">
+<dt>Proses Yönetimine Göre</dt><dd><p>Aynı anda tek bir programı çalıştıran işletim sistemlerine <em>tek prosesli (single processing)</em>, aynı anda birden
+fazla programı çalıştırabilen işletim sistemlerine ise <em>çok prosesli (multiprocessing)</em> işletim sistemleri
+denilmektedir. Örneğin DOS işletim sistemi tek prosesli bir sistemdi. Biz bu işletim sisteminde bir programı
+çalıştırırdık, ancak çalıştırdığımız program sonlanınca başka bir programı çalıştırabilirdik. Halbuki Windows,
+UNIX/Linux, MacOS gibi işletim sistemleri çok prosesli işletim sistemleridir.</p>
+</dd>
+<dt>Kullanıcı Sayısına Göre</dt><dd><p>Birden fazla farklı kullanıcının çalışabildiği sistemlere <em>çok kullanıcılı (multiuser)</em>, tek bir kullanıcının
+çalışabildiği sistemlere <em>tek kullanıcılı (single user)</em> sistemler denilmektedir. Genellikle çok prosesli işletim
+sistemleri aynı zamanda çok kullanıcılı sistemlerdir. Birden fazla kullanıcının söz konusu olduğu sistemlerde
+kullanıcıların yetkilerinin ayarlanması, kullanıcıların birbirlerinin alanlarına erişmesinin engellenmesi, sistem
+kaynaklarını belli bölüşmesi gerekebilmektedir. Örneğin DOS tek kullanıcılı bir sistemdi. Halbuki Windows,
+UNIX/Linux ve macOS sistemleri çok kullanıcılı sistemlerdir.</p>
+</dd>
+<dt>Çekirdek Yapısına Göre</dt><dd><p>İşletim sistemleri çekirdek yapısına göre <em>tek parçalı çekirdekli (monolithic kernel)</em> ve <em>mikro çekirdekli
+(microkernel)</em> olmak üzere ikiye ayrılmaktadır. Tek parçalı çekirdekli işletim sisteminin büyük kısmı çekirdek
+modunda çalışır. Mikro çekirdekli sistemlerde ise çekirdek modunda çalışan kısım minimize edilmeye çalışılmıştır.
+Aslında tek parçalı ve mikro çekirdekli tasarımları bir spektrum olarak düşünebiliriz. (Örneğin bu spektrumda bazı
+çekirdekler tek parçalı tarafa yakın bazıları ise mikro tarafa yakın olabilmektedir.) Linux çekirdeği tek parçalı
+(monolithic) tarafa daha yakındır.</p>
+</dd>
+</dl>
+<section id="mikro-cekirdekli-sistem-ornekleri">
+<h3>Mikro Çekirdekli Sistem Örnekleri<a class="headerlink" href="#mikro-cekirdekli-sistem-ornekleri" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sistem</p></th>
+<th class="head"><p>Kategori</p></th>
+<th class="head"><p>Kullanım Alanı</p></th>
+<th class="head"><p>Olgunluk</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MINIX 3</p></td>
+<td><p>Saf Mikro Kernel</p></td>
+<td><p>Eğitim / Araştırma</p></td>
+<td><p>Akademik</p></td>
+</tr>
+<tr class="row-odd"><td><p>QNX</p></td>
+<td><p>Saf Mikro Kernel</p></td>
+<td><p>Gömülü / Gerçek Zamanlı</p></td>
+<td><p>Üretim (Production)</p></td>
+</tr>
+<tr class="row-even"><td><p>seL4</p></td>
+<td><p>Saf Mikro Kernel</p></td>
+<td><p>Güvenlik Kritik</p></td>
+<td><p>Üretim (Formal Verified)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Mach</p></td>
+<td><p>Saf Mikro Kernel</p></td>
+<td><p>Araştırma / Tarihsel</p></td>
+<td><p>Tarihi Referans</p></td>
+</tr>
+<tr class="row-even"><td><p>GNU Hurd</p></td>
+<td><p>Mach Tabanlı</p></td>
+<td><p>Genel Amaçlı</p></td>
+<td><p>Geliştirme Aşamasında</p></td>
+</tr>
+<tr class="row-odd"><td><p>macOS/iOS (XNU)</p></td>
+<td><p>Mach Tabanlı (Hibrit)</p></td>
+<td><p>Masaüstü / Mobil</p></td>
+<td><p>Üretim (Hibrit Tasarım)</p></td>
+</tr>
+<tr class="row-even"><td><p>L4 / Fiasco</p></td>
+<td><p>Akademik / Araştırma</p></td>
+<td><p>Araştırma / Gömülü</p></td>
+<td><p>Araştırma / Bazı Üretim</p></td>
+</tr>
+<tr class="row-odd"><td><p>OKL4</p></td>
+<td><p>Akademik / Araştırma</p></td>
+<td><p>Gömülü / Mobil</p></td>
+<td><p>Üretim (Bazı platformlar)</p></td>
+</tr>
+<tr class="row-even"><td><p>Haiku</p></td>
+<td><p>Kısmen Mikro Kernel</p></td>
+<td><p>Genel Amaçlı (Masaüstü)</p></td>
+<td><p>Geliştirme Aşamasında</p></td>
+</tr>
+</tbody>
+</table>
+<p>Genel olarak UNIX türevi sistemler tek parçalı çekirdekli biçimde tasarlanmaktadır. Aşağıda tek parçalı çekirdekli
+tarafa yakın olan işletim sistemlerine örnekler veriyoruz:</p>
+</section>
+<section id="monolitik-cekirdekli-sistem-ornekleri">
+<h3>Monolitik Çekirdekli Sistem Örnekleri<a class="headerlink" href="#monolitik-cekirdekli-sistem-ornekleri" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sistem</p></th>
+<th class="head"><p>Tür</p></th>
+<th class="head"><p>Not</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Linux</p></td>
+<td><p>Modüler Monolitik</p></td>
+<td><p>LKM desteği var</p></td>
+</tr>
+<tr class="row-odd"><td><p>FreeBSD</p></td>
+<td><p>Saf Monolitik</p></td>
+<td><p>POSIX uyumlu</p></td>
+</tr>
+<tr class="row-even"><td><p>NetBSD</p></td>
+<td><p>Saf Monolitik</p></td>
+<td><p>Taşınabilirlik odaklı</p></td>
+</tr>
+<tr class="row-odd"><td><p>OpenBSD</p></td>
+<td><p>Saf Monolitik</p></td>
+<td><p>Güvenlik odaklı</p></td>
+</tr>
+<tr class="row-even"><td><p>Solaris</p></td>
+<td><p>Modüler Monolitik</p></td>
+<td><p>SVR4 tabanlı</p></td>
+</tr>
+<tr class="row-odd"><td><p>AIX</p></td>
+<td><p>Modüler Monolitik</p></td>
+<td><p>IBM Power mimarisi</p></td>
+</tr>
+<tr class="row-even"><td><p>Original Unix</p></td>
+<td><p>Saf Monolitik</p></td>
+<td><p>Tarihsel referans</p></td>
+</tr>
+<tr class="row-odd"><td><p>Windows 95/98</p></td>
+<td><p>Monolitik (Hibrit eğilimli)</p></td>
+<td><p>Üretim dışı, tarihsel</p></td>
+</tr>
+<tr class="row-even"><td><p>Klasik (Eski)
+Mac OS</p></td>
+<td><p>Saf Monolitik</p></td>
+<td><p>Üretim dışı, tarihsel</p></td>
+</tr>
+</tbody>
+</table>
+<p>Tek parçalı çekirdekli tasarım genel olarak daha hızlı ve kırılgan, mikro çekirdekli tasarım ise genellikle daha
+yavaş ve sağlam olma eğilimindedir. Aşağıdaki tabloda iki tasarım mimarisini avantaj ve dezavantaj bakımından
+karşılaştırıyoruz:</p>
+</section>
+<section id="mimari-karsilastirmasi">
+<h3>Mimari Karşılaştırması<a class="headerlink" href="#mimari-karsilastirmasi" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Kriter</p></th>
+<th class="head"><p>Monolitik Çekirdek</p></th>
+<th class="head"><p>Mikro Çekirdek</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Performans</p></td>
+<td><p>[+] Sistem çağrıları doğrudan çekirdek uzayında
+işlenir; düşük gecikme
+[+] Context switch maliyeti düşük</p></td>
+<td><p>[-] IPC (mesaj geçişi) ek yük getirir ve
+gecikmeyi artırır
+[-] Kullanıcı/çekirdek geçişi sık yaşanır</p></td>
+</tr>
+<tr class="row-odd"><td><p>Güvenilirlik /
+Kararlılık</p></td>
+<td><p>[-] Bir sürücü hatası tüm sistemi çökertebilir
+[-] Hata yayılımı (fault propagation)
+engellenemez</p></td>
+<td><p>[+] Servisler kullanıcı uzayında izole çalışır
+[+] Hatalı servis yeniden başlatılabilir,
+sistemi çökertmeden</p></td>
+</tr>
+<tr class="row-even"><td><p>Güvenlik</p></td>
+<td><p>[-] Çekirdek büyüdükçe güvenlik açığı yüzeyi
+genişler
+[-] Tüm kod aynı ayrıcalık seviyesinde</p></td>
+<td><p>[+] Minimal TCB (Trusted Computing Base)
+[+] Servisler birbirinden izole edilir
+[+] seL4 gibi formal doğrulama mümkün</p></td>
+</tr>
+<tr class="row-odd"><td><p>Modülerlik /
+Geliştirilebilirlik</p></td>
+<td><p>[-] Yeni servis eklemek çekirdeği doğrudan
+etkiler
+[+] LKM ile kısmi modülerlik sağlanır</p></td>
+<td><p>[+] Servisler bağımsız geliştirilebilir
+[+] Yeni sürücü/servis kullanıcı uzayına
+eklenir, çekirdek değişmez</p></td>
+</tr>
+<tr class="row-even"><td><p>Donanım Erişimi</p></td>
+<td><p>[+] Donanıma yakın çalışma kolaylığı
+[+] DMA, interrupt handling doğrudan
+çekirdekten yönetilir</p></td>
+<td><p>[-] Donanım sürücüleri kullanıcı uzayında
+çalışır, donanım erişimi dolaylıdır
+[-] Sürücü geliştirmesi daha karmaşık</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bakım / Test</p></td>
+<td><p>[-] Çekirdek kod tabanı büyük ve karmaşık
+[-] Hata ayıklama (debugging) güçtür
+[+] Geniş topluluk ve araç desteği</p></td>
+<td><p>[+] Çekirdek küçük ve anlaşılır
+[+] Her servis bağımsız test edilebilir
+[-] IPC katmanı debug’ı karmaşık olabilir</p></td>
+</tr>
+<tr class="row-even"><td><p>Uygun Kullanım Alanı</p></td>
+<td><p>[+] Genel amaçlı sistemlerde olgunlaşmış
+[+] Masaüstü, sunucu, HPC ortamları
+[+] Linux, BSD aileleri kanıtlanmış</p></td>
+<td><p>[+] Gömülü, gerçek zamanlı ve güvenlik kritik
+sistemler için idealdir
+[+] QNX, seL4 üretim ortamında başarılı</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 </section>
 </section>
 

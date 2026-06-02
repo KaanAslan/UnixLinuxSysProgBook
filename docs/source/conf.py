@@ -35,3 +35,17 @@ html_theme_options = {
     'includehidden': True,
     'titles_only': False
 }
+
+latex_elements = {
+    'papersize': 'a4paper',
+    'geometry': r'\usepackage[a4paper, top=2cm, bottom=2cm, left=1.5cm, right=1.5cm]{geometry}',
+    'preamble': r'''
+        \usepackage{newunicodechar}
+        \newunicodechar{≈}{\ensuremath{\approx}}
+        \newunicodechar{×}{\ensuremath{\times}}
+        \newunicodechar{→}{\ensuremath{\rightarrow}}
+        \newunicodechar{←}{\ensuremath{\leftarrow}}
+        \newunicodechar{≥}{\ensuremath{\geq}}
+        \newunicodechar{≤}{\ensuremath{\leq}}
+    ''',
+}
