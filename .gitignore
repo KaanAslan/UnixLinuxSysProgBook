@@ -2,6 +2,12 @@
 source/build/
 source/_build/
 
+# Dökümantasyonun derlenmiş halleri
+docs/build/
+
+#  MacOS tarafında oluşturulan dosyalar
+.DS_Store
+
 # Python
 __pycache__/
 *.py[cod]
