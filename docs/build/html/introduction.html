@@ -59,6 +59,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#macos-mac-os-x-turevi-isletim-sistemleri">1.1.7. macOS (Mac OS X Türevi) İşletim Sistemleri</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#gnu-projesi-ozgur-yazilim-ve-acik-kaynak-kod">1.2. GNU Projesi, Özgür Yazılım ve Açık Kaynak Kod</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gnu-projesi-ve-ozgur-yazilim-akimi">1.2.1. GNU Projesi ve Özgür Yazılım Akımı</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linux-un-tarihi">1.2.2. Linux’un Tarihi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linux-kaynak-kodlarina-erisim">1.2.3. Linux Kaynak Kodlarına Erişim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linux-dagitimlari">1.2.4. Linux Dağıtımları</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -654,7 +661,7 @@ yapıldığı tarih için bir fikir amacıyla sunucu dünyasındaki kullanım or
 </tbody>
 </table>
 <figure class="align-center" id="id11">
-<a class="reference internal image-reference" href="_static/server-os-usage.png"><img alt="Sunucu İşletim Sistemi Kullanım Oranları" src="_static/server-os-usage.png" style="width: 30%;" />
+<a class="reference internal image-reference" href="_images/server-os-usage.png"><img alt="Sunucu İşletim Sistemi Kullanım Oranları" src="_images/server-os-usage.png" style="width: 30%;" />
 </a>
 <figcaption>
 <p><span class="caption-text">Programın çıktısı gibidir.</span><a class="headerlink" href="#id11" title="Link to this image"></a></p>
@@ -1102,6 +1109,318 @@ işletim sistemleri arasındaki ilişki özetlenmektedir:</p>
 <p>Son versiyon macOS 15’ten sonra macOS 26’ya atlamıştır. Artık Apple versiyon numaralandırmasında sürüm yılının
 bir sonraki yılını kullanacağını açıklamıştır.</p>
 <p>macOS büyük ölçüde POSIX uyumlu bir sistemdir.</p>
+</section>
+</section>
+<section id="gnu-projesi-ozgur-yazilim-ve-acik-kaynak-kod">
+<h2><span class="section-number">1.2. </span>GNU Projesi, Özgür Yazılım ve Açık Kaynak Kod<a class="headerlink" href="#gnu-projesi-ozgur-yazilim-ve-acik-kaynak-kod" title="Link to this heading"></a></h2>
+<section id="gnu-projesi-ve-ozgur-yazilim-akimi">
+<h3><span class="section-number">1.2.1. </span>GNU Projesi ve Özgür Yazılım Akımı<a class="headerlink" href="#gnu-projesi-ve-ozgur-yazilim-akimi" title="Link to this heading"></a></h3>
+<p>Şimdi de UNIX/Linux dünyasında önemli bir yeri olan GNU Projesi, özgür yazılım ve açık kaynak kod akımları
+üzerinde durmak istiyoruz.</p>
+<p>1970’lerdeki mikro bilgisayarlar devrimine kadar yazılımda bir telif anlayışı yoktu. Yani yazılımın
+dağıtılması konusunda sözleşmeler ve hukuki yaptırımlara gerek duyulmamıştı. Yazılım zaten donanımla birlikte
+satılıyordu ya da kuruma özel yapılıyordu. 1969 yılında IBM yazılımı donanımla birlikte verdiği için rekabet
+kurallarına uymadığı gerekçesiyle mahkemeye verilmiştir ve cezaya çarptırılmıştır. 1970’li yıllarda yazılım
+maliyetleri artmış, yazılım sektörü genişlemiş ve lisanslama politikaları da uygulamaya sokulmuştur. Pek çok
+yazılım bu yıllarda özel lisanslarla piyasaya sürülmeye başlanmıştır. 1980’li yıllarda bu lisanslama
+faaliyetleri hız kazanmıştır.</p>
+<p>1980’li yıllarda tüm UNIX türevi sistemler çeşitli biçimlerde sınırlandırıcı lisanslara sahipti. Yani 1980’li
+yıllarda sınırlaması olmayan UNIX türevi sistemler kalmamıştı. Bu nedenle bedava ve sınırlamasız UNIX türevi
+bir işletim sistemine gereksinim duyulmaya başlandı. İşte durumdan vazife çıkaran ünlü Emacs editörünün yazarı
+Richard Stallman 1983 yılının sonlarına doğru GNU projesini başlattı ve özgür yazılım (<em>free software</em>) fikrini
+ortaya attı. GNU projesinin amacı açık kaynak kodlu UNIX benzeri bir işletim sistemini ve geliştirme araçlarını
+yazmaktı. Proje fiilen 1984 yılında başlamıştır.</p>
+<p>Stallman 1985 yılında özgür yazılım kavramını yaygınlaştırmak amacıyla Free Software Foundation
+(www.fsf.org) isimli kurumu kurdu ve artık GNU projesi bu kurum tarafından yürütülmeye başlandı. FSF özgür
+yazılım modeli için GPL (<em>GNU Public License</em>) denilen bir lisans da oluşturdu. Özgür yazılım akımında
+oluşturulan bir yazılım istenildiği gibi çalıştırılabilir, kopyalanabilir, incelenebilir, dağıtılabilir,
+değiştirilebilir ve iyileştirilebilir. Daha açık bir biçimde özgür yazılım tipik olarak aşağıdaki dört
+özgürlükle tanımlanmıştır:</p>
+<ul class="simple">
+<li><p><strong>Özgürlük 0:</strong> Programı her türlü amaç için çalıştırma özgürlüğü</p></li>
+<li><p><strong>Özgürlük 1:</strong> Programın kaynak kodunu inceleme ve değiştirebilme özgürlüğü</p></li>
+<li><p><strong>Özgürlük 2:</strong> Programın kopyalarını çıkartabilme ve yeniden dağıtabilme özgürlüğü</p></li>
+<li><p><strong>Özgürlük 3:</strong> Programı iyileştirebilme ve iyileştirilmiş programı yayınlama özgürlüğü</p></li>
+</ul>
+<p>GNU projesi bağlamında pek çok temel araç (gcc derleyicisi, ld bağlayıcı, diğer binary utility programlar
+vs.) geliştirilmiştir. Ancak GNU projesinin işletim sistemi olan GNU Hurd bir türlü hedeflenen düzeye
+getirilememiştir. Bu konuda zaten artık umut da kalmamıştır.</p>
+<p>Aslında özgür yazılım (<em>free software</em>) ile açık kaynak kod (<em>open source</em>) akımları arasında bazı farklar
+olmakla birlikte her iki akımın da hedefleri benzerdir. Özgür yazılım bir sosyal harekete benzetilirken açık
+kaynak kod akımı bir geliştirme metodolojisine benzetilmektedir. Biz kursumuzda tüm bu akımları
+<em>açık kaynak kod</em> (<em>open source</em>) olarak nitelendireceğiz. Özgür yazılım akımının temel lisansı GPL’dir
+(<em>GNU Public Licence</em>). Bunun yumuşatılmış LGPL (<em>Lesser GPL</em>) biçiminde bir versiyonu da oluşturulmuştur.
+Ayrıca Apache, MIT, BSD gibi açık kaynak kodlu başka lisanslar da vardır. Bu lisansların aralarında birtakım
+farklılıklar bulunmakla birlikte pek çok yönleri de ortaktır.</p>
+</section>
+<section id="linux-un-tarihi">
+<h3><span class="section-number">1.2.2. </span>Linux’un Tarihi<a class="headerlink" href="#linux-un-tarihi" title="Link to this heading"></a></h3>
+<p>Linux işletim sistemi projesi 90’lı yılların başlarında Helsinki Üniversitesinde Bilgisayar bölümünde öğrenci
+olan Linus Torvalds tarafından başlatılmıştır. Linus Torvalds bir işletim sistemi yazma hevesine kapıldı ve
+bunu o devrin tartışma platformu olan USENET’te paylaştı. 25 Ağustos 1991’de <code class="docutils literal notranslate"><span class="pre">comp.os.minix</span></code> haber grubuna
+yazdığı mesaj tarihe geçecekti:</p>
+<blockquote>
+<div><p><em>“Hello everybody out there using minix — I’m doing a (free) operating system (just a hobby, won’t be big</em>
+<em>and professional like gnu) for 386(486) AT clones.”</em></p>
+</div></blockquote>
+<p>Torvalds’ın ilk çalışmaları, Andrew Tanenbaum’un geliştirdiği Minix işletim sistemini temel alıyordu.
+Torvalds bu bağlamda Tanenbaum ile yazışmalar da yapmıştır. Linux’un ilk versiyonu 0.01 biçiminde Eylül
+1991’de yayımlandı. Bu versiyona şuradan erişebilirsiniz:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://elixir.bootlin.com/linux/0.01/source">https://elixir.bootlin.com/linux/0.01/source</a></p>
+</div></blockquote>
+<p>Bu ilk versiyon öğrenci ödevi gibi olan oldukça ilkel bir çekirdekti. Sonraki zamanlarda Linux projesi çeşitli
+topluluklardan destek aldı ve çekirdek gittikçe iyileştirildi. Linux çekirdeğini temel alan fakat GNU projesi
+kapsamında geliştirilmiş olan pek çok araç bir araya getirilerek Linux dağıtımları oluşturuldu. Linux’un
+rekabet edebilecek ölçüde bir işletim sistemi hâline gelmesi 2’li versiyonlarla başladı. 2.2, 2.4 ve
+özellikle de 2.6 versiyonuyla Linux pek çok modern özelliklere sahip oldu ve çekirdek de daha etkin
+çalışabilecek biçimde sürekli iyileştirildi. Linux’un 2.6 versiyonundan sonra versiyon numaralandırması
+değiştirildi. Daha hızlı bir numaralandırma sistemine geçildi.</p>
+<p>Aşağıda çekirdeğin temel versiyonlarının kullanıma sokulduğu yılları veriyoruz:</p>
+<table class="docutils align-default" id="id13">
+<caption><span class="caption-text">Linux Çekirdeği Temel Sürümleri</span><a class="headerlink" href="#id13" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 10.0%" />
+<col style="width: 16.0%" />
+<col style="width: 74.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Sürüm</p></th>
+<th class="head"><p>Tarih</p></th>
+<th class="head"><p>Önemli Özellikler / Notlar</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0.01</p></td>
+<td><p>17 Eyl 1991</p></td>
+<td><p>Linus Torvalds tarafından yapılan ilk genel yayın, yalnızca x86</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.02</p></td>
+<td><p>5 Eki 1991</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">comp.os.minix</span></code>’e gönderilen ilk “resmi” çekirdek</p></td>
+</tr>
+<tr class="row-even"><td><p>0.12</p></td>
+<td><p>15 Oca 1992</p></td>
+<td><p>Sanal bellek desteği eklendi; GNU GPL v2 lisansı benimsendi</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.95</p></td>
+<td><p>8 Mar 1992</p></td>
+<td><p>X Window System’i çalıştıran ilk sürüm</p></td>
+</tr>
+<tr class="row-even"><td><p>1.0</p></td>
+<td><p>14 Mar 1994</p></td>
+<td><p>İlk kararlı üretim sürümü; IPv4 ağ desteği</p></td>
+</tr>
+<tr class="row-odd"><td><p>1.2</p></td>
+<td><p>7 Mar 1995</p></td>
+<td><p>Çoklu mimari desteği (Alpha, MIPS, SPARC, x86)</p></td>
+</tr>
+<tr class="row-even"><td><p>2.0</p></td>
+<td><p>9 Haz 1996</p></td>
+<td><p>SMP desteği, çoklu mimari, iyileştirilmiş ağ yönetimi</p></td>
+</tr>
+<tr class="row-odd"><td><p>2.2</p></td>
+<td><p>26 Oca 1999</p></td>
+<td><p>Gelişmiş SMP, deneysel IPv6, dosya sistemi iyileştirmeleri</p></td>
+</tr>
+<tr class="row-even"><td><p>2.4</p></td>
+<td><p>4 Oca 2001</p></td>
+<td><p>USB, PC Card, ISA Tak-Çalıştır, ext3 dosya sistemi desteği</p></td>
+</tr>
+<tr class="row-odd"><td><p>2.6</p></td>
+<td><p>17 Ara 2003</p></td>
+<td><p>NPTL iş parçacığı, udev, geliştirilmiş zamanlayıcı (O(1))</p></td>
+</tr>
+<tr class="row-even"><td><p>2.6.16</p></td>
+<td><p>20 Mar 2006</p></td>
+<td><p>İlk LTS çekirdeği; gerçek zamanlı kesme iyileştirmeleri</p></td>
+</tr>
+<tr class="row-odd"><td><p>2.6.27</p></td>
+<td><p>9 Eki 2008</p></td>
+<td><p>LTS; ext4 desteği, sanallaştırma geliştirmeleri</p></td>
+</tr>
+<tr class="row-even"><td><p>3.0</p></td>
+<td><p>21 Tem 2011</p></td>
+<td><p>Yeniden markalama (büyük değişiklik yok); Btrfs, TRIM, Ceph</p></td>
+</tr>
+<tr class="row-odd"><td><p>3.10</p></td>
+<td><p>30 Haz 2013</p></td>
+<td><p>LTS; bellek yönetimi iyileştirmeleri, KVM geliştirmeleri</p></td>
+</tr>
+<tr class="row-even"><td><p>3.14</p></td>
+<td><p>30 Mar 2014</p></td>
+<td><p>LTS; daha iyi gerçek zamanlı performans, enerji farkındalıklı</p></td>
+</tr>
+<tr class="row-odd"><td><p>4.0</p></td>
+<td><p>12 Nis 2015</p></td>
+<td><p>Canlı çekirdek yamalama (kpatch/kGraft) desteği</p></td>
+</tr>
+<tr class="row-even"><td><p>4.4</p></td>
+<td><p>10 Oca 2016</p></td>
+<td><p>LTS; 3D GPU sanallaştırma, açık kaynaklı VPU sürücüsü</p></td>
+</tr>
+<tr class="row-odd"><td><p>4.9</p></td>
+<td><p>11 Ara 2016</p></td>
+<td><p>LTS; XDP ağ desteği, UBSAN desteği</p></td>
+</tr>
+<tr class="row-even"><td><p>4.14</p></td>
+<td><p>12 Kas 2017</p></td>
+<td><p>LTS; heterojen bellek yönetimi, KPTI hazırlığı</p></td>
+</tr>
+<tr class="row-odd"><td><p>4.19</p></td>
+<td><p>22 Eki 2018</p></td>
+<td><p>LTS; Spectre/Meltdown yamaları, WireGuard öncüsü</p></td>
+</tr>
+<tr class="row-even"><td><p>5.0</p></td>
+<td><p>3 Mar 2019</p></td>
+<td><p>Enerji farkındalıklı zamanlama, AMDGPU FreeSync, RISC-V</p></td>
+</tr>
+<tr class="row-odd"><td><p>5.4</p></td>
+<td><p>24 Kas 2019</p></td>
+<td><p>LTS; exFAT sürücüsü, kilitleme güvenlik modülü, io_uring</p></td>
+</tr>
+<tr class="row-even"><td><p>5.10</p></td>
+<td><p>13 Ara 2020</p></td>
+<td><p>LTS; eBPF geliştirmeleri, Apple M1 ilk çalışmaları</p></td>
+</tr>
+<tr class="row-odd"><td><p>5.15</p></td>
+<td><p>31 Eki 2021</p></td>
+<td><p>LTS; NTFS3 sürücüsü, çekirdek içi SMB sunucusu</p></td>
+</tr>
+<tr class="row-even"><td><p>6.0</p></td>
+<td><p>2 Eki 2022</p></td>
+<td><p>AMD RDNA3/Intel Arc desteği, MGLRU bellek geri kazanımı</p></td>
+</tr>
+<tr class="row-odd"><td><p>6.1</p></td>
+<td><p>11 Ara 2022</p></td>
+<td><p>LTS; Rust dil desteği, ilk Rust çekirdek modülleri</p></td>
+</tr>
+<tr class="row-even"><td><p>6.6</p></td>
+<td><p>29 Eki 2023</p></td>
+<td><p>LTS; EEVDF zamanlayıcı CFS’nin yerini aldı, gelişmiş BPF</p></td>
+</tr>
+<tr class="row-odd"><td><p>6.12</p></td>
+<td><p>17 Kas 2024</p></td>
+<td><p>LTS; 20 yıllık PREEMPT_RT gerçek zamanlı desteği ana dala alındı</p></td>
+</tr>
+<tr class="row-even"><td><p>6.14</p></td>
+<td><p>24 Mar 2025</p></td>
+<td><p>Intel Nova Lake erken desteği, ağ performans iyileştirmeleri</p></td>
+</tr>
+<tr class="row-odd"><td><p>6.15</p></td>
+<td><p>25 May 2025</p></td>
+<td><p>En aktif döngülerden biri; 14.612 değişiklik seti, 2.068 geliştirici</p></td>
+</tr>
+<tr class="row-even"><td><p>6.16</p></td>
+<td><p>27 Tem 2025</p></td>
+<td><p>Zamanlayıcı ölçeklenebilirlik geliştirmeleri, AMD EPYC optimizasyonları</p></td>
+</tr>
+<tr class="row-odd"><td><p>6.17</p></td>
+<td><p>28 Eyl 2025</p></td>
+<td><p>Çalışma zamanı bariyer komut yamalama, donanım etkinleştirme</p></td>
+</tr>
+<tr class="row-even"><td><p>6.18</p></td>
+<td><p>1 Ara 2025</p></td>
+<td><p>LTS; AccECN varsayılan açık, dosya sistemi sağlık izleme API’si</p></td>
+</tr>
+<tr class="row-odd"><td><p>6.19</p></td>
+<td><p>8 Şub 2026</p></td>
+<td><p>6.x serisinin son sürümü; PCIe ve bellek yalıtımı çalışmaları</p></td>
+</tr>
+<tr class="row-even"><td><p>7.0</p></td>
+<td><p>12 Nis 2026</p></td>
+<td><p>Rust kararlı hale geldi; XFS öz-iyileştirme, kuantum sonrası imza</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Not</p>
+<p>LTS (Uzun Süreli Destek) olarak işaretlenen sürümler, üretim ortamları için uzun süre bakım alacak biçimde
+belirlenen kararlı çekirdeklerdir. 0.01’den 1.0’a giden süreç yaklaşık 2,5 yıl sürmüştür. 2.6 serisi
+2003–2011 arasında yaklaşık 8 yıl boyunca aktif geliştirilmiş, Linux tarihinin en uzun kullanılan serisi
+olmuştur. 6.12 ile birlikte yaklaşık 20 yıldır geliştirilen PREEMPT_RT yaması nihayet ana çekirdeğe dahil
+edilmiştir.</p>
+</div>
+<p>Her ne kadar işletim sisteminin ismi Linux olsa da aslında Linux’un geliştirilmesi büyük ölçüde GNU projesinin
+sağladığı araçlarla ve oluşturduğu ortamla yapılmıştır. Aynı zamanda çekirdeğinin çalışabilmesi için pek çok
+GNU aracına gereksinim duyulmaktadır. Zamanla Linux adeta GNU projesinin işletim sistemi hâline gelmiştir.
+Pek çok topluluk ve geliştirici Linux’un isminin de aslında <em>GNU/Linux</em> biçiminde olması gerektiğini ifade
+etmektedir. Ancak <em>GNU/Linux</em> ismi kullanılıyor olsa da geniş bir kesim tarafından benimsenmemiştir.</p>
+</section>
+<section id="linux-kaynak-kodlarina-erisim">
+<h3><span class="section-number">1.2.3. </span>Linux Kaynak Kodlarına Erişim<a class="headerlink" href="#linux-kaynak-kodlarina-erisim" title="Link to this heading"></a></h3>
+<p>Kursumuzda bazen Linux’un kaynak kodları üzerinde incelemeler ve açıklamalar da yapacağız. Linux’un kaynak
+kodları üzerinde gezintiler yapabilmek için kullanılan çeşitli web siteleri bulunmaktadır. Biz kursumuzda
+<em>Bootlin</em> tarafından oluşturulmuş olan aşağıdaki gezinme aracını kullanacağız:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://elixir.bootlin.com/linux/v7.0.1/source">https://elixir.bootlin.com/linux/v7.0.1/source</a></p>
+</div></blockquote>
+<p>Burada Linux’un öğrenci ödevi gibi olan ilk 0.01 versiyonundan itibaren tüm versiyonlarının kaynak kodları
+bulunmaktadır. Bu site aynı zamanda çok kullanılan başka projelerin de kaynak kodlarını barındırmaktadır.
+Bu sitenin yanı sıra aşağıdaki site de değişik işletim sistemlerinin incelenebilmesi için bir gezinti ortamı
+sunmaktadır:</p>
+<blockquote>
+<div><p><a class="reference external" href="http://fxr.watson.org/">http://fxr.watson.org/</a></p>
+</div></blockquote>
+</section>
+<section id="linux-dagitimlari">
+<h3><span class="section-number">1.2.4. </span>Linux Dağıtımları<a class="headerlink" href="#linux-dagitimlari" title="Link to this heading"></a></h3>
+<p>Açık kaynak kodlu yazılımlar bir araya getirilip paketlenerek istenildiği gibi dağıtılabilmektedir. Dağıtım
+(<em>distribution</em>) bu anlamda kullanılan genel bir terimdir ve her türlü açık kaynak kodlu yazılım için dağıtım
+söz konusu olabilir. Ancak biz burada Linux dağıtımları üzerinde duracağız.</p>
+<p>Linux temel olarak bir çekirdek geliştirme projesidir. Linux kaynak kodlarına baktığınızda tüm kodların
+çekirdekle ilgili olduğunu görürsünüz. Çekirdeğin dışındaki tüm yazılımlar (örneğin init prosesinden
+başlayarak, kabuk yazılımları, paket yöneticileri, pencere yöneticileri vs.) hep başka proje grupları
+tarafından gerçekleştirilmiş açık kaynak kodlu yazılımlardır. İşte tüm bu açık kaynak kodlu yazılımların
+Linux çekirdeği temelinde bir araya getirilerek doğrudan kullanıcının install edip çalıştırabileceği biçimde
+paketlenmesine Linux dağıtımları denilmektedir. Linux dağıtımları pencere yöneticileri (KDE, GNOME gibi),
+paket yöneticileri (APT, RPM, YUM, DPKG, PACMAN, ZYPPER gibi) ve diğer yararlı uygulama programları
+bakımından farklılıklar gösterebilmektedir.</p>
+<p>Toplamda iki yüzün üzerinde Linux dağıtımının olduğu söylenebilir. Ancak bunlar arasında az sayıda dağıtım
+çok popüler olmuştur. Bazı dağıtımlar bazı dağıtımlardan fork edilerek oluşturulmuştur. Aşağıda en çok
+kullanılan dağıtımlara ilişkin dağıtım ağacını veriyoruz:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Linux
+├── Debian
+│   ├── Ubuntu
+│   │   ├── Linux Mint
+│   │   ├── Pop!_OS
+│   │   ├── elementary OS
+│   │   └── Zorin OS
+│   ├── Devuan        # Systemd olmayan Debian
+│   └── Kali Linux    # Güvenlik test amaçlı
+├── Red Hat Linux (eski)
+│   ├── Fedora        # Topluluk temelli, RHEL&#39;in test yatağı
+│   │   └── RHEL (Red Hat Enterprise Linux)
+│   │       ├── CentOS (→ 2021 sonrası CentOS Stream)
+│   │       ├── AlmaLinux
+│   │       └── Rocky Linux
+├── Slackware
+│   └── Slax          # Hafif sürüm
+├── Arch Linux
+│   ├── Manjaro
+│   └── EndeavourOS
+├── Gentoo
+│   └── Calculate Linux
+├── SUSE Linux
+│   ├── openSUSE Leap
+│   └── openSUSE Tumbleweed
+├── Android           # Mobil, Linux çekirdeğine dayalı
+├── Alpine Linux      # Minimal, güvenli, konteyner dostu
+└── Chrome OS
+    └── Chromium OS   # Açık kaynak tabanı
+</pre></div>
+</div>
+<p>Burada en çok kullanılan Linux dağıtımlarından bahsedeceğiz.</p>
+<p><strong>Debian Dağıtımı:</strong> En önemli ve en eski Linux dağıtımlarından biridir. Ubuntu, Knoppix, Mint dağıtımları
+Debian türevi dağıtımlardır.</p>
+<p><strong>Fedora:</strong> Red Hat firması tarafından çıkarılmış olan dağıtımdır. İlk kez 2003 yılında oluşturulmuştur. RPM
+paket yöneticisini kullanır. 2000 yılında ilk sürümü yapılan Red Hat Enterprise Linux (RHEL) en önemli
+Fedora türevidir. Ondan da CentOS, Scientific Linux gibi dağıtımlar türetilmiştir. CentOS server makinelerde
+en yaygın kullanılan Linux versiyonudur.</p>
+<p><strong>OpenSUSE:</strong> Alman SUSE firmasının desteklediği dağıtımdır. <em>SUSE Linux Enterprise</em> isminde ticari bir
+versiyonu da vardır. ZYpp, YaST ve RPM paket yöneticilerini kullanmaktadır.</p>
+<p><strong>Slackware:</strong> En eski Linux dağıtımıdır. 1993 yılında oluşturulmuştur. Sürdürümü yavaş olmakla birlikte
+hâlâ devam etmektedir.</p>
 </section>
 </section>
 </section>
