@@ -2636,3 +2636,5 @@ durumlarda aynı bayrak değişkeni birden fazla kez set edilir ancak programda 
 
     $ ls -lllllllllll
 
+
+
