@@ -5,7 +5,7 @@ source/_build/
 # Dökümantasyonun derlenmiş halleri
 docs/build/
 
-#  MacOS tarafında oluşturulan dosyalar
+# MacOS tarafında oluşturulan dosyalar
 .DS_Store
 
 # Python

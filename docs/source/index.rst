@@ -16,6 +16,6 @@ documentation for details.
    :caption: Contents:
    :numbered:
 
-   introduction    
+   introduction
    commandlinearguments
    linuxusermanagement
