@@ -1385,3 +1385,305 @@ sistemlerinde ``<limits.h>`` dosyası içerisinde ``PATH_MAX`` sembolik sabiti `
         exit(EXIT_FAILURE);
     }
 
+
+``chdir`` Fonksiyonu
+=====================
+
+Prosesin çalışma dizini ``chdir`` isimli POSIX fonksiyonuyla değiştirilmektedir. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int chdir(const char *path);
+
+Fonksiyon yeni çalışma dizininin yol ifadesini parametre olarak alır. Başarı durumunda ``0`` değerine,
+başarısızlık durumunda ``-1`` değerine geri döner. Örneğin:
+
+.. code-block:: c
+
+    if (chdir("/home/student/notes") == -1)
+        exit_sys("chdir");
+
+Tabii ``chdir`` fonksiyonunun argümanı göreli bir yol ifadesi biçiminde de girilebilir. Ancak sistem her zaman
+çalışma dizinini mutlak yol ifadesiyle tutmaktadır. Örneğin prosesimizin çalışma dizini ``/home/student`` olsun.
+Biz de fonksiyonu aşağıdaki gibi çağırmış olalım:
+
+.. code-block:: c
+
+    if (chdir("notes") == -1)
+        exit_sys("chdir");
+
+Burada prosesin çalışma dizini ``/home/student/notes`` biçiminde olacaktır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <limits.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        char buf[PATH_MAX];
+
+        if (getcwd(buf, PATH_MAX) == NULL)
+            exit_sys("getcwd");
+
+        puts(buf);
+
+        if (chdir("/usr/bin") == -1)
+            exit_sys("chdir");
+
+        if (getcwd(buf, PATH_MAX) == NULL)
+            exit_sys("getcwd");
+
+        puts(buf);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+Kabuk Programına ``cd`` Komutunun Eklenmesi
+============================================
+
+Şimdi daha önce yazmış olduğumuz kabuk programımıza ``cd`` komutunu ekleyelim. Örneğimizde kabuğumuzun çalışma
+dizinini ``g_cwd`` global dizisinde tuttuk. Her ``cd`` komutu girildiğinde ``getcwd`` uygulayarak yeni çalışma
+dizinini bu diziye yerleştirdik:
+
+.. code-block:: c
+
+    void cd_proc(void)
+    {
+        if (g_nparams != 2) {
+            printf("wrong number of command parameters!..\n");
+            return;
+        }
+
+        if (chdir(g_params[1]) == -1) {
+            printf("%s: \"%s\"\n", strerror(errno), g_params[1]);
+            return;
+        }
+
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+    }
+
+Programın tamamı şöyledir:
+
+.. code-block:: c
+
+    /* myshell.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <unistd.h>
+
+    #define MAX_CMD_LINE            4096
+    #define MAX_CMD_PARAMS          1024
+    #define PATH_SIZE               4096
+
+    struct cmd {
+        const char *name;
+        void (*proc)(void);
+    };
+
+    void parse_cmd_line(char *cmdline);
+    void rm_proc(void);
+    void cp_proc(void);
+    void mv_proc(void);
+    void cd_proc(void);
+    void exit_sys(const char *msg);
+
+    struct cmd g_cmds[] = {
+        {"rm", rm_proc},
+        {"cp", cp_proc},
+        {"mv", mv_proc},
+        {"cd", cd_proc},
+        {NULL, NULL}
+    };
+
+    char *g_params[MAX_CMD_PARAMS];
+    int g_nparams;
+    char g_cwd[PATH_SIZE];
+
+    int main(void)
+    {
+        char cmdline[MAX_CMD_LINE];
+        char *str;
+        int i;
+
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+
+        for (;;) {
+
+            printf("CSD:%s$ ", g_cwd);
+            fflush(stdout);
+
+            if (fgets(cmdline, MAX_CMD_LINE, stdin) == NULL)
+                continue;
+            if ((str = strchr(cmdline, '\n')) != NULL)
+                *str = '\0';
+
+            parse_cmd_line(cmdline);
+            if (g_nparams == 0)
+                continue;
+            if (!strcmp(g_params[0], "exit"))
+                break;
+
+            for (i = 0; g_cmds[i].name != NULL; ++i)
+                if (!strcmp(g_cmds[i].name, g_params[0])) {
+                    g_cmds[i].proc();
+                    break;
+                }
+            if (g_cmds[i].name == NULL)
+                printf("command not found: %s\n", g_params[0]);
+        }
+
+        return 0;
+    }
+
+    void parse_cmd_line(char *cmdline)
+    {
+        char *arg;
+
+        g_nparams = 0;
+        for ((arg = strtok(cmdline, " \t")); arg != NULL; arg = strtok(NULL, " \t"))
+            g_params[g_nparams++] = arg;
+        g_params[g_nparams] = NULL;
+    }
+
+    void rm_proc(void)
+    {
+        if (g_nparams == 1) {
+            printf("too few command parameters!...\n");
+            return;
+        }
+        printf("rm command...\n");
+    }
+
+    void cp_proc(void)
+    {
+        if (g_nparams != 3) {
+            printf("wrong number of command parameters!...\n");
+            return;
+        }
+
+        printf("cp command...\n");
+    }
+
+    void mv_proc(void)
+    {
+        if (g_nparams != 3) {
+            printf("wrong number of command parameters!...\n");
+            return;
+        }
+
+        printf("mv command...\n");
+    }
+
+    void cd_proc(void)
+    {
+        if (g_nparams != 2) {
+            printf("wrong number of command parameters!..\n");
+            return;
+        }
+
+        if (chdir(g_params[1]) == -1) {
+            printf("%s: \"%s\"\n", strerror(errno), g_params[1]);
+            return;
+        }
+
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+Dizinlerin Yapısı ve Erişim Hakları
+====================================
+
+Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
+*içerisinde dosya bilgilerini tutan dosyalar* gibi düşünebiliriz. Yani dizinler *dizin giriş bilgilerinden*
+oluşmaktadır. Her dizin girişi bir dosya ya da dizin hakkında bilgi tutmaktadır. Bir dizini temsili olarak şöyle
+bir yapı gibi düşünebilirsiniz:
+
+.. code-block:: text
+
+    <dizin_girişi>
+    <dizin_girişi>
+    <dizin_girişi>
+    ...
+
+Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
+fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
+
+``r``, ``w`` Hakları
+---------------------
+
+Bir dizine ``r`` hakkının olması, o dizinin içeriğinin ``ls`` gibi bir komutla görüntülenebileceği anlamına
+gelmektedir. (Aslında bu kontrol ``opendir`` POSIX fonksiyonunda yapılmaktadır.) Bir dizin içerisinde bir
+dosyanın ya da dizinin yaratılması için dizine ``w`` hakkının olması gerekir. Çünkü dizin içerisinde dosya ya da
+dizin yaratmak aslında dizin dosyasına yeni bir giriş eklemek (bunun bir yazma işlemi olduğuna dikkat ediniz)
+anlamına gelmektedir.
+
+Bir dizin içerisindeki bir dosyayı ya da dizini silmek için tek gereken şey, o dosya ya da dizinin içinde
+bulunduğu dizine ``w`` hakkının olmasıdır. Silinecek dosya ya da dizine ``w`` hakkının olup olmadığının hiçbir
+önemi yoktur. Ancak bazı kabuk programları, dizine ``w`` hakkı varsa ancak silinmek istenen dosya ya da dizine
+``w`` hakkı yoksa bir uyarı mesajı da verebilmektedir.
+
+``x`` Hakkı ve Yol İfadesinin Çözümlenmesi
+-------------------------------------------
+
+Dizinlerde ``x`` hakkı farklı bir anlama gelmektedir. İşletim sistemi, bir yol ifadesi verildiğinde yol
+ifadesinde hedeflenen dizin girişi için bilgileri elde etmek ister. Buna *yol ifadesinin çözümlenmesi (pathname
+resolution)* denilmektedir. Örneğin:
+
+.. code-block:: text
+
+    "/home/kaan/Study/C/sample.c"
+
+Burada hedeflenen dosya ``sample.c`` dosyasıdır. İşletim sistemi bu dosyanın yerini bulabilmek için yol
+ifadesindeki bileşenlerin üzerinden geçmek ister. İşte *yol ifadesinin çözümlenmesi* işleminde dizin geçişleriyle
+hedefe ulaşılabilmesi için prosesin, yol ifadesine ilişkin tüm dizinler için ``x`` hakkına sahip olması gerekir.
+Yani dizinlerdeki ``x`` hakkı *içinden geçilebilirlik* gibi bir anlama gelmektedir. Biz bir dizindeki ``x``
+hakkını kaldırırsak, işletim sistemi *yol ifadesinin çözümlenmesi* işleminde başarısız olur. Yukarıda da
+belirttiğimiz gibi yol ifadesinin başarılı bir biçimde çözümlenmesi için, yol ifadesindeki dizin belirten tüm
+yol bileşenleri için erişim yapan prosesin ``x`` hakkına sahip olması gerekir. Yukarıdaki örnekte *yol
+ifadesinin çözümlenmesi* işleminin başarıyla bitirilebilmesi için prosesin ``home`` dizinine, ``kaan`` dizinine,
+``Study`` dizinine ve ``C`` dizinine ``x`` hakkına sahip olması gerekir.
+
+``x`` hakkı göreli yol ifadelerinde de aynı biçimde uygulanmaktadır. Örneğin biz ``test.txt`` dosyasını ``open``
+fonksiyonu ile ``test.txt`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için ``x``
+hakkına sahip değilsek yine yol ifadesi başarılı bir biçimde çözümlenemeyecektir. Başka bir deyişle ``test.txt``
+yol ifadesi sanki ``./test.txt`` gibi ele alınmaktadır. Örneğin ``a/b/c/test.txt`` gibi bir yol ifadesinin
+başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil olmak üzere ``a``, ``b`` ve ``c``
+dizinlerine ``x`` hakkının olması gerekir.
+
+``x`` hakkı dizin ağacında bir noktaya duvar örmek için kullanılabilmektedir. ``mkdir`` gibi kabuk komutları
+dizin yaratırken zaten ``x`` hakkını varsayılan durumda vermektedir. Proses id'si ``0`` olan *root prosesler*
+her zaman yol ifadesinin çözümlenmesi sırasında dizinlerin içerisinden geçebilirler.
+
+Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``r`` hakkının bulunması gerekmemektedir. Örneğin
+``a/b/c/test.txt`` gibi bir yol ifadesinde, prosesin ``a`` dizinine, ``b`` dizinine ve ``c`` dizinine ``r``
+hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu dosya açılabilir. Yani bir dizinin
+içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde bulunduğunu biliyorsak, o dosyayı
+yine de kullanabiliriz.
