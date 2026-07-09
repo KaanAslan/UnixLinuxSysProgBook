@@ -861,3 +861,924 @@ Dosya göstericisinin konumu dosya nesnesi içerisinde saklanmaktadır. (Linux'u
 yapısının ``f_pos`` elemanı dosya göstericisinin konumunu tutmaktadır.) Biz aynı dosyayı ikinci kez açmış olsak
 bile yeni bir dosya nesnesi, dolayısıyla yeni bir dosya göstericisi elde etmiş oluruz.
 
+
+----
+
+read Fonksiyonu
+====================
+
+Dosyadan okuma yapmak için ``read`` POSIX fonksiyonu kullanılmaktadır. Pek çok sistemde bu POSIX fonksiyonu
+doğrudan işletim sisteminin okuma yapan sistem fonksiyonunu (Linux'ta ``sys_read``) çağırmaktadır. ``read``
+fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    ssize_t read(int fd, void *buf, size_t nbyte);
+
+Fonksiyonun birinci parametresi okuma işleminin yapılacağı dosya betimleyicisini belirtmektedir. İşletim sistemi
+bu betimleyiciden hareketle dosya nesnesine erişir. İkinci parametre dosyadan okunan byte'ların
+yerleştirileceği bellek transfer adresini, üçüncü parametre okunacak byte sayısını belirtmektedir.
+
+Fonksiyon başarı durumunda okuyabildiği byte sayısıyla geri döner. ``read`` fonksiyonu ile eğer dosya
+göstericisinin gösterdiği yerden itibaren dosya sonuna kadar mevcut olan byte miktarından daha fazla byte
+okunmak istenirse, ``read`` fonksiyonu okuyabildiği kadar byte'ı okur ve okuyabildiği byte sayısına geri döner.
+Dosya göstericisi EOF durumunda ise ``read`` hiç okuma yapamayacağı için ``0`` ile geri dönmektedir. Ancak
+argümanların yanlış girilmesinde ya da G/Ç hatalarında ``read`` başarısız olur ve ``-1`` değerine geri döner;
+``errno`` uygun bir biçimde set edilmektedir. ``ssize_t`` türü ``<unistd.h>`` ve ``<sys/types.h>`` dosyaları
+içerisinde *işaretli bir tamsayı türü olacak biçiminde* typedef edilmek zorunda olan POSIX'e özgü bir tür
+ismidir. ``ssize_t`` türünü ``size_t`` türünün işaretli biçimi olarak düşünebilirsiniz. ``size_t`` türü C
+standartlarında olduğu halde ``ssize_t`` türü C standartlarında bulunmamaktadır. ``read`` fonksiyonunu tipik
+olarak şöyle kullanmalısınız:
+
+.. code-block:: c
+
+    ssize_t result;
+    char buf[BUFFER_SIZE];
+
+    if ((result = read(fd, buf, BUFFER_SIZE)) == -1)
+        exit_sys("read");
+
+Talep ettiğiniz kadar bilginin okunup okunmadığını anlamak için ayrıca kontrol yapabilirsiniz:
+
+.. code-block:: c
+
+    if ((result = read(fd, buf, BUFFER_SIZE)) != BUFFER_SIZE) {
+        if (result == -1)
+            exit_sys("read");
+        fprintf(stderr, "cannot read enough!..\n");
+        exit(EXIT_FAILURE);
+    }
+
+Eğer bir metin dosyasından okuma yapıp okunanı yazdırmak istiyorsanız null karakteri eklemeyi unutmayınız.
+Örneğin:
+
+.. code-block:: c
+
+    char buf[BUFFER_SIZE + 1];
+    ssize_t result;
+
+    if ((result = read(fd, buf, BUFFER_SIZE)) == -1)
+        exit_sys("read");
+
+    buf[result] = '\0';
+    puts(buf);
+
+``read`` fonksiyonu ile dosyadan ``0`` byte okunmak istendiğinde ``read`` fonksiyonu temel bazı kontrolleri
+yapar (örneğin dosyanın okuma modunda açılmış olup olmadığı kontrol edilir). Eğer bu kontrollerde bir sorun
+çıkarsa fonksiyon başarısız olur ve ``-1`` değerine geri döner. Eğer bu kontrollerde bir sorun çıkmazsa ``0``
+değerine geri döner ve herhangi bir okuma işlemi yapmaz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+        char buf[10 + 1];
+        ssize_t result;
+
+        if ((fd = open("test.txt", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        if ((result = read(fd, buf, 10)) == -1)
+            exit_sys("read");
+
+        buf[result] = '\0';
+        printf(":%s:\n", buf);
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Şimdi bir dosyayı dosya sonuna kadar ``read`` fonksiyonu ile bir döngü içerisinde okuyalım. Bu tür durumlarda
+klasik yöntem aşağıdaki gibi bir döngü oluşturmaktır:
+
+.. code-block:: c
+
+    while ((result = read(fd, buf, BUFSIZE)) > 0) {
+        /* ... */
+    }
+    if (result == -1)
+        exit_sys("read");
+
+Bu döngüden G/Ç hatası oluşunca ya da dosya göstericisi dosyanın sonuna geldiğinde çıkılacaktır. Döngüden
+çıkıldığında neden çıkıldığı da ayrıca sorgulanmıştır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    #define BUFSIZE        4096
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+        char buf[BUFSIZE + 1];
+        ssize_t result;
+
+        if ((fd = open("sample.c", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        while ((result = read(fd, buf, BUFSIZE)) > 0) {
+            buf[result] = '\0';
+            printf("%s", buf);
+        }
+
+        if (result == -1)
+            exit_sys("read");
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+write Fonksiyonu
+=====================
+
+Dosyaya yazma yapmak için ``write`` isimli POSIX fonksiyonu kullanılmaktadır. Bu fonksiyon da pek çok sistemde
+doğrudan işletim sisteminin dosyaya yazma yapan sistem fonksiyonunu (Linux'ta ``sys_write``) çağırmaktadır.
+Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    ssize_t write(int fd, const void *buf, size_t nbyte);
+
+Fonksiyonun birinci parametresi yazma yapılacak dosyaya ilişkin dosya betimleyicisini, ikinci parametre
+yazılacak bilgilerin bulunduğu bellek transfer adresini, üçüncü parametre ise yazılacak byte sayısını
+belirtmektedir. ``write`` fonksiyonu başarılı olarak yazılan byte sayısıyla geri dönmektedir. Normal olarak bu
+değer üçüncü parametrede belirtilen yazılmak istenen byte sayısıdır. Ancak çok seyrek bazı durumlarda ``write``
+fonksiyonu talep edilenden daha az byte'ı da dosyaya yazabilir. Bu durumda ``write`` fonksiyonu yazabildiği
+byte sayısıyla geri dönmektedir. ``write`` fonksiyonu başarısız olursa ``-1`` değerine geri döner ve ``errno``
+uygun biçimde set edilir. Fonksiyon tipik olarak şöyle kullanılmaktadır:
+
+.. code-block:: c
+
+    if (write(fd, buf, size) == -1)
+        exit_sys("write");
+
+Disk doluysa ya da yazılmak istenen dosya işletim sisteminin kullandığı dosya sisteminin izin verilen uzunluğunu
+aşıyorsa ``write`` fonksiyonu yazabildiği kadar byte'ı yazar, yazabildiği byte sayısına geri döner (*partial
+write*); ancak bu nedenlerle ``write`` hiç byte yazamazsa başarısız olup ``-1`` değeriyle geri dönmektedir. Bu
+durumda ``errno`` ``EFBIG`` değeri ile set edilmektedir. ``write`` fonksiyonunun boru gibi özel dosyalardaki
+davranışı farklıdır. Bu konu ileride ele alınacaktır.
+
+``write`` fonksiyonu yazmayı EOF ötesine yapabilir; bu durumda yazılanlar dosyaya eklenmiş olmaktadır. Örneğin
+dosya yeni yaratılmış olsun. Bu durumda ``write`` fonksiyonuyla her yazılan dosyaya eklenmiş olacaktır.
+
+``write`` fonksiyonu ile dosyaya ``0`` byte yazılmak istendiğinde gerçek bir yazma yapılmaz. ``write``
+fonksiyonu bu durumda yazma için gerekli kontrolleri yapar (örneğin dosyanın yazma modunda açılıp açılmadığı
+gibi). Eğer bu kontrollerde başarısızlık oluşursa ``write`` başarısız olur ve ``-1`` değeriyle geri döner.
+Eğer bu kontrollerde başarısızlık oluşmazsa ``write`` ``0`` ile geri döner. Ancak yukarıda da belirttiğimiz
+gibi bu durumda gerçek bir yazma yapılmamaktadır. POSIX standartları normal dosyaların dışında (yani *regular*
+olmayan dosyaların dışında) 0 byte yazma işlemini *unspecified* olarak belirtmiştir. Dolayısıyla ileride
+göreceğimiz boru gibi dosyalara 0 byte yazıldığında ne olacağı o sisteme bağlı bir durumdur.
+
+Aşağıdaki programda klavyeden (``stdin`` dosyasından) yazılar alınıp ``write`` fonksiyonu ile dosyaya
+yazdırılmıştır. ``fgets`` fonksiyonunun ``'\n'`` karakterini de diziye yerleştirdiğini anımsayınız.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    #define BUFFER_SIZE         4096
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+        char buf[BUFFER_SIZE];
+
+        if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("open");
+
+        for (;;) {
+            printf("Enter text:");
+            fflush(stdout);
+            if (fgets(buf, BUFFER_SIZE, stdin) == NULL)
+                continue;
+            if (!strcmp(buf, "quit\n"))
+                break;
+            if (write(fd, buf, strlen(buf)) == -1)
+                exit_sys("write");
+        }
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+Dosya Kopyalama
+================
+
+UNIX/Linux sistemlerinde dosya kopyalama tipik olarak bir döngü içerisinde kaynak dosyadan hedef dosyaya blok
+blok okuma yazma işlemi ile yapılmaktadır. Ancak bazı UNIX türevi işletim sistemleri dosya kopyalama işlemi
+için sistem fonksiyonları da bulundurabilmektedir. Örneğin Linux sistemlerinde ``sys_copy_file_range`` isimli
+sistem fonksiyonu doğrudan disk üzerinde blok kopyalaması yoluyla, hiç kullanıcı modunda işlem yapmadan dosya
+kopyalamasını gerçekleştirebilmektedir. Ancak dosya kopyalama işleminin taşınabilir yolu yukarıda belirttiğimiz
+gibi kaynaktan hedefe aktarım yapmaktır.
+
+Peki bu kopyalama işleminde hangi büyüklükte bir tampon kullanılmalıdır? Tipik olarak bunun için dosya
+sistemindeki blok uzunluğu tercih edilir. ``stat``, ``fstat``, ``lstat`` gibi fonksiyonlar bu bilgiyi bize
+verirler. Bu fonksiyonları izleyen paragraflarda ele alacağız. Kopyalama sırasında kaynak dosyanın ``O_RDONLY``
+bayrağı ile, hedef dosyanın ise ``O_WRONLY|O_CREAT|O_TRUNC`` bayrağı ile açılması uygun olur. Ancak hedef
+dosya varsa onu ezmemek için hedef dosya ``O_WRONLY|O_CREAT|O_EXCL`` bayraklarıyla da açılabilir. Kopyalama
+tipik olarak aşağıdaki gibi bir döngüyle yapılmaktadır:
+
+.. code-block:: c
+
+    if ((fds = open(argv[1], O_RDONLY)) == -1)
+        exit_sys(argv[1]);
+
+    if ((fdd = open(argv[2], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+        exit_sys(argv[2]);
+
+    while ((result = read(fds, buf, BUFFER_SIZE)) > 0)
+        if (write(fdd, buf, result) == -1)
+            exit_sys(argv[2]);
+
+    if (result == -1)
+        exit_sys(argv[1]);
+
+    close(fds);
+    close(fdd);
+
+Kopyalama yapılırken aslında hedef dosyanın erişim hakları kaynak dosyanın aynısı olacak biçimde ayarlanmalıdır.
+Ancak biz henüz o konuları görmedik. Bu nedenle aşağıdaki programla çalıştırılabilir bir dosyayı kopyalamaya
+çalışırsak ``x`` hakkı hedef dosyada olmadığı için kopyasını çalıştıramayız.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    #define BUFFER_SIZE         8192
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int fds, fdd;
+        char buf[BUFFER_SIZE];
+        ssize_t result;
+
+        if (argc != 3) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((fds = open(argv[1], O_RDONLY)) == -1)
+            exit_sys(argv[1]);
+
+        if ((fdd = open(argv[2], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys(argv[2]);
+
+        while ((result = read(fds, buf, BUFFER_SIZE)) > 0)
+            if (write(fdd, buf, result) == -1)
+                exit_sys(argv[2]);
+
+        if (result == -1)
+            exit_sys(argv[1]);
+
+        close(fds);
+        close(fdd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+``write`` çok seyrek de olsa başarılı olduğu halde talep edilen miktar kadar hedef dosyaya yazamayabilir.
+Örneğin diskin dolu olması durumunda ya da bir sinyal oluşması durumunda ``write`` talep edilen miktar kadar
+yazma yapamayabilir. Bu tür durumları diğer durumlardan ayırmak için ayrı bir kontrol yapmak gerekebilir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    #define BUFFER_SIZE        4096
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        char buf[BUFFER_SIZE];
+        int fds, fdd;
+        ssize_t size, result;
+
+        if (argc != 3) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((fds = open(argv[1], O_RDONLY)) == -1)
+            exit_sys(argv[1]);
+
+        if ((fdd = open(argv[2], O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys(argv[2]);
+
+        while ((result = read(fds, buf, BUFFER_SIZE)) > 0) {
+            if ((size = write(fdd, buf, result)) == -1)
+                exit_sys("write");
+            if (size != result) {
+                fprintf(stderr, "cannot write file!...\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        if (result == -1)
+            exit_sys("read");
+
+        close(fds);
+        close(fdd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+pread ve pwrite Fonksiyonları
+======================================
+
+``read`` ve ``write`` POSIX fonksiyonları yukarıda da belirttiğimiz gibi dosya göstericisinin gösterdiği yerden
+itibaren okuma ve yazma işlemlerini yapmaktadır. Bu fonksiyonlar dosya göstericisinin konumunu okunan ya da
+yazılan miktar kadar ilerletmektedir. İşte ``read`` ve ``write`` fonksiyonlarının ``pread`` ve ``pwrite``
+biçiminde bir versiyonu daha bulunmaktadır. ``pread`` ve ``pwrite`` fonksiyonları işlemlerini dosya
+göstericisinin gösterdiği yerden itibaren değil, parametreleriyle belirtilen offset'ten itibaren yapmaktadır.
+Bu fonksiyonlar dosya göstericisinin konumunu değiştirmezler. Uygulamada ``pread`` ve ``pwrite`` fonksiyonları
+seyrek kullanılmaktadır. Örneğin dosyanın farklı yerlerinden sürekli okuma/yazma yapıldığı durumlarda bu
+fonksiyonlar kullanım kolaylığı sağlayabilmektedir. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    ssize_t pread(int fildes, void *buf, size_t nbyte, off_t offset);
+    ssize_t pwrite(int fildes, const void *buf, size_t nbyte, off_t offset);
+
+``pread`` ve ``pwrite`` fonksiyonlarının ``read`` ve ``write`` fonksiyonlarından tek farkı ``offset``
+parametresidir. Bu fonksiyonlar dosya göstericisinin gösterdiği yerden itibaren değil, son parametreleriyle
+belirtilen yerden itibaren okuma ve yazma işlemini yaparlar. Fonksiyonların dosya göstericisinin konumunu
+değiştirmediğine dikkat ediniz. Örneğin:
+
+.. code-block:: c
+
+    if ((result = pread(fd, buf, 10, 5)) == -1)
+        exit_sys("pread");
+
+Burada dosyanın 5. offset'inden itibaren 10 byte okunmuştur.
+
+Dosyalara okuma yazma işlemi genellikle ardışıl bir biçimde yapıldığı için bu fonksiyonlar seyrek
+kullanılmaktadır. Ancak örneğin veritabanı işlemlerinde dosyanın farklı offset'lerinden sıkça okuma ve yazmanın
+yapıldığı durumlarda bu fonksiyonlar tercih edilebilmektedir.
+
+``pread`` ve ``pwrite`` fonksiyonları da doğrudan ilgili sistem fonksiyonlarını çağırmaktadır (Linux
+sistemlerinde ``sys_pread`` ve ``sys_pwrite``). Tabii bu işlemler önce dosya göstericisini saklayıp, sonra
+konumlandırıp, sonra ``read``/``write`` işlemlerini yapıp, sonra da yeniden dosya göstericisini eski konumuna
+yerleştirmekle de yapılabilir. Ancak ``pread`` ve ``pwrite`` işlemlerini yapan sistem fonksiyonları bu biçimde
+değil, daha doğrudan aynı işlemi yapmaktadır.
+
+----
+
+lseek Fonksiyonu
+=====================
+
+Daha önceden de belirttiğimiz gibi dosya göstericisi dosya açıldığında 0. offset'tedir. Ancak okuma ve yazma
+yapıldığında okunan ya da yazılan miktar kadar otomatik ilerletilmektedir. Dosya göstericisini belli bir konuma
+yerleştirmek için ``lseek`` isimli POSIX fonksiyonu kullanılmaktadır. Bu fonksiyon da pek çok işletim
+sisteminde doğrudan dosyayı konumlandıran sistem fonksiyonunu (Linux'ta ``sys_lseek``) çağırmaktadır. ``lseek``
+fonksiyonunun genel kullanımı ``fseek`` standart C fonksiyonuna çok benzemektedir. Fonksiyonun prototipi
+şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    off_t lseek(int fd, off_t offset, int whence);
+
+Fonksiyonun birinci parametresi dosya göstericisi konumlandırılacak dosyaya ilişkin dosya betimleyicisini
+belirtir. Dosya göstericisi dosya nesnesinin (Linux'ta ``struct file`` yapısının) içerisinde tutulmaktadır.
+İkinci parametre konumlandırma offset'ini belirtir. ``off_t`` türü ``<unistd.h>`` ve ``<sys/types.h>``
+içerisinde işaretli bir tamsayı türü biçiminde typedef edilmiş olmak zorundadır. Fonksiyonun üçüncü parametresi
+konumlandırma orijinini belirtmektedir. Bu üçüncü parametre ``0``, ``1`` ya da ``2`` olarak girilebilir. Tabii
+sayısal değer girmek yerine ``SEEK_SET`` (0), ``SEEK_CUR`` (1) ve ``SEEK_END`` (2) sembolik sabitlerini
+kullanabiliriz. Bu sembolik sabitler ``<unistd.h>`` ve ``<stdio.h>`` dosyaları içerisinde tanımlanmıştır.
+Fonksiyon başarı durumunda dosyanın başından itibaren konumlandırılan offset'e, başarısızlık durumunda ``-1``
+değerine geri dönmektedir.
+
+``SEEK_SET`` konumlandırmanın dosyanın başından itibaren yapılacağını, ``SEEK_CUR`` o anda dosya göstericisinin
+gösterdiği yerden itibaren yapılacağını, ``SEEK_END`` ise EOF durumundan itibaren yapılacağını belirtmektedir.
+En normal durum ``SEEK_SET`` orijininde ikinci parametrenin ``>= 0``, ``SEEK_END`` orijininde ``<= 0`` biçiminde
+girilmesidir. ``SEEK_CUR`` orijininde ikinci parametre pozitif ya da negatif girilebilir. Pozitif, bulunulan
+yerden ileriye doğru; negatif ise bulunulan yerden geriye doğru anlamına gelmektedir. Örneğin dosya göstericisini
+EOF durumuna şöyle konumlandırabiliriz:
+
+.. code-block:: c
+
+    lseek(fd, 0, SEEK_END);
+
+``lseek`` fonksiyonunun başarısı bariz durumlarda genellikle programcı tarafından kontrol edilmemektedir.
+Örneğin yukarıdaki çağrıda zaten disk dosyalarında (*regular files*) dosya göstericisinin EOF durumuna
+konumlandırılamaması mümkün değildir. Yukarıdaki çağrının başarısız olmasının tek nedeni geçersiz bir
+betimleyicinin kullanılmış olmasıdır.
+
+Dosya sistemine de bağlı olarak UNIX/Linux sistemleri dosya göstericisini EOF'un ötesine konumlandırmaya izin
+verebilmektedir. Bu özel bir durumdur. Bu tür durumlarda dosyaya yazma yapıldığında *dosya delikleri (file
+holes)* oluşmaktadır. Dosya delikleri konusu ileride ele alınacaktır.
+
+Aslında dosya açarken ``O_APPEND`` modu atomik bir biçimde her ``write`` işleminden önce dosya göstericisini
+EOF durumuna çekmektedir. Bu nedenle her yazılan dosyanın sonuna eklenmektedir.
+
+Aşağıdaki örnekte ``test.txt`` dosyası ``O_WRONLY`` modunda açılmış ve dosya göstericisi EOF durumuna çekilerek
+dosyaya ekleme yapılmıştır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+        char buf[] = "\nthis is a test";
+
+        if ((fd = open("test.txt", O_WRONLY)) == -1)
+            exit_sys("open");
+
+        lseek(fd, 0, SEEK_END);
+
+        if (write(fd, buf, strlen(buf)) == -1)
+            exit_sys("write");
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+Dosya İşlemleri İçin Hangi Fonksiyonlar Kullanılmalı?
+======================================================
+
+Bir C/C++ programcısı olarak UNIX/Linux sistemlerinde dosya işlemleri yapmak için üç seçenek söz konusu
+olabilir:
+
+1. C'nin ya da C++'ın standart dosya fonksiyonlarını kullanmak.
+2. POSIX dosya fonksiyonlarını kullanmak.
+3. Sistem fonksiyonlarını kullanmak.
+
+Burada en taşınabilir olan standart C/C++ fonksiyonlarıdır. Dolayısıyla ilk tercih bunlar olmalıdır. Ancak C
+ve C++'ın standart dosya fonksiyonları spesifik bir sistemin gereksinimini karşılayacak biçimde tasarlanmamıştır.
+Bu nedenle bazen doğrudan POSIX fonksiyonlarının kullanılması gerekebilmektedir. Genellikle dosya işlemleri
+yapan sistem fonksiyonlarının kullanılması hiç gerekmez. Çünkü Linux'ta olduğu gibi pek çok UNIX türevi
+sistemde yukarıda da belirttiğimiz gibi POSIX fonksiyonları zaten doğrudan sistem fonksiyonlarını
+çağırmaktadır. Biz kursumuzda dosya işlemlerini daha çok POSIX fonksiyonlarını kullanarak gerçekleştireceğiz.
+
+----
+
+read ve write İşlemlerinde Atomiklik
+=====================================
+
+POSIX standartlarına göre disk dosyalarına yapılan ``read`` ve ``write`` işlemleri sistem genelinde atomiktir.
+Yani örneğin iki program aynı anda aynı dosyanın aynı yerine yazma yapsa bile iç içe geçme oluşmaz. Önce
+birisi yazar daha sonra diğeri yazar. Tabii hangi prosesin önce yazacağını bilemeyiz. Ancak burada önemli olan
+nokta iç içe geçmenin olmamasıdır. Benzer biçimde bir ``read`` ile bir disk dosyasının bir yerinden ``n`` byte
+okumak istediğimizde, başka bir proses aynı dosyanın aynı yerine yazma yaptığında biz ya o prosesin
+yazdıklarını okuruz ya da onun yazmadan önceki dosya içeriğini okuruz. Yarısı eski yarısı yeni bir bilgi
+okumayız.
+
+Ancak işletim sistemi farklı ``read`` ve ``write`` çağrılarını bu anlamda senkronize etmemektedir. Yani örneğin
+biz bir dosyanın belli bir yerine iki farklı ``write`` fonksiyonu ile ardışık şeyler yazdığımızı düşünelim.
+Birinci ``write`` işleminden sonra başka bir proses artık orayı değiştirebilir. Dolayısıyla bu anlamda bir iç
+içe girme durumu oluşabilir. Veritabanı programlarında bu tür durumlarla sık karşılaşılmaktadır. Örneğin
+veritabanı programı bir kaydı *data* dosyasına yazıp ona ilişkin indeksleri de *index* dosyasına yazıyor
+olabilir. Bu durumda iki ``write`` işlemi söz konusudur. Data dosyasına bilgiler yazıldıktan sonra henüz indeks
+dosyasına bilgi yazılmadan başka bir proses bu iki işlemi hızlı davranarak yaparsa *data* ve *indeks* bütünlüğü
+bozulabilir. İşletim sisteminin burada bir sorumluluğu yoktur. Bu tarz işlemlerde senkronizasyon programcılar
+tarafından sağlanmak zorundadır. Bu tür senkronizasyonlar senkronizasyon nesneleriyle (semaphore gibi, mutex
+gibi) dosya bütününde yapılabilir. Ancak tüm dosyaya erişimin engellenmesi iyi bir teknik değildir. İşte bu
+tür durumlar için işletim sistemleri çekirdeğe entegre edilmiş olan *dosya kilitleme (file locking)* mekanizması
+bulundurmaktadır. Dosya kilitleme tüm dosyayı değil dosyanın belli offset'lerine erişimi engelleme amacındadır.
+
+----
+
+umask Değeri ve umask Fonksiyonu
+=========================================
+
+Biz ``open`` fonksiyonu ile bir dosya yaratırken yaratacağımız dosyaya verdiğimiz erişim hakları dosyaya tam
+olarak yansıtılmayabilir. Yani örneğin biz gruba ``w`` hakkı vermek istesek bile bunu sağlayamayabiliriz. Çünkü
+belirtilen erişim değerlerini maskeleyen (yani ortadan kaldıran) bir mekanizma vardır. Buna prosesin *umask
+değeri* denilmektedir. Prosesin umask değeri ``mode_t`` türü ile ifade edilir; sahiplik, grupluk ve diğerlik
+bilgilerini içerir. Bu bilgiler aslında maskelenecek değerleri belirtmektedir.
+
+Örneğin prosesin umask değerinin ``S_IWGRP|S_IWOTH`` olduğunu varsayalım. Bu umask değeri *biz ``open``
+fonksiyonu ile bir dosyayı yaratırken grup için ve diğerleri için ``w`` hakkı versek bile bu hak dosyaya
+yansıtılmayacak* anlamına gelmektedir. Eğer prosesin umask değeri ``0`` ise bu durumda maskelenecek bir şey
+yoktur; dolayısıyla verilen hakların hepsi dosyaya yansıtılır. Prosesin umask değerinin ``umask`` olduğunu,
+dosyaya vermek istediğimiz erişim haklarının da ``mode`` olduğunu varsayalım. (Yani ``mode``, ``S_IXXX`` gibi
+tek biti ``1`` olan değerlerin bit düzeyinde OR'lanması ile oluşturulmuş değer olsun.) Bu durumda dosyaya
+yansıtılacak erişim hakları ``mode & ~umask`` olacaktır. Yani prosesin umask değerindeki ``1`` olan bitler
+maskelenecek erişim haklarını belirtmektedir.
+
+Prosesin başlangıçtaki umask değeri üst prosesten aktarılmaktadır. Örneğin biz kabuktan program çalıştırırken
+çalıştırdığımız programın umask değeri, kabuğun (örneğin ``bash`` prosesinin) umask değeri olarak bizim
+prosesimize geçirilecektir. Kabuğun umask değeri ``umask`` isimli komutla elde edilebilir. Kabuğun umask
+değeri genellikle ``0022`` ya da ``0002`` gibi bir değerde olur. Buradaki basamaklar octal sayı (sekizlik
+sistemde sayı) belirtmektedir. Bir octal digit 3 bitle açılmaktadır. Dolayısıyla bu bitler maskelenecek erişim
+haklarının durumunu belirtir:
+
+.. code-block:: text
+
+    ? owner group other
+
+En yüksek anlamlı octal digit (``?`` ile gösterilenin) şimdiye kadar görmediğimiz başka haklarla ilgilidir. Bu
+haklara *set user id*, *set group id* ve *sticky* hakları denilmektedir. Ancak diğer üç octal digit sırasıyla
+owner, group ve other maskeleme bitlerini belirtmektedir.
+
+``umask`` komutuyla aynı zamanda kabuğun umask değeri de değiştirilebilir. Bu durumda yine değiştirme değerleri
+octal digit biçiminde verilmelidir. Örneğin:
+
+.. code-block:: bash
+
+    $ umask 022
+
+Burada en yüksek anlamlı octal digit verilmediğine göre o digit ``0`` kabul edilir. O halde burada belirtilen
+umask değeri grup için ve diğerleri için ``w`` hakkını maskeleyecektir. (Zaten pek çok kabukta umask değerinin
+varsayılan durumu böyledir.) Bazen programcı umask değerini tamamen sıfırlamak da isteyebilir. Bu işlem şöyle
+yapılabilir:
+
+.. code-block:: bash
+
+    $ umask 0
+
+Burada yüksek anlamlı üç octal digit de ``0`` kabul edilmektedir. Bu durumda artık çalıştırdığımız programda
+``open`` fonksiyonunun tüm erişim hakları dosyalara yansıtılacaktır.
+
+Bir proses başlangıçta umask değerini üst prosesten almaktadır. Ancak proses istediği zaman ``umask`` isimli
+POSIX fonksiyonu ile kendi umask değerini değiştirebilmektedir. ``umask`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/stat.h>
+
+    mode_t umask(mode_t cmask);
+
+Fonksiyon belirtilen değerle prosesin umask değerini set eder ve prosesin eski umask değerine geri döner.
+Fonksiyon başarısız olamaz. ``umask`` fonksiyonu ile kendi prosesimizin umask değerini almak için onu
+değiştirmemiz gerekir. Bunu aşağıdaki gibi bir kodla yapabiliriz:
+
+.. code-block:: c
+
+    mode_t mode;
+
+    mode = umask(0);
+    printf("%03jo\n", (intmax_t)mode);
+    umask(mode);
+
+Tabii programcı ``umask`` fonksiyonuna octal değerler de girebilir. Ancak daha önceden de bahsedildiği gibi
+POSIX standartlarında 2008'de ``S_IXXX`` sembolik sabitlerinin değerleri octal değerlerle eşleştirilmiştir.
+Örneğin:
+
+.. code-block:: c
+
+    umask(0022);                /* Eskiden bu biçimde belirleme taşınabilir değildi, eski sistemlerde dikkat edilmesi gerekir */
+    umask(S_IWGRP|S_IWOTH);     /* Bu biçimde belirleme daha okunabilirdir. */
+
+Aşağıdaki örnekte prosesin umask değeri önce sıfırlanmış, sonra bir dosya yaratılmıştır. ``open`` fonksiyonunda
+verilen erişim hakları artık dosyaya tamamen yansıtılacaktır. Ayrıca bu programda prosesin eski umask değeri
+de yazdırılmaktadır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+        mode_t oldmask;
+
+        oldmask = umask(0);
+
+        if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)) == -1)
+            exit_sys("open");
+
+        printf("%03jo\n", (intmax_t)oldmask);
+        umask(oldmask);
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+----
+
+Kabuk Programına umask Komutunun Eklenmesi
+===============================================
+
+Şimdi daha önce yazmış olduğumuz kabuk programına ``umask`` komutunu ekleyelim:
+
+.. code-block:: c
+
+    void umask_proc(void)
+    {
+        mode_t oldmask;
+        long mode;
+
+        if (g_nparams == 1) {
+            oldmask = umask(0);
+            printf("%04jo\n", (intmax_t)oldmask);
+            umask(oldmask);
+        }
+        else if (g_nparams == 2) {
+            if (!isoctal(g_params[1])) {
+                printf("invalid mask...\n");
+                return;
+            }
+            mode = strtol(g_params[1], NULL, 8);
+            umask(mode);
+        }
+        else
+            printf("too many arguments!..\n");
+    }
+
+Burada komut argüman almamışsa prosesin umask değeri doğrudan yazdırılmıştır. Eğer komut tek argüman almışsa
+önce girilen umask değerinin geçerliliği sınanmış, sonra prosesin umask değeri set edilmiştir. Geçerlilik
+sınaması aşağıdaki gibi basit bir fonksiyonla yapılmıştır:
+
+.. code-block:: c
+
+    int isoctal(const char *str)
+    {
+        if (strlen(str) > 4)
+            return 0;
+        while (*str != '\0') {
+            if (*str < '0' || *str > '7')
+                return 0;
+            ++str;
+        }
+        return 1;
+    }
+
+Programın tamamı şöyledir:
+
+.. code-block:: c
+
+    /* myshell.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    #define MAX_CMD_LINE            4096
+    #define MAX_CMD_PARAMS          1024
+    #define PATH_SIZE               4096
+
+    struct cmd {
+        const char *name;
+        void (*proc)(void);
+    };
+
+    void parse_cmd_line(char *cmdline);
+    void rm_proc(void);
+    void cp_proc(void);
+    void mv_proc(void);
+    void cd_proc(void);
+    void umask_proc(void);
+
+    int isoctal(const char *str);
+    void exit_sys(const char *msg);
+
+    struct cmd g_cmds[] = {
+        {"rm", rm_proc},
+        {"cp", cp_proc},
+        {"mv", mv_proc},
+        {"cd", cd_proc},
+        {"umask", umask_proc},
+        {NULL, NULL}
+    };
+
+    char *g_params[MAX_CMD_PARAMS];
+    int g_nparams;
+    char g_cwd[PATH_SIZE];
+
+    int main(void)
+    {
+        char cmdline[MAX_CMD_LINE];
+        char *str;
+        int i;
+
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+
+        for (;;) {
+
+            printf("CSD:%s$ ", g_cwd);
+            fflush(stdout);
+
+            if (fgets(cmdline, MAX_CMD_LINE, stdin) == NULL)
+                continue;
+            if ((str = strchr(cmdline, '\n')) != NULL)
+                *str = '\0';
+
+            parse_cmd_line(cmdline);
+            if (g_nparams == 0)
+                continue;
+            if (!strcmp(g_params[0], "exit"))
+                break;
+
+            for (i = 0; g_cmds[i].name != NULL; ++i)
+                if (!strcmp(g_cmds[i].name, g_params[0])) {
+                    g_cmds[i].proc();
+                    break;
+                }
+            if (g_cmds[i].name == NULL)
+                printf("command not found: %s\n", g_params[0]);
+        }
+
+        return 0;
+    }
+
+    void parse_cmd_line(char *cmdline)
+    {
+        char *arg;
+
+        g_nparams = 0;
+        for ((arg = strtok(cmdline, " \t")); arg != NULL; arg = strtok(NULL, " \t"))
+            g_params[g_nparams++] = arg;
+        g_params[g_nparams] = NULL;
+    }
+
+    void rm_proc(void)
+    {
+        if (g_nparams == 1) {
+            printf("too few command parameters!...\n");
+            return;
+        }
+        printf("rm command...\n");
+    }
+
+    void cp_proc(void)
+    {
+        if (g_nparams != 3) {
+            printf("wrong number of command parameters!...\n");
+            return;
+        }
+        printf("cp command...\n");
+    }
+
+    void mv_proc(void)
+    {
+        if (g_nparams != 3) {
+            printf("wrong number of command parameters!...\n");
+            return;
+        }
+        printf("mv command...\n");
+    }
+
+    void cd_proc(void)
+    {
+        if (g_nparams != 2) {
+            printf("wrong number of command parameters!..\n");
+            return;
+        }
+
+        if (chdir(g_params[1]) == -1) {
+            printf("%s: \"%s\"\n", strerror(errno), g_params[1]);
+            return;
+        }
+
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+    }
+
+    void umask_proc(void)
+    {
+        mode_t oldmask;
+        long mode;
+
+        if (g_nparams == 1) {
+            oldmask = umask(0);
+            printf("%04jo\n", (intmax_t)oldmask);
+            umask(oldmask);
+        }
+        else if (g_nparams == 2) {
+            if (!isoctal(g_params[1])) {
+                printf("invalid mask...\n");
+                return;
+            }
+            mode = strtol(g_params[1], NULL, 8);
+            umask(mode);
+        }
+        else
+            printf("too many arguments!..\n");
+    }
+
+    int isoctal(const char *str)
+    {
+        if (strlen(str) > 4)
+            return 0;
+        while (*str != '\0') {
+            if (*str < '0' || *str > '7')
+                return 0;
+            ++str;
+        }
+        return 1;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+
