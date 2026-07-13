@@ -1781,4 +1781,571 @@ Programın tamamı şöyledir:
         exit(EXIT_FAILURE);
     }
 
+----
+
+Yardımcı Dosya Fonksiyonları
+=============================
+
+UNIX/Linux sistemlerinde ``open``, ``close``, ``read``, ``write`` ve ``lseek`` fonksiyonlarının yanı sıra pek
+çok yardımcı dosya fonksiyonu da vardır. Bu yardımcı dosya fonksiyonları dosyalar üzerinde bazı önemli işlemleri
+yapmaktadır. Bu bölümde bu fonksiyonların önemli olanlarını tanıtacağız.
+
+----
+
+İnode Tabanlı Dosya Sistemleri ve Disk Organizasyonu
+=====================================================
+
+UNIX/Linux sistemlerinde ``ext2``, ``ext3``, ``ext4`` gibi inode tabanlı dosya sistemlerinde bir disk bölümü
+formatlandığında kabaca disk bölümünde üç mantıksal bölüm oluşturulmaktadır: Süper Blok (Super Block), Inode
+Blok (Inode Block) ve Data Blok (Data Block):
+
+.. code-block:: text
+
+    ┌────────────┐
+    │ Süper Blok │
+    ├────────────┤
+    │ Inode Blok │
+    ├────────────┤
+    │            │
+    │ Data Blok  │
+    │            │
+    │            │
+    └────────────┘
+
+Aslında inode tabanlı dosya sistemlerinin disk organizasyonu daha ayrıntılıdır. Bu ayrıntıları kursumuzun inode
+tabanlı dosya sistemlerini anlattığımız bölümde ele alacağız. Süper Blok, dosya sistemine ilişkin en önemli
+parametrik bilgilerin tutulduğu bölümdür. Inode Blok ise inode elemanlarından oluşmaktadır:
+
+.. code-block:: text
+
+         Inode Blok
+      ┌───────────────┐
+   0  │ inode elemanı │
+      ├───────────────┤
+   1  │ inode elemanı │
+      ├───────────────┤
+   2  │ inode elemanı │
+      ├───────────────┤
+      │     .....     │
+      ├───────────────┤
+  n-1 │ inode elemanı │
+      ├───────────────┤
+  n   │ inode elemanı │
+      └───────────────┘
+
+Dosya bilgileri inode elemanlarında tutulmaktadır. Her inode elemanının bir numarası olduğuna dikkat ediniz. Her
+inode elemanına, ilk eleman ``0`` olmak üzere artan sırada bir numara karşılık düşürülmüştür. Örneğin
+``test.txt`` dosyası için inode blok içerisinde bir inode elemanı bulunmaktadır ve bu inode elemanında bu
+dosyanın bilgileri tutulmaktadır. Örneğin ``test.txt`` dosyasının inode numarasının ``51546`` olduğunu
+varsayalım. Bu durumda bu dosyaya ilişkin bilgiler Inode Bloktaki ``51546``. inode elemanında bulunmaktadır.
+Inode elemanında tutulan önemli dosya bilgileri şunlardır:
+
+- Dosyanın erişim hakları
+- Dosyanın kullanıcı ve grup id'si
+- Dosyanın hard link sayacı
+- Dosyanın uzunluğu
+- Dosyanın zaman bilgisi
+- Dosyayı oluşturan bilgilerin Data Blok'taki yerleri
+
+Inode elemanında yalnızca dosyanın metadata bilgileri tutulmaktadır. Dosyanın içerisindeki bilgiler Data
+Blok'ta saklanmaktadır. Her dosyanın sistem genelinde tek olan (unique) bir inode numarasının olduğuna dikkat
+ediniz.
+
+Inode elemanındaki dosya bilgileri aşağıda açıklayacağımız ``stat``, ``lstat`` ve ``fstat`` fonksiyonlarıyla
+elde edilmektedir.
+
+----
+
+``stat``, ``lstat`` ve ``fstat`` Fonksiyonları
+-------------------------------------------------
+
+Bir dosyaya ilişkin bilgileri elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
+kullanılmaktadır. Bu fonksiyonlar aslında aynı şeyi yaparlar. Fakat parametrik yapı bakımından ve semantik
+bakımdan bunların arasında küçük farklılıklar vardır. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <sys/stat.h>
+
+    int stat(const char *path, struct stat *buf);
+    int fstat(int fd, struct stat *buf);
+    int lstat(const char *path, struct stat *buf);
+
+``stat`` fonksiyonları dosyaya ilişkin inode elemanından dosyanın bilgilerini elde etmektedir. Örneğin dosyanın
+erişim hakları, kullanıcı ve grup id'leri, dosyanın uzunluğu, dosyanın tarih-zaman bilgileri bu ``stat``
+fonksiyonlarıyla elde edilmektedir. ``ls`` komutu ``-l`` seçeneği ile kullanıldığında aslında dosya bilgilerini
+bu ``stat`` fonksiyonlarıyla elde edip ekrana (``stdout`` dosyasına) yazdırmaktadır.
+
+``stat`` fonksiyonlarından en çok kullanılanı ``stat`` isimli fonksiyondur. Fonksiyonun prototipine dikkat
+ediniz:
+
+.. code-block:: c
+
+    int stat(const char *path, struct stat *buf);
+
+Fonksiyonun birinci parametresi bilgisi elde edilecek dosyanın yol ifadesini, ikinci parametresi ise dosya
+bilgilerinin yerleştirileceği ``struct stat`` isimli bir yapı nesnesinin adresini almaktadır. ``stat`` isimli
+yapı ``<sys/stat.h>`` dosyası içerisinde bildirilmiştir. Fonksiyon başarı durumunda ``0``, başarısızlık
+durumunda ``-1`` değerine geri dönmektedir. (``stat`` isminin hem bir yapı belirttiğine hem de bir fonksiyon
+belirttiğine dikkat ediniz. C'de yapı ismiyle aynı isimli bir değişken ya da fonksiyon ismi bulunabilmektedir.
+Yapı isimleri zaten ``struct`` anahtar sözcüğüyle kullanılmaktadır.)
+
+``struct stat`` Yapısının Elemanları
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``stat`` yapısının elemanları şöyledir:
+
+.. code-block:: c
+
+    struct stat {
+        dev_t     st_dev;         /* ID of device containing file */
+        ino_t     st_ino;         /* Inode number */
+        mode_t    st_mode;        /* File type and mode */
+        nlink_t   st_nlink;       /* Number of hard links */
+        uid_t     st_uid;         /* User ID of owner */
+        gid_t     st_gid;         /* Group ID of owner */
+        dev_t     st_rdev;        /* Device ID (if special file) */
+        off_t     st_size;        /* Total size, in bytes */
+        blksize_t st_blksize;     /* Block size for filesystem I/O */
+        blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */
+
+        /* Since Linux 2.6, the kernel supports nanosecond
+            precision for the following timestamp fields.
+            For the details before Linux 2.6, see NOTES. */
+
+        struct timespec st_atim;  /* Time of last access */
+        struct timespec st_mtim;  /* Time of last modification */
+        struct timespec st_ctim;  /* Time of last status change */
+
+    #define st_atime st_atim.tv_sec      /* Backward compatibility */
+    #define st_mtime st_mtim.tv_sec
+    #define st_ctime st_ctim.tv_sec
+    };
+
+Yapının elemanlarının ``st_`` öneki ile isimlendirildiğine dikkat ediniz. Yapının ``st_dev`` elemanı dosyanın
+içinde bulunduğu aygıtın aygıt numarasını belirtir. Genellikle sıradan programcılar bu bilgiye gereksinim
+duymazlar. ``dev_t`` herhangi bir tamsayı türü biçiminde typedef edilebilen bir tür ismidir. Biz aygıt numarası
+kavramını kursumuzun *aygıt sürücülere ilişkin bölümünde* ele alacağız.
+
+Yapının ``st_ino`` elemanı dosyaya ilişkin inode elemanının numarasını belirtmektedir. Dosyaların inode
+numaraları ``ls`` komutunda ``-i`` seçeneği ile de görüntülenebilmektedir. ``ino_t`` türü işaretsiz olmak
+koşuluyla herhangi bir tamsayı türü biçiminde typedef edilebilmektedir.
+
+``st_mode`` Elemanı: Erişim Hakları ve Dosya Türü
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Yapının ``st_mode`` elemanı dosyanın erişim haklarını ve türünü içermektedir. Bu elemanın içerisindeki değerler
+bitler biçiminde oluşturulmuştur. ``1`` olan bitler ilgili özelliğin olduğunu belirtmektedir. Belli bir erişim
+hakkının (örneğin ``S_IWGRP`` gibi) olup olmadığını anlamak için programcı ilgili bitin set edilip edilmediğine
+``st_mode & S_IXXX`` işlemi ile bakmalıdır. Örneğin:
+
+.. code-block:: c
+
+    struct stat finfo;
+    int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+    char ch;
+
+    if (stat(argv[1], &finfo) == -1)
+        exit_sys("stat");
+
+    for (int i = 0; i < 9; ++i) {
+        ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+        putchar(ch);
+    }
+
+Burada biz ``ls -l`` tarzında erişim haklarını yazdırıyoruz. Aşağıdaki ifadeye dikkat ediniz:
+
+.. code-block:: c
+
+    ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+
+Burada döngünün her yinelenmesinde ``r``, ``w``, ``x`` haklarından biri varsa ilgili karakter, bu haklar yoksa
+``-`` karakteri elde edilmektedir. POSIX 2008 ve sonrasında artık erişim haklarının maskeleme değerleri açıkça
+belirtilmiştir. Bu maskeleme değerleri ``rwxrwxrwx`` dizilimiyle uyuşmaktadır:
+
+.. code-block:: text
+
+    876543210
+    rwxrwxrwx
+
+Örneğin ``S_IWUSR`` değeri şöyledir:
+
+.. code-block:: text
+
+    876543210
+    010000000
+
+Bunun da octal karşılığı ``0200``'dür. Dolayısıyla biz aynı işlemi POSIX 2008 ve sonrasında şöyle de
+yapabiliriz:
+
+.. code-block:: c
+
+    for (int i = 0; i < 9; ++i) {
+        ch = finfo.st_mode >> (8 - i) & 1 ? "rwx"[i % 3] : '-';
+        putchar(ch);
+    }
+
+Dosyanın türü de yine ``st_mode`` elemanının içerisine bitsel olarak kodlanmıştır. Ancak hangi bitlerin hangi
+türleri belirttiği POSIX standartlarında belirtilmemiştir. Bu durum sistemden sisteme değişebilmektedir.
+(Anımsanacağı gibi eskiden aynı durum ``S_IXXX`` sembolik sabitleri için de geçerliydi. Ancak daha sonra bu
+sembolik sabitlerin sayısal değerleri yani bit pozisyonları POSIX standartlarında belirlendi.) Dosyanın türünü
+anlamak için iki yöntem bulunmaktadır.
+
+Birinci yöntemde ``<sys/stat.h>`` içerisindeki ``S_ISXXX`` biçimindeki makrolar kullanılır. Bu makrolar, eğer
+dosya ilgili türdense sıfır dışı bir değer, ilgili türden değilse sıfır değerini verir. Makrolar şunlardır:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Makro
+     - Açıklama
+   * - ``S_ISBLK(m)``
+     - Blok aygıt sürücü dosyası mı? (``ls -l``'de ``b`` dosya türü)
+   * - ``S_ISCHR(m)``
+     - Karakter aygıt sürücü dosyası mı? (``ls -l``'de ``c`` dosya türü)
+   * - ``S_ISDIR(m)``
+     - Dizin dosyası mı? (``ls -l``'de ``d`` dosya türü)
+   * - ``S_ISFIFO(m)``
+     - Boru dosyası mı? (``ls -l``'de ``p`` dosya türü)
+   * - ``S_ISREG(m)``
+     - Sıradan bir disk dosyası mı? (``ls -l``'de ``-`` dosya türü)
+   * - ``S_ISLNK(m)``
+     - Sembolik bağlantı dosyası mı? (``ls -l``'de ``l`` dosya türü)
+   * - ``S_ISSOCK(m)``
+     - Soket dosyası mı? (``ls -l``'de ``s`` dosya türü)
+
+Örneğin:
+
+.. code-block:: c
+
+    struct stat finfo;
+
+    if (stat(argv[1], &finfo) == -1)
+        exit_sys("stat");
+
+    if (S_ISBLK(finfo.st_mode))
+        putchar('b');
+    else if (S_ISCHR(finfo.st_mode))
+        putchar('c');
+    else if (S_ISDIR(finfo.st_mode))
+        putchar('d');
+    else if (S_ISFIFO(finfo.st_mode))
+        putchar('p');
+    else if (S_ISREG(finfo.st_mode))
+        putchar('-');
+    else if (S_ISLNK(finfo.st_mode))
+        putchar('l');
+    else if (S_ISSOCK(finfo.st_mode))
+        putchar('s');
+    else
+        putchar('?');
+
+Dosya türünün tespiti için ikinci yöntemde ``st_mode`` değeri ``S_IFMT`` sembolik sabiti ile bit AND işlemine
+sokulup aşağıdaki sembolik sabitlerle karşılaştırılmaktadır:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Sembolik Sabit
+     - Açıklama
+   * - ``S_IFBLK``
+     - Blok aygıt dosyası
+   * - ``S_IFCHR``
+     - Karakter aygıt dosyası
+   * - ``S_IFIFO``
+     - Boru dosyası
+   * - ``S_IFREG``
+     - Sıradan disk dosyası
+   * - ``S_IFDIR``
+     - Dizin dosyası
+   * - ``S_IFLNK``
+     - Sembolik bağlantı dosyası
+   * - ``S_IFSOCK``
+     - Soket dosyası
+
+``st_mode`` değeri ``S_IFMT`` değeri ile bit AND işlemine sokulduktan sonra bu sembolik sabitlerle
+karşılaştırılmalıdır. Bu sembolik sabitlerin tek biti ``1`` değildir. Yani karşılaştırma
+``(mode & S_IFMT) == S_IFXXX`` biçiminde yapılmalıdır. Bu yöntem ``switch`` deyiminin kullanılmasına da olanak
+sağlamaktadır. Örneğin:
+
+.. code-block:: c
+
+    switch (finfo.st_mode & S_IFMT) {
+        case S_IFBLK:
+            putchar('b');
+            break;
+        case S_IFCHR:
+            putchar('c');
+            break;
+        case S_IFIFO:
+            putchar('p');
+            break;
+        case S_IFREG:
+            putchar('-');
+            break;
+        case S_IFDIR:
+            putchar('d');
+            break;
+        case S_IFLNK:
+            putchar('l');
+            break;
+        case S_IFSOCK:
+            putchar('s');
+            break;
+    }
+
+O halde biz bir dosyanın türünü ve erişim haklarını ``ls -l`` formatında şöyle yazdırabiliriz:
+
+.. code-block:: c
+
+    int main(int argc, char *argv[])
+    {
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (stat(argv[1], &finfo) == -1)
+            exit_sys("stat");
+
+        printf("Inode No: %jd\n", (intmax_t)finfo.st_ino);
+
+        if (S_ISBLK(finfo.st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo.st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo.st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo.st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo.st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo.st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo.st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        putchar('\n');
+
+        return 0;
+    }
+
+Diğer Yapı Elemanları
+^^^^^^^^^^^^^^^^^^^^^^^
+
+``stat`` yapısının ``st_nlink`` elemanı dosyanın *hard link* sayısını belirtmektedir. Hard link kavramı ileride
+ele alınacaktır. ``nlink_t`` türü bir tamsayı türü olmak koşuluyla herhangi bir tür olarak typedef
+edilebilmektedir.
+
+Yapının ``st_uid`` elemanı dosyanın kullanıcı id'sini belirtmektedir. ``ls -l`` komutu bu id'yi sayı olarak
+değil ``/etc/passwd`` dosyasına başvurarak isim biçiminde yazdırmaktadır. ``uid_t`` türü herhangi bir tamsayı
+türü olarak typedef edilebilmektedir.
+
+Yapının ``st_gid`` elemanı dosyanın grup id'sini belirtmektedir. ``ls -l`` komutu bu id'yi sayı olarak değil
+``/etc/group`` dosyasına başvurarak isim biçiminde yazdırmaktadır. ``gid_t`` türü herhangi bir tamsayı türü
+olarak typedef edilebilmektedir.
+
+Yapının ``st_rdev`` elemanı eğer dosya bir aygıt dosyası ise temsil ettiği aygıtın numarasını bize vermektedir.
+Bu eleman da ``dev_t`` türündedir. Bu bilginin ne anlam ifade ettiği kursumuzun *aygıt sürücüleri* bölümünde
+ele alınmaktadır.
+
+Yapının ``st_size`` elemanı dosyanın uzunluğunu bize vermektedir. ``off_t`` türü daha önceden de belirttiğimiz
+gibi işaretli bir tamsayı türü biçiminde typedef edilmek zorundadır.
+
+Yapının ``st_blksize`` elemanı dosyanın içinde bulunduğu dosya sisteminin kullandığı blok uzunluğunu
+belirtmektedir. Dosyaların parçaları diskte *blok* denilen ardışıl byte topluluklarında tutulmaktadır. İşte
+bir bloğun kaç byte olduğu bilgisi bu elemanla belirtilmektedir. Aynı zamanda programcılar dosya kopyalama
+gibi işlemlerde bu büyüklüğü tampon büyüklüğü (buffer size) olarak da kullanmaktadır. ``blksize_t`` işaretli
+bir tamsayı türü olarak typedef edilmek zorundadır. Bu konunun ayrıntılarını kursumuzun inode tabanlı dosya
+sistemlerini ele aldığımız bölümde açıklayacağız.
+
+Yapının ``st_blocks`` elemanı dosyanın diskte kapladığı blok sayısını belirtmektedir. (Ancak buradaki sayı 512
+byte'lık blokların sayısıdır. Yani dosya sistemindeki dosyanın parçaları olan bloklara ilişkin sayı değildir.)
+``blkcnt_t`` işaretli bir tamsayı türü olarak typedef edilmek zorundadır.
+
+Dosyaların Zaman Bilgileri
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+UNIX/Linux sistemlerinde kullanılan inode tabanlı dosya sistemleri bir dosya için üç zaman bilgisi
+tutmaktadır:
+
+1. Dosyanın son değiştirilme zamanı
+2. Dosyanın son okunma zamanı
+3. Dosyanın inode bilgilerinin son değiştirilme zamanı
+
+POSIX standartları hangi POSIX fonksiyonlarının hangi zamanları dosya için güncellediğini belirtmektedir.
+Örneğin ``read`` fonksiyonu dosyanın son okuma zamanını, ``write`` fonksiyonu son yazma ve inode bilgilerinin
+değiştirilme zamanını güncellemektedir.
+
+``stat`` yapısının bu zamanı tutan elemanları eski POSIX standartlarında ``time_t`` türündendi ve isimleri
+``st_atime``, ``st_mtime`` ve ``st_ctime`` biçimindeydi. Bu elemanlar epoch olan 01/01/1970'ten geçen saniye
+sayısını tutuyordu. (C Programlama Dili'nde epoch'un 01/01/1970 olması zorunlu değildir. Ancak POSIX
+standartlarında bu zorunludur.) Ancak daha sonra POSIX standartlarında bu zaman bilgisi nanosaniye çözünürlüğe
+çekildi. Dolayısıyla zamansal bilgiler ``time_t`` türü ile değil ``timespec`` isimli bir yapıyla belirtilmeye
+başlandı. Yapı elemanlarının isimleri de ``st_atim``, ``st_mtim`` ve ``st_ctim`` olarak değiştirildi.
+``timespec`` yapısı geçmişe doğru uyumu koruyabilmek için aşağıdaki gibi bildirilmiştir:
+
+.. code-block:: c
+
+    struct timespec {
+        time_t  tv_sec;
+        long    tv_nsec;
+    };
+
+Yapının ``tv_sec`` elemanı yine 01/01/1970'ten geçen saniye sayısını, ``tv_nsec`` elemanı ise o saniyeden
+sonraki nanosaniye sayısını tutmaktadır. Sistemlerin çoğu POSIX standartlarında bu konuda değişiklik yapılmış
+olsa da geriye doğru uyumu şöyle korumuştur:
+
+.. code-block:: c
+
+    struct stat {
+        ...
+        struct timespec st_atim;    /* Time of last access */
+        struct timespec st_mtim;    /* Time of last modification */
+        struct timespec st_ctim;    /* Time of last status change */
+
+    #define st_atime st_atim.tv_sec        /* Backward compatibility */
+    #define st_mtime st_mtim.tv_sec
+    #define st_ctime st_ctim.tv_sec
+    };
+
+Bu durumda programcı sisteminin yeni POSIX standartlarını destekleyip desteklemediğine bakmalı ve duruma göre
+yapının eski ya da yeni elemanlarını kullanmalıdır. Ancak yukarıda da belirttiğimiz gibi eski eleman isimleri
+Linux'ta geçmişe doğru uyumu koruyabilmek için tanımlanmıştır. ``ls -l`` komutu dosyanın yalnızca son
+değiştirilme zamanını göstermektedir. Ancak ``ls -lu`` ile son erişim zamanı, ``ls -lc`` ile inode bilgilerinin
+son değiştirildiği zaman da görüntülenebilmektedir.
+
+----
+
+Örnek: ``finfo.c`` — ``ls -l`` Tarzında Dosya Bilgisi Yazdırma
+----------------------------------------------------------------
+
+Aşağıda dosya bilgilerini ``stat`` fonksiyonu ile alıp yazdıran bir örnek verilmiştir. Bu programda dosya
+bilgileri ``ls -l`` stilinde yazdırılmıştır. Ancak ayrıca ``ls -l`` çıktısında olmayan bilgiler de
+yazdırılmaktadır. Biz henüz kullanıcı ve grup id değerlerinden kullanıcı ve grup isimlerinin nasıl elde
+edileceğini bilmiyoruz. Bu nedenle örneğimizde kullanıcı ve grup id değerleri isimsel biçimde değil sayısal
+biçimde yazdırılmıştır. Dosyanın tarih bilgisini yazdırırken ``ls -l`` komutunun yaptığı gibi dosyanın içinde
+bulunulan yıla ilişkin olup olmadığını da kontrol ettik. Eğer dosya içinde bulunduğumuz yıla ilişkinse yıl
+bilgisini hiç yazdırmadık. Programı aşağıdaki gibi çalıştırıp test edebilirsiniz:
+
+.. code-block:: bash
+
+    $ ./finfo /bin/ls
+
+Buradan elde edilen çıktı denemenin yapıldığı makinede şöyledir:
+
+.. code-block:: text
+
+    -rwxr-xr-x 1 0 0 142312 Haz 22 19:21  2025 /bin/ls
+
+    Inode No: 4719482
+    Block Size: 4096
+    Number of 512B blocks: 280
+
+Aynı dosyayı ``ls -l`` ile yazdıralım:
+
+.. code-block:: bash
+
+    $ ls -l /bin/ls
+    -rwxr-xr-x 1 root root 142312 Haz 22  2025 /bin/ls
+
+Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup id'lerinin isimlerinde ortaya çıkmaktadır.
+
+.. code-block:: c
+
+    /* finfo.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        char dt[32];
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (stat(argv[1], &finfo) == -1)
+            exit_sys("stat");
+
+        if (S_ISBLK(finfo.st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo.st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo.st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo.st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo.st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo.st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo.st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        printf(" %ju", (uintmax_t)finfo.st_nlink);
+        printf(" %ju", (uintmax_t)finfo.st_uid);
+        printf(" %ju", (uintmax_t)finfo.st_gid);
+        printf(" %jd", (intmax_t)finfo.st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        printf(" %s", dt);
+        if (this_year != pt_file->tm_year)
+            printf("  %d", pt_file->tm_year + 1900);
+        printf(" %s\n\n", argv[1]);
+
+        printf("Inode No: %ju\n", (uintmax_t)finfo.st_ino);
+        printf("Block Size: %jd\n", (intmax_t)finfo.st_blksize);
+        printf("Number of 512B blocks: %ju\n", (uintmax_t)finfo.st_blocks);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
 
