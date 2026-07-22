@@ -1792,7 +1792,7 @@ yapmaktadır. Bu bölümde bu fonksiyonların önemli olanlarını tanıtacağı
 
 ----
 
-İnode Tabanlı Dosya Sistemleri ve Disk Organizasyonu
+Inode Tabanlı Dosya Sistemleri ve Disk Organizasyonu
 =====================================================
 
 UNIX/Linux sistemlerinde ``ext2``, ``ext3``, ``ext4`` gibi inode tabanlı dosya sistemlerinde bir disk bölümü
@@ -1856,7 +1856,7 @@ elde edilmektedir.
 
 ----
 
-``stat``, ``lstat`` ve ``fstat`` Fonksiyonları
+stat, lstat ve fstat Fonksiyonları
 -------------------------------------------------
 
 Bir dosyaya ilişkin bilgileri elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
@@ -1890,8 +1890,8 @@ durumunda ``-1`` değerine geri dönmektedir. (``stat`` isminin hem bir yapı be
 belirttiğine dikkat ediniz. C'de yapı ismiyle aynı isimli bir değişken ya da fonksiyon ismi bulunabilmektedir.
 Yapı isimleri zaten ``struct`` anahtar sözcüğüyle kullanılmaktadır.)
 
-``struct stat`` Yapısının Elemanları
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+struct stat Yapısının Elemanları
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``stat`` yapısının elemanları şöyledir:
 
@@ -1931,8 +1931,8 @@ Yapının ``st_ino`` elemanı dosyaya ilişkin inode elemanının numarasını b
 numaraları ``ls`` komutunda ``-i`` seçeneği ile de görüntülenebilmektedir. ``ino_t`` türü işaretsiz olmak
 koşuluyla herhangi bir tamsayı türü biçiminde typedef edilebilmektedir.
 
-``st_mode`` Elemanı: Erişim Hakları ve Dosya Türü
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+st_mode Elemanı: Erişim Hakları ve Dosya Türü
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Yapının ``st_mode`` elemanı dosyanın erişim haklarını ve türünü içermektedir. Bu elemanın içerisindeki değerler
 bitler biçiminde oluşturulmuştur. ``1`` olan bitler ilgili özelliğin olduğunu belirtmektedir. Belli bir erişim
@@ -2229,8 +2229,8 @@ son değiştirildiği zaman da görüntülenebilmektedir.
 
 ----
 
-Örnek: ``finfo.c`` — ``ls -l`` Tarzında Dosya Bilgisi Yazdırma
-----------------------------------------------------------------
+Örnek: finfo.c — ls -l Tarzında Dosya Bilgisi Yazdırma
+-------------------------------------------------------
 
 Aşağıda dosya bilgilerini ``stat`` fonksiyonu ile alıp yazdıran bir örnek verilmiştir. Bu programda dosya
 bilgileri ``ls -l`` stilinde yazdırılmıştır. Ancak ayrıca ``ls -l`` çıktısında olmayan bilgiler de
@@ -2347,5 +2347,1202 @@ Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup id'leri
         perror(msg);
         exit(EXIT_FAILURE);
     }
+
+
+Dosya Bilgilerinin Elde Edilmesi: stat, fstat ve lstat
+------------------------------------------------------
+
+getpwuid ve getgrgid ile Kullanıcı ve Grup İsimlerinin Elde Edilmesi
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Kullanıcı ve grup id'sinden hareketle kullanıcı ve grup isimlerinin elde edilmesi için ``getpwuid`` ve ``getgrgid``
+POSIX fonksiyonları kullanılmaktadır. Biz bu fonksiyonları zaten göreceğiz. Ancak yine biz yukarıdaki örneği kullanıcı
+ve grup isimlerini de basacak biçimde aşağıda yeniden veriyoruz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+
+
+    void exit_sys(const char *msg);
+
+
+    int main(int argc, char *argv[])
+    {
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        char dt[32];
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (stat(argv[1], &finfo) == -1)
+            exit_sys("stat");
+
+        if (S_ISBLK(finfo.st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo.st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo.st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo.st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo.st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo.st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo.st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        printf(" %ju", (uintmax_t)finfo.st_nlink);
+        printf(" %ju", (uintmax_t)finfo.st_uid);
+        printf(" %ju", (uintmax_t)finfo.st_gid);
+        printf(" %jd", (intmax_t)finfo.st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        printf(" %s", dt);
+        if (this_year != pt_file->tm_year)
+            printf("  %d", pt_file->tm_year + 1900);
+        printf(" %s\n\n", argv[1]);
+
+        printf("Inode No: %ju\n", (uintmax_t)finfo.st_ino);
+        printf("Block Size: %jd\n", (intmax_t)finfo.st_blksize);
+        printf("Number of 512B blocks: %ju\n", (uintmax_t)finfo.st_blocks);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dosya Bilgisinin disp_ls Fonksiyonu ile Basılması
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dosyanın bilgilerinin ekrana (``stdout`` dosyasına) yazdırılması işlemini bir fonksiyona da yaptırabiliriz::
+
+    int disp_ls(const char *path);
+
+``disp_ls`` önce ``stat`` fonksiyonuyla dosya bilgilerini elde edip onu *"ls -l"* formatında ekrana (``stdout``
+dosyasına) basmaktadır. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+Bazen dosyanın bilgileri zaten elde edilmiş durumda olabilir. Bu durumda ``disp_ls`` fonksiyonuna bizim ``stat``
+yapısını geçirmemiz daha uygun olabilir::
+
+    void disp_ls(const struct stat *finfo, const char *path);
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+    #include <pwd.h>
+    #include <grp.h>
+
+    int disp_ls(const char *path);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+        if (disp_ls(argv[1]) == -1)
+            exit_sys("disp_ls");
+
+        return 0;
+    }
+
+    int disp_ls(const char *path)
+    {
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        char dt[32];
+        struct passwd *pw;
+        struct group *gr;
+
+        if (stat(path, &finfo) == -1)
+            return -1;
+
+        if (S_ISBLK(finfo.st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo.st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo.st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo.st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo.st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo.st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo.st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        printf(" %ju", (uintmax_t)finfo.st_nlink);
+        if ((pw = getpwuid(finfo.st_uid)) != NULL)
+            printf(" %s", pw->pw_name);
+        else
+            printf(" %ju", (uintmax_t)finfo.st_uid);
+
+        if ((gr = getgrgid(finfo.st_gid)) != NULL)
+            printf(" %s", gr->gr_name);
+        else
+            printf(" %ju", (uintmax_t)finfo.st_gid);
+
+        printf(" %jd", (intmax_t)finfo.st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        printf(" %s", dt);
+        if (this_year != pt_file->tm_year)
+            printf("  %d", pt_file->tm_year + 1900);
+        printf(" %s\n", path);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Bilgilerin Yazı Olarak Elde Edilmesi: get_ls Fonksiyonu
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Aslında fonksiyonların doğrudan bilgileri ekrana (``stdout`` dosyasına) basması bazen istenmeyebilir. Programcı
+bilgileri elde edip onları başka bir yazının içerisine gömmek isteyebilir. Bu tür durumlarda fonksiyonların formatlanmış
+yazıyı ekrana (``stdout`` dosyasına) basacak biçimde değil onu yazı olarak verecek biçimde tasarlanması daha uygundur.
+Bu tür tasarımlarda fonksiyonların yazıların bulunduğu ``static`` dizilerin adresiyle geri döndürülmesi kullanımı
+kolaylaştırmaktadır. Ancak bu tür tasarımlar fonksiyonun ileride göreceğimiz *thread güvenliliğini (thread safety)*
+ortadan kaldırmaktadır. Aşağıda dosyanın bilgilerini *"ls -l"* formatında ``static`` yerel bir dize yerleştirip o
+dizinin adresiyle geri dönen fonksiyon örneğini veriyoruz:
+
+.. code-block:: c
+
+    char *get_ls(const char *path)
+    {
+        static char buf[4096];
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        int i, ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        struct passwd *pw;
+        struct group *gr;
+
+        if (stat(path, &finfo) == -1)
+            return NULL;
+
+        i = 0;
+        if (S_ISBLK(finfo.st_mode))
+            buf[i] = 'b';
+        else if (S_ISCHR(finfo.st_mode))
+            buf[i] = 'c';
+        else if (S_ISDIR(finfo.st_mode))
+            buf[i] = 'd';
+        else if (S_ISFIFO(finfo.st_mode))
+            buf[i] = 'p';
+        else if (S_ISREG(finfo.st_mode))
+            buf[i] = '-';
+        else if (S_ISLNK(finfo.st_mode))
+            buf[i] = 'l';
+        else if (S_ISSOCK(finfo.st_mode))
+            buf[i] = 's';
+        else
+            buf[i] = '?';
+
+        ++i;
+        for (int k = 0; k < 9; ++k) {
+            ch = finfo.st_mode & masks[k] ? "rwx"[k % 3] : '-';
+            buf[i++] = ch;
+        }
+        i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_nlink);
+        if ((pw = getpwuid(finfo.st_uid)) != NULL)
+            i += sprintf(buf + i," %s", pw->pw_name);
+        else
+            i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_uid);
+
+        if ((gr = getgrgid(finfo.st_gid)) != NULL)
+            i += sprintf(buf + i, " %s", gr->gr_name);
+        else
+            i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_gid);
+
+        i += sprintf(buf + i, " %jd", (intmax_t)finfo.st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+        i += strftime(buf + i, 32, " %b %d %H:%M", pt_file);
+        if (this_year != pt_file->tm_year)
+            i += sprintf(buf + i, "  %d", pt_file->tm_year + 1900);
+        sprintf(buf + i, " %s\n", path);
+
+        return buf;
+    }
+
+Burada ``printf`` çağrıları yerine ``sprintf`` çağrıları kullanılmıştır. ``printf`` türevi fonksiyonların (``strftime``
+fonksiyonunun da) yazdırılan ya da yerleştirilen karakter sayısına geri döndüğünü anımsayınız.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+    #include <pwd.h>
+    #include <grp.h>
+
+    char *get_ls(const char *path);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        char *buf;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((buf = get_ls(argv[1])) == NULL)
+            exit_sys("get_ls");
+
+        printf("%s\n", buf);
+
+        return 0;
+    }
+
+    char *get_ls(const char *path)
+    {
+        static char buf[4096];
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        int i, ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        struct passwd *pw;
+        struct group *gr;
+
+        if (stat(path, &finfo) == -1)
+            return NULL;
+
+        i = 0;
+        if (S_ISBLK(finfo.st_mode))
+            buf[i] = 'b';
+        else if (S_ISCHR(finfo.st_mode))
+            buf[i] = 'c';
+        else if (S_ISDIR(finfo.st_mode))
+            buf[i] = 'd';
+        else if (S_ISFIFO(finfo.st_mode))
+            buf[i] = 'p';
+        else if (S_ISREG(finfo.st_mode))
+            buf[i] = '-';
+        else if (S_ISLNK(finfo.st_mode))
+            buf[i] = 'l';
+        else if (S_ISSOCK(finfo.st_mode))
+            buf[i] = 's';
+        else
+            buf[i] = '?';
+
+        ++i;
+        for (int k = 0; k < 9; ++k) {
+            ch = finfo.st_mode & masks[k] ? "rwx"[k % 3] : '-';
+            buf[i++] = ch;
+        }
+        i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_nlink);
+        if ((pw = getpwuid(finfo.st_uid)) != NULL)
+            i += sprintf(buf + i," %s", pw->pw_name);
+        else
+            i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_uid);
+
+        if ((gr = getgrgid(finfo.st_gid)) != NULL)
+            i += sprintf(buf + i, " %s", gr->gr_name);
+        else
+            i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_gid);
+
+        i += sprintf(buf + i, " %jd", (intmax_t)finfo.st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+        i += strftime(buf + i, 32, " %b %d %H:%M", pt_file);
+        if (this_year != pt_file->tm_year)
+            i += sprintf(buf + i, "  %d", pt_file->tm_year + 1900);
+        sprintf(buf + i, " %s\n", path);
+
+        return buf;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Thread-Safe get_ls Fonksiyonu
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Yukarıdaki ``get_ls`` fonksiyonunu thread güvenli hale getirmek için fonksiyonun ``static`` diziye kodlama yapmasının
+önüne geçilmesi gerekir. Fonksiyon parametresiyle aldığı bir diziye kodlama yapabilir. Bu tür fonksiyonlarda dizi
+uzunluğunun da fonksiyona geçirilmesi ve dizinin taşırılmasının önüne geçilmesi iyi bir tekniktir. Fonksiyonun bu
+halinin prototipi şöyle olabilir::
+
+    char *get_ls(const char *path, char *buf, size_t size);
+
+Fonksiyonun bu halini aşağıda veriyoruz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+    #include <errno.h>
+    #include <pwd.h>
+    #include <grp.h>
+
+    char *get_ls(const char *path, char *buf, size_t size);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        char buf[4096];
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (get_ls(argv[1], buf, 4096) == NULL)
+            exit_sys("get_ls");
+
+        printf("%s\n", buf);
+
+        return 0;
+    }
+
+    char *get_ls(const char *path, char *buf, size_t size)
+    {
+        struct stat finfo;
+        static const int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        struct passwd *pw;
+        struct group *gr;
+        size_t i, n;
+        int len;
+
+        if (stat(path, &finfo) == -1)
+            return NULL;
+
+        if (size < 11) {
+            errno = ERANGE;
+            return NULL;
+        }
+
+        i = 0;
+        if (S_ISBLK(finfo.st_mode))
+            buf[i] = 'b';
+        else if (S_ISCHR(finfo.st_mode))
+            buf[i] = 'c';
+        else if (S_ISDIR(finfo.st_mode))
+            buf[i] = 'd';
+        else if (S_ISFIFO(finfo.st_mode))
+            buf[i] = 'p';
+        else if (S_ISREG(finfo.st_mode))
+            buf[i] = '-';
+        else if (S_ISLNK(finfo.st_mode))
+            buf[i] = 'l';
+        else if (S_ISSOCK(finfo.st_mode))
+            buf[i] = 's';
+        else
+            buf[i] = '?';
+
+        ++i;
+        for (int k = 0; k < 9; ++k)
+            buf[i++] = finfo.st_mode & masks[k] ? "rwx"[k % 3] : '-';
+
+        len = snprintf(buf + i, size - i, " %ju", (uintmax_t)finfo.st_nlink);
+        if (len >= size - i)
+            goto EXIT;
+        i += len;
+
+        if ((pw = getpwuid(finfo.st_uid)) != NULL)
+            len = snprintf(buf + i, size - i, " %s", pw->pw_name);
+        else
+            len = snprintf(buf + i, size - i, " %ju", (uintmax_t)finfo.st_uid);
+        if (len >= size - i)
+            goto EXIT;
+        i += len;
+
+        if ((gr = getgrgid(finfo.st_gid)) != NULL)
+            len = snprintf(buf + i, size - i, " %s", gr->gr_name);
+        else
+            len = snprintf(buf + i, size - i, " %ju", (uintmax_t)finfo.st_gid);
+        if (len >= size - i)
+            goto EXIT;
+        i += len;
+
+        len = snprintf(buf + i, size - i, " %jd", (intmax_t)finfo.st_size);
+        if (len >= size - i)
+            goto EXIT;
+        i += len;
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+
+        if ((n = strftime(buf + i, size - i, " %b %d %H:%M", pt_file)) == 0)
+            goto EXIT;
+        i += n;
+
+        if (this_year != pt_file->tm_year) {
+            len = snprintf(buf + i, size - i, "  %d", pt_file->tm_year + 1900);
+            if (len >= size - i)
+                goto EXIT;
+            i += len;
+        }
+
+        len = snprintf(buf + i, size - i, " %s\n", path);
+        if (len >= size - i)
+            goto EXIT;
+
+        return buf;
+
+    EXIT:
+        errno = ERANGE;
+        return NULL;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+fstat Fonksiyonu
+^^^^^^^^^^^^^^^^^
+
+``fstat`` fonksiyonu ``stat`` fonksiyonunun yol ifadesi değil dosya betimleyicisi alan biçimidir. Prototipi şöyledir::
+
+    int fstat(int fd, struct stat *buf);
+
+Genel olarak işletim sisteminin dosya betimleyicisinden hareketle inode bilgilerine erişmesi yol ifadesinden hareketle
+erişmesinden daha hızlı olmaktadır. Çünkü ``open`` fonksiyonuyla dosya açıldığında zaten dosyanın disk üzerindeki inode
+bilgileri elde edilip çekirdek alanına çekilmektedir. Linux sistemlerinde diskteki dosyanın bilgilerinin yerleştirildiği
+çekirdek nesnelerine *inode nesneleri* denilmektedir. Dolayısıyla eğer dosya zaten açılmışsa onun dosya
+betimleyicisinden hareketle dosya bilgilerine erişilmesi çekirdek için daha zahmetsiz ve hızlıdır. Örneğin:
+
+.. code-block:: c
+
+    int fd;
+    struct stat finfo;
+
+    if ((fd = open("test.txt", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    /* ... */
+
+    if (fstat(fd, &finfo) == -1)
+        exit_sys("fstat");
+
+Burada bir noktayı yeniden vurgulamak istiyoruz. Dosyayı ``open`` fonksiyonuyla açıp ``fstat`` kullanmak iyi bir teknik
+değildir. Dosya zaten başka işlemler için açılmak zorundaysa ve açık dosyanın bilgilerini elde etmek istiyorsak
+``fstat`` kullanmamız uygun olur.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <fcntl.h>
+    #include <pwd.h>
+    #include <grp.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void disp_ls(const struct stat *finfo, const char *path);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int fd;
+        struct stat finfo;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((fd = open("test.txt", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        /* burada dosyayla ilgili birtakim islemler yapiliyor */
+
+        if (fstat(fd, &finfo) == -1)
+            exit_sys("fstat");
+        disp_ls(&finfo, argv[1]);
+
+        return 0;
+    }
+
+    void disp_ls(const struct stat *finfo, const char *path)
+    {
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        char dt[32];
+        struct passwd *pw;
+        struct group *gr;
+
+        if (S_ISBLK(finfo->st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo->st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo->st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo->st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo->st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo->st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo->st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo->st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        printf(" %ju", (uintmax_t)finfo->st_nlink);
+        if ((pw = getpwuid(finfo->st_uid)) != NULL)
+            printf(" %s", pw->pw_name);
+        else
+            printf(" %ju", (uintmax_t)finfo->st_uid);
+
+        if ((gr = getgrgid(finfo->st_gid)) != NULL)
+            printf(" %s", gr->gr_name);
+        else
+            printf(" %ju", (uintmax_t)finfo->st_gid);
+
+        printf(" %jd", (intmax_t)finfo->st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo->st_mtim.tv_sec);
+        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        printf(" %s", dt);
+        if (this_year != pt_file->tm_year)
+            printf("  %d", pt_file->tm_year + 1900);
+        printf(" %s\n", path);
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+lstat Fonksiyonu
+^^^^^^^^^^^^^^^^^
+
+``lstat`` fonksiyonunun ``stat`` fonksiyonundan tek farkı sembolik bağlantı dosyaları söz konusu olduğunda ``lstat``
+fonksiyonunun sembolik bağlantıyı izlememesi, sembolik bağlantı dosyasının kendisine ilişkin bilgileri vermesidir.
+Dizinler için sembolik bağlantılar oluşturulduğunda dizin ağacı özyinelemeli bir biçimde dolaşılırken sembolik
+bağlantıların izlenmesi bu tür dolaşımların sonsuz döngüye girmesine yol açabilmektedir. Bu tür durumlarda ``stat``
+yerine ``lstat`` fonksiyonu kullanılmalıdır. ``lstat`` fonksiyonunun parametrik yapısı tamamen ``stat`` fonksiyonu
+gibidir::
+
+    int lstat(const char *path, struct stat *buf);
+
+İzleyen paragraflarda katı bağların (hard link) ve sembolik bağların (soft link) ne anlama geldiğini açıklayacağız.
+
+stat Kabuk Komutu
+^^^^^^^^^^^^^^^^^^
+
+Bir dosyanın ``stat`` bilgileri komut satırından *stat* kabuk komutuyla da elde edilebilmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ stat test.txt
+    Dosya: test.txt
+    Boyut: 232       	Bloklar: 8          Kimlik bloku: 4096   normal dosya
+    Aygıt: 8,3	İndeks: 6076078     Bağlar: 2
+    Erişim: (0666/-rw-rw-rw-)  Uid: ( 1000/    kaan)   Gid: ( 1000/   study)
+    Erişim: 2026-07-07 13:58:08.200998707 +0300
+    Değiştirme: 2026-07-09 12:43:45.589508117 +0300
+    Değişiklik: 2026-07-09 12:43:45.589508117 +0300
+        Doğum: 2026-06-25 13:31:48.310425000 +0300
+
+Dizinlerin Organizasyonu ve Dizin Girişleri
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dizinler de aslında tamamen dosyalar gibi organize edilmektedir. Bir dosyanın içerisinde dosyanın içeriğindeki bilgiler
+vardır. Ancak bir dizinin içerisinde o dizin içerisindeki dosyaların isimleri ve inode numaraları bulunmaktadır.
+Dizinlerin içerisindeki her bir elemana *dizin girişi (directory entry)* denilmektedir. Dizin girişlerinin formatının
+ayrıntıları dosya sisteminden sistemine değişebilmektedir. Ancak temel olarak dizin girişlerinde dosyanın ismi ve inode
+numarası tutulmaktadır. Dosyanın metadata bilgilerinin (yani erişim hakları, uzunluk gibi) inode bloktaki inode
+elemanında tutulduğunu ve ``stat`` fonksiyonlarının bu bilgileri inode elemanından aldığını anımsayınız. Biz ext dosya
+sistemlerini kursumuzun sonlarına doğru ele alacağız. Ancak şimdilik bir dizinin aşağıdaki formatta dizin girişlerine
+sahip olduğunu varsayabiliriz:
+
+.. code-block:: text
+
+    ┌────────────┬──────────┐
+    │ dosya_ismi │ inode_no │
+    ├────────────┼──────────┤
+    │ dosya_ismi │ inode_no │
+    │ dosya_ismi │ inode_no │
+    │    ...     │   ...    │
+    │ dosya_ismi │ inode_no │
+    └────────────┴──────────┘
+
+Örneğin:
+
+.. code-block:: text
+
+    ┌────────────┬──────────┐
+    │ Dosya İsmi │ Inode No │
+    ├────────────┼──────────┤
+    │ sample.C   │ 342678   │
+    │ test.txt   │ 422119   │
+    │ sample     │ 214567   │
+    │    ...     │   ...    │
+    └────────────┴──────────┘
+
+Biz bir POSIX fonksiyonuna yol ifadesi verdiğimizde çekirdek içerisindeki sistem fonksiyonları önce yol ifadesini
+çözümlemektedir (pathname resolution). Yol ifadesi çözümlendiğinde çekirdek dosyaya ilişkin inode numarasını elde etmiş
+olmaktadır. Sonra da *inode blok* içerisinde o indeksteki elemana başvurarak dosyanın bilgilerini ele geçirmektedir.
+Ancak bundan sonra dosya üzerinde işlemler yapabilir hale gelmektedir.
+
+Bir yol ifadesi verildiğinde çekirdeğin önce dizin girişine erişip, inode numarasından hareketle inode elemanına
+erişmesi göreli olarak yavaş bir işlemdir. İşletim sistemleri bu işlemlerin daha hızlı yapılmasını sağlamak için daha
+önce erişilen dizin girişlerini ve inode elemanlarını RAM'de oluşturdukları önbelleklerde saklamaktadır. Böylece eğer
+başvurulan bilgiler zaten önbellekte varsa boşuna disk okumaları yapılmamaktadır. Linux işletim sisteminde erişilen
+dizin girişlerinin saklandığı önbellek sistemine *dentry cache*, erişilen inode elemanlarının saklandığı önbellek
+sistemine ise *inode cache* denilmektedir.
+
+
+Katı Bağlar (Hard Link) ve Sembolik Bağlar (Symbolic Link)
+==========================================================
+
+Katı Bağ (Hard Link) Kavramı
+----------------------------
+
+Farklı dizin girişlerinin aynı inode numarasına sahip olması durumuna UNIX/Linux sistemlerinde *katı bağ (hard link)*
+denilmektedir. Örneğin farklı dizinlerde (aynı dizinde de olabilir) aşağıdaki gibi iki giriş olsun:
+
+.. code-block:: text
+
+    ┌────────────┬──────────┐
+    │ Dosya İsmi │ Inode No │
+    ├────────────┼──────────┤
+    │    ...     │   ...    │
+    │   x.txt    │  34718   │
+    │    ...     │   ...    │
+    └────────────┴──────────┘
+
+.. code-block:: text
+
+    ┌────────────┬──────────┐
+    │ Dosya İsmi │ Inode No │
+    ├────────────┼──────────┤
+    │    ...     │   ...    │
+    │   y.txt    │  34718   │
+    │    ...     │   ...    │
+    └────────────┴──────────┘
+
+Burada her iki dizin girişinin de aynı inode elemanına sahip olduğuna dikkat ediniz. Dosyaya erişmek için gereken tüm
+bilgiler inode elemanının içerisinde olduğuna göre bu dosyaya ``x.txt`` yol ifadesiyle erişmekle ``y.txt`` yol
+ifadesiyle erişmek arasında hiçbir farklılık yoktur. İşte ``x.txt`` ve ``y.txt`` dizin girişleri *katı bağ (hard link)*
+oluşturmuştur. Tabii katı bağa sahip dizin girişleri ikiden fazla da olabilir. Katı bağ oluşturmak için ``link`` isimli
+POSIX fonksiyonu kullanılmaktadır. Linux sistemlerinde bu POSIX fonksiyonu ``sys_link`` isimli sistem fonksiyonunu
+çağırmaktadır. ``link`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int link(const char *oldpath, const char *newpath);
+
+Fonksiyonun birinci parametresi katı bağı oluşturulacak dosyanın yol ifadesini, ikinci parametresi oluşturulacak olan
+yeni katı bağın yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine
+geri dönmektedir. Örneğin:
+
+.. code-block:: c
+
+    if (link("x.txt", "y.txt") == -1)
+        exit_sys("link");
+
+Kaynak dosya yoksa ya da hedef dosya varsa fonksiyon başarısız olmaktadır. Yukarıdaki işlemin başarılı olduğunu
+varsayalım. Bu iki dosyanın *"ls -l"* ile bilgilerine baktığımızda aynı şeyleri görürüz:
+
+.. code-block:: text
+
+    $ ls -li x.txt y.txt
+    6076082 -rw-r--r-- 2 kaan study 41 Haz 23 13:43 x.txt
+    6076082 -rw-r--r-- 2 kaan study 41 Haz 23 13:43 y.txt
+
+Burada dosyanın katı bağ sayacının (3'üncü sütun) 2 haline geldiğine dikkat ediniz. Buradaki 2 değeri aynı fiziksel
+dosyayı gösteren iki farklı dizin girişinin bulunduğunu belirtmektedir.
+
+Katı bağ oluşturma dosya sisteminin disk tarafındaki tasarımına da bağlıdır. Her dosya sistemi katı bağ oluşturulmasını
+desteklemek zorunda değildir. Bu durumda ``link`` fonksiyonu başarısızlıkla geri dönecektir. Örneğin Microsoft'un FAT
+dosya sistemleri katı bağları desteklememektedir.
+
+Disk bölümleri arasında da katı bağ oluşturulamamaktadır. Çünkü her disk bölümünün inode tablosu farklıdır. Farklı disk
+bölümlerinde aynı inode numaraları bulunabilmektedir. Yani inode numaraları sistem genelinde değil disk bölümü genelinde
+tektir. Farklı bir disk bölümündeki dosyanın farklı bir disk bölümüne katı bağı oluşturulmak istendiğinde ``link``
+fonksiyonu başarısız olur ve ``errno`` değeri ``EXDEV`` (*Invalid cross-device link*) olarak set edilmektedir.
+
+Kabuk üzerinde katı bağlar *ln* isimli kabuk komutuyla oluşturulmaktadır. Bu kabuk komutu *cp* gibi kullanılmaktadır.
+Örneğin:
+
+.. code-block:: text
+
+    $ ln x.txt y.txt
+
+Burada ``x.txt`` dosyasına ilişkin inode elemanıyla aynı inode elemanına referans eden yeni bir ``y.txt`` dosyası
+oluşturulmaktadır.
+
+Bir Katı Bağ Oluşturma Programı: makelink.c
+-------------------------------------------
+
+Aşağıdaki program *ln* komutunun benzer işlevini yerine getirmektedir. Programı şöyle kullanabilirsiniz:
+
+.. code-block:: text
+
+    $ ./makelink x.txt y.txt
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 3) {
+            fprintf(stderr, "wrong number of arguments!");
+            exit(EXIT_FAILURE);
+        }
+
+        if (link(argv[1], argv[2]) == -1)
+            exit_sys("link");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dizinlerin Katı Bağları
+-----------------------
+
+Dizinlerin katı bağlarının oluşturulması bazı sorunlara yol açabilmektedir. Yukarıda da belirttiğimiz gibi bu tür
+durumlarda dizin ağacını dolaşan programlar sonsuz döngüye girebilmektedir. Bu nedenle bazı UNIX/Linux sistemlerinde
+dizinlerin katı bağlarının oluşturulması mümkün olmayabilmektedir. Bazı sistemlerde ise dizinlerin katı bağları ancak
+*root* kullanıcısı tarafından (yani *sudo* ile) oluşturulabilmektedir. Linux dizinler üzerinde katı bağ oluşturulmasına
+izin vermemektedir. Linux'ta dizinler üzerinde katı bağı oluşturulmak istendiğinde ``link`` fonksiyonu başarısız olur ve
+``errno`` değeri ``EPERM`` (*Permission denied*) ile set edilir. POSIX standartları bu konuda şunları söylemektedir:
+
+    *If path1 names a directory, link() shall fail unless the process has appropriate privileges and the implementation
+    supports using link() on directories.*
+
+Dizinlerdeki . ve .. Girişleri
+------------------------------
+
+Bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isimli iki dizin girişi de yaratılmaktadır. ``.`` girişi bulunulan
+dizini, ``..`` dizini ise üst dizini belirtmektedir. UNIX/Linux sistemlerinde başı ``.`` ile başlayan dosyalar *ls*
+komutunda default durumda görüntülenmemektedir. Bu girişleri görebilmek için *ls* komutunda *-a* seçeneğinin
+kullanılması gerekir. Örneğin:
+
+.. code-block:: text
+
+    $ mkdir xxx
+    $ ls xxx
+    $ ls -a xxx
+    .  ..
+
+İşte yeni bir dizin yaratıldığında oluşturulan ``.`` girişi aslında içinde bulunulan dizine bir katı bağ girişidir. Bu
+nedenle bir dizin yaratıldığında üst dizinin katı bağ sayacı 1 artırılmaktadır. Şimdi ``xxx`` dizinini sıfırdan yeniden
+yaratıp *"ls -l"* ile durumuna bakalım:
+
+.. code-block:: text
+
+    $ mkdir xxx
+    $ ls -ld xxx
+    drwxr-xr-x 2 kaan study 4096 Tem  9 13:41 xxx
+
+Görüldüğü gibi ``xxx`` dizini yaratıldığında katı bağ sayacı 2 durumundadır. Çünkü onun içerisindeki ``.`` dizini üst
+dizine katı bağ oluşturmaktadır. Bunu şöyle ispatlayabiliriz:
+
+.. code-block:: text
+
+    $ mkdir xxx
+    $ ls -ldai xxx xxx/.
+    6335620 drwxr-xr-x 2 kaan study 4096 Tem  9 13:41 xxx
+    6335620 drwxr-xr-x 2 kaan study 4096 Tem  9 13:41 xxx/.
+
+Tabii siz şimdi *"hani Linux'ta dizinlere katı bağ oluşturulamıyordu"* diye sorabilirsiniz. İşte işletim sistemi bu
+``.`` ve ``..`` dizinleri için istisnai olarak katı bağ oluşturmaktadır.
+
+Bir dizinin içerisinde başka bir dizin yarattığımızda yarattığımız dizindeki ``..`` girişi üst dizine katı bağ
+belirttiği için üst dizinin katı bağ sayacı da artırılmaktadır. O halde dizin içerisinde yaratılan her dizin üst dizinin
+katı bağ sayacını 1 artırmaktadır. ``xxx`` dizinini silerek yeniden şu denemeyi yapalım:
+
+.. code-block:: text
+
+    $ mkdir xxx
+    $ ls -ld xxx
+    drwxr-xr-x 2 kaan study 4096 Tem  9 13:53 xxx
+    $ mkdir xxx/yyy
+    $ ls -ld xxx
+    drwxr-xr-x 3 kaan study 4096 Tem  9 13:53 xxx
+    $ mkdir xxx/zzz
+    $ ls -ld xxx
+    drwxr-xr-x 4 kaan study 4096 Tem  9 13:54 xxx
+    $ ls -ldai xxx xxx/yyy/.. xxx/zzz/..
+    6335620 drwxr-xr-x 4 kaan study 4096 Tem  9 13:54 xxx
+    6335620 drwxr-xr-x 4 kaan study 4096 Tem  9 13:54 xxx/yyy/..
+    6335620 drwxr-xr-x 4 kaan study 4096 Tem  9 13:54 xxx/zzz/..
+
+Buradaki deneyden çıkan sonuçlara dikkat ediniz:
+
+- Dizin ilk yaratıldığında dizinin kendisine ilişkin katı bağ sayacı ``.`` girişinden dolayı 2 olmaktadır.
+- Dizin içerisinde her yeni dizin yaratıldığında o dizindeki ``..`` girişinden dolayı üst dizinin katı bağ sayacı 1
+  artırılmaktadır.
+
+Linux sistemleri ``.`` ve ``..`` dizinleri için istisna olarak katı bağ oluşturmaktadır ancak kullanıcılara dizinlere
+katı bağ oluşturma olanağını vermemektedir.
+
+Katı Bağın Silinmesi
+--------------------
+
+Aynı dosyaya referans eden ``x.txt`` ve ``y.txt`` biçiminde iki katı bağ girişi olsun. Biz bunlardan birini silersek ne
+olur? Bu durumda eğer dosyanın kendisi silinirse diğer dizin girişi geçersiz duruma gelir. İşte işletim sistemi inode
+elemanının içerisinde (``stat`` yapısının ``st_nlink`` elemanı) ilgili dosyaya ilişkin kaç katı bağın bulunduğu
+bilgisini tutmaktadır. Bir dosyanın katı bağı silinmek istendiğinde işletim sistemi dizin girişini siler, dosyanın inode
+elemanındaki katı bağ sayacını 1 eksiltir. Katı bağ sayacı 0'a düştüğünde diskten dosyayı gerçekten siler. Örneğin:
+
+.. code-block:: text
+
+    $ ls -li x.txt y.txt
+    6076082 -rw-r--r-- 2 kaan study 41 Haz 23 13:43 x.txt
+    6076082 -rw-r--r-- 2 kaan study 41 Haz 23 13:43 y.txt
+
+Burada ``x.txt`` ve ``y.txt`` aynı dosyaya referans eden katı bağlardır. Bunlardan birini silelim:
+
+.. code-block:: text
+
+    $ rm x.txt
+
+Artık ``x.txt`` girişi yok edilmiştir. Ancak ``y.txt`` girişi durmaktadır:
+
+.. code-block:: text
+
+    $ ls -li y.txt
+    6076082 -rw-r--r-- 1 kaan study 41 Haz 23 13:43 y.txt
+
+Dosyanın katı bağ sayacının 1'e düştüğüne dikkat ediniz. Artık biz bu ``y.txt`` dosyasını da sildiğimizde katı bağ
+sayacı 0'a düştüğü için gerçekten dosya da silinecektir.
+
+Sembolik Bağ (Soft Link) Kavramı
+--------------------------------
+
+UNIX/Linux sistemlerinde *gevşek bağ (soft link)* ya da *sembolik bağ (symbolic link)* denilen bir bağ biçimi de vardır.
+Sembolik bağlar Windows sistemlerindeki *kısa yol dosyalarına* benzemektedir. UNIX/Linux sistemlerinde sembolik bağlar
+katı bağlardan daha yaygın kullanılmaktadır. Sembolik bağ *başka bir dosyaya referans eden dosya* anlamına gelmektedir.
+Sembolik bağın hangi dosyaya referans ettiği sembolik dosyanın diskteki inode elemanında tutulmaktadır. Anımsayacağınız
+gibi ``stat`` fonksiyonlarıyla dosya bilgileri elde edildiğinde dosyanın sembolik bağlantı dosyası olup olmadığı bilgisi
+``stat`` yapısının ``st_mode`` elemanında kodlanmış olarak bulunuyordu. Biz de dosyanın sembolik bağ dosyası olup
+olmadığını ``S_IFLNK`` makrosuyla anlayabiliyorduk. Örneğin ``y.txt`` dosyası ``x.txt`` dosyasına sembolik bağ yapılmış
+olsun. Biz bu durumu şöyle temsil edebiliriz:
+
+.. code-block:: text
+
+    y.txt -> x.txt
+
+Bazı POSIX fonksiyonları sembolik bağ dosyasına ilişkin bir yol ifadesi ile karşılaştığında sembolik bağı izleyerek ve
+sembolik bağın hedefine ilişkin dosyayı tespit edip onun üzerinde işlem yapmaktadır. Yukarıdaki örneğimizde biz
+``y.txt`` dosyasını ``open`` fonksiyonuyla açmış olalım:
+
+.. code-block:: c
+
+    fd = open("y.txt", O_RDONLY);
+
+Burada işletim sistemi ``y.txt`` dosyasının bir sembolik bağ dosyası olduğunu anlar ve onun referans ettiği dosyayı
+tespit eder ve gerçekte o dosyayı açmaya çalışır. Buna sembolik bağın izlenmesi de denilmektedir. Yukarıda ``open``
+işleminde aslında ``open`` ``y.txt`` sembolik bağ dosyasını değil ``x.txt`` dosyasını açmaya çalışacaktır. Sembolik
+bağların kullanım amacı olarak katı bağlara oldukça benzediğine dikkat ediniz. Yukarıdaki örneğimizde biz ``y.txt``
+dosyası üzerinde işlem yapmak istediğimizde sistem aslında onun referans ettiği ``x.txt`` dosyası üzerinde işlem
+yapmaktadır.
+
+Her POSIX fonksiyonu sembolik bağları izlememektedir. Örneğin biz bir sembolik bağ dosyasını ``unlink`` fonksiyonuyla ya
+da komut satırında *rm* komutuyla silmek istediğimizde onun referans ettiği dosya değil sembolik bağ dosyasının kendisi
+silinmektedir. Eğer dosya silmekte kullanılan ``unlink`` fonksiyonu sembolik bağı izleseydi yukarıdaki örneğimizde biz
+``y.txt`` dosyasını silmeye çalıştığımızda ``x.txt`` dosyası silinirdi. Örneğin ``stat`` fonksiyonu sembolik bağı
+izlediği halde ``lstat`` fonksiyonu onu izlememektedir. Yani biz ``stat`` fonksiyonuna bir sembolik bağ dosyası
+verdiğimizde ``stat`` fonksiyonu bağı izleyerek bize onun referans ettiği dosyanın bilgilerini vermektedir. Ancak
+``lstat`` fonksiyonu sembolik bağı izlememekte onun kendisine ilişkin dosya bilgilerini elde etmektedir.
+
+symlink Fonksiyonu
+------------------
+
+Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadır. Linux sistemlerinde bu fonksiyon
+``sys_symlink`` isimli sistem fonksiyonunu çağırmaktadır. ``symlink`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int symlink(const char *target, const char *linkpath);
+
+Fonksiyonun birinci parametresi gerçek dosyanın yol ifadesini, ikinci parametresi ise oluşturulacak sembolik bağlantı
+dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri
+dönmektedir. Örneğin:
+
+.. code-block:: c
+
+    if (symlink("x.txt", "y.txt") == -1)
+        exit_sys("symlink");
+
+Burada ``y.txt -> x.txt`` durumu oluşturulmaktadır. Bu işlemden sonra her iki dosyayı da *"ls -li"* komutuyla
+görüntülediğimizde aşağıdakine benzer bir çıktı elde ederiz:
+
+.. code-block:: text
+
+    $ ls -li x.txt y.txt
+    6076082 -rw-r--r-- 1 kaan study 38 Tem  9 11:39 x.txt
+    6076114 lrwxrwxrwx 1 kaan study  5 Tem  9 11:39 y.txt -> x.txt
+
+Burada dosyaların inode numaralarının farklı olduğuna dikkat ediniz. Çünkü sembolik bağ dosyaları ayrı bir dosya
+gibidir. Onun ayrı bir inode elemanı vardır. Ancak inode elemanında o sembolik bağ dosyasının gerçekte hangi dosyaya
+referans ettiği bilgisi de tutulmaktadır. *"ls -l"* komutunda sembolik bağlar ok işaretiyle gösterilmektedir. Sembolik
+bağ dosyalarının tür belirten karakterinin 'l' olduğuna da dikkat ediniz. Sembolik bağlantı dosyalarının kendi erişim
+hakları her zaman *rwxrwxrwx* biçiminde oluşturulmaktadır.
+
+``symlink`` fonksiyonunda kaynak dosyanın var olması gerekmez. Bu durumu izleyen paragraflarda açıklayacağız.
+
+Bir Sembolik Bağ Oluşturma Programı: makesymlink.c
+--------------------------------------------------
+
+Aşağıda bir dosyanın sembolik bağlantısını oluşturan bir program örneği verilmiştir. Programı şöyle deneyebilirsiniz:
+
+.. code-block:: text
+
+    ./makesymlink x.txt y.txt
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        /*
+        if (argc != 3) {
+            fprintf(stderr, "wrong number of arguments!");
+            exit(EXIT_FAILURE);
+        }
+
+        if (link(argv[1], argv[2]) == -1)
+            exit_sys("link");
+
+        */
+
+        if (symlink("x.txt", "y.txt") == -1)
+            exit_sys("symlink");
+
+        printf("Ok\n");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+ln -s ile Sembolik Bağ Oluşturma ve Dangling Link
+-------------------------------------------------
+
+Sembolik bağ dosyası komut satırından yine *ln* komutuyla oluşturulmaktadır. Ancak *ln* komutuna *-s* seçeneği de
+girilmelidir. Örneğin:
+
+.. code-block:: text
+
+    $ ln -s x.txt y.txt
+
+    $ ls -li x.txt y.txt
+    6076082 -rw-r--r-- 1 kaan study 38 Tem  9 11:39 x.txt
+    6076114 lrwxrwxrwx 1 kaan study  5 Tem  9 11:48 y.txt -> x.txt
+
+Sembolik bağ oluştururken kaynak dosyanın var olması gerekmemektedir.
+
+Peki bir sembolik bağ dosyasının referans ettiği dosya silinirse ne olur? Yukarıdaki örneğimizde ``x.txt`` dosyasını
+silelim:
+
+.. code-block:: text
+
+    $ rm x.txt
+
+.. code-block:: text
+
+    $ ls -li y.txt
+    6076114 lrwxrwxrwx 1 kaan study 5 Tem  9 11:48 y.txt -> x.txt
+
+Görüldüğü gibi sembolik bağ yine var olmaya devam etmektedir. *"ls -l"* komutunda bu tuhaf durum *siyah üstüne kırmızı*
+renk ile temsil edilmektedir. (Yani komutun çıktısındaki ``y.txt -> x.txt`` kısmı siyah üzerine kırmızı renkle
+gösterilmektedir.)
+
+Peki biz bu durumda ``y.txt`` dosyasını ``open`` fonksiyonuyla açmak istediğimizde (ya da örneğin *cat* komutuyla onun
+içini görmek istediğimizde) ne olacaktır? İşte ``open`` fonksiyonu sembolik bağ dosyasının referans ettiği dosyanın
+olmadığını anlamakta ve sanki olmayan bir dosya açılmak istenmiş gibi davranmaktadır. Yani bu durumda ``open``
+fonksiyonu başarısız olup -1 değerine geri döner ve ``errno`` değişkeni ``ENOENT`` (*No such file or directory*)
+değeriyle set edilir.
+
+Sembolik bağ dosyasının referans ettiği dosyanın silinmiş olma durumuna İngilizce *dangling link* denilmektedir.
+Dangling duruma gelmiş bir sembolik bağ dosyasının referans ettiği dosya yeniden yaratılırsa artık dangling durumu
+ortadan kaldırılmış olur.
+
+Döngüsel Sembolik Bağlar
+------------------------
+
+Bir sembolik bağ dosyasına da sembolik bağ oluşturulabilir. Yani örneğin aşağıdaki gibi bir durum oluşturulabilmektedir:
+
+.. code-block:: text
+
+    z.txt -> y.txt -> x.txt
+
+Elimizde yalnızca ``x.txt`` dosyası olsun. Biz yukarıdaki durumu şöyle oluşturabiliriz:
+
+.. code-block:: text
+
+    $ ln -s x.txt y.txt
+    $ ln -s y.txt z.txt
+    $ ls -li x.txt y.txt z.txt
+    6076082 -rw-r--r-- 1 kaan study 17 Tem  9 11:58 x.txt
+    6076114 lrwxrwxrwx 1 kaan study  5 Tem  9 12:23 y.txt -> x.txt
+    6076115 lrwxrwxrwx 1 kaan study  5 Tem  9 12:23 z.txt -> y.txt
+
+Peki biz böylesi bir durumda ``z.txt`` dosyasını ``open`` fonksiyonuyla açmak istersek ne olur? İşte ``open`` fonksiyonu
+sembolik bağları izler ve bunun nihai hedefindeki dosyayı tespit eder ve onu açar. Örneğimizde ``x.txt`` dosyası
+açılacaktır.
+
+Sembolik bağ dosyaları döngüsel hale de gelebilir. Örneğin ``y.txt`` sembolik bağ dosyası ``z.txt`` sembolik bağ
+dosyasını, ``z.txt`` sembolik bağ dosyası ise ``y.txt`` sembolik bağ dosyasını gösterir durumda olabilir. Bu durumu
+yapay bir biçimde oluşturalım:
+
+.. code-block:: text
+
+    $ ln -s y.txt z.txt
+    $ ln -s z.txt y.txt
+
+Burada önce ``z.txt -> y.txt`` durumu, sonra da ``y.txt -> z.txt`` durumu oluşturulmuştur. Sembolik bağ oluşturmak için
+kaynak dosyanın var olmasının gerekmediğine dikkat ediniz. Durum şöyledir:
+
+.. code-block:: text
+
+    $ ls -li y.txt z.txt
+    6076114 lrwxrwxrwx 1 kaan study 5 Tem  9 12:33 y.txt -> z.txt
+    6076082 lrwxrwxrwx 1 kaan study 5 Tem  9 12:33 z.txt -> y.txt
+
+Peki bu durumda ``open`` fonksiyonuyla ``y.txt`` ya da ``z.txt`` dosyasını açmak istersek ya da örneğin *cat* ile bu
+dosyaları görüntülemek istersek ne olur? İşte ``open`` fonksiyonu belli bir kademe sembolik bağları izlemekte eğer hedef
+dosya hala bulunamadıysa ``errno`` değişkenini ``ELOOP`` (*Too many levels of symbolic links*) değeri ile set edip
+işlemi başarısızlıkla sonlandırmaktadır.
 
 
