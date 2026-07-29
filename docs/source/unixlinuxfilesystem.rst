@@ -3546,3 +3546,727 @@ dosya hala bulunamadıysa ``errno`` değişkenini ``ELOOP`` (*Too many levels of
 işlemi başarısızlıkla sonlandırmaktadır.
 
 
+Katı Bağ ile Sembolik Bağ Arasındaki Farklar
+============================================
+
+Katı bağ ile sembolik bağ arasında ne farklılıklar vardır? Katı bağlar aynı inode elemanını gösteren dizin girişleridir.
+Halbuki sembolik bağların kendi inode elemanları vardır. Sembolik bağın inode elemanında o sembolik bağın gösterdiği
+dosyanın yol ifadesi saklanmaktadır. Sembolik bağlar birden fazla geçişli olabilmektedir. Dizinlerin sembolik bağlarının
+oluşturulması mümkündür ve dolaşım sırasında bir soruna yol açmamaktadır. Çünkü dizin ağacını dolaşan programlar
+``stat`` fonksiyonunu değil ``lstat`` fonksiyonunu kullanırlar. Yani sembolik bağı izlemezler. Halbuki katı bağlarda
+böyle bir şey mümkün değildir. Sembolik bağ daha esnek kullanımlara sahiptir. Örneğin sembolik bağı değiştirerek onun
+başka bir dosyayı göstermesi sağlanabilmektedir. Bu özelliklerinden dolayı sembolik bağlar katı bağlara göre çok daha
+fazla kullanılmaktadır. Dosya sistemleri arasında (örneğin disk bölümleri arasında) katı bağların oluşturulamadığını
+belirtmiştik. Ancak dosya sistemleri arasında sembolik bağlar oluşturulabilmektedir.
+
+.. list-table:: Sembolik Bağ ve Katı Bağ Karşılaştırması
+   :header-rows: 1
+   :widths: 25 35 35
+
+   * - Özellik
+     - Sembolik Bağ
+     - Katı Bağ
+   * - inode durumu
+     - Kendi inode'una sahiptir
+     - Hedefle aynı inode'u paylaşır
+   * - İçerik
+     - Hedefin yol ifadesini tutar
+     - Doğrudan veri bloklarına erişir
+   * - Farklı dosya sistemine bağ
+     - Oluşturulabilir
+     - Oluşturulamaz
+   * - Dizine bağ
+     - Oluşturulabilir
+     - Oluşturulamaz
+   * - Hedef silindiğinde
+     - Bağ kopuk (dangling) hale gelir
+     - Veriye erişim devam eder
+   * - Bağ sayacı (link count)
+     - Hedefin sayacını değiştirmez
+     - Hedefin sayacını 1 artırır
+   * - POSIX fonksiyonu
+     - ``symlink``
+     - ``link``
+   * - Kabuk komutu
+     - ``ln -s``
+     - ``ln``
+   * - Dosya türü (ls -l)
+     - ``l``
+     - Normal dosya (``-``)
+   * - Var olmayan hedefe bağ
+     - Oluşturulabilir
+     - Oluşturulamaz
+   * - İzin bilgisi
+     - İzinleri dikkate alınmaz
+     - inode izinleri aynıdır
+
+Elimizde ``x`` sembolik bağ dosyası olsun. Bu dosya ``y`` dosyasını gösteriyor olsun. Yani ``x -> y`` durumu söz konusu
+olsun. Biz de bu ``x`` dosyasının ``y``'yi değil ``z``'yi göstermesini sağlamak isteyelim. İşte maalesef UNIX/Linux
+sistemlerinde bir sembolik bağ dosyasının hedefini değiştirmenin pratik bir yolu yoktur. Önce sembolik bağın silinmesi
+sonra yeni hedefle yeniden yaratılması gerekir.
+
+Örnek: lstat ile Birden Fazla Dosyanın Bilgilerinin Yazdırılması
+----------------------------------------------------------------
+
+Aşağıdaki örnekte birden fazla dosyanın bilgileri ``lstat`` fonksiyonuyla satır satır yazdırılmıştır. Programı şöyle
+kullanabilirsiniz:
+
+.. code-block:: text
+
+    $ ./lstat-test x.txt y.txt z.txt
+
+Denemenin yapıldığı makinede şöyle bir çıktı elde edilmiştir:
+
+.. code-block:: text
+
+    $ ./lstat-test x.txt y.txt z.txt
+    lrwxrwxrwx 1 kaan study 8 Tem 14 10:31 x.txt
+    -rw-r--r-- 1 kaan study 15 Tem 14 10:49 y.txt
+    lrwxrwxrwx 1 kaan study 5 Tem 14 10:49 z.txt
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <locale.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+    #include <pwd.h>
+    #include <grp.h>
+
+    int disp_ls(const char *path);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc < 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
+            fprintf(stderr, "cannot set locale!...\n");
+            exit(EXIT_FAILURE);
+        }
+        for (int i = 1; i < argc; ++i)
+            if (disp_ls(argv[i]) == -1)
+                exit_sys("disp_ls");
+
+        return 0;
+    }
+
+    int disp_ls(const char *path)
+    {
+        struct stat finfo;
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        char dt[32];
+        struct passwd *pw;
+        struct group *gr;
+
+        if (lstat(path, &finfo) == -1)
+            return -1;
+
+        if (S_ISBLK(finfo.st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo.st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo.st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo.st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo.st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo.st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo.st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        printf(" %ju", (uintmax_t)finfo.st_nlink);
+        if ((pw = getpwuid(finfo.st_uid)) != NULL)
+            printf(" %s", pw->pw_name);
+        else
+            printf(" %ju", (uintmax_t)finfo.st_uid);
+
+        if ((gr = getgrgid(finfo.st_gid)) != NULL)
+            printf(" %s", gr->gr_name);
+        else
+            printf(" %ju", (uintmax_t)finfo.st_gid);
+
+        printf(" %jd", (intmax_t)finfo.st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo.st_mtim.tv_sec);
+        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        printf(" %s", dt);
+        if (this_year != pt_file->tm_year)
+            printf("  %d", pt_file->tm_year + 1900);
+        printf(" %s\n", path);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dosyaların Silinmesi: remove ve unlink Fonksiyonları
+----------------------------------------------------
+
+Bir dosyanın silinmesi o dosyanın diskteki inode elemanının inode tablosundan silinmesi ve o dosyaya ilişkin data
+bloklarının diskin Data bölümünden silinmesi anlamına gelmektedir. Tabii burada *silinme* kavramını aslında *serbest
+bırakma* anlamında kullanıyoruz. Yoksa diskten bir bilginin çıkartılması ve yok edilmesi mümkün değildir. Inode tabanlı
+dosya sistemleri diskin inode tablosundaki hangi inode elemanlarının boş olduğunu tutmaktadır. Bir inode elemanı
+silindiğinde o inode elemanı *artık kullanılmıyor biçiminde* işaretlenmektedir. Aynı işlem dosyanın data bloklarında da
+benzer biçimde yürütülür. İşletim sistemi hangi data bloklarının boş olduğunu tutar. Dosya silindiğinde dosyanın data
+blokları *artık kullanılmıyor* biçiminde işaretlenmektedir. Biz yukarıda inode tabanlı dosya sistemlerine ilişkin disk
+organizasyonunu basit bir biçimde şöyle temsil etmiştik:
+
+.. code-block:: text
+
+    ┌────────────┐
+    │ Süper Blok │
+    ├────────────┤
+    │ Inode Blok │
+    ├────────────┤
+    │            │
+    │ Data Blok  │
+    │            │
+    │            │
+    └────────────┘
+
+Aslında biraz daha gerçekçi temsil şöyle oluşturulabilir:
+
+.. code-block:: text
+
+    ┌──────────────┐
+    │  Süper Blok  │
+    ├──────────────┤
+    │ Inode Bitmap │
+    ├──────────────┤
+    │ Data Bitmap  │
+    ├──────────────┤
+    │              │
+    │ Inode Blok   │
+    │              │
+    ├──────────────┤
+    │              │
+    │              │
+    │  Data Blok   │
+    │              │
+    │              │
+    └──────────────┘
+
+Burada *Inode Bitmap* alanı Inode Bloktaki boş inode elemanlarının yerlerini, *Data Bitmap* ise Data Bloktaki boş
+blokların yerlerini tutmaktadır. ext dosya sistemlerinin gerçek disk organizasyonlarını kursumuzun son kısımlarına doğru
+inceleyeceğiz.
+
+Anımsayacağınız gibi UNIX/Linux sistemlerinde katı bağlardan dolayı bir dizin girişinin silinmesi o dizin girişine
+ilişkin dosyanın silineceği anlamına gelmemektedir. Daha önce de belirttiğimiz gibi aynı inode elemanını gösteren birden
+fazla dizin girişi söz konusu olabilmektedir. Inode elemanındaki katı bağ sayacı 0'a düştüğünde gerçek dosya silmesi
+yapılmaktadır.
+
+UNIX/Linux sistemlerinde bir dosyayı silmek için ``remove`` ve ``unlink`` isimli POSIX fonksiyonları kullanılmaktadır.
+``remove`` bir standart C fonksiyonudur. ``unlink`` ise bir POSIX fonksiyonudur. Bu iki fonksiyon tamamen aynı işlemi
+yapmaktadır. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    int remove(const char *path);
+
+    #include <unistd.h>
+
+    int unlink(const char *path);
+
+Fonksiyonlar başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+``remove`` ve ``unlink`` fonksiyonlarıyla bir dosyayı silebilmek için prosesin dosyaya *w* hakkına sahip olması
+gerekmez. Ancak dosyanın içinde bulunduğu dizin için *w* hakkına sahip olması gerekir. Bizim eğer dosyanın içinde
+bulunduğu dizine *w* hakkımız varsa dosyanın sahibi olmasak bile dosyayı silebiliriz. Tabii proses id'si 0 olan
+prosesler (*root* prosesler) her zaman silme işlemini yapabilirler.
+
+Bir dosya ``remove`` ya da ``unlink`` fonksiyonlarıyla silindiğinde dizin girişi silinir. Ancak yukarıda da
+belirttiğimiz gibi dosyanın silinmesi katı bağ sayacı 0'a düştüğünde yapılmaktadır. Yani ``remove`` ve ``unlink``
+fonksiyonları dizin girişini silerler. Sonra dosyanın katı bağ sayacını 1 eksiltirler. Eğer dosyanın katı bağ sayacı 0'a
+düşmüşse dosyayı fiziksel olarak silerler.
+
+Aşağıdaki örnekte komut satırından verilen yol ifadelerine ilişkin dosyalar silinmeye çalışılmıştır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    int main(int argc, char *argv[])
+    {
+        if (argc == 1) {
+            fprintf(stderr, "file name(s) must be specified!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 1; i < argc; ++i)
+            if (unlink(argv[i]) == -1)
+                perror(argv[i]);
+
+        return 0;
+    }
+
+Dizin Girişleri ve Hard Link Sayacı
+-----------------------------------
+
+Daha önceden de belirttiğimiz gibi aslında *dizinler* birer dosya gibi organize edilmiştir. Dizin dosyalarının
+içerisinde *dizin girişleri (directory entries)* bulunmaktadır. Bir dizin girişinin formatı dosya sisteminden dosya
+sistemine değişebilmektedir. Ancak özet olarak bir dizin dosyasının içeriği şöyledir:
+
+.. code-block:: text
+
+    Dizin Dosyası
+    -------------
+    dosya_ismi  inode no
+    dosya_ismi  inode no
+    dosya_ismi  inode no
+    ...
+    dosya_ismi  inode no
+    dosya_ismi  inode no
+    dosya_ismi  inode no
+
+Dosyaların asıl bilgileri (yani ``stat`` fonksiyonuyla elde ettiğimiz bilgiler) diskte *Inode Block* denilen bir bölgede
+saklanmaktadır. Inode Block inode elemanlarından oluşur. Her inode elemanına ilk eleman 0 olmak üzere artan sırada bir
+numara karşılık düşürülmüştür. İşletim sistemi bir dosya ile ilgili işlem yaparken kesinlikle o dosyanın inode elemanına
+erişmek ve oradaki bilgileri kullanmak zorundadır.
+
+Bir dosya ``unlink`` ya da ``remove`` fonksiyonlarıyla silindiğinde kesinlikle dizin girişi silinmektedir. Ancak
+dosyanın silinip silinmeyeceği hard-link sayacına bağlıdır.
+
+Farklı dizin girişleri farklı isimlerle aynı inode numaralarını işaret ediyorsa buna *hard link* denilmektedir. Örneğin:
+
+.. code-block:: text
+
+    Dizin Dosyası
+    --------------
+    a.txt   12345678
+    b.txt   12345678
+    ...
+
+Burada bizim ``open`` fonksiyonuyla ``a.txt`` ya da ``b.txt`` dosyalarını açmamız arasında hiçbir farklılık yoktur.
+Çünkü dosyanın bütün bilgileri inode elemanının içerisindedir. İşte biz bu dosyalardan örneğin ``a.txt`` dosyasını
+silersek aslında yalnızca dizin girişini silmiş oluruz. Çünkü işletim sistemi ``a.txt`` dosyasının işaret ettiği inode
+elemanının başka bir giriş tarafından kullanıldığını gördüğü için inode elemanını ve dosyanın diskteki varlığını silmez.
+İşte bu durum *hard link sayacı* ile kontrol edilmektedir. Yukarıdaki örnekte dosyanın hard link sayacı 2'dir. Biz bu
+dizin girişlerinden birini sildiğimizde hard link sayacı 1'e düşer. Diğerini de sildiğimizde hard link sayacı 0'a düşer
+ve dosya gerçekten silinir.
+
+Bir dosyanın hard link'ini oluşturmak için *ln* kabuk komutu kullanılmaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ ln sample.c mample.c
+
+    $ ls -li sample.c mample.c
+    1207667 -rw-r--r-- 2 kaan study 329 Ara 10 10:59 mample.c
+    1207667 -rw-r--r-- 2 kaan study 329 Ara 10 10:59 sample.c
+
+Dosyanın hard link sayacının 2 olduğuna dikkat ediniz.
+
+Bir dizin yaratıldığında onun içerisinde ``.`` ve ``..`` biçiminde iki dizin girişi otomatik olarak yaratılmaktadır.
+(UNIX/Linux sistemlerinde başı ``.`` ile başlayan dizin girişleri *ls* komutunda default olarak görüntülenmemektedir.
+Bunların görüntülenmesi için *-a (all)* seçeneğinin de kullanılması gerekir.) ``.`` dizin girişi kendi dizin dosyasının
+inode elemanını, ``..`` dizin girişi ise üst dizinin inode elemanını göstermektedir. Bu nedenle bir dizin yaratıldığında
+dizin dosyasına ilişkin hard-link sayacı 2 olur. O dizinin içerisinde yaratılan her dizin ``..`` girişini içereceğinden
+dolayı o dizinin hard link sayacını artıracaktır.
+
+Belli bir inode elemanını gösteren dizin girişlerinin elde edilmesine yönelik bu sistemlerde pratik bir yol yoktur.
+Yapılacak şey diskteki tüm dosyaları gözden geçirip inode numaralarından onların aynı inode elemanını gösterip
+göstermediğini anlamaktır.
+
+
+Erişim Haklarının ve Sahiplik Bilgilerinin Değiştirilmesi
+=========================================================
+
+chmod ve fchmod Fonksiyonları
+-----------------------------
+
+Yukarıda da belirttiğimiz gibi dosya bilgileri disk üzerinde inode bloktaki inode elemanının içerisinde tutulmaktadır.
+``stat`` fonksiyonları erişim bilgilerini buradan almaktadır (*ls* komutu da ``stat`` fonksiyonları kullanılarak
+yazılmıştır). Dosyanın erişim hakları yine anımsayacağınız gibi ``open`` fonksiyonunda dosya yaratılırken
+belirlenmektedir. İşte bir dosyanın erişim haklarını dışarıdan ``chmod`` ve ``fchmod`` isimli POSIX fonksiyonlarıyla
+değiştirebiliriz. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <sys/stat.h>
+
+    int chmod(const char *path, mode_t mode);
+    int fchmod(int fd, mode_t mode);
+
+Fonksiyonun birinci parametresi dosyanın yol ifadesini, ikinci parametresi erişim haklarını belirtmektedir. Fonksiyonlar
+başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir. Anımsayacağınız gibi erişim hakları
+POSIX'in 2008 standartlarına kadar ``S_IXXX`` sembolik sabitleriyle oluşturulmak zorundaydı. Ancak 2008 ve sonrasında
+artık bu ``S_IXXX`` sembolik sabitlerinin sayısal değerleri belirlendiği için programcı doğrudan erişim haklarını octal
+bir sayı biçiminde girebilmektedir. Fakat okunabilirlik ve geçmişe uyum göz önüne alındığında erişim haklarının
+``S_IXXX`` sembolik sabitleriyle verilmesi tavsiye edilmektedir. ``chmod`` fonksiyonu sembolik bağları izlemektedir.
+(Yani biz sembolik bağların kendi erişim haklarını değiştiremeyiz. Anımsayacağınız gibi sembolik bağların kendi erişim
+hakları her zaman *rwxrwxrwx* biçimindedir.)
+
+Bir dosyanın erişim haklarını ``chmod`` fonksiyonuyla değiştirebilmek için prosesin etkin kullanıcı id'sinin dosyanın
+kullanıcı id'si ile aynı olması ya da prosesin etkin kullanıcı id'sinin 0 olması (root proses) gerekmektedir. Linux
+yeteneklilik (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı id'si 0 olmasa bile proses
+``CAP_FSETID`` yeteneğine sahipse herhangi bir dosyanın erişim haklarını değiştirebilmektedir.
+
+set-user-id, set-group-id ve sticky Bitleri
+-------------------------------------------
+
+Biz ``open`` fonksiyonunda dosyanın erişim haklarının *rwxrwxrwx* biçiminde üçerli üç gruptan oluştuğunu belirtmiştik.
+Aslında bunlara ek olarak erişim haklarında üçlü bir grup daha vardır. Bu üçlü gruba *set-user-id*, *set-group-id* ve
+*sticky* denilmektedir. Bu üçlü sırasıyla ``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` sembolik sabitleriyle temsil
+edilmektedir. ``chmod`` ve ``fchmod`` fonksiyonlarıyla bu yeni gördüğümüz üç erişim hakkı da değiştirilebilmektedir. Bu
+erişim hakları octal değer olarak en yüksek anlamlı 3 biti oluşturmaktadır. Bu durumda erişim hakları octal 4 digit ile
+belirlenmektedir:
+
+- İlk octal digit: ``S_ISUID``, ``S_ISGID``, ``S_ISVTX``
+- İkinci octal digit: ``S_IRUSR``, ``S_IWUSR``, ``S_IXUSR``
+- Üçüncü octal digit: ``S_IRGRP``, ``S_IWGRP``, ``S_IXGRP``
+- Dördüncü octal digit: ``S_IROTH``, ``S_IWOTH``, ``S_IXOTH``
+
+Tabii biz ilk octal digit'i belirtmezsek bu durum oradaki bitlerin 0 olduğu anlamına gelmektedir. Örneğin:
+
+.. code-block:: text
+
+    0666
+
+Erişim hakları *rw-rw-rw-* anlamına gelmektedir. Yukarıda sözünü ettiğimiz üç erişim hakkı set edilmemiştir.
+``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` erişim haklarının işlevlerini ileride başka bir bölümde ele alacağız.
+
+``chmod`` POSIX fonksiyonu prosesin umask değerini dikkate almamaktadır. Yani fonksiyonda belirttiğimiz erişim
+haklarının hepsi dosyaya yansıtılmaktadır.
+
+Bir chmod Örneği: Octal Değerlerle (mychmod.c)
+----------------------------------------------
+
+Aşağıda girilen octal digitlerle dosyaların erişim haklarını değiştiren bir örnek program verilmiştir. Bu örnekte biz
+``chmod`` fonksiyonunda doğrudan octal değerleri kullandık. Programımız önce en fazla 4 octal digit'i sonra da erişim
+hakları değiştirilecek dosyaların yol ifadelerini komut satırı argümanı olarak almaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ ./mychmod 666 x.txt y.txt
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdbool.h>
+    #include <string.h>
+    #include <sys/stat.h>
+
+    bool check_mode(const char *mstr);
+
+    int main(int argc, char *argv[])
+    {
+        int mode;
+
+        if (argc < 2) {
+            fprintf(stderr, "too few arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (!check_mode(argv[1])) {
+            fprintf(stderr, "invalid mode argument!..\n");
+            exit(EXIT_FAILURE);
+        }
+        sscanf(argv[1], "%o", &mode);
+
+        for (int i = 2; i < argc; ++i)
+            if (chmod(argv[i], mode) == -1)
+                perror(argv[i]);
+
+        return 0;
+    }
+
+    bool check_mode(const char *mstr)
+    {
+        if (strlen(mstr) > 4)
+            return false;
+
+        for (int i = 0; mstr[i] != '\0'; ++i)
+            if (mstr[i] < '0' || mstr[i] > '7')
+                return false;
+
+        return true;
+    }
+
+Sembolik Sabitlerin OR'lanmasıyla mychmod.c
+-------------------------------------------
+
+Aşağıdaki örnekte eski POSIX standartları da dikkate alınarak mode bilgisi ``S_IXXX`` sembolik sabitlerinin bit
+düzeyinde OR'lanması ile oluşturulmuştur.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdbool.h>
+    #include <string.h>
+    #include <sys/stat.h>
+
+    bool check_mode(const char *mstr);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int mode;
+        mode_t tmode;
+        int mode_masks[12] = {
+            S_ISUID, S_ISGID, S_ISVTX,
+            S_IRUSR, S_IWUSR, S_IXUSR,
+            S_IRGRP, S_IWGRP, S_IXGRP,
+            S_IROTH, S_IWOTH, S_IXOTH
+        };
+
+        if (argc < 2) {
+            fprintf(stderr, "too few arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (!check_mode(argv[1])) {
+            fprintf(stderr, "invalid mode argument!..\n");
+            exit(EXIT_FAILURE);
+        }
+        sscanf(argv[1], "%o", &mode);
+
+        tmode = 0;
+
+        for (int i = 11; i >= 0; --i)
+            if (mode >> i & 1)
+                tmode |= mode_masks[11 - i];
+
+        for (int i = 2; i < argc; ++i)
+            if (chmod(argv[i], tmode) == -1)
+                perror(argv[i]);
+
+        return 0;
+    }
+
+    bool check_mode(const char *mstr)
+    {
+        if (strlen(mstr) > 4)
+            return false;
+
+        for (int i = 0; mstr[i] != '\0'; ++i)
+            if (mstr[i] < '0' || mstr[i] > '7')
+                return false;
+
+        return true;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+fchmod Fonksiyonunun Kullanımı
+------------------------------
+
+Dosya zaten açıksa ve onun dosya betimleyicisi biliniyorsa ``chmod`` fonksiyonu yerine ``fchmod`` fonksiyonu
+kullanılabilir. Açık dosyalar üzerinde bu tür işlemlerin daha hızlı yapılabildiğini söylemiştik. Örneğin:
+
+.. code-block:: c
+
+    if ((fd = open("test.txt", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    /* ... */
+
+    if (fchmod(fd, mode) == -1)
+        exit_sys("fchmod");
+
+chmod Kabuk Komutu
+------------------
+
+Dosyanın erişim haklarını değiştirmek için *chmod* isimli bir kabuk komutu da bulunmaktadır. Tabii *chmod* kabuk komutu
+``chmod`` POSIX fonksiyonu kullanılarak yazılmıştır. *chmod* komutunun kullanımının birkaç biçimi vardır. Tipik
+kullanımda yukarıda yazdığımız örnek programda olduğu gibi erişim hakları komutta octal digit'lerle belirtilmektedir.
+Örneğin:
+
+.. code-block:: text
+
+    $ chmod 664 a.txt b.txt
+
+Burada 664'ün bit karşılığı şöyledir: 110 110 100. Bu erişim hakları olarak şu anlama gelmektedir: ``rw-rw-r--``.
+
+Komutun ikinci kullanımı + ve -'li kullanımıdır. Örneğin:
+
+.. code-block:: text
+
+    $ chmod +w a.txt
+
+Burada ``a.txt`` dosyasının *owner*, *group* ve *other* haklarına ``w`` hakkı eklenmektedir. ``-`` ilgili hakkın
+çıkartılacağını belirtir. Örneğin:
+
+.. code-block:: text
+
+    $ chmod -w a.txt
+
+Burada ``w`` erişim hakkı sahiplik, grup ve diğer erişim haklarından kaldırılmaktadır. Bunlar yan yana da
+kullanılabilir. Örneğin:
+
+.. code-block:: text
+
+    $ chmod +wr a.txt
+
+Örneğin:
+
+.. code-block:: text
+
+    $ chmod -w+r a.txt
+
+
+``+`` ve ``-`` karakterlerinin önüne ``u``, ``g``, ``o`` ya da ``a`` harfleri getirilebilir. Buradaki ``a`` *hepsi* anlamına
+gelmektedir. Zaten ``ugoa`` karakterlerinden biri kullanılmazsa default durumda ``a`` kullanılmış gibi işlem
+yürütülmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ chmod o+w a.txt
+
+Burada yalnızca *other* için ``w`` hakkı eklenmiştir. ``a`` hepsine anlamına gelir. Örneğin:
+
+.. code-block:: text
+
+    $ chmod a-w a.txt
+
+Burada owner, group ve other için ``w`` hakları silinmiştir. Tabii birden fazlası kombine edilebilir. Örneğin:
+
+.. code-block:: text
+
+    $ chmod 0 a.txt
+    $ chmod ug+rw a.txt
+
+Komutta octal sayı belirtilirse umask etkili olmaz, ancak octal sayı belirtilmezse kabuğun umask değeri etkili
+olmaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ chmod +w a.txt
+
+Burada komutta octal sayı belirtilmediği için kabuğun umask değeri etkili olmaktadır. Default umask değerinde genellikle
+*other* için ``w`` hakkı maskelenmektedir. O halde komut işletildiğinde grubun ``w`` hakkı set edilmeyecektir.
+
+Örneğin bir script dosyasına ``x`` eklemek isteyelim. Bunun en pratik yolu şudur:
+
+.. code-block:: text
+
+    $ chmod +x myscript
+
+Pek çok kabuk komutunda olduğu gibi *chmod* komutu da birden fazla dosya üzerinde işlem yapabilmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ chmod +w a.txt b.txt
+
+Komutun başka ayrıntıları da vardır. Bunun için ilgili dokümanlara başvurabilirsiniz.
+
+chown, fchown ve lchown Fonksiyonları
+-------------------------------------
+
+Bir dosyanın kullanıcı id'si ve grup id'si dosya yaratılırken belirleniyordu. Ancak programcı isterse dosyanın kullanıcı
+id'sini ve grup id'sini ``chown``, ``fchown`` ve ``lchown`` isimli POSIX fonksiyonları ile değiştirebilir.
+Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int chown(const char *path, uid_t owner, gid_t group);
+    int lchown(const char *path, uid_t owner, gid_t group);
+    int fchown(int fd, uid_t owner, gid_t group);
+
+``chown`` fonksiyonunun birinci parametresi dosyanın yol ifadesini, ikinci parametresi değiştirilecek kullanıcı id'sini
+ve üçüncü parametresi de değiştirilecek grup id'sini belirtmektedir. Fonksiyonlar başarı durumunda 0 değerine,
+başarısızlık durumunda -1 değerine geri dönmektedir. ``chown`` fonksiyonu sembolik bağları izlemektedir. Yani bu
+fonksiyona biz yol ifadesi olarak sembolik bağ verirsek fonksiyon onun referans ettiği dosyanın sahiplik ve grup
+bilgilerini değiştirmeye çalışır. ``lchown`` fonksiyonu ``chown`` fonksiyonu gibidir. Ancak aralarındaki tek fark
+``lchown`` fonksiyonunun sembolik bağı izlememesi ve sembolik bağın kendisi üzerinde işlem yapmasıdır. ``fchown``
+fonksiyonu ``chown`` fonksiyonunun dosya betimleyicisi ile çalışan biçimidir.
+
+Bir dosyanın kullanıcı ve grup id'lerinin değiştirilmesi kötüye kullanıma açık bir durum oluşturabilmektedir. (Yani
+örneğin *kaan* kullanıcısı kendi dosyasını sanki *ali* kullanıcısının dosyasıymış gibi gösterirse burada bir kötü niyet
+de söz konusu olabilir.) Bu nedenle bu fonksiyonun kullanımı üzerinde bazı kısıtlar vardır. Şöyle ki:
+
+1) Eğer prosesin etkin kullanıcı id'si dosyanın kullanıcı id'si ile aynı ise bu durumda ``chown`` fonksiyonu dosyanın
+grup id'sini kendi grup id'si olarak ya da ek gruplarının (supplementary groups) birinin id'si olarak
+değiştirebilmektedir. Ancak dosyanın kullanıcı id'sinin değiştirilmesi işletim sisteminin iznine bağlıdır. Modern
+sistemler bu izni vermemektedir. Ancak bazı eski sistemler bu izni vermektedir. Bu izin *change own restricted* ismiyle
+ifade edilmektedir. İlgili sistemin bu izni verip vermediği ``<unistd.h>`` dosyası içerisindeki
+``_POSIX_CHOWN_RESTRICTED`` sembolik sabitiyle derleme aşamasında sorgulanabilir. Eğer bu mevcutsa sistem bu izni
+vermemektedir, mevcut değilse sistem bu izni vermektedir. (Bu durumda sorgulamayı ``#ifdef`` önişlemci komutuyla
+yapmalısınız.) Linux sistemleri de *change own restricted* durumdadır. Yani bu işleme izin vermemektedir.
+
+2) Proses id'si 0 olan root prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yeteneğine sahip prosesler) her zaman
+dosyanın kullanıcı ve grup id'sini istedikleri gibi değiştirebilirler. (Yani biz bir dosyanın kullanıcı ve grup id'sini
+istediğimiz gibi değiştirmek istiyorsak programımızı *sudo* ile çalıştırmalıyız.)
+
+Fonksiyonlar ile yalnızca kullanıcı id'si ya da grup id'si değiştirilebilir. Bu durumda değiştirilmeyecek değer için -1
+girilmelidir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+*Change own restricted* durumu aşağıdaki gibi ``#ifdef`` komutuyla sorgulanabilir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <unistd.h>
+
+    int main(int argc, char *argv[])
+    {
+    #ifdef _POSIX_CHOWN_RESTRICTED
+        printf("chown restricted\n");
+    #else
+        printf("chown not restricted\n");
+    #endif
+
+        return 0;
+    }
+
+Aşağıda ``chown`` fonksiyonunun örnek bir kullanımını görüyorsunuz:
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        if (chown("test.txt", 1000, -1) == -1)
+            exit_sys("chown");
+
+        printf("Ok\n");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
