@@ -1,5 +1,5 @@
 .wy-nav-content {
-    max-width: 1300px;  /* varsayılan 800px */
+    max-width: 1300px;
 }
 
 .wy-nav-content {
@@ -12,8 +12,6 @@
     font-size: 18px;
 }
 
-
-
 /* Kod blokları - sphinx_rtd_theme */
 .rst-content .highlight pre,
 .rst-content pre.literal-block,
@@ -25,4 +23,76 @@
 .rst-content code.literal,
 .rst-content tt.literal {
     font-size: 15px;
+}
+
+/* Tablo başlık ortalama */
+.rst-content .centered-headers thead th {
+    text-align: center;
+}
+
+/* RTD temasını ezmek için yüksek özgüllük */
+.rst-content .centered-headers.docutils {
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+.rst-content .centered-headers.docutils td,
+.rst-content .centered-headers.docutils th {
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+}
+
+.admonition-title::before {
+    content: none !important;
+}
+
+div.admonition.white-note {
+    background-color: #ffffff;
+}
+
+table.docutils th {
+    text-align: center;
+}
+
+table.docutils {
+    border: 2px solid #7f8c8d !important;
+    border-collapse: collapse;
+}
+
+table.docutils td,
+table.docutils th {
+    border: 1px solid #7f8c8d !important;
+}
+
+@media screen and (max-width: 768px) {
+    .rst-content img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+.rst-content h1 {
+    text-align: center;
+}
+
+.rst-content h1 {
+    text-align: center;
+    font-size: 220%;
+}
+
+.wy-breadcrumbs {
+    display: none;
+}
+
+.rst-content table.docutils.tight-table {
+    width: auto !important;
+}
+
+.wy-table-responsive table.tight-table td,
+.wy-table-responsive table.tight-table th,
+.rst-content table.docutils.tight-table td,
+.rst-content table.docutils.tight-table th {
+    white-space: normal !important;
 }

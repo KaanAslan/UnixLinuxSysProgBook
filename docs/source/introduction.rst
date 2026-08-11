@@ -1,23 +1,19 @@
-=========
-GİRİŞ
-=========
+======
+Giriş
+======
 
-Temel Kavramlar: Sistem Programlama ve İşletim Sistemleri
-==========================================================
-
-Kursumuzun başında iki hafta bazı temel kavramlar ve konular üzerinde duracağız.
-
+Kitabımızın başında önce temel kavramlar ve konular üzerinde duracağız. 
 
 Sistem Programlama Nedir?
---------------------------
+=========================
 
 Bilgisayar donanımıyla arayüz oluşturan, uygulama programlarına çeşitli bakımlardan hizmet veren programlara
 *sistem programları*, programlamanın bunlarla ilgili alanına da *sistem programlama (system programming)*
 denilmektedir. Sistem programlama etkinlikleri aşağı seviyeli olma eğilimindedir. Bunları yazmak için önemli
 ölçüde teorik bilgiye ve uygulama becerisine gereksinim duyulmaktadır. Sistem programlama
 *programlamanın yükte hafif pahada ağır* bir alanını oluşturmaktadır. Bu yönüyle adeta yazılımın ağır sanayisi
-niteliğindedir. Bilişim sektöründeki Microsoft, Apple, Google gibi pek çok büyük kurum geliştirdikleri sistem
-yazılımları sayesinde bu hale gelmişlerdir. Tipik sistem programlama uygulamalarından bazıları şunlardır:
+niteliğindedir. Bilişim sektöründeki Microsoft, Apple, Oracle, Google gibi pek çok büyük kurum geliştirdikleri sistem
+yazılımları sayesinde bu hale gelmişlerdir. Tipik sistem programlama uygulamalarından bazıları (ama hepsi değil= şunlardır:
 
 - İşletim Sistemleri
 - Derleyiciler ve Yorumlayıcılar
@@ -26,34 +22,29 @@ yazılımları sayesinde bu hale gelmişlerdir. Tipik sistem programlama uygulam
 - Debug Programları
 - Aşağı Seviyeli Haberleşme Programları
 - Virüs ve Antivirüs Yazılımları
-- Çevre Birimlerinin ve Diğer Donanımsal Aygıtların Programlanması ve Aygıt Sürücüleri
+- Çevre Birimlerinin ve Diğer Donanımsal Aygıtları programlayan yazılımlar
+- Aygıt Sürücüler
 - Veritabanı Motorları
 - Sanallaştırma Yazılımları ve Emülatör Yazılımları
 - Oyun Motorları
+- ...
 
 Sistem programlama etkinlikleri için en çok kullanılan programlama dilleri C, C++ ve Sembolik Makine
 Dilleridir. Rust Programlama Dili de son yıllarda bu alanda bir yer edinmeye çalışmaktadır. Her ne kadar
 sistem programlama denildiğinde akla C, C++, Rust ve sembolik makine dilleri geliyorsa da bazı sistem
 programları Java ve C# gibi yüksek seviyeli dillerle de yazılabilmektedir.
 
-
 İşletim Sistemleri
-------------------
+==================
 
 İşletim sistemleri bilgisayar donanımının kaynaklarını yöneten, bilgisayar donanımı ile kullanıcı arasında
-arayüz oluşturan sistem programlarıdır. Bilgisayar bilimlerinin akademik öncülerinin çoğu işletim sistemlerini
+arayüz oluşturan sistem programlarıdır. Bilgisayar bilimlerinin akademik öncüleri işletim sistemlerini
 bir *kaynak yöneticisi (resource manager)* olarak tanımlamıştır. Uygulama programları işletim sisteminin
 sağladığı olanaklardan faydalanmaktadır.
 
-.. code-block:: text
-
-   ┌────────────────────────┐
-   │   Uygulama Programları │
-   ├────────────────────────┤
-   │     İşletim Sistemi    │
-   ├────────────────────────┤
-   │   Bilgisayar Donanımı  │
-   └────────────────────────┘
+.. figure:: _static/os-layers.png
+   :align: center
+   :width: 50%
 
 İşletim sistemlerinin yönettiği kaynakların en önemlileri şunlardır:
 
@@ -76,7 +67,7 @@ oluşturarak dışarıdan gelen bilgileri onları talep eden programlara iletir.
 İşletim sistemleri kaynak yönetimine göre alt sistemlere ayrılarak da incelenebilmektedir. Örneğin işletim
 sisteminin *çizelgeleyici (scheduler)* alt sistemi demekle CPU yönetimini sağlayan alt sistem kastedilmektedir.
 Ana bellek yönetimi *(memory management)* yine soyutlanarak incelenen önemli alt sistemlerden biridir. İşletim
-sistemlerinin ikincil bellek yönetimine *dosya sistemi (file system)* da denilmektedir. Tabii bütün bu sistemler
+sistemlerinin ikincil bellek yönetimine *dosya sistemi (file system)* de denilmektedir. Tabii bütün bu sistemler
 birbirinden kopuk olarak değil birbirleriyle ilişkili bir biçimde işlev görmektedir. Bu durumu insanın
 *solunum sistemi*, *dolaşım sistemi*, *sinir sistemi*, *boşaltım sistemi* gibi alt sistemlerine benzetebiliriz.
 Bu alt sistemlerin birinde bile çalışma bozukluğu oluşsa insan yaşamını yitirebilmektedir.
@@ -87,14 +78,9 @@ denildiğinde akla çekirdek gelmektedir. Kabuk ise işletim sisteminin kullanı
 Örneğin UNIX/Linux sistemlerinde *bash* gibi komut satırı, GNOME, KDE gibi pencere yöneticileri, Windows'taki
 masaüstü (Explorer), macOS'teki masaüstü (Aqua) bu işletim sistemlerinin kabuk kısımlarını oluşturmaktadır.
 
-.. code-block:: text
-
-   +-----------------------------------+
-   |           Kabuk (Shell)           |
-   |   +---------------------------+   |
-   |   |    Çekirdek (Kernel)      |   |
-   |   +---------------------------+   |
-   +-----------------------------------+
+.. figure:: _static/shell-kernel.png
+   :align: center
+   :width: 30%
 
 Peki işletim sistemi bu kadar temel donanım yönetimini sağlıyorsa işletim sistemi olmadan programlama
 yapılabilir mi? İşletim sistemi olmadan programlama faaliyetine halk arasında *bare metal programlama*

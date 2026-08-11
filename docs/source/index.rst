@@ -1,5 +1,3 @@
-.. UNIX/Linux Sistem Programlama
-
 #################################
 **UNIX/Linux Sistem Programlama**
 #################################
