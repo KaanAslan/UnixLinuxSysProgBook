@@ -83,7 +83,7 @@ masaüstü (Explorer), macOS'teki masaüstü (Aqua) bu işletim sistemlerinin ka
    :width: 30%
 
 Peki işletim sistemi bu kadar temel donanım yönetimini sağlıyorsa işletim sistemi olmadan programlama
-yapılabilir mi? İşletim sistemi olmadan programlama faaliyetine halk arasında *bare metal programlama*
+yapılabilir mi? İşletim sistemi olmadan programlama faaliyetlerine halk arasında *bare metal programlama*
 denilmektedir. Bare metal programlama genellikle mikrodenetleyicilerin kullanıldığı gömülü sistemlerde
 uygulanmaktadır. Bare metal programlama özel bir amaca hizmet edecek biçimde yapılmaktadır. Amaçlar
 fazlalaştığı zaman ve sistem karmaşıklaştığı zaman artık işletim sistemlerine gereksinim duyulmaktadır.
