@@ -23,7 +23,7 @@
    - Örnek kodlarla desteklenmiş olması
 
    Bu kitap oluşturulma aşamasındadır, içerik sürekli güncellenmektedir. Dokümanın kurs formatındaki saf metin haline 
-   aşağıdaki bağlantıdan erişebilirsiniz:
+   aşağıdaki bağlantıdan erişebilirsiniz: 
 
    https://github.com/CSD-1993/KursNotlari
 
