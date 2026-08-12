@@ -98,123 +98,43 @@ sağlıyor olması gerekir. Bu kaynak yönetimlerinin çoğunu sağlamayan kontr
 
 İşletim sistemleri çeşitli biçimlerde sınıflandırılabilmektedir.
 
-**Proses Yönetimine Göre**
-
-Aynı anda tek bir programı çalıştıran işletim sistemlerine *tek prosesli (single processing)*, aynı anda
-birden fazla programı çalıştırabilen işletim sistemlerine ise *çok prosesli (multiprocessing) işletim
+**Proses Yönetimine Göre:** Aynı anda tek bir programı çalıştıran işletim sistemlerine *tek prosesli (single processing)*, 
+aynı anda birden fazla programı çalıştırabilen işletim sistemlerine ise *çok prosesli (multiprocessing) işletim
 sistemleri* denilmektedir. Örneğin DOS işletim sistemi tek prosesli bir sistemdi. Biz bu işletim sisteminde
 bir programı çalıştırırdık, ancak çalıştırdığımız program sonlanınca başka bir programı çalıştırabilirdik.
 Halbuki Windows, UNIX/Linux, macOS gibi işletim sistemleri çok prosesli işletim sistemleridir.
 
-**Kullanıcı Sayısına Göre**
-
-Birden fazla farklı kullanıcının çalışabildiği sistemlere *çok kullanıcılı (multiuser)*, tek bir kullanıcının
-çalışabildiği sistemlere *tek kullanıcılı (single user)* sistemler denilmektedir. Genellikle çok prosesli
+**Kullanıcı Sayısına Göre:** Birden fazla farklı kullanıcının çalışabildiği sistemlere *çok kullanıcılı (multiuser)*, 
+tek bir kullanıcının çalışabildiği sistemlere *tek kullanıcılı (single user)* sistemler denilmektedir. Genellikle çok prosesli
 işletim sistemleri aynı zamanda çok kullanıcılı sistemlerdir. Birden fazla kullanıcının söz konusu olduğu
 sistemlerde kullanıcıların yetkilerinin ayarlanması, kullanıcıların birbirlerinin alanlarına erişmesinin
 engellenmesi, sistem kaynaklarının bölüşülmesi gerekebilmektedir. Örneğin DOS tek kullanıcılı bir sistemdi.
 Halbuki Windows, UNIX/Linux ve macOS sistemleri çok kullanıcılı sistemlerdir.
 
-**Çekirdek Yapısına Göre**
-
-İşletim sistemleri çekirdek yapısına göre *tek parçalı çekirdeğe sahip (monolithic kernel)* ve *mikro çekirdekli
-(microkernel)* olmak üzere ikiye ayrılmaktadır. Tek parçalı çekirdeğe sahip işletim sistemlerinin büyük kısmı çekirdek
-modunda çalışmaktadır. Mikro çekirdekli sistemlerde ise çekirdek modunda çalışan kısım minimize edilmeye çalışılmıştır.
-Aslında tek parçalı ve mikro çekirdekli tasarımları bir spektrum olarak düşünebiliriz. Linux çekirdeği tek
+**Çekirdek Yapısına Göre:** İşletim sistemleri çekirdek yapısına göre *tek parçalı çekirdeğe sahip (monolithic kernel)* 
+ve *mikro çekirdekli (microkernel)* olmak üzere ikiye ayrılmaktadır. Tek parçalı çekirdeğe sahip işletim sistemlerinin 
+büyük kısmı çekirdek modunda çalışmaktadır. Mikro çekirdekli sistemlerde ise çekirdek modunda çalışan kısım minimize edilmeye 
+çalışılmıştır. Aslında tek parçalı ve mikro çekirdekli tasarımları bir spektrum olarak düşünebiliriz. Linux çekirdeği tek
 parçalı *(monolithic)* tarafa daha yakındır. Mikro çekirdekli sistemlerden bazıları şunlardır:
 
 .. figure:: _static/microkernel-systems.png
     :align: center
-    :width: 70%
+    :width: 80%
 
-Genel olarak UNIX türevi sistemler tek parçalı çekirdekli biçimde tasarlanmaktadır. Aşağıda tek parçalı
+Genel olarak UNIX türevi sistemlerin çekirdekleri tek parçalı biçimde tasarlanmaktadır. Aşağıda tek parçalı
 çekirdekli tarafa yakın olan işletim sistemlerine örnekler veriyoruz:
 
-.. list-table:: Tek Parçalı (Monolitik) Çekirdekli İşletim Sistemleri
-   :widths: 22 30 48
-   :header-rows: 1
+.. figure:: _static/monolithic-systems.png
+    :align: center
+    :width: 60%
 
-   * - Sistem
-     - Tür
-     - Not
-   * - Linux
-     - Modüler Monolitik
-     - LKM desteği var
-   * - FreeBSD
-     - Saf Monolitik
-     - POSIX uyumlu
-   * - NetBSD
-     - Saf Monolitik
-     - Taşınabilirlik odaklı
-   * - OpenBSD
-     - Saf Monolitik
-     - Güvenlik odaklı
-   * - Solaris
-     - Modüler Monolitik
-     - SVR4 tabanlı
-   * - AIX
-     - Modüler Monolitik
-     - IBM Power mimarisi
-   * - Original Unix
-     - Saf Monolitik
-     - Tarihsel referans
-   * - Windows 95/98
-     - Monolitik (Hibrit eğilimli)
-     - Üretim dışı, tarihsel
-   * - Klasik (Eski) Mac OS
-     - Saf Monolitik
-     - Üretim dışı, tarihsel
-
-Tek parçalı çekirdekli tasarım genel olarak daha hızlı ve kırılgan, mikro çekirdekli tasarım ise genellikle
+Tek parçalı çekirdekler genel olarak daha hızlı ve kırılgan, mikro çekirdekli tasarım ise genellikle
 daha yavaş ve sağlam olma eğilimindedir. Aşağıdaki tabloda iki tasarım mimarisini avantaj ve dezavantaj
 bakımından karşılaştırıyoruz:
 
-.. list-table:: Monolitik ve Mikro Çekirdek Mimarisi Karşılaştırması
-   :widths: 20 40 40
-   :header-rows: 1
-
-   * - Kriter
-     - Monolitik Çekirdek
-     - Mikro Çekirdek
-   * - Performans
-     - [+] Sistem çağrıları doğrudan çekirdek uzayında işlenir; düşük gecikme.
-       [+] Context switch maliyeti düşük.
-     - [-] IPC (mesaj geçişi) ek yük getirir ve gecikmeyi artırır.
-       [-] Kullanıcı/çekirdek geçişi sık yaşanır.
-   * - Güvenilirlik / Kararlılık
-     - [-] Bir sürücü hatası tüm sistemi çökertebilir.
-       [-] Hata yayılımı (fault propagation) engellenemez.
-     - [+] Servisler kullanıcı uzayında izole çalışır.
-       [+] Hatalı servis yeniden başlatılabilir, sistemi çökertmeden.
-   * - Güvenlik
-     - [-] Çekirdek büyüdükçe güvenlik açığı yüzeyi genişler.
-       [-] Tüm kod aynı ayrıcalık seviyesinde.
-     - [+] Minimal TCB (Trusted Computing Base).
-       [+] Servisler birbirinden izole edilir.
-       [+] seL4 gibi formal doğrulama mümkün.
-   * - Modülerlik / Geliştirilebilirlik
-     - [-] Yeni servis eklemek çekirdeği doğrudan etkiler.
-       [+] LKM ile kısmi modülerlik sağlanır.
-     - [+] Servisler bağımsız geliştirilebilir.
-       [+] Yeni sürücü/servis kullanıcı uzayına eklenir, çekirdek değişmez.
-   * - Donanım Erişimi
-     - [+] Donanıma yakın çalışma kolaylığı.
-       [+] DMA, interrupt handling doğrudan çekirdekten yönetilir.
-     - [-] Donanım sürücüleri kullanıcı uzayında çalışır, donanım erişimi dolaylıdır.
-       [-] Sürücü geliştirmesi daha karmaşık.
-   * - Bakım / Test
-     - [-] Çekirdek kod tabanı büyük ve karmaşık.
-       [-] Hata ayıklama (debugging) güçtür.
-       [+] Geniş topluluk ve araç desteği.
-     - [+] Çekirdek küçük ve anlaşılır.
-       [+] Her servis bağımsız test edilebilir.
-       [-] IPC katmanı debug'i karmaşık olabilir.
-   * - Uygun Kullanım Alanı
-     - [+] Genel amaçlı sistemlerde olgunlaşmış.
-       [+] Masaüstü, sunucu, HPC ortamları.
-       [+] Linux, BSD aileleri kanıtlanmış.
-     - [+] Gömülü, gerçek zamanlı ve güvenlik kritik sistemler için idealdir.
-       [+] QNX, seL4 üretim ortamında başarılı.
+.. figure:: _static/mono-vs-micro.png
+    :align: center
+    :width: 85%
 
 **Dışsal Olaylara Yanıt Verebilme Özelliğine Göre**
 
