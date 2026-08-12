@@ -93,9 +93,8 @@ işletim sistemi olarak isimlendirilmesi için yukarıda açıkladığımız kay
 sağlıyor olması gerekir. Bu kaynak yönetimlerinin çoğunu sağlamayan kontrol yazılımlarına genel olarak
 *firmware* de denilmektedir.
 
-
 İşletim Sistemlerinin Sınıflandırılması
-----------------------------------------
+=======================================
 
 İşletim sistemleri çeşitli biçimlerde sınıflandırılabilmektedir.
 
@@ -113,61 +112,20 @@ Birden fazla farklı kullanıcının çalışabildiği sistemlere *çok kullanı
 çalışabildiği sistemlere *tek kullanıcılı (single user)* sistemler denilmektedir. Genellikle çok prosesli
 işletim sistemleri aynı zamanda çok kullanıcılı sistemlerdir. Birden fazla kullanıcının söz konusu olduğu
 sistemlerde kullanıcıların yetkilerinin ayarlanması, kullanıcıların birbirlerinin alanlarına erişmesinin
-engellenmesi, sistem kaynaklarını belli bölüşmesi gerekebilmektedir. Örneğin DOS tek kullanıcılı bir sistemdi.
+engellenmesi, sistem kaynaklarının bölüşülmesi gerekebilmektedir. Örneğin DOS tek kullanıcılı bir sistemdi.
 Halbuki Windows, UNIX/Linux ve macOS sistemleri çok kullanıcılı sistemlerdir.
 
 **Çekirdek Yapısına Göre**
 
-İşletim sistemleri çekirdek yapısına göre *tek parçalı çekirdekli (monolithic kernel)* ve *mikro çekirdekli
-(microkernel)* olmak üzere ikiye ayrılmaktadır. Tek parçalı çekirdekli işletim sisteminin büyük kısmı çekirdek
-modunda çalışır. Mikro çekirdekli sistemlerde ise çekirdek modunda çalışan kısım minimize edilmeye çalışılmıştır.
+İşletim sistemleri çekirdek yapısına göre *tek parçalı çekirdeğe sahip (monolithic kernel)* ve *mikro çekirdekli
+(microkernel)* olmak üzere ikiye ayrılmaktadır. Tek parçalı çekirdeğe sahip işletim sistemlerinin büyük kısmı çekirdek
+modunda çalışmaktadır. Mikro çekirdekli sistemlerde ise çekirdek modunda çalışan kısım minimize edilmeye çalışılmıştır.
 Aslında tek parçalı ve mikro çekirdekli tasarımları bir spektrum olarak düşünebiliriz. Linux çekirdeği tek
 parçalı *(monolithic)* tarafa daha yakındır. Mikro çekirdekli sistemlerden bazıları şunlardır:
 
-.. list-table:: Mikro Çekirdekli İşletim Sistemleri
-   :widths: 18 22 25 35
-   :header-rows: 1
-
-   * - Sistem
-     - Kategori
-     - Kullanım Alanı
-     - Olgunluk
-   * - MINIX 3
-     - Saf Mikro Kernel
-     - Eğitim / Araştırma
-     - Akademik
-   * - QNX
-     - Saf Mikro Kernel
-     - Gömülü / Gerçek Zamanlı
-     - Üretim (Production)
-   * - seL4
-     - Saf Mikro Kernel
-     - Güvenlik Kritik
-     - Üretim (Formal Verified)
-   * - Mach
-     - Saf Mikro Kernel
-     - Araştırma / Tarihsel
-     - Tarihi Referans
-   * - GNU Hurd
-     - Mach Tabanlı
-     - Genel Amaçlı
-     - Geliştirme Aşamasında
-   * - macOS/iOS (XNU)
-     - Mach Tabanlı (Hibrit)
-     - Masaüstü / Mobil
-     - Üretim (Hibrit Tasarım)
-   * - L4 / Fiasco
-     - Akademik / Araştırma
-     - Araştırma / Gömülü
-     - Araştırma / Bazı Üretim
-   * - OKL4
-     - Akademik / Araştırma
-     - Gömülü / Mobil
-     - Üretim (Bazı platformlar)
-   * - Haiku
-     - Kısmen Mikro Kernel
-     - Genel Amaçlı (Masaüstü)
-     - Geliştirme Aşamasında
+.. figure:: _static/microkernel-systems.png
+    :align: center
+    :width: 70%
 
 Genel olarak UNIX türevi sistemler tek parçalı çekirdekli biçimde tasarlanmaktadır. Aşağıda tek parçalı
 çekirdekli tarafa yakın olan işletim sistemlerine örnekler veriyoruz:
