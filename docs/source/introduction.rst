@@ -349,9 +349,8 @@ ikinci hatası da PC için donanım patentlerini almayı ihmal etmesi oldu. Bunu
 uyumlu daha ucuz PC'ler yaptılar. Fakat bunların hepsi işletim sistemini Microsoft'tan satın alıyordu. Böylece
 Microsoft 80'li yıllarda çok büyüdü ve dünyanın önemli bilişim firmalarından biri haline geldi.
 
-
 İşletim Sistemlerinin Tarihsel Gelişimi
-----------------------------------------
+=======================================
 
 Şimdi de işletim sistemlerinin tarihsel gelişimi üzerinde duracağız. 1940'lı yıllarda ilk elektronik
 bilgisayarlar yapıldığında henüz bir işletim sistemi kavramı yoktu. Bu bilgisayarlara program yazacak olanlar
@@ -456,7 +455,6 @@ ve *Windows ME*'yi, 2001 yılında *Windows XP*'yi, 2006 yılında *Windows Vist
 Linux işletim sistemi 1992 yılında bir dağıtım biçiminde piyasaya çıkmıştır. Linux işletim sisteminin hikâyesi
 daha geniş olarak izleyen paragraflarda ele alınmaktadır.
 
-
 UNIX Türevi İşletim Sistemlerinin Tarihsel Gelişimi
 -----------------------------------------------------
 
@@ -535,7 +533,6 @@ biçimde açıklanacaktır.
 bir araya getirilmesiyle oluşturulmuş hibrit işletim sistemleridir. İlk versiyonu 2001 yılında piyasaya
 sürülmüştür. İzleyen bölümlerde Mac OS işletim sistemlerinin tarihsel gelişimi ayrıntılı olarak ele
 alınacaktır.
-
 
 macOS (Mac OS X Türevi) İşletim Sistemleri
 -------------------------------------------
@@ -683,11 +680,8 @@ bir sonraki yılını kullanacağını açıklamıştır.
 
 macOS büyük ölçüde POSIX uyumlu bir sistemdir.
 
-GNU Projesi, Özgür Yazılım ve Açık Kaynak Kod
-=============================================
-
-GNU Projesi ve Özgür Yazılım Akımı
-------------------------------------
+GNU Projesi, Özgür Yazılım ve Açık Kaynak Akımları
+==================================================
 
 Şimdi de UNIX/Linux dünyasında önemli bir yeri olan GNU Projesi, özgür yazılım ve açık kaynak kod akımları
 üzerinde durmak istiyoruz.
@@ -731,9 +725,8 @@ kaynak kod akımı bir geliştirme metodolojisine benzetilmektedir. Biz kursumuz
 Ayrıca Apache, MIT, BSD gibi açık kaynak kodlu başka lisanslar da vardır. Bu lisansların aralarında birtakım
 farklılıklar bulunmakla birlikte pek çok yönleri de ortaktır.
 
-
-Linux'un Tarihi
----------------
+Linux İşletim Sistemi
+=====================
 
 Linux işletim sistemi projesi 90'lı yılların başlarında Helsinki Üniversitesinde Bilgisayar bölümünde öğrenci
 olan Linus Torvalds tarafından başlatılmıştır. Linus Torvalds bir işletim sistemi yazma hevesine kapıldı ve
@@ -886,9 +879,8 @@ GNU aracına gereksinim duyulmaktadır. Zamanla Linux adeta GNU projesinin işle
 Pek çok topluluk ve geliştirici Linux'un isminin de aslında *GNU/Linux* biçiminde olması gerektiğini ifade
 etmektedir. Ancak *GNU/Linux* ismi kullanılıyor olsa da geniş bir kesim tarafından benimsenmemiştir.
 
-
 Linux Kaynak Kodlarına Erişim
-------------------------------
+-----------------------------
 
 Kursumuzda bazen Linux'un kaynak kodları üzerinde incelemeler ve açıklamalar da yapacağız. Linux'un kaynak
 kodları üzerinde gezintiler yapabilmek için kullanılan çeşitli web siteleri bulunmaktadır. Biz kursumuzda
@@ -972,9 +964,8 @@ versiyonu da vardır. ZYpp, YaST ve RPM paket yöneticilerini kullanmaktadır.
 **Slackware:** En eski Linux dağıtımıdır. 1993 yılında oluşturulmuştur. Sürdürümü yavaş olmakla birlikte
 hala devam etmektedir.
 
-
 POSIX Standartları
-------------------
+==================
 
 1980'li yıllarda AT&T ya da BSD kodlarından türetilmiş olan ve çoğunluğu şirketlere ait olan pek çok UNIX türevi sistem
 oluşturuldu. Bu sistemler birbirlerine çok benzemekle birlikte aralarında bazı farklılıklar da vardı. İşte IEEE durumdan
@@ -1018,7 +1009,7 @@ https://pubs.opengroup.org/onlinepubs/9799919799/
 ----
 
 Yazılım Sistemlerinde Katmanlı Yapı ve Kod Tekrarı
----------------------------------------------------
+==================================================
 
 Yazılımda genel olarak kod tekrarı istenmez. Bu nedenle yazılım sistemleri katmanlı bir yapıya sahip olur. Örneğin B
 kütüphanesi A kütüphanesini kullanarak yazılmış olabilir. C kütüphanesi de B'yi kullanarak yazılmış olabilir. D de C'yi
@@ -1054,15 +1045,13 @@ programlama tekniğinde kod tekrarını engellemek için *türetme (inheritance)
 Bu teknikte iki sınıfın birtakım ortak elemanları varsa bu ortak elemanlar bir taban sınıfta toplanır, bu iki sınıf da
 o taban sınıftan türetilerek gerçekleştirilir.
 
-----
+Kütüphanelerle İlgili Temel Kavramlar Kavramları 
+================================================
 
-Temel Kavramlar
----------------
+Şimdi de kütüpanelere ilişkin bazı temel kavramalr üzerinde duracağız.
 
-Bu bölümde sistem programlama için önemli olan bazı temel kavramlardan bahsedeceğiz.
-
-API (Application Programming Interface)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+API (Application Programming Interface) Kavramı
+-----------------------------------------------
 
 Bir yazılım sisteminde (bu bir işletim sistemi olabilir, framework olabilir ya da başka bir yazılım olabilir) uygulama
 programcılarının doğrudan çağırabileceği, o sistem ile uygulama programcısı arasında köprü oluşturan fonksiyon ya da
@@ -1072,8 +1061,8 @@ kullandıkları fonksiyon ya da sınıf kütüphaneleridir. Örneğin Java API'l
 denildiğinde Windows işletim sisteminde temel işlemleri yapmak için kullanılan fonksiyonlar anlaşılır. POSIX
 fonksiyonlarını da bu bağlamda UNIX türevi sistemlerin API'leri diyebiliriz.
 
-Kütüphane (Library)
-^^^^^^^^^^^^^^^^^^^^
+Kütüphane (Library) Kavramı
+---------------------------
 
 Belli bir konuda faydalı işlemler yapan fonksiyonların ve/veya sınıfların oluşturduğu topluluğa *kütüphane (library)*
 denilmektedir. Kütüphane denildiğinde doğrudan kullanılabilecek hazır fonksiyonlar ve sınıflar anlaşılmaktadır. Yukarıda
@@ -1088,8 +1077,8 @@ Kütüphanelerin içerisindeki fonksiyonlar karmaşık bir sistemden faydalanmak
 API olarak da isimlendirilebilir. Yani API'ler birer kütüphane oluşturmaktadır. Ancak her kütüphane API görevinde olmak
 zorunda değildir.
 
-Framework
-^^^^^^^^^
+Framework Kavramı
+-----------------
 
 Kütüphane ve framework kavramlarının sınırları tam belli değildir. Değişik kaynaklar bu sınırları değişik biçimde
 çizebilmektedir. Fakat bir sistemin framework olarak tanımlanabilmesi için şu iki özelliğin bulunması gerektiği yönünde
@@ -1105,13 +1094,13 @@ yaparlar. Şüphesiz pek çok framework aynı zamanda birtakım kütüphanelere 
 o şeyin framework olarak mı yoksa kütüphane olarak mı adlandırılacağı konusunda tereddütler olabilir. (Örneğin Qt için
 ona kütüphane diyenler de framework diyenler de vardır.)
 
-----
+Donanıma İlişkin Temel Kavramlar
+================================
 
-Donanım Temelleri
------------------
+Şmdi de donanıma ilişkin temel kavramlar üzerinde duracağız.
 
-İşlemci (CPU)
-^^^^^^^^^^^^^
+İşlemci (CPU) Nedir?
+--------------------
 
 Bir bilgisayar sisteminde aritmetik, mantıksal, bitsel işlemler ve karşılaştırma işlemleri *mikroişlemci (microprocessor)*
 denilen birim tarafından yapılmaktadır. Mikroişlemciler entegre devre biçiminde üretilmişlerdir. Mikroişlemcilere
@@ -1122,8 +1111,8 @@ ana (merkezi) işlemcidir. Bilgisayar sisteminde yerel bazı işlemlerden soruml
 gibi. Kursumuzda yalnızca *işlemci (processor)* dediğimizde *mikroişlemci (microprocessor)* anlaşılmalıdır. Kursumuzda
 *işlemci* yerine kavramsal ismi olan CPU terimi de kullanılacaktır.
 
-Ana Bellek (RAM) ve İkincil Bellek
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ana Bellek ve İkincil Bellekler
+-------------------------------
 
 Bilgisayar sistemlerinde CPU ile elektriksel biçimde bağlı olan ve CPU'nun çalışması sırasında sürekli başvurulan
 belleklere *ana bellek (main memory)*, *birincil bellek (primary memory)* ya da *RAM (Random Access Memory)* denilmektedir.
@@ -1186,7 +1175,7 @@ bloğunda olacak biçimde bölünmektedir. Ancak bu durum formatlama sırasında
 işletim sisteminin kullandığı blok farklı uzunluklarda olabilmektedir.
 
 DMA (Direct Memory Access)
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 Peki diskten blok okuma ve blok yazma işlemleri nasıl yapılmaktadır? Çok eskiden bu işlemler CPU yoluyla yapılıyordu.
 Sonraları bu aktarım işlemlerinde CPU'yu aradan çıkartmak için *DMA (Direct Memory Access)* denilen yerel işlemciler
@@ -1246,8 +1235,8 @@ ve DMA birimlerinin etkileşimi özetlenmektedir:
 
 ----
 
-Mikrodenetleyici (Microcontroller)
------------------------------------
+Mikrodenetleyici Kavramı
+------------------------
 
 Kendi içerisinde CPU'su, RAM'i, ROM'u ve bazı çevre birimleri de bulunan entegre devrelere *mikrodenetleyici
 (microcontroller)* denilmektedir. Mikrodenetleyicilerin işlem kapasiteleri ve içerdikleri bellek miktarları düşük olma
@@ -1292,8 +1281,8 @@ mimarilerle üretilmektedir. ARM ailesinin M profilleri ailenin mikrodenetleyici
 
 ----
 
-SoC (System on Chip)
----------------------
+SoC (System on Chip) Kavramı
+----------------------------
 
 Bazı firmalar ayrı birimler olarak tasarlanmış mikroişlemcileri, RAM'leri, ROM'ları ve diğer bazı üniteleri tek bir
 entegre devrenin içerisine sıkıştırmaktadır. Bunlara genel olarak *SoC (System On Chip)* denilmektedir. SoC
@@ -1381,8 +1370,8 @@ verilmiştir:
 
 ----
 
-SoM ve SBC
------------
+SoM ve SBC Kavramları
+---------------------
 
 Bilgisayar sistemlerinde çok karşılaşılan diğer iki kavram da *SoM (System on Module)* ve *SBC (Single Board Computer)*
 kavramlarıdır. SoM birtakım modüllerin bir baskılı devre üzerinde bir araya getirilmesiyle oluşan küçük kartlara
@@ -1398,8 +1387,8 @@ kullanılabilmektedir.
 
 ----
 
-Gömülü Sistemler ve Gömülü Linux
-----------------------------------
+Gömülü Sistemler
+================
 
 Asıl amacı bilgisayar olmayan fakat bilgisayar devresi içeren sistemlere genel olarak *gömülü sistemler* denilmektedir.
 Örneğin elektronik tartılar, biyomedikal aygıtlar, GPS cihazları, turnike geçiş sistemleri, müzik kutuları vs. birer
@@ -1417,9 +1406,8 @@ gömülü sistemdeki bilgisayar donanımının da belli kapasiteye sahip olması
 kullanımına bilgisayar dünyasında *gömülü Linux (embedded Linux)* da denilebilmektedir. Gömülü Linux isminde ayrı bir
 işletim sistemi yoktur. Gömülü Linux dendiğinde *Linux'un gömülü sistemler için konfigüre edilmiş hali* anlaşılmalıdır.
 
-
 Çevirici Programlar, Derleyiciler ve Yorumlayıcılar
-----------------------------------------------------
+===================================================
 
 Bir programlama dilinde yazılmış olan programı eşdeğer olarak başka bir dile dönüştüren programlara *çevirici programlar
 (translators)* denilmektedir. Çevirici programlarda dönüştürülmek istenen programın diline *kaynak dil (source language)*,
