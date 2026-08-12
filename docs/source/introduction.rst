@@ -2,7 +2,7 @@
 Giriş
 ======
 
-Kitabımızın başında önce temel kavramlar ve konular üzerinde duracağız. 
+Kitabımızın bu giriş bölümünde temel kavramlar ve konular üzerinde duracağız. 
 
 Sistem Programlama Nedir?
 =========================
@@ -34,8 +34,8 @@ Dilleridir. Rust Programlama Dili de son yıllarda bu alanda bir yer edinmeye ç
 sistem programlama denildiğinde akla C, C++, Rust ve sembolik makine dilleri geliyorsa da bazı sistem
 programları Java ve C# gibi yüksek seviyeli dillerle de yazılabilmektedir.
 
-İşletim Sistemleri
-==================
+İşletim Sistemi Nedir?
+======================
 
 İşletim sistemleri bilgisayar donanımının kaynaklarını yöneten, bilgisayar donanımı ile kullanıcı arasında
 arayüz oluşturan sistem programlarıdır. Bilgisayar bilimlerinin akademik öncüleri işletim sistemlerini
@@ -176,9 +176,9 @@ Mart 2025 ve Mart 2026'daki masaüstü bilgisayarlarda kullanılan işletim sist
     :align: center
     :width: 65%
 
-Bunu çubuk grafiği ile şöyle gösterebiliriz:
+Bunu çubuk grafiği ile şöyle de gösterebiliriz:
 
-.. figure:: _static/introduction/desktop-os-market-share.png
+.. figure:: _static/desktop-os-market-share.png
    :alt: Masaüstü İşletim Sistemi Kullanım Oranları
    :align: center
    :width: 65%
@@ -191,99 +191,48 @@ Akıllı telefon ve tablet dünyasındaki durum da şöyledir:
     :align: center
     :width: 65%
 
-.. figure:: _static/introduction/mobile-os-market-share.png
+Bunu çabuk grafiği ile şöyle de gösterebiliriz:
+
+.. figure:: _static/mobile-os-market-share.png
    :alt: Mobil İşletim Sistemi Kullanım Oranları
    :align: center
-   :width: 30%
-
-   Programın çıktısı gibidir.
+   :width: 60%
 
 Görüldüğü gibi Android'in bu alanda büyük bir üstünlüğü vardır. Android'in Linux çekirdeğini temel aldığını
 anımsamak istiyoruz. Linux sistemlerinin gömülü sistemlerde ve sunucularda önemli bir üstünlüğü vardır. Her
 ne kadar gömülü sistemler için güvenilir istatistiklerin çıkartılması o kadar kolay değilse de yine de
 aşağıdaki tablo kursun yapıldığı dönem için bir fikir verebilir:
 
-.. figure:: _static/introduction/embedded-os-ecosystem.png
+.. figure:: _static/embedded-os-ecosystem.png
    :alt: Gömülü Sistem OS Ekosistemi
    :align: center
-   :width: 30%
-
-   Programın çıktısı gibidir.
+   :width: 75%
 
 Sunucu (server) olarak kullanılan bilgisayarlarda da Linux diğer seçeneklerden daha öndedir. Aşağıda kursun
 yapıldığı tarih için bir fikir amacıyla sunucu dünyasındaki kullanım oranlarını bir tablo halinde veriyoruz:
 
-.. list-table:: Sunucu İşletim Sistemi Kullanım Oranları
-   :widths: 28 18 18 18 18
-   :header-rows: 1
+.. figure:: _static/server-os-share.png
+    :align: center
+    :width: 65%
 
-   * - Kullanım Alanı
-     - Linux
-     - Windows
-     - UNIX
-     - Diğer
-   * - Web sunucuları
-     - ~96%
-     - ~3%
-     - ~1%
-     - —
-   * - Bulut altyapısı
-     - ~80%
-     - ~15%
-     - —
-     - ~5%
-   * - Süperbilgisayarlar
-     - %100
-     - —
-     - —
-     - —
-   * - Kurumsal ERP / AD
-     - ~20%
-     - ~75%
-     - ~4%
-     - ~1%
-   * - Veritabanı sunucuları
-     - ~45%
-     - ~40%
-     - ~12%
-     - ~3%
-   * - 5G Baz İstasyonları
-     - ~65%
-     - —
-     - ~30%
-     - ~5%
-   * - IoT / Edge sunucuları
-     - ~60%
-     - ~20%
-     - —
-     - ~20%
-   * - HPC / Araştırma
-     - ~90%+
-     - —
-     - ~5%
-     - ~5%
+Bunu çubuk grafiği ile şöyle de gösterebiliriz:
 
-.. figure:: _static/introduction/server-os-usage.png
+.. figure:: _static/server-os-usage.png
    :alt: Sunucu İşletim Sistemi Kullanım Oranları
    :align: center
-   :width: 30%
+   :width: 90%
 
-   Programın çıktısı gibidir.
 
-**Kaynak Kod Lisansına Göre**
-
-Kaynak kod lisansına göre işletim sistemlerini kabaca *açık kaynak kodlu (open source)* ve *mülkiyete bağlı
-(proprietary)* olmak üzere ikiye ayırabiliriz. Açık kaynak kodlu işletim sistemleri değişik açık kaynak kod
-lisanslarına sahip olabilmektedir. Bunların kaynak kodları indirilip üzerinde değişiklikler yapılabilmektedir.
+**Kaynak Kod Lisansına Göre:** Kaynak kod lisansına göre işletim sistemlerini kabaca *açık kaynak kodlu (open source)* 
+ve *mülkiyete bağlı (proprietary)* olmak üzere ikiye ayırabiliriz. Açık kaynak kodlu işletim sistemleri değişik açık 
+kaynak kod lisanslarına sahip olabilmektedir. Bunların kaynak kodları indirilip üzerinde değişiklikler yapılabilmektedir.
 Örneğin Windows işletim sistemi mülkiyete sahiptir. Oysa Linux, BSD sistemleri, Solaris, Android gibi sistemler
 açık kaynak kodludur. macOS sistemlerinin ise çekirdeği açık, diğer kısımları (örneğin kabuk kısmı ve diğer
 katmanları) kapalıdır.
 
-**Kaynak Kodun Özgünlüğüne Göre**
-
-Bazı işletim sistemleri bazı işletim sistemlerinin kodları alınıp değiştirilerek oluşturulmuştur (örneğin
-Android ve macOS'ta olduğu gibi). Bazı işletim sistemlerinin kodları ise sıfırdan yazılmıştır. Kodları
-sıfırdan yazılan yani orijinal kod temeline dayanan işletim sistemlerinden bazıları şunlardır:
+**Kaynak Kodun Özgünlüğüne Göre:** Bazı işletim sistemleri başka işletim sistemlerinin kodları alınıp değiştirilerek 
+oluşturulmuştur (örneğin Android ve macOS'ta olduğu gibi). Bazı işletim sistemlerinin kodları ise sıfırdan yazılmıştır. 
+Kodları sıfırdan yazılan yani orijinal kod temeline dayanan işletim sistemlerinden bazıları şunlardır:
 
 - AT&T UNIX
 - DOS
@@ -298,19 +247,15 @@ Burada mimari ile orijinal kod tabanını birbirine karıştırmamak gerekiyor. 
 mimarisini temel almıştır. Ancak Linux'un tüm kodları sıfırdan yazılmıştır. Yani orijinal AT&T UNIX
 sistemindeki kaynak kodların bir bölümü kopyalanarak kullanılmamıştır.
 
-**GUI Çalışma Desteğine Göre**
+**GUI Çalışma Desteğine Göre:** Bazı işletim sistemleri GUI çalışma modelini doğrudan desteklerken bazıları 
+desteklememektedir. Örneğin Windows sistemleri çekirdekle entegre edilmiş bir GUI çalışma modeli sunmaktadır. 
+UNIX/Linux sistemleri de *X Window* (ya da X11) ve *Wayland* katmanlarıyla benzer bir modeli sunmaktadır. Fakat 
+örneğin DOS işletim sisteminin böyle bir doğal GUI desteği yoktu.
 
-Bazı işletim sistemleri GUI çalışma modelini doğrudan desteklerken bazıları desteklememektedir. Örneğin
-Windows sistemleri çekirdekle entegre edilmiş bir GUI çalışma modeli sunmaktadır. UNIX/Linux sistemleri de
-*X Window* (ya da X11) ve *Wayland* katmanlarıyla benzer bir modeli sunmaktadır. Fakat örneğin DOS işletim
-sisteminin böyle bir doğal GUI desteği yoktu.
-
-**Ağ Üzerinde Hizmet Alıp Verme Rollerine Göre**
-
-İşletim sistemlerini ağ altında hizmet alıp verme rollerine göre *istemci (client)* ve *sunucu (server)*
-biçiminde de iki gruba ayırabiliriz. Bazı işletim sistemlerinin istemci versiyonları ile sunucu versiyonları
-birbirlerinden ayrılmıştır. Bazılarında ise bu ayrım yapılmamıştır. Örneğin Windows 7, 8, 10, 11 sistemleri
-bu bakımdan istemci (client) sistemleridir. Halbuki Windows Server 2016, 2019, 2025 sunucu sistemleri olarak
+**Ağ Üzerinde Hizmet Alıp Verme Rollerine Göre:** İşletim sistemlerini ağ altında hizmet alıp verme rollerine göre 
+*istemci (client)* ve *sunucu (server)* biçiminde de iki gruba ayırabiliriz. Bazı işletim sistemlerinin istemci versiyonları 
+ile sunucu versiyonları birbirlerinden ayrılmıştır. Bazılarında ise bu ayrım yapılmamıştır. Örneğin Windows 7, 8, 10, 11 
+sistemleri bu bakımdan istemci (client) sistemleridir. Halbuki Windows Server 2016, 2019, 2025 sunucu sistemleri olarak
 piyasaya sürülmüştür. Eskiden Mac OS X'in istemci ve sunucu versiyonları farklıydı. Fakat Mac OS X 10.7
 (Lion) ile birlikte istemci ve sunucu versiyonları birleştirildi. Linux dağıtımlarının çoğu da hem istemci
 hem de sunucu olarak kullanılabilmektedir. Ancak bazı dağıtımların ise istemci ve sunucu versiyonları
@@ -320,9 +265,8 @@ sunucu sistemlerinde çizelgeleyici alt sistemde istemci sistemlerine göre fark
 İkincisi ise barındırdıkları yardımcı yazılımlardır. İşletim sistemlerinin sunucu versiyonları hazır bazı
 sunucu programlarını da içerecek biçimde paketlenmektedir.
 
-
 Bilgisayar Donanımının Tarihsel Gelişimi
------------------------------------------
+========================================
 
 Şimdi de biraz bilgisayar donanımlarının tarihsel gelişimi üzerinde duralım. Elektronik düzeyde bugün
 kullandığımız bilgisayarlara benzer ilk aygıtlar 1940'lı yıllarda geliştirilmeye başlanmıştır. Ancak bundan
@@ -331,7 +275,7 @@ kısmen başarılı olmuş ve belli bir süre kullanılmıştır. Mekanik bilgis
 Charles Babbage tarafından yapılan *Analytical Engine* ve *Difference Engine* aygıtlarıdır. *Analytical
 Engine* tam olarak bitirilememiştir. Fakat bunlar pek çok çalışmaya ilham kaynağı olmuştur. Hatta bir dönem
 Babbage'ın asistanlığını yapan Ada Lovelace bu *Analytical Engine* üzerindeki çalışmalarından dolayı dünyanın
-ilk programcısı kabul edilmektedir. Şöyle ki: Rivayete göre Babbage Ada'dan *Analytical Engine* için Bernoulli
+ilk programcısı kabul edilmektedir. Şöyle ki: Rivayete göre Babbage, Ada'dan *Analytical Engine* için Bernoulli
 sayılarının bulunmasını sağlayan bir yönerge yazmasını istemiştir. Ada'nın yazdığı bu yönergeler de dünyanın
 ilk programı kabul edilmektedir. (Gerçi bu yönergelerin bizzat Babbage'ın kendisi tarafından yazılmış olduğu
 neredeyse ispatlanmış olsa bile hala böyle atıf vardır.)
@@ -340,7 +284,7 @@ Daha sonra 1800'lü yılların ortalarından itibaren elektronikte hızlı bir i
 ortaya atılmış, çeşitli devre elemanları kullanılmaya başlanmış ve mantık devreleri üzerinde çalışmalar
 başlatılmıştır. 1900'lü yılların başlarında artık yavaş yavaş elektromekanik bilgisayar fikri belirmeye
 başlamıştır. 1930'lu yıllarda Alan Turing konuya matematiksel açıdan yaklaşmış ve bugünkü bilgisayar benzeri
-bir makinenin hangi matematik problemlerini çözebileceği üzerine kafa yormuştur. Turing bir şerit üzerinde
+bir makinenin hangi matematiksel problemleri çözebileceği üzerine kafa yormuştur. Turing bir şerit üzerinde
 ilerleyen bir kafadan oluşan ve ismine *Turing Makinesi* denilen soyut makine tanımlamıştır ve bu makinenin
 neler yapabileceği üzerinde çalışmalar yapmıştır. ACM Turing'in anısına bilgisayarın Nobel ödülü gibi kabul
 edilen Turing ödülleri vermektedir.
@@ -351,15 +295,15 @@ Harvard Mark 1 bilgisayarını bazıları da 1945'te yapılan ENIAC'ı ilk bilgi
 
 Modern bilgisayar tarihi üç döneme ayrılarak incelenebilir:
 
-1. Transistör öncesi dönem (1940–1950'lerin ortalarına kadar)
-2. Transistör dönemi (1950'lerin ortalarından 1970'lerin ortalarına kadar)
-3. Entegre devre dönemi (1970'lerin ortalarından günümüze kadar ki dönem)
+| **1.** Transistör öncesi dönem (1940'dan 1950'lerin ortalarına kadar)
+| **2.** Transistör dönemi (1950'lerin ortalarından 1970'lerin ortalarına kadar)
+| **3.** Entegre devre dönemi (1970'lerin ortalarından günümüze kadarki dönem)
 
 İlk bilgisayarlar transistörler olmadığı için vakum tüplerle yapılmıştı. Vakum tüpler hem büyük yer kaplıyordu
 hem de çok ısınıyordu dolayısıyla da çok güç harcıyordu. Ayrıca bunlar hassas devreler yapmak için güvenilir
 elemanlar değildi. Bu nedenle bu devirdeki bilgisayarlar bir salon büyüklüğündeydi.
 
-Transistör ilk 1947 yılında John Bardeen, William Shockley ve Walter Brattain tarafından Bell Lab'ta icat
+Transistör 1947 yılında John Bardeen, William Shockley ve Walter Brattain tarafından Bell Lab'ta icat
 edildi. Fakat ancak 1950'li yılların ortalarına doğru uygulama alanına girdi. İlk transistörlü radyo 1954
 yılında yapılmıştır. Transistörler 1950'li yıllarda yavaş yavaş bilgisayar devrelerine de girmeye başladı.
 Bu sayede bilgisayar devreleri küçüldü ve kuvvetlendi. O zamanların en önemli firmaları IBM, Honeywell, DEC
