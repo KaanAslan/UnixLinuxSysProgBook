@@ -136,154 +136,60 @@ bakımından karşılaştırıyoruz:
     :align: center
     :width: 85%
 
-**Dışsal Olaylara Yanıt Verebilme Özelliğine Göre**
+**Dışsal Olaylara Yanıt Verebilme Özelliğine Göre:** İşletim sistemleri dışsal olaylara yanıt verme bakımından 
+*gerçek zamanlı olan (real-time)* ve *gerçek zamanlı olmayan (non-real-time)* sistemler olmak üzere ikiye ayrılabilir. 
+Dışsal olaylara hızlı bir biçimde yanıt verebilecek çekirdek yapısına sahip olan işletim sistemlerine *gerçek zamanlı 
+(real-time) işletim sistemleri* denilmektedir. Gerçek zamanlı işletim sistemleri de kendi aralarında *katı gerçek zamanlı 
+(hard real-time)* ve *gevşek gerçek zamanlı (soft real-time)* işletim sistemleri olmak üzere ikiye ayrılabilmektedir. Katı 
+gerçek zamanlı sistemler dışsal olaylara yanıt verme bakımından çok güvenilir olma iddiasındadır. Gevşek gerçek zamanlı 
+sistemlerin ise bu konudaki toleransı daha yüksektir. Linux gerçek zamanlı bir işletim sistemi değildir. Çeşitli çekirdek
+değişiklikleriyle (kernel patches) gevşek gerçek zamanlılık sağlanabilmektedir. Yaygın kullanılan bazı gerçek zamanlı 
+işletim sistemleri aşağıdaki tabloda listeliyoruz:
 
-İşletim sistemleri dışsal olaylara yanıt verme bakımından *gerçek zamanlı olan (real-time)* ve *gerçek zamanlı
-olmayan (non-real-time)* sistemler olmak üzere ikiye ayrılabilir. Dışsal olaylara hızlı bir biçimde yanıt
-verebilecek çekirdek yapısına sahip olan işletim sistemlerine *gerçek zamanlı (real-time) işletim sistemleri*
-denilmektedir. Gerçek zamanlı işletim sistemleri de kendi aralarında *katı (hard real-time)* ve *gevşek
-(soft real-time)* işletim sistemleri olmak üzere ikiye ayrılabilmektedir. Katı gerçek zamanlı sistemler
-dışsal olaylara yanıt verme bakımından çok güvenilir olma iddiasındadır. Gevşek gerçek zamanlı sistemler
-ise bu konuda daha toleranslıdır. Linux gerçek zamanlı bir işletim sistemi değildir. Çeşitli çekirdek
-değişiklikleriyle (kernel patches) gevşek gerçek zamanlılık sağlanabilmektedir. Yaygın kullanılan bazı
-gerçek zamanlı işletim sistemleri aşağıdaki tabloda verilmektedir:
+.. figure:: _static/rtos-systems.png
+    :align: center
+    :width: 90%
 
-.. list-table:: Yaygın Gerçek Zamanlı İşletim Sistemleri (RTOS)
-   :widths: 16 14 20 28 22
-   :header-rows: 1
-
-   * - RTOS
-     - Geliştirici
-     - Lisans
-     - Kullanım Alanı
-     - Öne Çıkan Özellik
-   * - VxWorks
-     - Wind River
-     - Ticari
-     - Havacılık, uzay, savunma
-     - DO-178C DAL-A sertifikalı
-   * - INTEGRITY-178B
-     - Green Hills
-     - Ticari
-     - F-35, askeri aviyonik
-     - NSA onaylı, çok güvenli
-   * - LynxOS-178
-     - Lynx Software
-     - Ticari
-     - Askeri, havacılık
-     - POSIX uyumlu, DO-178C
-   * - QNX
-     - BlackBerry
-     - Ticari
-     - Otomotiv, medikal, endüstri
-     - Microkernel mimarisi
-   * - FreeRTOS
-     - Amazon (AWS)
-     - MIT (Açık kaynak)
-     - IoT, gömülü sistemler
-     - Çok küçük footprint
-   * - Zephyr
-     - Linux Foundation
-     - Apache 2.0 (Açık kaynak)
-     - IoT, wearable, sensor sistemleri
-     - Modern, modüler yapı
-   * - RTEMS
-     - Topluluk/NASA
-     - BSD (Açık kaynak)
-     - Uzay, bilimsel ekipman
-     - NASA Mars görevlerinde
-   * - embOS
-     - SEGGER
-     - Ticari
-     - Medikal, endüstriyel
-     - Çok küçük RAM kullanımı
-   * - ThreadX (Azure)
-     - Microsoft
-     - MIT (Açık kaynak)
-     - IoT, tüketici elektroniği
-     - IEC 61508 sertifikalı
-   * - PikeOS
-     - SYSGO
-     - Ticari
-     - Airbus, demiryolu, otomotiv
-     - Çoklu işletim sistemi
-
-**Dağıtıklık Durumuna Göre**
-
-İşletim sistemleri dağıtıklık durumuna göre *dağıtık olan (distributed)* ve *dağıtık olmayan
+**Dağıtıklık Durumuna Göre:** İşletim sistemleri dağıtıklık durumuna göre *dağıtık olan (distributed)* ve *dağıtık olmayan
 (non-distributed)* sistemler biçiminde ikiye ayrılabilmektedir. Dağıtık işletim sistemlerinde sistem birden
 fazla bilgisayardan oluşan tek bir sistem gibi davranmaktadır. Örneğin 10 tane makineyi tek bir sistem olarak
 düşünebilirsiniz. Bu durumda bu bilgisayarların kaynakları (örneğin diskleri ve CPU'ları) bu 10 makine
 tarafından paylaşılmaktadır. Windows, UNIX/Linux ve macOS dağıtık işletim sistemleri değildir. Ancak bu
 sistemlerde çeşitli framework'ler ile dağıtık uygulamalar yapılabilmektedir.
 
-**Donanım Özelliğine Göre**
-
-Neredeyse her yaygın masaüstü işletim sisteminin bir mobil versiyonu da oluşturulmuştur. iOS (iPhone
-Operating System) ve iPadOS Apple firmasının mobil işletim sistemleridir. Bunlar macOS sistemlerinin mobil
+**Donanım Özelliğine Göre:** Neredeyse her yaygın masaüstü işletim sisteminin bir mobil versiyonu da oluşturulmuştur. 
+iOS (iPhone Operating System) ve iPadOS Apple firmasının mobil işletim sistemleridir. Bunlar macOS sistemlerinin mobil
 versiyonları gibi düşünülebilir. Android bir çeşit mobil Linux sistemi olarak değerlendirilebilir. Android
 projesinde Linux çekirdeği alınmış, biraz özelleştirilmiş, bazı kısımları atılmış, buna bir mobil arayüz
-giydirilmiş ve sistem akıllı telefonlara ve tabletlere uygun hale getirilmiştir. Nokia eskiden Symbian
-sistemlerinde büyük bir pazar payına sahipti. Ancak bu firma akıllı telefon geçişini iyi yönetemedi.
+giydirilmiş ve sistem akıllı telefonlara ve tabletlere uygun hale getirilmiştir. Nokia eskiden Symbian işletim
+sistemleriyle büyük bir pazar payına sahipti. Ancak bu firma akıllı telefon geçişini iyi yönetemedi.
 MeeGo ve Maemo gibi işletim sistemlerini denedi. Sonra ekonomik sıkıntılar sonucunda büyük ölçüde Microsoft
-tarafından satın alındı. Windows'un mobil versiyonuna genel olarak *Windows CE (Compact Edition)* denilmektedir.
-Windows CE'nin akıllı telefonlar ve tabletler için özelleştirilmiş biçimine ise *Windows Mobile* ve
-*Windows Phone* denilmektedir. Ancak Microsoft 2010 yılında Windows Mobile işletim sistemini 2017'de de
-Windows Phone işletim sistemini sonlandırmıştır ve bu alandaki rekabetten tamamen çekilmiştir. Windows CE
-ise bugün *Windows IoT Core* ismi altında farklı bir tasarımla evrimleşerek devam ettirilmektedir.
+tarafından satın alındı. Windows'un mobil versiyonuna genel olarak *Windows CE (Compact Edition)* , Windows CE'nin 
+akıllı telefonlar ve tabletler için özelleştirilmiş biçimine ise *Windows Mobile* ve *Windows Phone* denilmektedir.
+Ancak Microsoft 2010 yılında Windows Mobile işletim sistemini 2017'de Windows Phone işletim sistemini sonlandırmıştır 
+ve bu alandaki rekabetten tamamen çekilmiştir. Windows CE ise bugün *Windows IoT Core* ismi altında farklı bir 
+tasarımla evrimleşerek devam ettirilmektedir.
 
-Kursun yapıldığı sırada masaüstü işletim sistemlerinin masaüstü bilgisayarlardaki kullanım oranları şöyledir:
+Mart 2025 ve Mart 2026'daki masaüstü bilgisayarlarda kullanılan işletim sistemlerinin kullanım oranları şöyledir:
 
-.. list-table:: Masaüstü İşletim Sistemi Kullanım Oranları (Küresel)
-   :widths: 34 33 33
-   :header-rows: 1
+.. figure:: _static/desktop-os-share.png
+    :align: center
+    :width: 65%
 
-   * - İşletim Sistemi
-     - Mart 2025
-     - Mart 2026
-   * - Windows
-     - ~71%
-     - ~60.8%
-   * - macOS
-     - ~15.7%
-     - ~14.4%
-   * - Linux
-     - ~4.2%
-     - ~3.2%
-   * - ChromeOS
-     - ~1.86%
-     - ~1.6%
-   * - Bilinmeyen / Diğer
-     - ~7.2%
-     - ~19.7%
+Bunu çubuk grafiği ile şöyle gösterebiliriz:
 
 .. figure:: _static/introduction/desktop-os-market-share.png
    :alt: Masaüstü İşletim Sistemi Kullanım Oranları
    :align: center
-   :width: 30%
-
-   Programın çıktısı gibidir.
+   :width: 65%
 
 Biz burada masaüstü bilgisayarlar demekle kasalı olan bilgisayarları ve notebook gibi taşınabilir
 bilgisayarları kastediyoruz. Akıllı telefonları, tabletleri ve diğer gömülü sistemleri kastetmiyoruz.
 Akıllı telefon ve tablet dünyasındaki durum da şöyledir:
 
-.. list-table:: Mobil İşletim Sistemi Kullanım Oranları (Küresel)
-   :widths: 34 33 33
-   :header-rows: 1
-
-   * - İşletim Sistemi
-     - 2025 Q3
-     - 2026 Başı
-   * - Android
-     - ~71.4%
-     - ~70.36%
-   * - iOS
-     - ~28.2%
-     - ~29.25%
-   * - Diğer (HarmonyOS vb.)
-     - ~0.4%
-     - ~0.39%
+.. figure:: _static/mobile-os-share.png
+    :align: center
+    :width: 65%
 
 .. figure:: _static/introduction/mobile-os-market-share.png
    :alt: Mobil İşletim Sistemi Kullanım Oranları
