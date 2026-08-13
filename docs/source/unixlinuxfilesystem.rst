@@ -2329,7 +2329,7 @@ Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup id'leri
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo.st_mtim.tv_sec);
-        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        strftime(dt, 32, "%b %e %H:%M", pt_file);
         printf(" %s", dt);
         if (this_year != pt_file->tm_year)
             printf("  %d", pt_file->tm_year + 1900);
@@ -2425,7 +2425,7 @@ ve grup isimlerini de basacak biçimde aşağıda yeniden veriyoruz.
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo.st_mtim.tv_sec);
-        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        strftime(dt, 32, "%b %e %H:%M", pt_file);
         printf(" %s", dt);
         if (this_year != pt_file->tm_year)
             printf("  %d", pt_file->tm_year + 1900);
@@ -2543,7 +2543,7 @@ yapısını geçirmemiz daha uygun olabilir::
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo.st_mtim.tv_sec);
-        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        strftime(dt, 32, "%b %e %H:%M", pt_file);
         printf(" %s", dt);
         if (this_year != pt_file->tm_year)
             printf("  %d", pt_file->tm_year + 1900);
@@ -2626,7 +2626,7 @@ dizinin adresiyle geri dönen fonksiyon örneğini veriyoruz:
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo.st_mtim.tv_sec);
-        i += strftime(buf + i, 32, " %b %d %H:%M", pt_file);
+        i += strftime(buf + i, 32, " %b %e %H:%M", pt_file);
         if (this_year != pt_file->tm_year)
             i += sprintf(buf + i, "  %d", pt_file->tm_year + 1900);
         sprintf(buf + i, " %s\n", path);
@@ -2728,7 +2728,7 @@ fonksiyonunun da) yazdırılan ya da yerleştirilen karakter sayısına geri dö
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo.st_mtim.tv_sec);
-        i += strftime(buf + i, 32, " %b %d %H:%M", pt_file);
+        i += strftime(buf + i, 32, " %b %e %H:%M", pt_file);
         if (this_year != pt_file->tm_year)
             i += sprintf(buf + i, "  %d", pt_file->tm_year + 1900);
         sprintf(buf + i, " %s\n", path);
@@ -2863,7 +2863,7 @@ Fonksiyonun bu halini aşağıda veriyoruz.
         this_year = localtime(&tval)->tm_year;
         pt_file = localtime(&finfo.st_mtim.tv_sec);
 
-        if ((n = strftime(buf + i, size - i, " %b %d %H:%M", pt_file)) == 0)
+        if ((n = strftime(buf + i, size - i, " %b %e %H:%M", pt_file)) == 0)
             goto EXIT;
         i += n;
 
@@ -3013,7 +3013,7 @@ değildir. Dosya zaten başka işlemler için açılmak zorundaysa ve açık dos
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo->st_mtim.tv_sec);
-        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        strftime(dt, 32, "%b %e %H:%M", pt_file);
         printf(" %s", dt);
         if (this_year != pt_file->tm_year)
             printf("  %d", pt_file->tm_year + 1900);
@@ -3709,7 +3709,7 @@ Denemenin yapıldığı makinede şöyle bir çıktı elde edilmiştir:
         this_year = localtime(&tval)->tm_year;
 
         pt_file = localtime(&finfo.st_mtim.tv_sec);
-        strftime(dt, 32, "%b %d %H:%M", pt_file);
+        strftime(dt, 32, "%b %e %H:%M", pt_file);
         printf(" %s", dt);
         if (this_year != pt_file->tm_year)
             printf("  %d", pt_file->tm_year + 1900);
