@@ -3157,6 +3157,19 @@ geri dönmektedir. Örneğin:
     if (link("x.txt", "y.txt") == -1)
         exit_sys("link");
 
+
+``link`` fonksiyonun ``linkat`` adlı at'li bir versyionu da vardır:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
+
+
+POSIX dosya fonksiyonlarının at'li versiyonlarının nasıl çalıştığı ileride ele alınmamtadır. 
+
+
 Kaynak dosya yoksa ya da hedef dosya varsa fonksiyon başarısız olmaktadır. Yukarıdaki işlemin başarılı olduğunu
 varsayalım. Bu iki dosyanın *"ls -l"* ile bilgilerine baktığımızda aynı şeyleri görürüz:
 
@@ -3388,7 +3401,19 @@ Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadı
 
 Fonksiyonun birinci parametresi gerçek dosyanın yol ifadesini, ikinci parametresi ise oluşturulacak sembolik bağlantı
 dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri
-dönmektedir. Örneğin:
+dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı at'li bir biçimi de vardır:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int symlinkat(const char *target, int newdirfd, const char *linkpath);
+
+
+Biz POSIX fonksiyonlarının at'li biçimleri hakkında izleyen bölümlerde bilgiler vereceğiz. 
+
+
+Örneğin:
 
 .. code-block:: c
 
@@ -3544,6 +3569,130 @@ Peki bu durumda ``open`` fonksiyonuyla ``y.txt`` ya da ``z.txt`` dosyasını aç
 dosyaları görüntülemek istersek ne olur? İşte ``open`` fonksiyonu belli bir kademe sembolik bağları izlemekte eğer hedef
 dosya hala bulunamadıysa ``errno`` değişkenini ``ELOOP`` (*Too many levels of symbolic links*) değeri ile set edip
 işlemi başarısızlıkla sonlandırmaktadır.
+
+
+readlink Fonksiyonu
+--------------------
+
+Biz ``lstat`` fonksiyonuyla bir dosyanın bilgilerini elde ettiğimizde o dosyanın bir sembolik bağlantı dosyası olup
+olmadığını anlayabiliyorduk. Ancak o sembolik bağ dosyasının hangi dosyaya referans ettiğini ``lstat`` fonksiyonu 
+bize vermemektedir. İşte readlink isimli POSIX fonksiyonu bu işi yapmaktadır. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+    
+    #include <unistd.h>
+
+    ssize_t readlink(const char *path, char *buf, size_t bufsize);
+
+
+Fonksiyonun birinci parametresi sembolik bağ dosyasının yol ifadesini, ikinci ve üçüncü parametreler sembolik bağ 
+dosyasının referans ettiği dosyanın yol ifadesinin yerleştirileceği yerin adresini ve uzunluğu almaktadır. Bu alan 
+küçük ise fonksiyon başarısız olmaz ancak yol ifadesinin son kısmı budanır. Fonksiyon verdiğimiz adrese yerleştirdiği 
+karakter sayısına geri dönmektedir. Fonksiyon (diğer fonksiyonların aksine) ``null`` karakteri dizinin sonuna 
+yerleştirmez. Bu durumda programcı referans edilen yol ifadesine erişirken dikkat etmelidir.
+
+
+Fonksiyon başarı durumunda yerleştirilen karakter sayısına, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+
+``readlink`` fonksiyonu sembolik bağ dosyasının içeerisindeki hedefi verir. Yani fonksiyonun amacı sembolik bağı 
+izlemek değildir. Dolayısıyla ``readlink`` "dangling" sembolik bağlarda da başarısız olmaz.
+
+
+``readlink`` fonksiyonunun ``readlinkat`` adlı at'li bir biçimi de vardır:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
+
+
+Biz POSIX dosya fonksiyonlarının at'li biçimlerini ileride ele alacağız.
+
+``readlink`` fonksiyonunu çağırarak yazılmış olan ``readlink`` adlı bir kabuk komutu da bulunmaktadır. Mesela:
+
+.. code-block:: bash
+
+    $ readlink x.txt
+    test.txt
+
+
+Aşağıda ``readlink`` fonksiyonun kullanımına bir emsal verilmiştir. ``readlink`` fonksiyonunun ``null`` karakteri 
+diziye yerleştirmediğine dikkat ediniz. Sonunda ``null`` karakter olmayan ``result`` uzunlukta bir yazının ``printf``
+ile bastırılması şöyle yapılabilir:
+
+``printf("%.*s\n", result, buf);``
+
+
+``printf`` ``%.10s`` gibi bir format karakterlerinde yazıyı ``null`` karakter görene kadar değil n karakter 
+yazdırmaktadır. (Emsalimizde 10). Tabii biz burada istersek ``null`` karakteri dizinin sonuna yerleştirip onu 
+``%s`` ile de yazdırabiliriz. Ancak bu durumda da dizi uzunluğunun yeterli olduğuna dikkat etmemiz gerekir. Mesela:
+
+.. code-block:: c
+
+    char buf[4096];
+    /* ... */
+
+    if ((result = readlink(argv[1], buf, 4096)) == -1)
+        exit_sys("readlink");
+
+    if (result < 4096) {         /* alternatifi -> printf("%.*s\n", (int)result, buf); */
+        buf[result] = '\0';        
+        puts(buf);
+    }
+    else
+        fprintf(stderr, "path maybe truncated!...\n");
+
+
+Bu emsalde biz yol ifadesinin yerleştirileceği diziyi 4096 eleman uzunluğunda açtık. Linux sistemlerinde x86 ve 
+x64 mimarilerinde (genel olarak sayfa uzunluğunun 4K olduğu mimarilerde) yol ifadeleri en fazla 4096 karakter 
+olabilmektedir. Ancak diğer mimarilerde ve POSIX genelinde böyle bir zorunluluk yoktur. Bu tür durumlarda tavsiye
+edilen yöntem diziyi büyütüp fonksiyonu başarılı olan kadar tekrar tekrar çağırmaktır. Ancak bir yol ifadesinin 4096 
+karakterden büyük olması çok çok uç bir noktadır. (O sistemdeki maksimum yol ifadesi uzunluğu ``<limits.h>`` dosyası 
+içerisindeki ``PATH_MAX`` sembolik sabitiyle belirtilmektedir. Ancak maalesef bu sembolik sabitin define edilmiş 
+olması da zorunlu değildir.) Bu konunun biraz ayrıntıları olduğu için konu bir başlık altında ileride ele alınacaktır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <unistd.h>
+
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        char buf[4096];
+        ssize_t result;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((result = readlink(argv[1], buf, 4096)) == -1)
+            exit_sys("readlink");
+
+        printf("result = %jd\n", (intmax_t)result);
+
+        if (result < 4096) {
+            buf[result] = '\0';        /* alternatifi -> printf("%.*s\n", (int)result, buf); */
+            puts(buf);
+        }
+        else
+            fprintf(stderr, "path maybe truncated!...\n");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
 
 
 Katı Bağ ile Sembolik Bağ Arasındaki Farklar
