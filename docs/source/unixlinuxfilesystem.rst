@@ -4419,3 +4419,2059 @@ Aşağıda ``chown`` fonksiyonunun örnek bir kullanımını görüyorsunuz:
         perror(msg);
         exit(EXIT_FAILURE);
     }
+
+Dosya ve Dizin İşlemleri: chown, truncate, mkdir, rmdir ve Kullanıcı Bilgileri
+==============================================================================
+
+chown Kabuk Komutu (Kullanıcı:Grup Formatı)
+-------------------------------------------
+
+Dosyanın kullanıcı ve grup id'lerini değiştirebilmek için *chown* isimli bir kabuk komutu da bulundurulmuştur. Komut
+aşağıdaki biçimlerde kullanılmaktadır:
+
+.. code-block:: text
+
+    $ sudo chown kaan:study test.txt
+
+Burada ``:`` karakterinin solu kullanıcı ismini, sağı ise grup ismini belirtmektedir. İsimler yerine doğrudan id'ler de
+kullanılabilmektedir. Eğer tek bir isim ya da id kullanılırsa bu kullanıcıya ilişkin kabul edilmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ sudo chown kaan test.txt
+
+Burada dosyanın kullanıcı id'si kaan yapılmıştır. Aynı şeyi ``:`` karakterinin sağını boş bırakarak da yapabilirdik:
+
+.. code-block:: text
+
+    $ sudo chown kaan: test.txt
+
+Dosyanın yalnızca grup id'sini değiştirmek için ``:`` karakterinin sol tarafı boş bırakılır. Örneğin:
+
+.. code-block:: text
+
+    $ sudo chown :study test.txt
+
+Pek çok kabuk komutunda olduğu gibi *chown* komutu da birden fazla dosya üzerinde işlem yapabilmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ sudo chown kaan test.txt sample.c
+
+truncate ve ftruncate Fonksiyonları
+-----------------------------------
+
+``truncate`` isimli POSIX fonksiyonu bir dosyanın boyutunu değiştirmek için kullanılmaktadır. Fonksiyonun prototipi
+şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int truncate(const char *path, off_t length);
+
+Fonksiyonun birinci parametresi dosyanın yol ifadesini almaktadır. İkinci parametresi dosyanın yeni uzunluğunu belirtir.
+Bu fonksiyon genellikle dosyanın sonundaki kısmı atarak onun boyutunu küçültmek amacıyla kullanılmaktadır. Burada
+belirtilen uzunluk dosyanın gerçek uzunluğundan küçükse dosyanın sonundaki ilgili kısım yok edilir ve dosya burada
+belirtilen uzunluğa getirilir. (*truncate* sözcüğü *budamak* anlamına gelmektedir. Fonksiyonun ismi tipik olarak
+dosyaların küçültüleceği fikriyle *truncate* olarak verilmiştir.) Ancak ``truncate`` fonksiyonu ile aynı zamanda
+dosyalar büyütülebilmektedir de. Bu durumda dosyanın büyütülmüş kısımları 0'larla doldurulur. Eğer dosya sistemi *dosya
+delikleri (file holes)* destekliyorsa; büyütme, delik (hole) oluşturularak yapılmaktadır. Dosya deliklerini ileride ele
+alacağız. Fonksiyon, başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri döner ve ``errno`` değişkeni
+uygun biçimde set edilir. Tabii ``truncate`` yapabilmek için prosesin dosyaya *w* hakkının olması gerekmektedir.
+Örneğin:
+
+.. code-block:: c
+
+    if (truncate(path, newsize) == -1)
+        exit_sys("truncate");
+
+``truncate`` fonksiyonunun yol ifadesini alarak değil, dosya betimleyicisini alarak aynı işlemi yapan ``ftruncate``
+isminde bir benzeri de vardır. ``ftruncate`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int ftruncate(int fd, off_t length);
+
+Fonksiyonun birinci parametresi dosya betimleyicisini almaktadır. İkinci parametresi dosyanın yeni uzunluğunu belirtir.
+Tabii dosyanın *yazma yapılabilecek modda açılmış olması* gerekir. Fonksiyon başarı durumunda 0 değerine, başarısızlık
+durumunda -1 değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir. Fonksiyonun işlev bakımından
+``truncate`` fonksiyonundan hiçbir farkı yoktur.
+
+Bir truncate Örneği: mytruncate.c
+---------------------------------
+
+Aşağıdaki örnekte komut ``argv[1]`` truncate edilecek dosyanın yol ifadesini, ``argv[2]`` ise onun yeni uzunluğunu
+belirtmektedir. Programı şöyle kullanabilirsiniz:
+
+.. code-block:: text
+
+    $ ./mytruncate test.txt 100
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        unsigned long newsize;
+
+        if (argc != 3) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        newsize = strtoul(argv[2], NULL, 10);
+
+        if (truncate(argv[1], (off_t)newsize) == -1)
+            exit_sys(argv[1]);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+truncate Kabuk Komutu
+---------------------
+
+*truncate* işlemini yapan bir kabuk komutu da bulunmaktadır. Komut ``-s`` seçeneği ile dosyanın yeni uzunluğunu
+almaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ truncate -s 100 test.txt
+
+Dosya uzunluklarında uzunluğun sonuna birim belirten karakterler de eklenebilmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ truncate -s 100K test.txt
+
+Burada dosya 100K uzunluğuna çekilmektedir. Komutun diğer ayrıntıları için man sayfalarına başvurabilirsiniz.
+
+mkdir Fonksiyonu ile Dizin Yaratma
+----------------------------------
+
+Dizinler dosyalarda olduğu gibi ``open`` fonksiyonuyla yaratılamazlar. Dizin (directory) yaratmak için ``mkdir`` isimli
+POSIX fonksiyonu kullanılmaktadır. ``mkdir`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/stat.h>
+
+    int mkdir(const char *path, mode_t mode);
+
+Fonksiyonun birinci parametresi yaratılacak dizinin yol ifadesini, ikinci parametresi ise erişim haklarını
+belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+Dizin yaratırken erişim haklarında *x* hakkını bulundurmayı unutmayınız. Anımsanacağı gibi dizinlerde *x* hakkı *içinden
+geçilebilirlik* anlamına geliyordu. ``mkdir`` fonksiyonu tıpkı ``open`` fonksiyonu gibi prosesin umask değerinden
+etkilenmektedir. O halde istediğiniz erişim haklarının hepsinin dizine yansıtılmasını istiyorsanız ``umask(0)``
+çağrısıyla prosesinizin umask değerini sıfırlamalısınız.
+
+Bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isminde iki dizin girişi bulunmaktadır. Daha önceden de
+belirttiğimiz gibi ``.`` dizin girişi bulunulan dizine, ``..`` dizin girişi ise üst dizine katı bağ belirtmektedir. Bu
+nedenle bir dizin yaratıldığında kendi dizininin ve üst dizinin katı bağ sayaçlarının artırıldığını anımsayınız.
+
+Aşağıda komut satırından verilen isimle bir dizin yaratan örnek verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (mkdir(argv[1], S_IRWXU|S_IRWXG|S_IRWXO) == -1)
+            exit_sys("mkdir");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+mkdir Kabuk Komutu
+------------------
+
+Komut satırında dizin yaratmak için *mkdir* isminde bir kabuk komutu da bulunmaktadır. Tabii bu komut ``mkdir`` POSIX
+fonksiyonu kullanılarak yazılmıştır. Komut default durumda umask değerinden etkilenir. Ancak ``-m`` ya da ``--mode``
+seçeneği ile biz erişim haklarını octal basamaklar biçiminde belirtebilmekteyiz. Bu durumda umask etkili olmamaktadır.
+Örneğin:
+
+.. code-block:: text
+
+    $ mkdir xxx
+    $ mkdir -m 777 yyy
+
+*mkdir* komutu ``-p`` seçeneği ile kullanılırsa hedefe varana kadar yaratılmamış olan tüm dizinleri yaratmaktadır.
+Örneğin:
+
+.. code-block:: text
+
+    $ mkdir -p a/b/c/d
+
+Burada aslında ``a`` dizininin altındaki ``b`` dizininin altındaki ``c`` dizininin altındaki ``d`` dizini yaratılmak
+istenmiştir. Normal olarak bu yaratımın yapılabilmesi için ``a/b/c`` dizininin var olması gerekir. Ancak ``-p`` seçeneği
+tüm bu dizinleri de eğer yoksa yaratarak ilerlemektedir.
+
+rmdir Fonksiyonu ile Dizin Silme
+--------------------------------
+
+Bir dizini silmek için ``unlink`` ya da ``remove`` fonksiyonları kullanılamaz. Dizin silmek için ``rmdir`` isimli özel
+bir POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int rmdir(const char *path);
+
+Fonksiyon parametre olarak silinecek dizinin yol ifadesini alır. Başarı durumunda 0 değerine, başarısızlık durumunda -1
+değerine geri döner ve ``errno`` uygun biçimde set edilir. Örneğin:
+
+.. code-block:: c
+
+    if (rmdir(path) == -1)
+        exit_sys("rmdir");
+
+``rmdir`` fonksiyonu ile içinde dosya ya da dizin olan dizinler silinememektedir. Bu durum güvenlik amacıyla
+düşünülmüştür. *İçi boş dizin* demek, *içinde yalnızca* ``.`` *ve* ``..`` *girişlerinin bulunduğu dizin* demektir. Zaten
+UNIX/Linux, macOS ve Windows sistemlerinde bu iki özel dizin girişi silinememektedir. ``rmdir`` fonksiyonuna bir dizini
+işaret eden sembolik bağlantı dosyası verilirse fonksiyon bağlantıyı izlemez. Bu durumda ``rmdir`` başarısız olur ve
+``errno`` değeri ``ENOTDIR`` biçiminde set edilir.
+
+``rmdir`` fonksiyonunun başarılı olabilmesi için prosesin silinecek dizin için *w* hakkına sahip olması gerekmez ancak
+dizinin içinde bulunduğu dizin için *w* hakkına sahip olması gerekir.
+
+Aşağıda ``rmdir`` fonksiyonunun kullanımına ilişkin bir örnek verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (rmdir(argv[1]) == -1)
+            exit_sys("rmdir");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+rmdir Kabuk Komutu
+------------------
+
+Komut satırından dizin silmek için *rmdir* isimli bir kabuk komutu da bulunmaktadır. Tabii bu komut aslında ``rmdir``
+POSIX fonksiyonu kullanılarak yazılmıştır. *rmdir* komutuyla dizin silmek için yine dizinin boş olması gerekir. Örneğin:
+
+.. code-block:: text
+
+    $ mkdir xxx
+    $ rmdir xxx
+
+İçi dolu dizinleri tek hamlede silmek için *rm* komutunu ``-r`` seçeneği ile kullanılabilir. Örneğin:
+
+.. code-block:: text
+
+    $ rm -r xxx
+
+Kullanıcı ve Grup Bilgilerinin Elde Edilmesine Giriş
+----------------------------------------------------
+
+Bu bölümde kullanıcı ve grup bilgilerinin nasıl elde edileceği üzerinde duracağız.
+
+Anımsanacağınız gibi genel olarak pek çok UNIX/Linux sisteminde kullanıcılar hakkında bilgiler ``/etc/passwd`` ve
+``/etc/group`` dosyalarında tutuluyordu. Bu dosyalardaki satırlar ``:`` ile ayrılmış olan alanlardan oluşmaktaydı. Bu
+dosyalar ve bunların formatları POSIX standartlarında belirtilmemiştir. Onun yerine POSIX standartlarında bu dosyalardan
+kullanıcı ve grup bilgilerini elde eden özel fonksiyonlar bulundurulmuştur. Yani aslında bir POSIX sisteminde
+``/etc/passwd`` ve ``/etc/group`` dosyaları bu isimlerde ve Linux'taki içerikte bulunmak zorunda değildir. Kullanıcı ve
+grup bilgilerinin elde edilmesi için taşınabilir POSIX fonksiyonları bulundurulmuştur.
+
+getpwnam Fonksiyonu ve struct passwd
+------------------------------------
+
+Kullanıcılar hakkında bilgileri veren (yani ``/etc/passwd`` dosyası üzerinde parse işlemleri yapan) fonksiyonların
+prototipleri ``<pwd.h>`` dosyası içerisinde bulundurulmuştur. ``getpwnam`` POSIX fonksiyonu bir kullanıcının ismini
+alarak o kullanıcı hakkındaki bilgileri vermektedir. Bu bilgiler Linux sistemlerinde doğrudan ``/etc/passwd``
+dosyasındaki ilgili satırdan elde edilmektedir. ``/etc/passwd`` dosyasındaki satırların içeriğini yeniden anımsatmak
+istiyoruz:
+
+.. code-block:: text
+
+    username:password:UID:GID:GECOS:home_dir:shell
+
+``getpwnam`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <pwd.h>
+
+    struct passwd *getpwnam(const char *name);
+
+Fonksiyon parametre olarak kullanıcı ismini almaktadır. Başarı durumunda o kullanıcıya ilişkin bilgileri barındıran
+statik biçimde tahsis edilmiş olan ``struct passwd`` isimli bir yapı nesnesinin adresine, başarısızlık durumunda ise
+``NULL`` adrese geri dönmektedir. ``struct passwd`` yapısı şöyle bildirilmiştir:
+
+.. code-block:: c
+
+    struct passwd {
+        char   *pw_name;       /* username */
+        char   *pw_passwd;     /* user password */
+        uid_t   pw_uid;        /* user ID */
+        gid_t   pw_gid;        /* group ID */
+        char   *pw_gecos;      /* user information */
+        char   *pw_dir;        /* home directory */
+        char   *pw_shell;      /* shell program */
+    };
+
+Yapının eleman isimlerinin ``pw_`` ile başladığına dikkat ediniz. Yukarıda da belirttiğimiz gibi aslında bu fonksiyon
+Linux sistemlerinde ``/etc/passwd`` dosyasındaki satır bilgisini okuyup onu statik bir nesneye yerleştirip yapının
+adresiyle geri dönmektedir.
+
+Yapının ``pw_name`` elemanı kullanıcı ismini, ``pw_passwd`` elemanı parola bilgisini, ``pw_uid`` ve ``pw_gid``
+elemanları kullanıcının gerçek kullanıcı ve group id değerlerini, ``pw_gecos`` elemanı yorum bilgisini (yani kullanıcıya
+ilişkin ek birtakım bilgileri), ``pw_dir`` elemanı login olunduğunda çalıştırılacak programa ilişkin prosesin çalışma
+dizinini ve ``pw_shell`` elemanı da login olunduğunda çalıştırılacak programı belirtmektedir.
+
+``getpwnam`` fonksiyonu iki nedenden dolayı başarısız olabilir. Birincisi belirtilen isme ilişkin kullanıcının kaydının
+bulunmaması nedeniyle. İkincisi de IO hatası nedeniyle (örneğin ``/etc/passwd`` dosyasının silinmiş olması durumunda
+fonksiyon başarısız olacaktır.) Fonksiyonun başarısı aşağıdaki gibi kontrol edilebilir:
+
+.. code-block:: c
+
+    struct passwd *pw;
+
+    if ((pw = getpwnam(name)) == NULL) {
+        /* ... */
+    }
+
+Ancak *kullanıcı kaydı yok biçiminde* bir ``errno`` değeri bulunmamaktadır. Hata raporlamasının aşağıdaki gibi yapılması
+uygun değildir:
+
+.. code-block:: c
+
+    if ((pw = getpwnam(name)) == NULL)
+        exit_sys("getpwnam");               /* dikkat! hatalı raporlama */
+
+Hata nedeninin tespit edilmesi değişik biçimde yapılmaktadır. ``getpwnam`` fonksiyonu eğer isme ilişkin bir kayıt
+bulamazsa ``errno`` değerini değiştirmemektedir. Diğer hatalı durumlarda ``errno`` değerini uygun biçimde set
+etmektedir. Dolayısıyla programcı fonksiyonu çağırmadan önce ``errno`` değerini 0'a çekmeli, fonksiyon başarısız
+olduğunda ``errno`` değerinin hala 0 olup olmadığına bakmalıdır. Örneğin:
+
+.. code-block:: c
+
+    errno = 0;
+    if ((pw = getpwnam(name)) == NULL) {
+        if (errno == 0) {
+            fprintf(stderr, "invalid user name!..\n");
+            exit(EXIT_FAILURE);
+        }
+        exit_sys("getpwnam");
+    }
+
+Bir getpwnam Örneği: uname-info.c
+---------------------------------
+
+Aşağıdaki örnekte komut satırından ismi alınan kullanıcının bilgileri ekrana (``stdout`` dosyasına) yazdırılmıştır.
+Programı şöyle çalıştırabilirsiniz:
+
+.. code-block:: text
+
+    $ ./uname-info kaan
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <pwd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        struct passwd *pw;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        errno = 0;
+        if ((pw = getpwnam(argv[1])) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid user name!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getpwnam");
+        }
+
+        printf("User name: %s\n", pw->pw_name);
+        printf("Password: %s\n", pw->pw_passwd);
+        printf("User id: %jd\n", (intmax_t)pw->pw_uid);
+        printf("Group id: %jd\n", (intmax_t)pw->pw_gid);
+        printf("Extra Info: %s\n", pw->pw_gecos);
+        printf("Default Dir: %s\n", pw->pw_dir);
+        printf("Shell: %s\n", pw->pw_shell);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+getpwuid Fonksiyonu
+-------------------
+
+``getpwuid`` fonksiyonu da ``getpwnam`` fonksiyonu gibidir. Yalnızca kullanıcı ismi ile değil kullanıcı id'si ile
+kullanıcı bilgilerini elde etmektedir. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <pwd.h>
+
+    struct passwd *getpwuid(uid_t uid);
+
+Fonksiyon yine başarı durumunda statik düzeyde tahsis edilmiş olan ``struct passwd`` türünden yapı nesnesinin adresiyle,
+başarısızlık durumunda ``NULL`` adresle geri dönmektedir. Başarısızlığın nedeni kullanıcı id'sine ilişkin kullanıcının
+bulunamaması nedeni ile ise bu durumda fonksiyon ``errno`` değerini değiştirmemektedir. Yine kullanımı şöyle olabilir:
+
+.. code-block:: c
+
+    errno = 0;
+    if ((pw = getpwuid(userid)) == NULL) {
+        if (errno == 0) {
+            fprintf(stderr, "invalid user id!..\n");
+            exit(EXIT_FAILURE);
+        }
+        exit_sys("getpwuid");
+    }
+
+Bir getpwuid Örneği: uid-info.c
+-------------------------------
+
+Aşağıdaki örnekte komut satırından verilen kullanıcı id'sine ilişkin kullanıcı bilgileri ekrana (``stdout`` dosyasına)
+yazdırılmıştır. Programı şöyle çalıştırabilirsiniz:
+
+.. code-block:: text
+
+    $ ./uid-info 1000
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <pwd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        struct passwd *pw;
+        long uid;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        uid = strtol(argv[1], NULL, 10);
+
+        errno = 0;
+        if ((pw = getpwuid(uid)) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid user id!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getpwuid");
+        }
+
+        printf("User name: %s\n", pw->pw_name);
+        printf("Password: %s\n", pw->pw_passwd);
+        printf("User id: %jd\n", (intmax_t)pw->pw_uid);
+        printf("Group id: %jd\n", (intmax_t)pw->pw_gid);
+        printf("Extra Info: %s\n", pw->pw_gecos);
+        printf("Default Dir: %s\n", pw->pw_dir);
+        printf("Shell: %s\n", pw->pw_shell);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+getpwent, setpwent ve endpwent Fonksiyonları
+--------------------------------------------
+
+Bazen programcı kullanıcıya ilişkin tüm kayıtları elde etmek isteyebilir. Bunun için ``getpwent``, ``endpwent`` ve
+``setpwent`` POSIX fonksiyonları bulundurulmuştur. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <pwd.h>
+
+    struct passwd *getpwent(void);
+    void setpwent(void);
+    void endpwent(void);
+
+``getpwent`` fonksiyonu her çağrıldığında sıradaki bir kullanıcının bilgisini verir. Fonksiyon sona geldiğinde (yani
+artık bilgisi verilecek kullanıcı kalmadığında) ``NULL`` adrese geri döner. Fonksiyon ``NULL`` adresle geri döndüğünde
+bunun IO hatasından dolayı mı yoksa listenin sonuna gelindiğinden dolayı mı oluştuğunu tespit etmek gerekir. Fonksiyon
+listenin sonuna geldiğinden dolayı ``NULL`` adrese geri dönmüşse ``errno`` değerini değiştirmemektedir. Dolayısıyla
+programcı fonksiyonu çağırmadan önce ``errno`` değerini 0'a set etmeli, fonksiyon ``NULL`` ile geri döndüğünde ``errno``
+değerini kontrol etmelidir.
+
+``setpwent`` fonksiyonu kayıt imlecini ilk kayda çekmektedir. Dolaşım işlemi bittikten sonra ``endpwent`` fonksiyonu
+çağrılmalıdır. Tipik dolaşım şöyle yapılmaktadır:
+
+.. code-block:: c
+
+    setpwent();
+
+    while (errno = 0, (pw = getpwent()) != NULL) {
+        /* ... */
+    }
+    if (errno != 0)
+        exit_sys("getpwent");
+
+    endpwent();
+
+``while`` parantezi içerisindeki ifadeye dikkat ediniz. Burada virgül operatörü kullanılmıştır. Virgül operatörünün önce
+sol tarafındaki ifadenin tam olarak yapılıp bitirildiğini, sonra sağ tarafındaki ifadenin tam olarak yapılıp
+bitirildiğini ve virgül operatöründen elde edilen değerin sağ tarafındaki ifadeden elde edilen değer olduğunu
+anımsayınız. ``errno`` değişkenini döngünün başında bir kez 0'a set etmek uygun değildir:
+
+.. code-block:: c
+
+    errno = 0;
+    while ((pw = getpwent()) != NULL) {
+        /* ... */
+    }
+    if (errno != 0)
+        exit_sys("getpwent");
+
+POSIX standartlarına göre bir fonksiyon hataya yol açmasa bile ``errno`` değişkenini set edebilmektedir. Ancak hiçbir
+POSIX fonksiyonu ``errno`` değerini 0'a set etmemektedir.
+
+Tüm Kullanıcıların Listelenmesi: user-info.c
+--------------------------------------------
+
+Aşağıdaki programda tüm kullanıcı bilgileri bir döngü içerisinde elde edilip ekrana (``stdout`` dosyasına)
+yazdırılmıştır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <pwd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        struct passwd *pw;
+
+        setpwent();
+
+        while (errno = 0, (pw = getpwent()) != NULL) {
+            printf("User name: %s\n", pw->pw_name);
+            printf("Password: %s\n", pw->pw_passwd);
+            printf("User id: %jd\n", (intmax_t)pw->pw_uid);
+            printf("Group id: %jd\n", (intmax_t)pw->pw_gid);
+            printf("Extra Info: %s\n", pw->pw_gecos);
+            printf("Default Dir: %s\n", pw->pw_dir);
+            printf("Shell: %s\n", pw->pw_shell);
+            printf("-----------------------------\n");
+        }
+        if (errno != 0)
+            exit_sys("getpwent");
+
+        endpwent();
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Grup Bilgileri, Dizinlerin Açılması ve at'li Fonksiyonlar
+=========================================================
+
+Grup Bilgilerinin Elde Edilmesi: /etc/group ve struct group
+-----------------------------------------------------------
+
+Bilindiği gibi UNIX türevi sistemlerde genellikle grup bilgileri ``/etc/group`` isimli bir dosyada tutulmaktadır.
+Aşağıda Linux sistemlerindeki ``/etc/group`` dosyasından birkaç satır görüyorsunuz:
+
+.. code-block:: text
+
+    ...
+    nm-openvpn:x:133:
+    kaan:x:1000:
+    sambashare:x:134:kaan
+    study:x:1001
+    test:x:1002
+    ...
+
+Linux sistemlerinde ``/etc/group`` dosyasının satırları ``:`` ile ayrılmış 4 kısımdan oluşmaktadır:
+
+.. code-block:: text
+
+    groupname:password:GID:membernames
+
+Grupların da parolaları bulunmaktadır. Ancak grup parolaları pek kullanılan bir kavram değildir. Ek gruplardan daha önce
+bahsetmiştik. Bir kullanıcının gerçek bir grubu vardı. Ancak kullanıcı ek olarak başka gruplara da üye olabiliyordu.
+Gerçek grupla ek gruplar arasında erişim kontrollerinde bir fark yoktu. Yani prosesin ek grupları da gerçek grubu gibi
+erişim kontrolünde etkili olabiliyordu.
+
+Grup bilgilerinin elde edilmesi için de standart POSIX fonksiyonları bulundurulmuştur. Grup bilgilerini elde etmek için
+kullanılan POSIX fonksiyonları şunlardır:
+
+.. code-block:: c
+
+    #include <grp.h>
+
+    struct group *getgrnam(const char *name);
+    struct group *getgrgid(gid_t gid);
+    struct group *getgrent(void);
+    void setgrent(void);
+    void endgrent(void);
+
+Bu fonksiyonlardaki ``struct group`` yapısı ``<grp.h>`` dosyası içerisinde şöyle tanımlanmıştır:
+
+.. code-block:: c
+
+    struct group {
+        char   *gr_name;          /* group name */
+        char   *gr_passwd;        /* group password */
+        gid_t   gr_gid;           /* group ID */
+        char  **gr_mem;           /* NULL-terminated array of pointers to names of group members */
+    };
+
+Yapının ``gr_name`` elemanı grubun ismini, ``gr_passwd`` elemanı grubun parola bilgisini, ``gr_gid`` elemanı grubun
+id'sini belirtir. Gruba ek olarak dahil olan kullanıcılar yapının ``gr_mem`` elemanından elde edilmektedir. Bu elemanın
+göstericiyi gösteren gösterici olduğuna dikkat ediniz:
+
+.. code-block:: text
+
+    gr_mem -----> Gösterici Dizisi
+                  ------> ekgrup\0
+                  ------> ekgrup\0
+                  NULL
+
+Örneğin ``/etc/group`` dosyasında aşağıdaki gibi bir satır bulunuyor olsun:
+
+.. code-block:: text
+
+    project:x:1001:ali,veli,selami
+
+Burada grup bilgilerinin sonundaki ali, veli, selami bu project grubuna ek grup olarak dahil edilen kullanıcıları
+belirtmektedir. Örneğin kaan kullanıcısının gerçek grubu study olabilir. Ancak kaan kullanıcısı aynı zamanda *ek grup
+(supplementary group)* olarak project grubuna da dahil olabilir. Bu durumda bir kullanıcının ek gruplarının elde
+edilebilmesi için ``/etc/group`` dosyasının baştan sona gözden geçirilip kullanıcının hangi satırların ``:`` ile
+ayrılmış son bölümünde geçtiğinin belirlenmesi gerekmektedir. İşte ``group`` yapısının ``gr_mem`` elemanının gösterdiği
+gösterici dizisinin ``NULL`` adresle sonlandığına dikkat ediniz.
+
+``getgrnam`` fonksiyonu grubun isminden hareketle grup bilgilerini, ``getgrgid`` fonksiyonu ise grup id'sinden hareketle
+grup bilgilerini vermektedir. Tıpkı kullanıcı bilgilerinde olduğu gibi grup bilgilerinin de tek tek elde edilmesi benzer
+biçimde ``setgrent``, ``getgrent`` ve ``endgrent`` fonksiyonlarıyla yapılmaktadır. Bu fonksiyonlarda da yine IO hatası
+dışındaki hatalarda ``errno`` set edilmemektedir.
+
+Tüm Grupların Listelenmesi
+--------------------------
+
+Aşağıdaki örnekte tüm gruplara ilişkin grup bilgileri ekrana (``stdout`` dosyasına) yazdırılmıştır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <grp.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        struct group *gr;
+
+        setgrent();
+
+        while (errno = 0, (gr = getgrent()) != NULL) {
+            printf("Group Name: %s\n", gr->gr_name);
+            printf("Group Password: %s\n", gr->gr_passwd);
+            printf("Group Id: %ju\n", (uintmax_t)gr->gr_gid);
+            printf("Group Members: ");
+            for (int i = 0; gr->gr_mem[i] != NULL; ++i)
+                printf("%s%s", i != 0 ? ", " : "", gr->gr_mem[i]);
+            printf("\n--------------------\n");
+        }
+
+        if (errno != 0)
+            exit_sys("getgrent");
+
+        endgrent();
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dizinlerin open Fonksiyonuyla Açılması ve O_SEARCH Modu
+-------------------------------------------------------
+
+Anımsanacağı gibi dizinler (directories) de aslında tamamen dosyalar gibi organize edilmektedir. Dizinlerin içerisinde
+aşağıdaki gibi dizin girişlerinin bulunduğunu söylemiştik:
+
+.. code-block:: text
+
+    isim    inode_no
+    isim    inode_no
+    isim    inode_no
+    ...
+
+Dizin dosyalarının ext dosya sistemlerindeki gerçek formatları biraz daha ayrıntı içermektedir. Kursumuzun sonlarına
+doğru ext dosya sistemlerinin disk organizasyonu üzerinde duracağız.
+
+Bir dizini erişim hakları yeterliyse ``open`` fonksiyonuyla açabiliriz. Ancak POSIX standartlarında dizin dosyalarından
+okuma, yazma ve konumlandırma işlemlerinin yapılıp yapılamayacağı işletim sistemini yazanların isteğine bırakılmıştır.
+Linux, BSD, macOS gibi sistemler dizin dosyalarından ``read`` ve ``write`` fonksiyonları ile okuma ve yazma yapmaya izin
+vermemektedir. Ancak bu sistemler ``lseek`` fonksiyonuyla dizin dosyalarında konumlandırma yapılmasına izin vermektedir.
+Peki mademki işletim sistemleri dizin dosyalarından okuma yazma yapmaya izin vermeyebiliyorlar, bu durumda ``open``
+fonksiyonuyla dizin dosyalarını hangi modda açabiliriz? İşte dizinlerin açılması için POSIX standartlarında ``O_SEARCH``
+isimli bir mod da bulunmaktadır. Bu mod aslında ileride ele alacağımız at'li POSIX fonksiyonları için düşünülmüştür.
+Eğer ``O_SEARCH`` modunda bir dizin açılırsa bu dizinden okuma/yazma yapılamaz fakat bu at'li fonksiyonlar
+kullanılabilir. Ancak ``O_SEARCH`` modu Linux tarafından desteklenmemektedir. Bu durumda mecburen Linux'ta bir dizini
+açacaksak işletim sistemi ``read`` fonksiyonu ile okuma yapılmasına izin vermiyor olsa da biz açış modu olarak
+``O_RDONLY`` kullanırız. Yani Linux dizinden ``read`` ile okuma yapılmasına izin vermiyor olsa da dizinlerin ``open``
+fonksiyonu ile ``O_RDONLY`` bayrağı kullanılarak açılmasına izin vermektedir.
+
+Peki Linux'ta bir dizini ``O_SEARCH`` modunda açmak ile ``O_RDONLY`` modunda açmak arasında ne fark vardır? ``O_SEARCH``
+modu POSIX standartlarına dizin üzerinde ``read``, ``write`` yapmak için değil başka birtakım işlemler yapmak için
+eklenmiştir. Dolayısıyla bir işletim sistemi örneğin dizin dosyalarından ``read`` fonksiyonu ile okuma yapmaya izin
+veriyorsa bu durumda biz o dizini ``O_SEARCH`` modunda açarsak okuma yapamayız. Ancak ``O_RDONLY`` modunda açarsak okuma
+yapabiliriz. Yukarıda da belirttiğimiz gibi Linux ve macOS sistemleri ``O_SEARCH`` modunu desteklememektedir. Ancak BSD
+türevi sistemler bu modu desteklemektedir.
+
+Aşağıda Linux sistemlerinde bir dizinin ``open`` fonksiyonuyla açılmasına örnek verdik. Örneğimizde Linux açış modu
+olarak ``O_SEARCH`` modunu desteklemediği için ``O_RDONLY`` modunu kullandık. İşletim sistemleri genel olarak dizinlere
+write yapılmasına zaten izin vermemektedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+
+        if ((fd = open(".", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        printf("Ok\n");
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+at'li Fonksiyonlar (openat, fchmodat, fchownat, vb.)
+----------------------------------------------------
+
+Peki mademki işletim sistemlerinin çoğu bir dizin üzerinde ``read`` ve ``write`` fonksiyonları ile işlem yapmaya izin
+vermiyorsa bu durumda bir dizini ``open`` fonksiyonu ile açmanın ne anlamı vardır? İşte anımsanacağı gibi yol ifadesi
+alan POSIX dosya fonksiyonlarının başı ``f`` ile başlayan dosya betimleyicisi alan biçimleri de vardı. Örneğin ``stat``
+ve ``lstat`` fonksiyonları yol ifadesi alırken ``fstat`` fonksiyonu dosya betimleyicisi alıyordu. Benzer biçimde
+``chmod`` için ``fchmod``, ``chown`` için ``fchown`` fonksiyonları bulunmaktaydı. İşte bu fonksiyonların bir de at'li
+versiyonları vardır. Örneğin ``fstatat``, ``fchmodat``, ``fchownat`` gibi. Ayrıca başı ``f`` ile başlamayan çeşitli
+dosya fonksiyonlarının da at'li versiyonları bulunmaktadır. Örneğin ``open`` fonksiyonunun da bir at'li versiyonu
+vardır. Aslında bu at'li fonksiyonlar seyrek kullanılan fonksiyonlardır. Ancak biz kursumuzda bunlar hakkında açıklama
+yapmayı da uygun görüyoruz. Peki bu at'li fonksiyonlar ne yapmaktadır? Aşağıda ``openat`` fonksiyonunun prototipini
+görüyorsunuz:
+
+.. code-block:: c
+
+    #include <fcntl.h>
+
+    int openat(int fd, const char *path, int oflag, ...);
+
+Fonksiyonun prototipini ``open`` fonksiyonu ile karşılaştırınız:
+
+.. code-block:: c
+
+    int open(const char *path, int oflag, ...);
+
+Fonksiyonların at'li versiyonları yol ifadesinin yanı sıra bir dosya betimleyicisi de almaktadır. Bu dosya
+betimleyicisinin bir dizine ilişkin olması gerekir. Eğer bu dosya betimleyicisi bir dizine ilişkin değilse fonksiyon
+başarısız olur. at'li versiyonlara bir dizine ilişkin dosya betimleyicisinin yanı sıra bir yol ifadesi de verilmektedir.
+Buradaki yol ifadesi eğer mutlak (absolute) ise bu at'li versiyonların at'siz versiyonlardan (flag parametreleri
+dışında) hiçbir farkı kalmaz. Dolayısıyla bu durumda kullanım geçerli olsa da bu at'li versiyonları kullanmanın anlamı
+kalmamaktadır. (Bazı at'li versiyonlar flag parametresine de sahiptir. Bu parametrenin işlevinden faydalanmak için de
+at'li fonksiyonlar kullanılabilmektedir.) Yani bu durumda fonksiyon bu dizin betimleyicisinden faydalanmamaktadır. Ancak
+yol ifadesi göreli (relative) ise bu durumda dosyanın orijini, prosesin çalışma dizininden itibaren değil, dizin
+betimleyicisinin belirttiği dizinden itibaren belirlenmektedir. Yani biz at'li versiyonlarla göreli yol ifadelerinin
+orijinlerini prosesin çalışma dizininin dışında başka bir dizine kaydırabilmekteyiz. Tabii fonksiyonların at'li
+versiyonları kullanılacaksa bu durumda dizin dosyalarının ``O_SEARCH`` modunda açılması daha uygundur. Çünkü bu at'li
+versiyonlar için dizin dosyalarının okuma modunda açılması gerekmemektedir. Zaten POSIX'te ``O_SEARCH`` modu bu at'li
+fonksiyonlar için bulundurulmuştur. Linux ve macOS sistemleri ``O_SEARCH`` modunu desteklemediğine göre bu sistemlerde
+at'li fonksiyonları kullanırken dizinleri ``O_RDONLY`` modda açmamız gerekir. POSIX standartlarına göre at'li
+fonksiyonlarda eğer dizin ``O_SEARCH`` modunda açılmışsa göreli aramada orijin belirten dizinin *x* hakkına sahiplik
+kontrolü yapılmaz. (Dizin ``O_SEARCH`` modunda açılırken zaten *x* hakkı kontrolü yapılmaktadır.) Eğer dizin
+``O_SEARCH`` yerine diğer modlarla (örneğin ``O_RDONLY``) açılmışsa bu durumda belirtilen dizinde *x* hakkı kontrolü
+yapılmaktadır. Ayrıca fonksiyonların at'li versiyonlarında dizine ilişkin dosya betimleyicisine özel olarak ``AT_FDCWD``
+değeri geçirilirse bu durumda sanki prosesin çalışma dizinine ilişkin dizin betimleyicisi geçirilmiş gibi bir etki
+oluşmaktadır. Tabii bu durumda fonksiyonun at'li versiyonu ile at'siz versiyonu arasında bir fark kalmamaktadır. Ancak
+fonksiyonların at'li versiyonlarının ekstra parametreleri de olabilmektedir (genellikle bu ekstra parametre flag
+parametresi biçimindedir). İşte programcı bu ekstra parametrelerden faydalanabilmek için dosya betimleyici parametresini
+``AT_FDCWD`` biçiminde geçebilmektedir.
+
+Diğer at'li fonksiyonların prototipleri de şöyledir:
+
+.. code-block:: c
+
+    int openat(int dirfd, const char *pathname, int flags, ... /* mode_t mode */);
+    int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
+    int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
+    int fstatat(int dirfd, const char *pathname, struct stat *statbuf, int flags);
+    int mkdirat(int dirfd, const char *pathname, mode_t mode);
+    int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev);
+    int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
+    int symlinkat(const char *target, int newdirfd, const char *linkpath);
+    ssize_t readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
+    int unlinkat(int dirfd, const char *pathname, int flags);
+    int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
+    int utimensat(int dirfd, const char *pathname, const struct timespec times[2], int flags);
+    int faccessat(int dirfd, const char *pathname, int mode, int flags);
+
+Bir openat Örneği
+-----------------
+
+Aşağıda ``openat`` fonksiyonunun kullanımına bir örnek verilmiştir. Burada çalışma dizininde ``stdio.h`` dosyası yoktur.
+Ancak yol ifadesi göreli olduğu için dosya ``/usr/include`` dizininde aranacak ve orada bulunacaktır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fddir, fd;
+
+        if ((fddir = open("/usr/include", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        if ((fd = openat(fddir, "stdio.h", O_RDONLY)) == -1)
+            exit_sys("openat");
+
+        printf("Ok\n");
+
+        close(fd);
+        close(fddir);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dizin İçeriklerinin Okunması: opendir, readdir ve İlgili Fonksiyonlar
+=====================================================================
+
+Dizin Girişlerini Elde Etmeye Yönelik POSIX Fonksiyonları
+---------------------------------------------------------
+
+Dizin dosyalarının dizin girişlerinden (directory entries) oluştuğunu belirtmiştik. Dizin girişlerinin formatı da dosya
+sistemine göre değişebilmekteydi. Ayrıca pek çok UNIX türevi sistemin dizin dosyalarından okuma yapılmasına izin
+vermediğini de söylemiştik. İşte dizinlerin içerisindeki dizin girişlerinin taşınabilir bir biçimde elde edilebilmesi
+için POSIX fonksiyonları bulundurulmuştur. Linux sistemlerinde bu POSIX fonksiyonları çekirdeğin ``sys_getdents`` sistem
+fonksiyonu çağrılarak gerçekleştirilmiştir.
+
+Dizin girişleri üzerinde işlem yapmak için bulundurulmuş POSIX fonksiyonları şunlardır:
+
+- ``opendir``
+- ``readdir``
+- ``closedir``
+- ``fdopendir``
+- ``rewinddir``
+- ``seekdir``
+- ``telldir``
+- ``dirfd``
+- ``posix_getdents`` (Linux tarafından desteklenmiyor)
+- ``scandir``
+
+opendir, fdopendir ve readdir Fonksiyonları
+-------------------------------------------
+
+Dizin girişlerini elde etmek için önce dizin ``opendir`` fonksiyonuyla açılmalıdır. Bunun için dizine okuma hakkının
+bulunuyor olması gerekir. ``opendir`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    DIR *opendir(const char *dirname);
+
+Fonksiyon parametre olarak açılacak dizinin yol ifadesini almaktadır. Fonksiyonun geri dönüş değeri ``DIR`` isimli bir
+yapı türünden (``DIR`` bir typedef ismidir) bir adrestir. Bu ``DIR`` adresi bir handle gibi kullanılmaktadır.
+Programcılar ``DIR`` yapısının içeriğini bilmek zorunda değildir. (Örneğin C'nin ``fopen`` fonksiyonu da bize ``FILE``
+yapısı türünden bir nesnenin adresini vermektedir. Ancak bu yapının içeriğinin nasıl olduğu programcıları
+ilgilendirmemektedir.) Fonksiyon başarısızlık durumunda ``NULL`` adrese geri döner ve ``errno`` uygun biçimde değer
+alır. ``opendir`` fonksiyonunun ``fdopendir`` isimli bir versiyonu da vardır. Bu versiyon eğer zaten dizin ``O_SEARCH``
+modunda (Linux'ta ``O_RDONLY`` modunda) açılmışsa o dizine ilişkin betimleyici yoluyla aynı işlemi yapmaktadır.
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    DIR *fdopendir(int fd);
+
+Dizin ``opendir`` ya da ``fdopendir`` fonksiyonuyla açılıp, handle elde edildikten sonra, artık dizin girişleri
+``readdir`` POSIX fonksiyonuyla tek tek bir döngü içerisinde okunabilir. ``readdir`` fonksiyonu her çağrıldığında
+sıradaki dizin girişi elde edilmektedir. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    struct dirent *readdir(DIR *dirp);
+
+Fonksiyon parametre olarak ``DIR`` yapısının adresini alır, sıradaki dizin girişini elde eder. Bu dizin girişinin
+bilgilerini statik ömürlü ``struct dirent`` türünden bir yapı nesnesinin içerisine yerleştirir, bize de onun adresini
+verir. Eğer ``readdir`` dizin listesinin sonuna gelirse ``NULL`` adrese geri dönmektedir. Ancak fonksiyon IO
+hatalarından dolayı da başarısız olabilir. Bu durumda başarısızlığın dizin sonuna gelmekten dolayı mı yoksa IO
+hatalarından dolayı mı olduğunu anlamak gerekebilir. İşte ``readdir`` fonksiyonu eğer dizin sonuna gelindiğinden dolayı
+``NULL`` adrese geri dönmüşse bu durumda ``errno`` değişkeninin değerini değiştirmemektedir. O halde programcı
+fonksiyonu çağırmadan önce ``errno`` değişkenine 0 atamalı, sonra fonksiyonu çağırmalıdır. Eğer fonksiyon ``NULL``
+adrese geri dönmüşse ``errno`` değişkenine bakmalı, eğer ``errno`` hala 0 ise fonksiyonun dizin sonuna gelindiğinden
+dolayı başarısız olduğu sonucunu çıkarmalıdır. O halde fonksiyon tipik olarak şöyle kullanılmalıdır:
+
+.. code-block:: c
+
+    struct dirent *de;
+    ...
+    while (errno = 0, (de = readdir(dir)) != NULL) {
+        /* ... */
+    }
+    if (errno != 0)
+        exit_sys("readdir");
+
+struct dirent Yapısı ve d_type Değerleri
+----------------------------------------
+
+``dirent`` yapısı POSIX standartlarına göre en az iki elemana sahip olmak zorundadır. Bu elemanlar ``d_ino`` ve
+``d_name`` elemanlarıdır. ``d_ino`` elemanı ``ino_t`` türündendir. ``d_name`` elemanı ise char türden bir dizidir. Ancak
+işletim sistemleri genellikle bu ``dirent`` yapısında daha fazla eleman bulundurmaktadır. Örneğin Linux'taki ``dirent``
+yapısı şöyledir:
+
+.. code-block:: c
+
+    struct dirent {
+        ino_t          d_ino;       /* Inode number */
+        off_t          d_off;       /* Not an offset; see below */
+        unsigned short d_reclen;    /* Length of this record */
+        unsigned char  d_type;      /* Type of file; not supported
+                                        by all filesystem types */
+        char           d_name[256]; /* Null-terminated filename */
+    };
+
+Görüldüğü gibi Linux'ta yapının içerisinde ``d_off``, ``d_reclen`` ve ``d_type`` elemanları da bulunmaktadır. ``d_off``
+ve ``d_reclen`` elemanları dizin girişlerinin içsel formatıyla ilgilidir. Ancak ``d_type`` elemanı dosyanın ne dosyası
+olduğunu belirtmektedir. Bu eleman sayesinde programcı dosyanın türünü anlamak için ``stat`` fonksiyonlarını çağırmak
+zorunda kalmaz. Gerçekten de inode tabanlı dosya sistemleri dizin girişlerinde dosyanın türünü de zaten tutmaktadır.
+Ancak POSIX standartlarında bu elemanlar zorunlu tutulmadığından taşınabilir programlarda yalnızca yapının ``d_ino`` ve
+``d_name`` elemanları kullanılmalıdır.
+
+``dirent`` yapısının ``d_ino`` elemanı bize dosyanın inode numarasını verir. ``d_name`` elemanı ise dizin girişinin
+ismini vermektedir. Linux sistemlerinde ``d_type`` bit düzeyinde kodlanmamıştır. Aşağıdaki değerlerden birine eşit olmak
+zorundadır:
+
+.. code-block:: text
+
+    DT_BLK      block device
+    DT_CHR      character device
+    DT_DIR      directory
+    DT_FIFO     named pipe (FIFO)
+    DT_LNK      symbolic link
+    DT_REG      regular file.
+    DT_SOCK     UNIX domain socket.
+    DT_UNKNOWN  Bilinmeyen bir tür
+
+Karşılaştırma bit düzeyinde ``&`` operatörü değil ``==`` operatörü ile yapılmalıdır.
+
+Son yıllarda POSIX standartlarına ``posix_dent`` yapısı da eklenmiştir. Bu ``posix_dent`` yapısı yukarıdaki geniş
+``dirent`` yapısının elemanlarının ``d_off`` dışındakilerini barındırmaktadır. Ayrıca bu yapıya okuma yapan
+``posix_getdents`` isimli bir fonksiyon da standartlara eklenmiştir.
+
+``readdir`` ile dizin girişleri dosya sistemindeki kayıtlara göre verilmektedir. Halbuki *ls* komutu default durumda
+önce dizin girişlerini isme göre sıraya dizmekte, sonra onları göstermektedir. Eğer *ls* komutunda da dizin girişlerini
+doğal sırada görmek istiyorsanız ``-f`` seçeneğini kullanmalısınız. (Linux'ta ``-f``'den sonra ``-l``'yi kullanınız,
+ters sırada çalışmıyor.) Doğal sıranın ne anlam ifade ettiği dosya sistemlerinin anlatıldığı bölümde ele alınacaktır.
+
+closedir Fonksiyonu
+-------------------
+
+Dizin girişleri elde edildikten sonra dizin ``closedir`` POSIX fonksiyonuyla kapatılmalıdır:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    int closedir(DIR *dirp);
+
+Fonksiyon başarı durumunda 0, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+``closedir`` fonksiyonu kendi içerisinde kullandığı betimleyicileri ``close`` etmektedir. Örneğin biz ``DIR`` nesnesini
+(directory stream) ``fdopendir`` ile dizin betimleyicisini vererek yaratmış olalım. ``closedir`` bu betimleyiciyi
+kendisi ``close`` etmektedir.
+
+Bir Örnek: Dizin İçeriğinin Listelenmesi (İsim ve Inode Numarası)
+-----------------------------------------------------------------
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        DIR *dir;
+        struct dirent *ent;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((dir = opendir(argv[1])) == NULL)
+            exit_sys("dir");
+
+        while (errno = 0, (ent = readdir(dir)) != NULL)
+            printf("%-30s%ju\n", ent->d_name, (uintmax_t)ent->d_ino);
+
+        if (errno != 0)
+            exit_sys("readdir");
+
+        closedir(dir);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+readdir ile Elde Edilen Girişler Üzerinde lstat Kullanımı
+---------------------------------------------------------
+
+Biz bir dizini ``opendir`` fonksiyonuyla açıp döngü içerisinde ``readdir`` fonksiyonuyla dizin girişlerini elde
+ettiğimizde yalnızca o dizindeki dosyaların isimlerini ve inode numaralarını elde etmiş oluruz.
+
+Dosyaların diğer bilgilerini elde edebilmemiz için bizim ayrıca ``stat`` ya da ``lstat`` fonksiyonunu uygulamamız
+gerekir. Örneğin:
+
+.. code-block:: c
+
+    char path[4096];
+    /* ... */
+
+    while (errno = 0, (ent = readdir(dir)) != NULL) {
+        printf("%s\n", ent->d_name);
+        snprintf(path, 4096, "%s/%s", argv[1], ent->d_name);
+        if (lstat(path, &finfo) == -1) {
+            perror("lstat");
+            continue;
+        }
+        printf("%s %jd\n", ent->d_name, (intmax_t)finfo.st_size);
+    }
+    if (errno != 0)
+        exit_sys("readdir");
+
+Bizim ``dirent`` yapısından elde ettiğimiz ``d_name`` ismi yalnızca dosya ismini belirtmektedir. Oysa ``stat`` ve
+``lstat`` fonksiyonları ilgili dosyanın yol ifadesini istemektedir. İşte biz de ``snprintf`` fonksiyonu ile bu yol
+ifadesini oluşturduk.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <dirent.h>
+    #include <sys/stat.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        DIR *dir;
+        struct dirent *ent;
+        char path[4096];
+        struct stat finfo;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((dir = opendir(argv[1])) == NULL)
+            exit_sys("dir");
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            printf("%s\n", ent->d_name);
+            snprintf(path, 4096, "%s/%s", argv[1], ent->d_name);
+            if (lstat(path, &finfo) == -1) {
+                perror(path);
+                continue;
+            }
+            printf("%s %jd\n", ent->d_name, (intmax_t)finfo.st_size);
+        }
+        if (errno != 0)
+            exit_sys("readdir");
+
+        closedir(dir);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+fstatat Fonksiyonu ile Yol Oluşturmadan Bilgi Alma
+--------------------------------------------------
+
+Dosya isminden yol ifadesini elde etmek yerine ``stat`` fonksiyonlarının at'li versiyonu olan ``fstatat`` fonksiyonunu
+da kullanabiliriz. ``fstatat`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/stat.h>
+
+    int fstatat(int dirfd, const char *path, struct stat *statbuf, int flags);
+
+Fonksiyonun birinci parametresi açılmış dizine ilişkin betimleyiciyi, ikinci parametresi dosyanın yol ifadesini, üçüncü
+parametresi ``stat`` nesnesinin adresini ve son parametresi de at'li fonksiyonlara özgü flag değerini belirtmektedir.
+Fonksiyon diğer at'li fonksiyonlarda olduğu gibi eğer ikinci parametresinde belirtilen yol ifadesi göreli ise aramayı
+birinci parametresiyle belirtilen dizinde yapmaktadır. Fonksiyonun son parametresi (flags) 0 girilebilir ya da
+``AT_SYMLINK_NOFOLLOW`` girilebilir. Bu bayrak sembolik bağlantılarda sembolik bağlantının izlenmeyeceğini
+belirtmektedir. Yani bu bayrak fonksiyonun ``lstat`` gibi davranmasını sağlamaktadır. Fonksiyon başarı durumunda 0
+değerine, başarısızlık durumunda -1 değerine geri dönmektedir. Örneğin:
+
+.. code-block:: c
+
+    /* ... */
+
+    if ((fd_dir = open(argv[1], O_RDONLY)) == -1)
+        exit_sys(argv[1]);
+
+    if ((dir = fdopendir(fd_dir)) == NULL)
+        exit_sys("dir");
+
+    while (errno = 0, (ent = readdir(dir)) != NULL) {
+        printf("%s\n", ent->d_name);
+        if (fstatat(fd_dir, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+            perror(ent->d_name);
+            continue;
+        }
+        printf("%s %jd\n", ent->d_name, (intmax_t)finfo.st_size);
+    }
+    if (errno != 0)
+        exit_sys("readdir");
+
+    closedir(dir);
+
+Burada önce dizini ``open`` fonksiyonuyla açtık. ``opendir`` yerine ``fdopendir`` fonksiyonunun, ``lstat`` yerine de
+``fstatat`` fonksiyonunun kullandığımıza dikkat ediniz. ``fstatat`` fonksiyonunu şöyle çağırdık:
+
+.. code-block:: c
+
+    if (fstatat(fd_dir, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+        perror(ent->d_name);
+        continue;
+    }
+
+Fonksiyonun birinci parametresine açmış olduğumuz dizinin betimleyicisini geçtik. Artık fonksiyon göreli yol ifadeleri
+için aramayı bu dizinde yapacaktır. Böylece yol ifadelerinin düzenlenmesine gerek kalmamaktadır. ``closedir``
+fonksiyonunun ``fdopendir`` fonksiyonuna verilen dizin betimleyicisini de kapattığını anımsayınız.
+
+dirfd Fonksiyonu
+----------------
+
+``opendir`` fonksiyonu ile dizini açtıktan sonra dizine ilişkin dosya betimleyicisini ``dirfd`` isimli POSIX
+fonksiyonuyla elde edebiliriz. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    int dirfd(DIR *dirp);
+
+Fonksiyon ``opendir`` fonksiyonundan elde edilmiş ``DIR`` adresini parametre olarak alıp başarı durumunda dizine ilişkin
+betimleyiciyi geri döndürmektedir. Başarısızlık durumunda diğer POSIX fonksiyonlarında olduğu gibi fonksiyon -1 değerine
+geri dönmektedir. Örneğin biz dizini ``opendir`` fonksiyonu ile açıp ``fstatat`` fonksiyonu için gereken dizin
+betimleyicisini ``dirfd`` fonksiyonuyla da elde edebiliriz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <fcntl.h>
+    #include <dirent.h>
+    #include <sys/stat.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int fd_dir;
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((fd_dir = open(argv[1], O_RDONLY)) == -1)
+            exit_sys(argv[1]);
+
+        if ((dir = fdopendir(fd_dir)) == NULL)
+            exit_sys("dir");
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            printf("%s\n", ent->d_name);
+            if (fstatat(fd_dir, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            printf("%s %jd\n", ent->d_name, (intmax_t)finfo.st_size);
+        }
+        if (errno != 0)
+            exit_sys("readdir");
+
+        closedir(dir);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+ls -l Stilinde Basit Bir Listeleme Örneği
+-----------------------------------------
+
+Aşağıdaki örnekte bir dizindeki dosyaların hepsini ``ls -l`` stili ile yazdırıyoruz. Bu örnekte bazı noktalara dikkat
+ediniz:
+
+- Biz burada bir hizalama yapmadık. Halbuki orijinal ``ls -l`` komutu yazısal sütunları karakter sayısına göre
+  hizalayıp sola dayalı olarak, sayısal sütunları ise hizalayıp sağa dayalı olarak yazdırmaktadır. Tabii bunun için
+  sütunun en geniş elemanının bulunması da gerekir. Değişen uzunluğa sahip sütunlar şunlardır: *katı bağ sayacı*,
+  *kullanıcı ismi*, *grup ismi*, *dosya uzunluğu*.
+- Biz bu örnekte dizin girişlerini doğal sıraya göre görüntüledik. Halbuki ``ls -l`` komutu önce onları isme göre
+  sıraya dizip sonra görüntülemektedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <time.h>
+    #include <errno.h>
+    #include <locale.h>
+    #include <fcntl.h>
+    #include <pwd.h>
+    #include <grp.h>
+    #include <sys/stat.h>
+    #include <dirent.h>
+
+    void disp_ls(const struct stat *finfo, const char *path);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int fd_dir;
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((fd_dir = open(argv[1], O_RDONLY)) == -1)
+            exit_sys(argv[1]);
+
+        if ((dir = fdopendir(fd_dir)) == NULL)
+            exit_sys("dir");
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (fstatat(fd_dir, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            disp_ls(&finfo, ent->d_name);
+        }
+        if (errno != 0)
+            exit_sys("readdir");
+
+        closedir(dir);
+
+        return 0;
+    }
+
+    void disp_ls(const struct stat *finfo, const char *path)
+    {
+        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
+        char ch;
+        struct tm *pt_file;
+        int this_year;
+        time_t tval;
+        char dt[32];
+        struct passwd *pw;
+        struct group *gr;
+
+        if (S_ISBLK(finfo->st_mode))
+            putchar('b');
+        else if (S_ISCHR(finfo->st_mode))
+            putchar('c');
+        else if (S_ISDIR(finfo->st_mode))
+            putchar('d');
+        else if (S_ISFIFO(finfo->st_mode))
+            putchar('p');
+        else if (S_ISREG(finfo->st_mode))
+            putchar('-');
+        else if (S_ISLNK(finfo->st_mode))
+            putchar('l');
+        else if (S_ISSOCK(finfo->st_mode))
+            putchar('s');
+        else
+            putchar('?');
+
+        for (int i = 0; i < 9; ++i) {
+            ch = finfo->st_mode & masks[i] ? "rwx"[i % 3] : '-';
+            putchar(ch);
+        }
+        printf(" %ju", (uintmax_t)finfo->st_nlink);
+        if ((pw = getpwuid(finfo->st_uid)) != NULL)
+            printf(" %s", pw->pw_name);
+        else
+            printf(" %ju", (uintmax_t)finfo->st_uid);
+
+        if ((gr = getgrgid(finfo->st_gid)) != NULL)
+            printf(" %s", gr->gr_name);
+        else
+            printf(" %ju", (uintmax_t)finfo->st_gid);
+
+        printf(" %jd", (intmax_t)finfo->st_size);
+
+        tval = time(NULL);
+        this_year = localtime(&tval)->tm_year;
+
+        pt_file = localtime(&finfo->st_mtim.tv_sec);
+        strftime(dt, 32, "%b %e %H:%M", pt_file);
+        printf(" %s", dt);
+        if (this_year != pt_file->tm_year)
+            printf("  %d", pt_file->tm_year + 1900);
+        printf(" %s\n", path);
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+ls -l Stilinin Tam Uygulanması (Hizalama ile)
+---------------------------------------------
+
+Aşağıdaki örnekte ``ls -l`` stili tam olarak uygulanmıştır. Burada önce dizin listesi dolaşılarak dinamik bir diziye
+yerleştirilmiş, sonra onların en uzun öğeleri bulunarak hizalama bu en uzun öğelere göre yapılmıştır. Yazdırma öncesinde
+dizin listesi aynı zamanda sıraya da dizilmiştir.
+
+.. note::
+   Kaynak ders notunda bu bölümün kodu eklenmemiş, yerine bir yer tutucu bırakılmıştır
+   ("<BURAYA KOD YERLEŞTİRİLECEK>"). Bu nedenle kod burada da boş bırakılmıştır.
+
+
+Dizin Dolaşımı: rewinddir, telldir/seekdir ve Özyinelemeli Dizin Ağacı Dolaşımı
+===============================================================================
+
+rewinddir Fonksiyonu
+--------------------
+
+``opendir`` ile dizin listesi elde edildikten sonra benzer işlemin dizin kapatılmadan yeniden yapılabilmesi için
+``rewinddir`` isimli POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    void rewinddir(DIR *dirp);
+
+Aşağıdaki örnekte dizin girişleri ``rewinddir`` fonksiyonu ile iki kez elde edilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <errno.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        DIR *dir;
+        struct dirent *de;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((dir = opendir(argv[1])) == NULL)
+            exit_sys("opendir");
+
+        while (errno = 0, (de = readdir(dir)) != NULL)
+            printf("%s\n", de->d_name);
+
+        if (errno != 0)
+            exit_sys("readdir");
+
+        printf("---------------------------------------\n");
+
+        rewinddir(dir);
+
+        while (errno = 0, (de = readdir(dir)) != NULL)
+            printf("%s\n", de->d_name);
+
+        if (errno != 0)
+            exit_sys("readdir");
+
+        closedir(dir);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+telldir ve seekdir Fonksiyonları
+--------------------------------
+
+Dizin girişlerini dolaşırken belli bir noktada dizin dosyasına ilişkin dosya göstericisinin konumunu ``telldir`` POSIX
+fonksiyonuyla alabiliriz ve o konuma ``seekdir`` POSIX fonksiyonu ile yeniden konumlandırma yapabiliriz. Fonksiyonların
+prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    long telldir(DIR *dirp);
+    void seekdir(DIR *dirp, long loc);
+
+Tabii biz belli bir konumu okuduktan sonra kaydedersek bu durumda okumadan dolayı dizin dosyasının dosya göstericisi
+ilerletilmiş olacaktır. Aşağıdaki örnekte dizin içerisinde ``sample.c`` dosyası bulunup onun konumu ``telldir``
+fonksiyonu ile saklanmıştır. Sonra ``seekdir`` fonksiyonu ile konuma konumlandırma yapılmıştır. Tabii burada kaydedilen
+konum ``sample.c`` dosyasından sonraki dosyanın konumdur. Aşağıdaki programı bulunulan dizin için çalıştırdığımızda
+şöyle bir çıktı elde ettik:
+
+.. code-block:: text
+
+    sample.c
+    wq_prodcons.c
+    listdir
+    listdir.c
+    ..
+    .
+    sample
+    ----------------------------------------------
+    wq_prodcons.c
+    listdir
+    listdir.c
+    ..
+    .
+    sample
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        DIR *dir;
+        struct dirent *de;
+        long loc;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((dir = opendir(argv[1])) == NULL)
+            exit_sys("opendir");
+
+        while (errno = 0, (de = readdir(dir)) != NULL) {
+            printf("%s\n", de->d_name);
+            if (!strcmp(de->d_name, "sample.c"))
+                loc = telldir(dir);
+        }
+
+        if (errno != 0)
+            exit_sys("readdir");
+
+        printf("----------------------------------------------\n");
+
+        seekdir(dir, loc);
+
+        while (errno = 0, (de = readdir(dir)) != NULL)
+            printf("%s\n", de->d_name);
+
+        if (errno != 0)
+            exit_sys("readdir");
+
+        closedir(dir);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dizin Ağacının Özyinelemeli Olarak Dolaşılması: walkdir
+-------------------------------------------------------
+
+Şimdi de dizin ağacını dolaşalım. Dizin ağacının dolaşılması özyinelemeli bir algoritmayla yapılmalıdır. Bu işlem
+çeşitli biçimlerde gerçekleştirilebilir. En basit gerçekleştirimi dolaşılacak ağacın kök yol ifadesini alan özyinelemeli
+bir fonksiyon yazmaktır. Bu fonksiyon dizin girişlerini tek tek elde eder. Eğer söz konusu dizin girişi bir dizine
+ilişkinse o dizinin yol ifadesiyle kendini çağırır. Bu algoritmada dikkat edilmesi gereken birkaç nokta vardır:
+
+1) Dizin girişleri dolaşılırken ``.`` ve ``..`` dizinleri ``continue`` ile geçilmelidir. Aksi takdirde sonsuz döngü
+oluşur.
+
+2) ``stat`` fonksiyonu yerine ``lstat`` fonksiyonu kullanılmalıdır. Çünkü dizin ağacı dolaşılırken sembolik bağlantı bir
+dizine ilişkinse sembolik bağ hedefine gidilmesi özyinelemeyi bozup sonsuz döngülere yol açabilir. (Linux'un dizinler
+için sembolik bağ oluşturmaya izin vermediğini anımsayınız. Ancak başka UNIX türevi sistemlerde bu mümkün
+olabilmektedir.)
+
+3) ``readdir`` fonksiyonu dizin girişini okuduğunda bize yalnız girişin ismini vermektedir. Dolayısıyla ``lstat``
+fonksiyonu uygulanırken prosesin çalışma dizininin uygun olması gerekir. Bunu sağlayabilmek için her dizine geçişte
+``chdir`` fonksiyonu ile prosesin çalışma dizinini değiştirebiliriz. Ya da alternatif olarak mutlak bir yol ifadesini
+sürekli güncelleyebiliriz. Aslında burada seçeneklerden biri de fonksiyonların at'li biçimlerini kullanmak olabilir. Bu
+tür durumlarda fonksiyonların at'li biçimlerinin kullanılması işlemleri kolaylaştırmaktadır.
+
+4) Her özyineleme bittiğinde üst dizine geri dönülmeli ve ``opendir`` ile açılan dizin ``closedir`` ile kapatılmalıdır.
+
+5) Genellikle böylesi fonksiyonlar bir fatal error ile programı sonlandırmamalıdır. Örneğin ``chdir`` fonksiyonu ile
+prosesin çalışma dizini değiştirilemeyebilir. Ya da örneğin ``opendir`` ile biz bir dizini açamayabiliriz. Bu tür
+durumlarda hata ``stderr`` dosyasına rapor edilip işlemin devam ettirilmesi uygun olabilir.
+
+6) Özyinelemeli dolaşım bittikten sonra prosesin çalışma dizini orijinal halde bırakılmalıdır. Bunun için bir sarma
+fonksiyon gerekebilir.
+
+Aşağıda tipik bir özyinelemeli *depth-first* dolaşım örneği verilmiştir. Ancak burada prosesin çalışma dizini özyineleme
+bittikten sonra orijinal dizin ile yeniden set edilmemiştir. Bunu sağlamak için özyinelemeli fonksiyonu çağıran bir
+sarma fonksiyon kullanılmalıdır. Örneğimizdeki ``walkdir`` fonksiyonu şöyle yazılmıştır:
+
+.. code-block:: c
+
+    void walkdir(const char *path)
+    {
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+
+        if ((dir = opendir(path)) == NULL) {
+            perror(path);
+            return;
+        }
+
+        if (chdir(path) == -1) {
+            perror(path);
+            goto EXIT;
+        }
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            printf("%s\n", ent->d_name);
+            if (lstat(ent->d_name, &finfo) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            if (S_ISDIR(finfo.st_mode))
+                walkdir(ent->d_name);
+        }
+        if (errno != 0)
+            perror(path);
+
+        if (chdir("..") == -1) {
+            perror("..");
+            goto EXIT;
+        }
+
+    EXIT:
+        closedir(dir);
+    }
+
+Burada fonksiyon girişinde prosesin çalışma dizininin değiştirildiğine, çıkışta da yeniden üst dizine geçildiğine dikkat
+ediniz. Yukarıda da belirttiğimiz gibi bu fonksiyon prosesin çalışma dizinini değiştirmektedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    void walkdir(const char *path)
+    {
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+
+        if ((dir = opendir(path)) == NULL) {
+            perror(path);
+            return;
+        }
+
+        if (chdir(path) == -1) {
+            perror(path);
+            goto EXIT;
+        }
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            printf("%s\n", ent->d_name);
+            if (lstat(ent->d_name, &finfo) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            if (S_ISDIR(finfo.st_mode))
+                walkdir(ent->d_name);
+        }
+        if (errno != 0)
+            perror(path);
+
+        if (chdir("..") == -1) {
+            perror("..");
+            goto EXIT;
+        }
+
+    EXIT:
+        closedir(dir);
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        walkdir(argv[1]);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+d_type Elemanı ile lstat Kullanmadan Dizin Türünü Belirleme
+-----------------------------------------------------------
+
+Biz yukarıda özyinelemeyle dolaşım yaparken elde ettiğimiz dizin girişinin bir dizin belirtip belirtmediğini
+anlayabilmek için ``lstat`` fonksiyonu ile girişe ilişkin dosya bilgilerini elde ettik. Aslında anımsayacağınız gibi
+Linux sistemlerinde elde edilen girişe ilişkin dosya türü de ``dirent`` yapısının içerisinde bulunmaktadır. Yani biz
+örneğimizde hiç ``lstat`` uygulamadan doğrudan bu bilgiden de faydalanabilirdik:
+
+.. code-block:: c
+
+    /* ... */
+
+    while (errno = 0, (ent = readdir(dir)) != NULL) {
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+            continue;
+        printf("%s\n", ent->d_name);
+        if (ent->d_type == DT_DIR)
+            walkdir(ent->d_name);
+    }
+    if (errno != 0)
+        perror(path);
+
+    /* ... */
+
+Ancak ``dirent`` yapısının bu ``d_type`` elemanı POSIX standartlarında tanımlı değildir. Dolayısıyla UNIX türevi
+sistemlerde bu elemanın bulunmasının standart bağlamında bir garantisi yoktur. Fakat bu eleman BSD sistemlerinde ve
+macOS sistemlerinde de bulunmaktadır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    void walkdir(const char *path)
+    {
+        DIR *dir;
+        struct dirent *ent;
+
+        if ((dir = opendir(path)) == NULL) {
+            perror(path);
+            return;
+        }
+
+        if (chdir(path) == -1) {
+            perror(path);
+            goto EXIT;
+        }
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            printf("%s\n", ent->d_name);
+            if (ent->d_type == DT_DIR)
+                walkdir(ent->d_name);
+        }
+        if (errno != 0)
+            perror(path);
+
+        if (chdir("..") == -1) {
+            perror("..");
+            goto EXIT;
+        }
+
+    EXIT:
+        closedir(dir);
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        walkdir(argv[1]);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dolaşıma Kademe (level) Bilgisi Eklenmesi
+-----------------------------------------
+
+Özyinelemeli çağırmada hangi kademede bulunulduğunu belirten bir bilginin de özyinelemeli fonksiyona parametre yoluyla
+aktarılmasının faydaları olabilmektedir. Örneğin bu sayede biz ağacı kademeli bir biçimde görüntüleyebiliriz.
+
+Aşağıdaki örnekte ``walkdir`` fonksiyonuna bir kademe bilgisi de eklenmiştir. Örneğimizde dizin girişlerinin nasıl
+yazdırıldığına dikkat ediniz:
+
+.. code-block:: c
+
+    printf("%*s%s\n", level * 4, "", de->d_name);
+
+Burada ``*`` format karakteri ``level * 4`` ile eşleştirilmiştir. İlk ``%s`` format karakteriyle de ``""`` biçiminde boş
+string eşleşecektir. O halde biz yalnızca satırın başında ``level * 4`` kadar boşluk oluşturmuş oluyoruz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    void walkdir(const char *path, int level)
+    {
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+
+        if ((dir = opendir(path)) == NULL) {
+            perror(path);
+            return;
+        }
+
+        if (chdir(path) == -1) {
+            perror(path);
+            goto EXIT;
+        }
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            printf("%*s%s\n", level * 4, "", ent->d_name);
+            if (lstat(ent->d_name, &finfo) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            if (S_ISDIR(finfo.st_mode))
+                walkdir(ent->d_name, level + 1);
+        }
+        if (errno != 0)
+            perror(path);
+
+        if (chdir("..") == -1) {
+            perror("..");
+            goto EXIT;
+        }
+
+    EXIT:
+        closedir(dir);
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        walkdir(argv[1], 0);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Bir Sarma Fonksiyonla walkdir'in İyileştirilmesi
+------------------------------------------------
+
+Aslında yukarıda da belirttiğimiz ``walkdir`` fonksiyonu bir sarma fonksiyonla daha iyi hale getirilebilir. Bu sayede
+level parametresi de kullanıcıdan gizlenebilir ve prosesin çalışma dizini alınıp geri set edilebilir.
+
+Aşağıdaki örnekte ``walkdir`` fonksiyonu asıl özyineleme işlemini yapan ``walkdir_recur`` fonksiyonunu çağırmaktadır:
+
+.. code-block:: c
+
+    void walkdir(const char *path)
+    {
+        char cwd[8192];
+
+        if (getcwd(cwd, 8192) == NULL) {
+            perror(path);
+            return;
+        }
+        walkdir_recur(cwd, 0);
+        if (chdir(cwd) == -1) {
+            perror(path);
+            return;
+        }
+    }
+
+Burada önce prosesin çalışma dizininin elde edilip sonra geri set edildiğine dikkat ediniz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    void walkdir_recur(const char *path, int level)
+    {
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+
+        if ((dir = opendir(path)) == NULL) {
+            perror(path);
+            return;
+        }
+
+        if (chdir(path) == -1) {
+            perror(path);
+            goto EXIT;
+        }
+
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            printf("%*s%s\n", level * 4, "", ent->d_name);
+            if (lstat(ent->d_name, &finfo) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            if (S_ISDIR(finfo.st_mode))
+                walkdir_recur(ent->d_name, level + 1);
+        }
+        if (errno != 0)
+            perror(path);
+
+        if (chdir("..") == -1) {
+            perror("..");
+            goto EXIT;
+        }
+
+    EXIT:
+        closedir(dir);
+    }
+
+    void walkdir(const char *path)
+    {
+        char cwd[8192];
+
+        if (getcwd(cwd, 8192) == NULL) {
+            perror(path);
+            return;
+        }
+        walkdir_recur(cwd, 0);
+        if (chdir(cwd) == -1) {
+            perror(path);
+            return;
+        }
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        walkdir(argv[1]);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
