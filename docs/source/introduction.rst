@@ -174,7 +174,7 @@ Mart 2025 ve Mart 2026'daki masaüstü bilgisayarlarda kullanılan işletim sist
 
 .. figure:: _static/desktop-os-share.png
     :align: center
-    :width: 65%
+    :width: 55%
 
 Bunu çubuk grafiği ile şöyle de gösterebiliriz:
 
@@ -189,14 +189,14 @@ Akıllı telefon ve tablet dünyasındaki durum da şöyledir:
 
 .. figure:: _static/mobile-os-share.png
     :align: center
-    :width: 65%
+    :width: 55%
 
 Bunu çabuk grafiği ile şöyle de gösterebiliriz:
 
 .. figure:: _static/mobile-os-market-share.png
    :alt: Mobil İşletim Sistemi Kullanım Oranları
    :align: center
-   :width: 60%
+   :width: 55%
 
 Görüldüğü gibi Android'in bu alanda büyük bir üstünlüğü vardır. Android'in Linux çekirdeğini temel aldığını
 anımsamak istiyoruz. Linux sistemlerinin gömülü sistemlerde ve sunucularda önemli bir üstünlüğü vardır. Her
@@ -213,7 +213,7 @@ yapıldığı tarih için bir fikir amacıyla sunucu dünyasındaki kullanım or
 
 .. figure:: _static/server-os-share.png
     :align: center
-    :width: 65%
+    :width: 60%
 
 Bunu çubuk grafiği ile şöyle de gösterebiliriz:
 
@@ -221,7 +221,6 @@ Bunu çubuk grafiği ile şöyle de gösterebiliriz:
    :alt: Sunucu İşletim Sistemi Kullanım Oranları
    :align: center
    :width: 90%
-
 
 **Kaynak Kod Lisansına Göre:** Kaynak kod lisansına göre işletim sistemlerini kabaca *açık kaynak kodlu (open source)* 
 ve *mülkiyete bağlı (proprietary)* olmak üzere ikiye ayırabiliriz. Açık kaynak kodlu işletim sistemleri değişik açık 
@@ -328,8 +327,8 @@ kabul edilmemektedir. Entegre devreler kullanılarak mikroişlemciler yapılmaya
 dünyası yeni bir döneme girmiş oldu. Transistörler ve sonra da entegre devreler elektronik alanında büyük
 devrim yaratmıştır.
 
-Intel 8080'i tasarladığında bundan bir kişisel bilgisayar yapılabileceği onların aklına gelmemiştir. Kişisel
-bilgisayar fikri Ed Roberts isimli bir girişimci tarafından ortaya atıldı. Ed Roberts 8080'i kullanarak
+Intel 8080'i tasarladığında bundan bir kişisel bilgisayar yapılabileceği onların bile aklına gelmemişti. 
+Kişisel bilgisayar fikri Ed Roberts isimli bir girişimci tarafından ortaya atıldı. Ed Roberts 8080'i kullanarak
 Altair isimli ilk kişisel bilgisayarı yaptı ve *Popular Electronics* isimli dergiye kapak oldu. Altair makine
 dilinde kodlanıyordu. Roberts buna Basic derleyicisi yazacak kişi aradı ve *Popular Electronics* dergisine
 ilan verdi. İlana o zaman Harvard'ta öğrenci olan Bill Gates ile Washington State University'de öğrenci olan
@@ -343,7 +342,7 @@ IBM kişisel bilgisayar konusunu hafife aldı. Fakat yine de bir ekip kurarak bu
 donanımını tasarlamıştır. Ancak IBM küçük iş olduğu gerekçesiyle bunlar için işletim sistemini kendisi
 yazmadı, taşeron bir firmaya yazdırmak istedi. Bu süreç içerisinde Microsoft IBM ile anlaşarak DOS işletim
 sistemini geliştirdi. (Yani ilk PC'lerin donanımı IBM tarafından tasarlanmış ve işletim sistemi de Microsoft
-tarafından yapılmıştır.) Microsoft IBM ile anlaştı. IBM uzağı göremediği için bu süreçte önemli ticari hatalar
+tarafından yazılmıştır.) Microsoft IBM ile anlaştı. IBM uzağı göremediği için bu süreçte önemli ticari hatalar
 yaptı. Microsoft ile yaptığı anlaşmaya göre DOS'un başkalarına satışını tamamen Microsoft yapacaktı. IBM'in
 ikinci hatası da PC için donanım patentlerini almayı ihmal etmesi oldu. Bunun sonucunda pek çok firma IBM
 uyumlu daha ucuz PC'ler yaptılar. Fakat bunların hepsi işletim sistemini Microsoft'tan satın alıyordu. Böylece
@@ -408,11 +407,11 @@ Micro, Commodore 64, Apple II, Atari, Amstrad, ZX Spectrum dönemin en ünlü ev
 makinelerde kullanılan işlemciler Intel'in 8080'i, Zilog'un Z80'i, Motorola'nın 6800'ü gibi 8 bitlik
 işlemcilerdi.
 
-DEC firması 1977 yılında *VAX* isimli bilgisayarı ve 32 bitlik işlemci birimini piyasaya sürdü. VAX ailesi
+DEC firması 1977 yılında VAX isimli bilgisayarı ve 32 bitlik işlemci birimini piyasaya sürdü. VAX ailesi
 makineler o yıllarda önemli bir ticari başarı kazanmıştır. DEC firması VAX makineleri için *VAX/VMS* isimli
 bir işletim sistemi yazmıştı. DEC bu işletim sisteminin ismini 1992 yılında *OpenVMS* olarak değiştirdi. DEC
 1992 yılında 64 bitlik RISC tasarımı olan *Alpha* işlemcilerini piyasaya sürdü ve OpenVMS Alpha işlemcilerine
-port edildi. OpenVMS hala kullanılmaya devam etmektedir. Itanium ve X86-64 portları da vardır.
+port edildi. OpenVMS hala kullanılmaya devam etmektedir. Itanium ve X86-64 port'ları da vardır.
 
 Apple firması 1976 yılında kuruldu. Apple'ın ilk bilgisayarı *Apple I* idi. Bunu 1977'de *Apple II*, 1980'de
 de *Apple III* izledi. Bu ilk Apple bilgisayarlarında *AppleDOS* isimli işletim sistemleri kullanılıyordu.
@@ -430,13 +429,13 @@ bilgisayarlarının değişik versiyonlarını piyasaya sürdü. Bunlardaki işl
 1980'li yıllarda Mac bilgisayarlarının fiyatı çok yüksekti ve satışları da iyi gitmiyordu. Çünkü Steve Jobs
 bilgisayarların program yazmak için değil kullanmak için alınması gerektiğini düşünüyordu. Nihayet Apple'daki
 çalkantılar sonucunda Steve Jobs 1985 yılında Apple'dan ayrılmak zorunda kaldı (kovuldu da denebilir) ve
-*NeXT* firmasını kurdu. NeXT firması *NeXT* isimli bilgisayarları geliştirdi. Bu bilgisayarlarda *NeXTSTEP*
+NeXT firmasını kurdu. NeXT firması NeXT isimli bilgisayarları geliştirdi. Bu bilgisayarlarda NeXTSTEP
 isimli işletim sistemi kullanılıyordu. Daha sonra bu sistem açık hale getirildi ve *OPENSTEP* ismini aldı.
 Dünyanın ilk Web tarayıcısı Tim Berners-Lee tarafından Cern'de NeXT bilgisayarları üzerinde
 gerçekleştirilmiştir.
 
 Steve Jobs 1997 yılında Apple'a geri döndü. Apple da NeXT firmasını 200 milyon dolara satın aldı. Sonra
-piyasaya *iMac* ve *Power Mac* serileri çıktı. Daha sonra Steve Jobs Mac'lerin çekirdeklerini tamamen
+piyasaya iMac ve Power Mac serileri çıktı. Daha sonra Steve Jobs Mac'lerin çekirdeklerini tamamen
 değiştirme kararı aldı. Mac'ler de Mac OS'un 10 versiyonu ile birlikte yeni bir çekirdeğe geçtiler. Mac OS
 işletim sistemlerinin 10'lu versiyonları Roma rakamıyla *Mac OS X* biçiminde isimlendirilmiştir. Apple Mac OS X
 ismini 2012 yılında *Mountain Lion* (10.8) sürümü ile *OS X* olarak, 2016 yılında da *Sierra* (10.12) sürümüyle
@@ -534,8 +533,8 @@ bir araya getirilmesiyle oluşturulmuş hibrit işletim sistemleridir. İlk vers
 sürülmüştür. İzleyen bölümlerde Mac OS işletim sistemlerinin tarihsel gelişimi ayrıntılı olarak ele
 alınacaktır.
 
-macOS (Mac OS X Türevi) İşletim Sistemleri
--------------------------------------------
+macOS Ailesi İşletim Sistemleri
+-------------------------------
 
 İşletim sistemlerinin tarihsel gelişimini ele aldığımız önceki paragraflarda da belirttiğimiz gibi Apple
 firmasının Mac bilgisayarları Mac OS'un 10 versiyonu ile birlikte yeni bir çekirdeğe geçmiştir. Mac OS işletim
@@ -679,51 +678,6 @@ Son versiyon macOS 15'ten sonra macOS 26'ya atlamıştır. Artık Apple versiyon
 bir sonraki yılını kullanacağını açıklamıştır.
 
 macOS büyük ölçüde POSIX uyumlu bir sistemdir.
-
-GNU Projesi, Özgür Yazılım ve Açık Kaynak Akımları
-==================================================
-
-Şimdi de UNIX/Linux dünyasında önemli bir yeri olan GNU Projesi, özgür yazılım ve açık kaynak kod akımları
-üzerinde durmak istiyoruz.
-
-1970'lerdeki mikro bilgisayarlar devrimine kadar yazılımda bir telif anlayışı yoktu. Yani yazılımın
-dağıtılması konusunda sözleşmeler ve hukuki yaptırımlara gerek duyulmamıştı. Yazılım zaten donanımla birlikte
-satılıyordu ya da kuruma özel yapılıyordu. 1969 yılında IBM yazılımı donanımla birlikte verdiği için rekabet
-kurallarına uymadığı gerekçesiyle mahkemeye verilmiştir ve cezaya çarptırılmıştır. 1970'li yıllarda yazılım
-maliyetleri artmış, yazılım sektörü genişlemiş ve lisanslama politikaları da uygulamaya sokulmuştur. Pek çok
-yazılım bu yıllarda özel lisanslarla piyasaya sürülmeye başlanmıştır. 1980'li yıllarda bu lisanslama
-faaliyetleri hız kazanmıştır.
-
-1980'li yıllarda tüm UNIX türevi sistemler çeşitli biçimlerde sınırlandırıcı lisanslara sahipti. Yani 1980'li
-yıllarda sınırlaması olmayan UNIX türevi sistemler kalmamıştı. Bu nedenle bedava ve sınırlamasız UNIX türevi
-bir işletim sistemine gereksinim duyulmaya başlandı. İşte durumdan vazife çıkaran ünlü Emacs editörünün yazarı
-Richard Stallman 1983 yılının sonlarına doğru GNU projesini başlattı ve özgür yazılım (*free software*) fikrini
-ortaya attı. GNU projesinin amacı açık kaynak kodlu UNIX benzeri bir işletim sistemini ve geliştirme araçlarını
-yazmaktı. Proje fiilen 1984 yılında başlamıştır.
-
-Stallman 1985 yılında özgür yazılım kavramını yaygınlaştırmak amacıyla Free Software Foundation
-(www.fsf.org) isimli kurumu kurdu ve artık GNU projesi bu kurum tarafından yürütülmeye başlandı. FSF özgür
-yazılım modeli için GPL (*GNU Public License*) denilen bir lisans da oluşturdu. Özgür yazılım akımında
-oluşturulan bir yazılım istenildiği gibi çalıştırılabilir, kopyalanabilir, incelenebilir, dağıtılabilir,
-değiştirilebilir ve iyileştirilebilir. Daha açık bir biçimde özgür yazılım tipik olarak aşağıdaki dört
-özgürlükle tanımlanmıştır:
-
-- **Özgürlük 0:** Programı her türlü amaç için çalıştırma özgürlüğü
-- **Özgürlük 1:** Programın kaynak kodunu inceleme ve değiştirebilme özgürlüğü
-- **Özgürlük 2:** Programın kopyalarını çıkartabilme ve yeniden dağıtabilme özgürlüğü
-- **Özgürlük 3:** Programı iyileştirebilme ve iyileştirilmiş programı yayınlama özgürlüğü
-
-GNU projesi bağlamında pek çok temel araç (gcc derleyicisi, ld bağlayıcı, diğer binary utility programlar
-vs.) geliştirilmiştir. Ancak GNU projesinin işletim sistemi olan GNU Hurd bir türlü hedeflenen düzeye
-getirilememiştir. Bu konuda zaten artık umut da kalmamıştır.
-
-Aslında özgür yazılım (*free software*) ile açık kaynak kod (*open source*) akımları arasında bazı farklar
-olmakla birlikte her iki akımın da hedefleri benzerdir. Özgür yazılım bir sosyal harekete benzetilirken açık
-kaynak kod akımı bir geliştirme metodolojisine benzetilmektedir. Biz kursumuzda tüm bu akımları
-*açık kaynak kod* (*open source*) olarak nitelendireceğiz. Özgür yazılım akımının temel lisansı GPL'dir
-(*GNU Public Licence*). Bunun yumuşatılmış LGPL (*Lesser GPL*) biçiminde bir versiyonu da oluşturulmuştur.
-Ayrıca Apache, MIT, BSD gibi açık kaynak kodlu başka lisanslar da vardır. Bu lisansların aralarında birtakım
-farklılıklar bulunmakla birlikte pek çok yönleri de ortaktır.
 
 Linux İşletim Sistemi
 =====================
@@ -886,14 +840,14 @@ Kursumuzda bazen Linux'un kaynak kodları üzerinde incelemeler ve açıklamalar
 kodları üzerinde gezintiler yapabilmek için kullanılan çeşitli web siteleri bulunmaktadır. Biz kursumuzda
 *Bootlin* tarafından oluşturulmuş olan aşağıdaki gezinme aracını kullanacağız:
 
-   https://elixir.bootlin.com/linux/v7.0.1/source
+https://elixir.bootlin.com/linux/v7.0.1/source
 
 Burada Linux'un öğrenci ödevi gibi olan ilk 0.01 versiyonundan itibaren tüm versiyonlarının kaynak kodları
 bulunmaktadır. Bu site aynı zamanda çok kullanılan başka projelerin de kaynak kodlarını barındırmaktadır.
 Bu sitenin yanı sıra aşağıdaki site de değişik işletim sistemlerinin incelenebilmesi için bir gezinti ortamı
 sunmaktadır:
 
-   http://fxr.watson.org/
+http://fxr.watson.org/
 
 
 Linux Dağıtımları
@@ -1006,7 +960,50 @@ Single UNIX Specification dokümanlarına Internet'ten Open Group'un web sitesin
 
 https://pubs.opengroup.org/onlinepubs/9799919799/
 
-----
+GNU Projesi, Özgür Yazılım ve Açık Kaynak Akımları
+==================================================
+
+Şimdi de UNIX/Linux dünyasında önemli bir yeri olan GNU Projesi, özgür yazılım ve açık kaynak kod akımları
+üzerinde durmak istiyoruz.
+
+1970'lerdeki mikro bilgisayarlar devrimine kadar yazılımda bir telif anlayışı yoktu. Yani yazılımın
+dağıtılması konusunda sözleşmeler ve hukuki yaptırımlara gerek duyulmamıştı. Yazılım zaten donanımla birlikte
+satılıyordu ya da kuruma özel yapılıyordu. 1969 yılında IBM yazılımı donanımla birlikte verdiği için rekabet
+kurallarına uymadığı gerekçesiyle mahkemeye verilmiştir ve cezaya çarptırılmıştır. 1970'li yıllarda yazılım
+maliyetleri artmış, yazılım sektörü genişlemiş ve lisanslama politikaları da uygulamaya sokulmuştur. Pek çok
+yazılım bu yıllarda özel lisanslarla piyasaya sürülmeye başlanmıştır. 1980'li yıllarda bu lisanslama
+faaliyetleri hız kazanmıştır.
+
+1980'li yıllarda tüm UNIX türevi sistemler çeşitli biçimlerde sınırlandırıcı lisanslara sahipti. Yani 1980'li
+yıllarda sınırlaması olmayan UNIX türevi sistemler kalmamıştı. Bu nedenle bedava ve sınırlamasız UNIX türevi
+bir işletim sistemine gereksinim duyulmaya başlandı. İşte durumdan vazife çıkaran ünlü Emacs editörünün yazarı
+Richard Stallman 1983 yılının sonlarına doğru GNU projesini başlattı ve özgür yazılım (*free software*) fikrini
+ortaya attı. GNU projesinin amacı açık kaynak kodlu UNIX benzeri bir işletim sistemini ve geliştirme araçlarını
+yazmaktı. Proje fiilen 1984 yılında başlamıştır.
+
+Stallman 1985 yılında özgür yazılım kavramını yaygınlaştırmak amacıyla Free Software Foundation
+(www.fsf.org) isimli kurumu kurdu ve artık GNU projesi bu kurum tarafından yürütülmeye başlandı. FSF özgür
+yazılım modeli için GPL (*GNU Public License*) denilen bir lisans da oluşturdu. Özgür yazılım akımında
+oluşturulan bir yazılım istenildiği gibi çalıştırılabilir, kopyalanabilir, incelenebilir, dağıtılabilir,
+değiştirilebilir ve iyileştirilebilir. Daha açık bir biçimde özgür yazılım tipik olarak aşağıdaki dört
+özgürlükle tanımlanmıştır:
+
+- **Özgürlük 0:** Programı her türlü amaç için çalıştırma özgürlüğü
+- **Özgürlük 1:** Programın kaynak kodunu inceleme ve değiştirebilme özgürlüğü
+- **Özgürlük 2:** Programın kopyalarını çıkartabilme ve yeniden dağıtabilme özgürlüğü
+- **Özgürlük 3:** Programı iyileştirebilme ve iyileştirilmiş programı yayınlama özgürlüğü
+
+GNU projesi bağlamında pek çok temel araç (gcc derleyicisi, ld bağlayıcı, diğer binary utility programlar
+vs.) geliştirilmiştir. Ancak GNU projesinin işletim sistemi olan GNU Hurd bir türlü hedeflenen düzeye
+getirilememiştir. Bu konuda zaten artık umut da kalmamıştır.
+
+Aslında özgür yazılım (*free software*) ile açık kaynak kod (*open source*) akımları arasında bazı farklar
+olmakla birlikte her iki akımın da hedefleri benzerdir. Özgür yazılım bir sosyal harekete benzetilirken açık
+kaynak kod akımı bir geliştirme metodolojisine benzetilmektedir. Biz kursumuzda tüm bu akımları
+*açık kaynak kod* (*open source*) olarak nitelendireceğiz. Özgür yazılım akımının temel lisansı GPL'dir
+(*GNU Public Licence*). Bunun yumuşatılmış LGPL (*Lesser GPL*) biçiminde bir versiyonu da oluşturulmuştur.
+Ayrıca Apache, MIT, BSD gibi açık kaynak kodlu başka lisanslar da vardır. Bu lisansların aralarında birtakım
+farklılıklar bulunmakla birlikte pek çok yönleri de ortaktır.
 
 Yazılım Sistemlerinde Katmanlı Yapı ve Kod Tekrarı
 ==================================================
