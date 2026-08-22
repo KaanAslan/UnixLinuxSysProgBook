@@ -708,7 +708,6 @@ Aşağıda çekirdeğin temel versiyonlarının kullanıma sokulduğu yılları 
 
 .. list-table:: Linux Çekirdeği Temel Sürümleri
    :header-rows: 1
-   :widths: 10 16 74
 
    * - Sürüm
      - Tarih
