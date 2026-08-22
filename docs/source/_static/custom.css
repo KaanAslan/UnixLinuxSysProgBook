@@ -97,7 +97,7 @@ table.docutils th {
     white-space: normal !important;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1200) {
     .rst-content table.docutils.narrow-table {
         max-width: 100%;
     }
