@@ -1448,7 +1448,7 @@ belli bir alana yönelik (domain specific) dillerde ve çok yüksek seviyeli dil
 yapılmaktadır. Genel amaçlı diller daha çok derleyiciler ile derlenerek çalıştırılırlar.
 
 Çapraz Derleyiciler (Cross Compilers)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 Kullandığımız CPU'lar ikilik sistemdeki makine komutlarını çalıştırmaktadır. Bir kodun CPU tarafından çalıştırılabilmesi
 için o kodun o CPU'nun makine diline göre oluşturulmuş olması gerekir. Zaten derleyiciler de bunu yapmaktadır. Eğer bir
