@@ -65,7 +65,7 @@ table.docutils th {
     border: 1px solid #7f8c8d !important;
 }
 
-@media screen and (max-width: 1200) {
+@media screen and (max-width: 1200px) {
     .rst-content img {
         width: 100% !important;
         max-width: 100% !important;
@@ -97,7 +97,7 @@ table.docutils th {
     white-space: normal !important;
 }
 
-@media screen and (max-width: 1200) {
+@media screen and (max-width: 1200px) {
     .rst-content table.docutils.narrow-table {
         max-width: 100%;
     }
