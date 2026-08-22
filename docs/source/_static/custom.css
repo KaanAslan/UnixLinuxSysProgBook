@@ -65,7 +65,23 @@ table.docutils th {
     border: 1px solid #7f8c8d !important;
 }
 
-@media screen and (max-width: 1200px) {
+.rst-content table.docutils.narrow-table {
+    width: auto;
+    max-width: 70%;
+    table-layout: auto;
+}
+
+@media screen and (max-width: 1024px) {
+    .rst-content table.docutils.narrow-table {
+        max-width: 100%;
+    }
+    .rst-content .wy-table-responsive table td,
+    .rst-content .wy-table-responsive table th {
+        white-space: normal !important;
+    }
+}
+
+@media screen and (max-width: 1024px) {
     .rst-content img {
         width: 100% !important;
         max-width: 100% !important;
@@ -73,6 +89,23 @@ table.docutils th {
     }
 }
 
+@media screen and (max-width: 768px) {
+    .rst-content table.docutils.narrow-table {
+        max-width: 100%;
+    }
+    .rst-content .wy-table-responsive table td,
+    .rst-content .wy-table-responsive table th {
+        white-space: normal !important;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .rst-content img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
 .rst-content h1 {
     text-align: center;
 }
@@ -97,12 +130,17 @@ table.docutils th {
     white-space: normal !important;
 }
 
-@media screen and (max-width: 1200px) {
-    .rst-content table.docutils.narrow-table {
-        max-width: 100%;
-    }
-    .rst-content .wy-table-responsive table td,
-    .rst-content .wy-table-responsive table th {
-        white-space: normal !important;
-    }
+.rst-content pre,
+.rst-content div[class^="highlight"] pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow-x: visible;
 }
+
+@media screen and (max-width: 1024px) {
+    img.fig-mapping1 { width: 50% !important; }
+}
+
+@media screen and (max-width: 768px) {
+    img.fig-mapping1 { width: 50% !important; }
