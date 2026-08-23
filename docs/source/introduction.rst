@@ -81,6 +81,7 @@ masaüstü (Explorer), macOS'teki masaüstü (Aqua) bu işletim sistemlerinin ka
 .. figure:: _static/shell-kernel.png
    :align: center
    :width: 30%
+   :class: fig-mapping1
 
 Peki işletim sistemi bu kadar temel donanım yönetimini sağlıyorsa işletim sistemi olmadan programlama
 yapılabilir mi? İşletim sistemi olmadan programlama faaliyetlerine halk arasında *bare metal programlama*
@@ -117,7 +118,7 @@ büyük kısmı çekirdek modunda çalışmaktadır. Mikro çekirdekli sistemler
 çalışılmıştır. Aslında tek parçalı ve mikro çekirdekli tasarımları bir spektrum olarak düşünebiliriz. Linux çekirdeği tek
 parçalı *(monolithic)* tarafa daha yakındır. Mikro çekirdekli sistemlerden bazıları şunlardır:
 
-.. list-table:: Mikrokernel Sistemleri
+.. list-table:: 
    :header-rows: 1
 
    * - Sistem
