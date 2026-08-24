@@ -48,15 +48,14 @@ Argümanlı seçeneklerde bir seçeneğin yanında o seçenekle ilişkili bir ar
     $ gcc -o sample sample.c
 
 Burada ``-o`` seçeneği tek başına kullanılmaz. Hedef dosyanın ismi seçeneğin argümanını oluşturmaktadır. O halde
-buradaki ``-o`` seçeneği tipik olarak argümanlı seçeneğe bir örnektir. Argümanlı seçeneklerin birleştirilmesi tavsiye
-edilmez. Ancak birleştirme yapılabilmektedir. Örneğin:
+buradaki ``-o`` seçeneği tipik olarak argümanlı seçeneğe bir örnektir. Argümanlı seçeneklerin birleştirilmesini 
+tavsiye etmiyoruz. Ancak birleştirme yapılabilmektedir. Örneğin:
 
 .. code-block:: bash
 
     $ gcc -co sample.o sample.c
 
-Bu yazım biçimini pek çok program kabul etse de tavsiye edilmemektedir. Buradaki argümanların aşağıdaki gibi belirtilmesi
-daha uygundur:
+Buradaki argümanların aşağıdaki gibi belirtilmesini tavsiye ediyoruz:
 
 .. code-block:: bash
 
@@ -87,7 +86,7 @@ Burada ``-o`` argümanlı seçenek olduğu için onu başka bir seçenek izleyem
 seçeneğinin argümanı olarak ele alınmaktadır. Tabii seçenekli argümanlarda argümandan sonra bir boşluk bırakmak komutun
 daha iyi algılanmasını sağlamaktadır.
 
-Seçeneklerle ilgisi olmayan argümanlara *seçeneksiz argüman* denilmektedir. Örneğin:
+Seçeneklerle ilgisi olmayan argümanlara *seçeneksiz argümalarn* denilmektedir. Örneğin:
 
 .. code-block:: bash
 
