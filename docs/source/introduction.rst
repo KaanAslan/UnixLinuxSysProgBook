@@ -362,9 +362,21 @@ Biz burada masaüstü bilgisayarlar demekle kasalı olan bilgisayarları ve note
 bilgisayarları kastediyoruz. Akıllı telefonları, tabletleri ve diğer gömülü sistemleri kastetmiyoruz.
 Akıllı telefon ve tablet dünyasındaki durum da şöyledir:
 
-.. figure:: _static/mobile-os-share.png
-    :align: center
-    :width: 55%
+.. list-table::
+   :header-rows: 1
+
+   * - İşletim Sistemi
+     - 2025 Q3 (Küresel)
+     - 2026 Başı (Küresel)
+   * - Android
+     - ~71.4%
+     - ~70.36%
+   * - iOS
+     - ~28.2%
+     - ~29.25%
+   * - Diğer (HarmonyOS vb.)
+     - ~0.4%
+     - ~0.39%
 
 Bunu çabuk grafiği ile şöyle de gösterebiliriz:
 
@@ -386,9 +398,54 @@ aşağıdaki tablo kursun yapıldığı dönem için bir fikir verebilir:
 Sunucu (server) olarak kullanılan bilgisayarlarda da Linux diğer seçeneklerden daha öndedir. Aşağıda kursun
 yapıldığı tarih için bir fikir amacıyla sunucu dünyasındaki kullanım oranlarını bir tablo halinde veriyoruz:
 
-.. figure:: _static/server-os-share.png
-    :align: center
-    :width: 60%
+.. list-table::
+   :header-rows: 1
+
+   * - Kullanım Alanı
+     - Linux
+     - Windows
+     - UNIX
+     - Diğer
+   * - Web sunucuları
+     - ~96%
+     - ~3%
+     - ~1%
+     - —
+   * - Bulut altyapısı
+     - ~80%
+     - ~15%
+     - —
+     - ~5%
+   * - Süperbilgisayarlar
+     - %100
+     - —
+     - —
+     - —
+   * - Kurumsal ERP / AD
+     - ~20%
+     - ~75%
+     - ~4%
+     - ~1%
+   * - Veritabanı sunucuları
+     - ~45%
+     - ~40%
+     - ~12%
+     - ~3%
+   * - 5G Baz İstasyonları
+     - ~65%
+     - —
+     - ~30%
+     - ~5%
+   * - IoT / Edge sunucuları
+     - ~60%
+     - ~20%
+     - —
+     - ~20%
+   * - HPC / Araştırma
+     - ~90%+
+     - —
+     - ~5%
+     - ~5%
 
 Bunu çubuk grafiği ile şöyle de gösterebiliriz:
 
@@ -708,98 +765,53 @@ bir araya getirilmesiyle oluşturulmuş hibrit işletim sistemleridir. İlk vers
 sürülmüştür. İzleyen bölümlerde Mac OS işletim sistemlerinin tarihsel gelişimi ayrıntılı olarak ele
 alınacaktır.
 
-macOS Ailesi İşletim Sistemleri
+macOS Türevi İşletim Sistemleri
 -------------------------------
 
-İşletim sistemlerinin tarihsel gelişimini ele aldığımız önceki paragraflarda da belirttiğimiz gibi Apple
-firmasının Mac bilgisayarları Mac OS'un 10 versiyonu ile birlikte yeni bir çekirdeğe geçmiştir. Mac OS işletim
-sistemlerinin 10'lu versiyonları Roma rakamıyla *Mac OS X* biçiminde isimlendirildi. Apple Mac OS X ismini
-2012 yılında *Mountain Lion* (10.8) sürümü ile *OS X* olarak, 2016 yılında da *Sierra* (10.12) sürümüyle
-birlikte de *macOS* olarak değiştirdi. Biz Mac OS X, OS X ve macOS sistemlerine bu bölümde *Mac OS X türevi
-işletim sistemleri* de diyeceğiz.
+İşletim sistemlerinin tarihsel gelişimini ele aldığımız önceki paragraflarda da belirttiğimiz gibi Apple firmasının
+Mac bilgisayarları Mac OS'un 10'uncu versiyonu ile birlikte yeni bir çekirdeğe geçmiştir. Mac OS işletim sistemlerinin
+10'lu versiyonları Roma rakamıyla Mac OS X biçiminde isimlendirildi. Apple Mac OS X ismini 2012 yılında Mountain
+Lion (10.8) sürümü ile OS X olarak, 2016 yılında da Sierra (10.12) sürümüyle birlikte de macOS olarak değiştirdi.
+Biz Mac OS X, OS X ve macOS sistemlerine bu bölümde *macOS türevi işletim sistemleri* de diyeceğiz.
 
-Mac OS X türevi işletim sistemleri aslında bir bakıma UNIX türevi sistemlerdir. Bu işletim sistemlerinin
-çekirdeğine *Darwin* denilmektedir. Darwin açık kaynak kodlu bir işletim sistemdir. Ancak Mac OS X türevi
-sistemler tam anlamıyla açık sistemler değildir. Bu sistemlerin çekirdeği açık olsa da geri kalan kısımları
-mülkiyete sahip *(proprietary)* biçimdedir.
+macOS türevi işletim sistemleri aslında bir bakıma UNIX türevi sistemlerdir. Bu işletim sistemlerinin çekirdeğine
+Darwin denilmektedir. Darwin açık kaynak kodlu bir işletim sistemidir. Ancak macOS türevi sistemler tam anlamıyla
+açık sistemler değildir. Bu sistemlerin çekirdeği açık olsa da geri kalan kısımları mülkiyete sahip (proprietary)
+biçimdedir.
 
-Darwin'in hikâyesi 1989 yılında NeXT'in *NeXTSTEP* işletim sistemiyle başladı. NeXTSTEP daha sonra
-*OpenStep* ismiyle API düzeyinde standart hale getirildi. 1996'nın sonunda 1997'nin başında Steve Jobs
-Apple'a dönerken Apple da NeXT firmasını satın aldı ve sonraki işletim sistemini OpenStep üzerine kuracağını
-açıkladı. Bundan sonra Apple 1997'de OpenStep üzerine kurulu olan *Rapsody*'yi çıkardı. 1998'de de yeni
-işletim sisteminin Mac OS X olacağını açıkladı. Daha sonra 2000 yılında Apple Rapsody'den *Darwin* projesini
-türetti. Darwin her ne kadar Mac sistemlerinin çekirdeği olarak tasarlanmışsa da ayrı bir işletim sistemi
-olarak da yüklenebilmektedir. Ancak Darwin grafik arayüzü olmadığı için Mac programlarını
-çalıştıramamaktadır. Daha sonra Darwin'i bağımsız bir işletim sistemi haline getirmek amacıyla Darwin'den
-de çeşitli projeler türetilmiştir. Bunlardan biri Apple tarafından 2002'de başlatılan *OpenDarwin*'dir. Bu
-proje 2006'da sonlandırılmıştır. 2007'de *PureDarwin* projesi başlatılmıştır.
+Darwin'in hikayesi 1989 yılında NeXT'in NeXTSTEP işletim sistemiyle başladı. NeXTSTEP daha sonra OpenStep ismiyle
+API düzeyinde standart hale getirildi. 1996'nın sonunda 1997'nin başında Steve Jobs Apple'a dönerken Apple da NeXT
+firmasını satın aldı ve sonraki işletim sistemini OpenStep üzerine kuracağını açıkladı. Bundan sonra Apple 1997'de
+OpenStep üzerine kurulu olan Rhapsody'yi çıkardı. 1998'de de yeni işletim sisteminin Mac OS X olacağını açıkladı.
+Daha sonra 2000 yılında Apple Rhapsody'den Darwin projesini türetti. Darwin her ne kadar Mac sistemlerinin
+çekirdeği olarak tasarlanmışsa da ayrı bir işletim sistemi olarak da yüklenebilmektedir. Ancak Darwin grafik
+arayüzü olmadığı için macOS programlarını çalıştıramamaktadır. Daha sonra Darwin'i bağımsız bir işletim sistemi
+haline getirmek amacıyla Darwin'den de çeşitli projeler türetilmiştir. Bunlardan biri Apple tarafından 2002'de
+başlatılan OpenDarwin'dir. Bu proje 2006'da sonlandırılmıştır. 2007'de PureDarwin projesi başlatılmıştır.
+PureDarwin devam ettirilen olgunlaşmış bir projedir. 2021 yılında ise tamamen macOS uyumlu olması planlanan
+ravynOS isimli yeni bir işletim sistemi girişimi de başlatılmıştır.
 
-Darwin'in çekirdeği *XNU* üzerine oturtulmuştur. XNU NeXT firması tarafından NEXTSTEP işletim sisteminde
-kullanılmak üzere geliştirilmiş bir çekirdektir. XNU, Carnegie Mellon *(Karnegi* diye okunuyor) üniversitesinin
-*Mach 3* mikrokernel çekirdeği ile 4.3BSD karışımı hibrit bir sistemdir. Darwin, bu XNU çekirdeğini
-kullanılabilir hale getirmek için çeşitli öğeleri de barındırmaktadır. Aşağıdaki şekilde XNU, Darwin ve macOS
-işletim sistemleri arasındaki ilişki özetlenmektedir:
+Darwin'in çekirdeği XNU üzerine oturtulmuştur. XNU NeXT firması tarafından NeXTSTEP işletim sisteminde kullanılmak
+üzere geliştirilmiş bir çekirdektir. XNU, Carnegie Mellon (*Karnegi* diye okunuyor) Üniversitesi'nin Mach 3
+mikrokernel çekirdeği ile 4.3BSD karışımı hibrit bir sistemdir. Darwin bu XNU çekirdeğini kullanılabilir hale
+getirmek için çeşitli öğeleri de barındırmaktadır. Aşağıdaki şekilde XNU, Darwin ve macOS işletim sistemleri
+arasındaki ilişki şekilsel biçimde özetlenmektedir:
 
-.. code-block:: text
+.. figure:: _static/darwin-xnu-macos.png
+    :align: center
+    :width: 70%
 
-   ┌─────────────────────────────────────────────────────────────────────────┐
-   │                              D A R W I N                                │
-   │                                                                         │
-   │  ┌────────────────────────────────────────────────────────────────────┐ │
-   │  │                          XNU ÇEKİRDEĞİ                             │ │
-   │  │                                                                    │ │
-   │  │  ┌─────────────────┐  ┌─────────────────┐  ┌────────────────────┐  │ │
-   │  │  │      Mach       │  │      BSD        │  │      I/O Kit       │  │ │
-   │  │  │ · Görev yönt.   │  │ · POSIX uyumlu  │  │ · Sürücü çerçevesi │  │ │
-   │  │  │ · Sanal bellek  │  │ · Dosya sistemi │  │ · kext'ler         │  │ │
-   │  │  │ · IPC / portlar │  │ · Ağ yığını     │  │ · Donanım arayüzü  │  │ │
-   │  │  │ · Zamanlayıcı   │  │ · VFS katmanı   │  │ · Güç yönetimi     │  │ │
-   │  │  └─────────────────┘  └─────────────────┘  └────────────────────┘  │ │
-   │  └────────────────────────────────────────────────────────────────────┘ │
-   │                                                                         │
-   │  ┌───────────────────────────────────────────────────────────────────┐  │
-   │  │                    Darwin'in Fazladan Bileşenleri                 │  │
-   │  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────────────┐  │  │
-   │  │  │    launchd    │  │   libSystem   │  │   BSD kullanıcı       │  │  │
-   │  │  │ · PID 1       │  │ · libc        │  │   araçları            │  │  │
-   │  │  │ · init sistemi│  │ · libpthread  │  │ · ls, cp, mv, rm      │  │  │
-   │  │  │ · servis yönt.│  │ · libm        │  │ · grep, awk, sed      │  │  │
-   │  │  │ · daemon yönt.│  │ · libdl       │  │ · ps, kill, top       │  │  │
-   │  │  └───────────────┘  └───────────────┘  └───────────────────────┘  │  │
-   │  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────────────┐  │  │
-   │  │  │     dyld      │  │  libdispatch  │  │   Temel ağ araçları   │  │  │
-   │  │  │ · Dinamik bağ.│  │    (GCD)      │  │ · ifconfig, route     │  │  │
-   │  │  │ · .dylib yükl.│  │ · Eşzamansız  │  │ · netstat, ping       │  │  │
-   │  │  │ · ASLR desteği│  │   kuyruklama  │  │ · ssh, scp            │  │  │
-   │  │  │ · Sembol çözm.│  │ · iş parçacığı│  │                       │  │  │
-   │  │  └───────────────┘  └───────────────┘  └───────────────────────┘  │  │
-   │  └───────────────────────────────────────────────────────────────────┘  │
-   └─────────────────────────────────────────────────────────────────────────┘
+XNU, Darwin, macOS ilişkisini şöyle özetleyebiliriz:
 
-            │  Darwin'in üzerine Apple'ın kapalı kaynak katmanları eklenir:
-            ▼
+.. admonition:: Özet
 
-   ┌─────────────────────────────────────────────────────────────────────────────┐
-   │                    Apple'ın Kapalı Kaynak Katmanı                           │
-   │   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-   │   │    Quartz    │  │    Cocoa     │  │    Metal     │  │  CoreAudio   │    │
-   │   │  (grafik)    │  │  (UI çerç.)  │  │  (GPU API)   │  │  (ses API)   │    │
-   │   └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘    │
-   │                macOS · iOS · iPadOS · watchOS · tvOS                        │
-   └─────────────────────────────────────────────────────────────────────────────┘
+   * **XNU** = Çekirdek (Mach + BSD + I/O Kit)
+   * **Darwin** = XNU + launchd + libSystem + dyld + GCD + BSD araçları + ağ araçları
+   * **macOS** = Darwin + Quartz + Cocoa + Metal + ...
 
-   ÖZET:
-   ┌──────────────────────────────────────────────────────────┐
-   │  XNU    = Çekirdek (Mach + BSD + I/O Kit)                │
-   │  Darwin = XNU + launchd + libSystem + dyld + GCD         │
-   │           + BSD araçları + ağ araçları                   │
-   │  macOS  = Darwin + Quartz + Cocoa + Metal + ...          │
-   └──────────────────────────────────────────────────────────┘
+macOS türevi sistemlerin versiyonlarını aşağıda kronolojik biçimde veriyoruz:
 
-Mac OS X türevi sistemlerin versiyonları şunlardır:
-
-.. list-table:: macOS Versiyon Tarihi
-   :widths: 40 60
+.. list-table:: 
    :header-rows: 1
 
    * - Versiyon
@@ -849,13 +861,14 @@ Mac OS X türevi sistemlerin versiyonları şunlardır:
    * - macOS 26 (Tahoe)
      - 2025
 
-Son versiyon macOS 15'ten sonra macOS 26'ya atlamıştır. Artık Apple versiyon numaralandırmasında sürüm yılının
+macOS 15'ten sonra macOS 26'ya atlandıpına dikkat ediniz. Artık Apple versiyon numaralandırmasında sürüm yılının
 bir sonraki yılını kullanacağını açıklamıştır.
 
-macOS büyük ölçüde POSIX uyumlu bir sistemdir.
+
+Son olarak MacOS sistemlerinin büyük ölçüde POSIX uyumlu olduğunu da belirtmek istiyoruz.
 
 Linux İşletim Sistemi
-=====================
+---------------------
 
 Linux işletim sistemi projesi 90'lı yılların başlarında Helsinki Üniversitesinde Bilgisayar bölümünde öğrenci
 olan Linus Torvalds tarafından başlatılmıştır. Linus Torvalds bir işletim sistemi yazma hevesine kapıldı ve
@@ -881,7 +894,7 @@ değiştirildi. Daha hızlı bir numaralandırma sistemine geçildi.
 
 Aşağıda çekirdeğin temel versiyonlarının kullanıma sokulduğu yılları veriyoruz:
 
-.. list-table:: Linux Çekirdeği Temel Sürümleri
+.. list-table:: 
    :header-rows: 1
 
    * - Sürüm
@@ -1008,11 +1021,11 @@ Pek çok topluluk ve geliştirici Linux'un isminin de aslında *GNU/Linux* biçi
 etmektedir. Ancak *GNU/Linux* ismi kullanılıyor olsa da geniş bir kesim tarafından benimsenmemiştir.
 
 Linux Kaynak Kodlarına Erişim
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Kursumuzda bazen Linux'un kaynak kodları üzerinde incelemeler ve açıklamalar da yapacağız. Linux'un kaynak
-kodları üzerinde gezintiler yapabilmek için kullanılan çeşitli web siteleri bulunmaktadır. Biz kursumuzda
-*Bootlin* tarafından oluşturulmuş olan aşağıdaki gezinme aracını kullanacağız:
+Kitabımızı okurken bazen Linux'un kaynak kodları üzerinde incelemeler ve açıklamalar da yapacağız. Linux'un kaynak
+kodları üzerinde gezintiler yapabilmek için kullanılan çeşitli web siteleri bulunmaktadır. Biz *Bootlin* tarafından 
+oluşturulmuş olan aşağıdaki gezinme aracını tavsiyte ediyoruz:
 
 https://elixir.bootlin.com/linux/v7.0.1/source
 
@@ -1023,9 +1036,8 @@ sunmaktadır:
 
 http://fxr.watson.org/
 
-
 Linux Dağıtımları
------------------
+~~~~~~~~~~~~~~~~~
 
 Açık kaynak kodlu yazılımlar bir araya getirilip paketlenerek istenildiği gibi dağıtılabilmektedir. Dağıtım
 (*distribution*) bu anlamda kullanılan genel bir terimdir ve her türlü açık kaynak kodlu yazılım için dağıtım
@@ -1092,8 +1104,8 @@ versiyonu da vardır. ZYpp, YaST ve RPM paket yöneticilerini kullanmaktadır.
 **Slackware:** En eski Linux dağıtımıdır. 1993 yılında oluşturulmuştur. Sürdürümü yavaş olmakla birlikte
 hala devam etmektedir.
 
-POSIX Standartları
-==================
+POSIX ve SUS Standartları
+=========================
 
 1980'li yıllarda AT&T ya da BSD kodlarından türetilmiş olan ve çoğunluğu şirketlere ait olan pek çok UNIX türevi sistem
 oluşturuldu. Bu sistemler birbirlerine çok benzemekle birlikte aralarında bazı farklılıklar da vardı. İşte IEEE durumdan
@@ -1122,15 +1134,15 @@ yılında *POSIX 1.b* diye de isimlendirilen *Realtime-extensions* ile 1995 yıl
 *Thread-extensions* isimli eklemelerdir. Bu eklemelerle POSIX'e gerçek zamanlı işlemler için çeşitli özellikler ve
 thread kütüphanesi eklenmiştir.
 
-*Single UNIX Specification* UNIX türevi sistemler için oluşturulmuş diğer önemli standarttır. Bir sistemin UNIX olarak
+*SUS (Single UNIX Specification)* UNIX türevi sistemler için oluşturulmuş diğer önemli standarttır. Bir sistemin UNIX olarak
 değerlendirilebilmesi için bu standartlara uygun olması gerekmektedir. Standartlar *Austin Group* isimli toplulukla
 *Open Group* isimli dernek tarafından geliştirilmiştir. Sürdürümü Open Group tarafından yapılmaktadır. Open Group
-hali hazırda UNIX sistemlerinin isim haklarını elinde bulundurmaktadır. *Single UNIX Specification* isimli standardın
-zamanla pek çok versiyonu oluşturulmuştur.
+hali hazırda UNIX sistemlerinin isim haklarını elinde bulundurmaktadır. *Single UNIX Specification* isimli standardın 
+da zamanla pek çok versiyonu oluşturulmuştur.
 
-POSIX standartları ile Single UNIX Specification standartları arasında eskiden daha fazla farklılıklar vardı. Ancak bugün
-itibari ile bu iki standart birbirlerine yaklaştırılmış ve son versiyonlarla tamamen aynı hale getirilmiştir.
-Single UNIX Specification dokümanlarına Internet'ten Open Group'un web sitesinden erişilebilir:
+POSIX standartları ile SUS arasında eskiden daha fazla farklılıklar vardı. Ancak bugün itibari ile bu iki standart 
+birbirlerine yaklaştırılmış ve son versiyonlarla tamamen aynı hale getirilmiştir. Single UNIX Specification dokümanlarına 
+Internet'ten Open Group'un web sitesinden erişilebilir:
 
 https://pubs.opengroup.org/onlinepubs/9799919799/
 
@@ -1138,7 +1150,7 @@ GNU Projesi, Özgür Yazılım ve Açık Kaynak Akımları
 ==================================================
 
 Şimdi de UNIX/Linux dünyasında önemli bir yeri olan GNU Projesi, özgür yazılım ve açık kaynak kod akımları
-üzerinde durmak istiyoruz.
+üzerinde kısaca durmak istiyoruz.
 
 1970'lerdeki mikro bilgisayarlar devrimine kadar yazılımda bir telif anlayışı yoktu. Yani yazılımın
 dağıtılması konusunda sözleşmeler ve hukuki yaptırımlara gerek duyulmamıştı. Yazılım zaten donanımla birlikte
@@ -1155,9 +1167,9 @@ Richard Stallman 1983 yılının sonlarına doğru GNU projesini başlattı ve �
 ortaya attı. GNU projesinin amacı açık kaynak kodlu UNIX benzeri bir işletim sistemini ve geliştirme araçlarını
 yazmaktı. Proje fiilen 1984 yılında başlamıştır.
 
-Stallman 1985 yılında özgür yazılım kavramını yaygınlaştırmak amacıyla Free Software Foundation
-(www.fsf.org) isimli kurumu kurdu ve artık GNU projesi bu kurum tarafından yürütülmeye başlandı. FSF özgür
-yazılım modeli için GPL (*GNU Public License*) denilen bir lisans da oluşturdu. Özgür yazılım akımında
+Stallman 1985 yılında özgür yazılım kavramını yaygınlaştırmak amacıyla *Free Software Foundation
+(www.fsf.org)* isimli kurumu kurdu ve artık GNU projesi bu kurum tarafından yürütülmeye başlandı. FSF özgür
+yazılım modeli için *GPL (GNU Public License)* denilen bir lisans da oluşturdu. Özgür yazılım akımında
 oluşturulan bir yazılım istenildiği gibi çalıştırılabilir, kopyalanabilir, incelenebilir, dağıtılabilir,
 değiştirilebilir ve iyileştirilebilir. Daha açık bir biçimde özgür yazılım tipik olarak aşağıdaki dört
 özgürlükle tanımlanmıştır:
@@ -1168,38 +1180,27 @@ değiştirilebilir ve iyileştirilebilir. Daha açık bir biçimde özgür yazı
 - **Özgürlük 3:** Programı iyileştirebilme ve iyileştirilmiş programı yayınlama özgürlüğü
 
 GNU projesi bağlamında pek çok temel araç (gcc derleyicisi, ld bağlayıcı, diğer binary utility programlar
-vs.) geliştirilmiştir. Ancak GNU projesinin işletim sistemi olan GNU Hurd bir türlü hedeflenen düzeye
+vs.) geliştirilmiştir. Ancak GNU projesinin işletim sistemi olan *GNU Hurd* bir türlü hedeflenen düzeye
 getirilememiştir. Bu konuda zaten artık umut da kalmamıştır.
 
-Aslında özgür yazılım (*free software*) ile açık kaynak kod (*open source*) akımları arasında bazı farklar
+Aslında özgür *yazılım (free software)* ile *açık kaynak kod (open source)* akımları arasında bazı farklar
 olmakla birlikte her iki akımın da hedefleri benzerdir. Özgür yazılım bir sosyal harekete benzetilirken açık
 kaynak kod akımı bir geliştirme metodolojisine benzetilmektedir. Biz kursumuzda tüm bu akımları
-*açık kaynak kod* (*open source*) olarak nitelendireceğiz. Özgür yazılım akımının temel lisansı GPL'dir
-(*GNU Public Licence*). Bunun yumuşatılmış LGPL (*Lesser GPL*) biçiminde bir versiyonu da oluşturulmuştur.
-Ayrıca Apache, MIT, BSD gibi açık kaynak kodlu başka lisanslar da vardır. Bu lisansların aralarında birtakım
+*açık kaynak kod (open source)* olarak nitelendireceğiz. Özgür yazılım akımının temel lisansı *GPL'dir
+(GNU Public Licence)*. Bunun yumuşatılmış *LGPL (Lesser GPL)* biçiminde bir versiyonu da oluşturulmuştur.
+Ayrıca *Apache*, *MIT*, *BSD* gibi açık kaynak kodlu başka lisanslar da vardır. Bu lisansların aralarında birtakım
 farklılıklar bulunmakla birlikte pek çok yönleri de ortaktır.
 
-Yazılım Sistemlerinde Katmanlı Yapı ve Kod Tekrarı
-==================================================
+Yazılım Sistemlerinde Katmanlı Yapılar ve Kod Tekrarının Engellenmesi
+=====================================================================
 
-Yazılımda genel olarak kod tekrarı istenmez. Bu nedenle yazılım sistemleri katmanlı bir yapıya sahip olur. Örneğin B
+Yazılımda genel olarak kod tekrarı istenmez. Bu nedenle yazılım sistemleri katmanlı yapılara sahip olur. Örneğin B
 kütüphanesi A kütüphanesini kullanarak yazılmış olabilir. C kütüphanesi de B'yi kullanarak yazılmış olabilir. D de C'yi
 kullanmış olabilir:
 
-.. code-block:: text
-
-              +-------------+
-              |      D      |
-              +-------------+
-          +---------------------+
-          |          C          |
-          +---------------------+
-      +-----------------------------+
-      |              B              |
-      +-----------------------------+
-   +-----------------------------------+
-   |                 A                 |
-   +-----------------------------------+
+.. figure:: _static/layered-pyramid.png
+    :align: center
+    :width: 50%
 
 Tabii bir kütüphane birden fazla kütüphaneyi kullanarak da yazılmış olabilir. Burada *var olanı kullanarak onu genişletme*
 sürecini vurgulamak istiyoruz.
@@ -1219,21 +1220,10 @@ o taban sınıftan türetilerek gerçekleştirilir.
 Kütüphanelerle İlgili Temel Kavramlar Kavramları 
 ================================================
 
-Şimdi de kütüpanelere ilişkin bazı temel kavramalr üzerinde duracağız.
+Şimdi de kütüpanelere (libraries) ilişkin bazı temel kavramalr üzerinde duracağız.
 
-API (Application Programming Interface) Kavramı
------------------------------------------------
-
-Bir yazılım sisteminde (bu bir işletim sistemi olabilir, framework olabilir ya da başka bir yazılım olabilir) uygulama
-programcılarının doğrudan çağırabileceği, o sistem ile uygulama programcısı arasında köprü oluşturan fonksiyon ya da
-sınıf kümesine API denilmektedir. API aslında lastik bir terimdir. Hangi fonksiyonlara API denilebileceği tartışılabilir.
-Fakat genel olarak API uygulama programcılarının ilgili sistem üzerinde birtakım faydalı işlemler yapabilmek için
-kullandıkları fonksiyon ya da sınıf kütüphaneleridir. Örneğin Java API'leri denildiğinde Java sınıfları, Windows API'leri
-denildiğinde Windows işletim sisteminde temel işlemleri yapmak için kullanılan fonksiyonlar anlaşılır. POSIX
-fonksiyonlarını da bu bağlamda UNIX türevi sistemlerin API'leri diyebiliriz.
-
-Kütüphane (Library) Kavramı
----------------------------
+Kütüphane Kavramı
+-----------------
 
 Belli bir konuda faydalı işlemler yapan fonksiyonların ve/veya sınıfların oluşturduğu topluluğa *kütüphane (library)*
 denilmektedir. Kütüphane denildiğinde doğrudan kullanılabilecek hazır fonksiyonlar ve sınıflar anlaşılmaktadır. Yukarıda
@@ -1244,9 +1234,16 @@ sistemlerinde kütüphaneler ``.lib`` ve ``.dll`` uzantılı dosyalar biçiminde
 kütüphanelerdeki fonksiyonlar derlenmiş olarak değil, arakod biçiminde ya da doğrudan kaynak kod biçiminde
 bulundurulmaktadır. Kütüphane kavramı *kullanıma hazır* fonksiyonları ve sınıfları belirtmektedir.
 
-Kütüphanelerin içerisindeki fonksiyonlar karmaşık bir sistemden faydalanmak amacıyla oluşturulmuşsa bunlar aynı zamanda
-API olarak da isimlendirilebilir. Yani API'ler birer kütüphane oluşturmaktadır. Ancak her kütüphane API görevinde olmak
-zorunda değildir.
+API Kavramı
+-----------
+
+Bir yazılım sisteminde (bu bir işletim sistemi olabilir, framework olabilir ya da başka bir yazılım olabilir) uygulama
+programcılarının doğrudan çağırabileceği, o sistem ile uygulama programcısı arasında köprü oluşturan fonksiyon ya da
+sınıf kümesine API (Application Programming Interface) denilmektedir. API aslında lastik bir terimdir. Hangi fonksiyonlara 
+API denilebileceği tartışılabilir. Fakat genel olarak API uygulama programcılarının ilgili sistem üzerinde birtakım faydalı 
+işlemler yapabilmek için kullandıkları fonksiyon ya da sınıf kütüphaneleridir. Örneğin Java API'leri denildiğinde Java sınıfları, 
+Windows API'leri denildiğinde Windows işletim sisteminde temel işlemleri yapmak için kullanılan fonksiyonlar anlaşılır. 
+POSIX fonksiyonlarını da bu bağlamda UNIX türevi sistemlerin API'leri gibi düşünebiliriz.
 
 Framework Kavramı
 -----------------
@@ -1270,16 +1267,16 @@ Donanıma İlişkin Temel Kavramlar
 
 Şmdi de donanıma ilişkin temel kavramlar üzerinde duracağız.
 
-İşlemci (CPU) Nedir?
---------------------
+İşlemci Nedir?
+--------------
 
-Bir bilgisayar sisteminde aritmetik, mantıksal, bitsel işlemler ve karşılaştırma işlemleri *mikroişlemci (microprocessor)*
+Bir bilgisayar sisteminde aritmetik, mantıksal, bitsel ve karşılaştırma işlemleri *mikroişlemci (microprocessor)*
 denilen birim tarafından yapılmaktadır. Mikroişlemciler entegre devre biçiminde üretilmişlerdir. Mikroişlemcilere
-kavramsal olarak *CPU (Central Processing Unit)* de denilmektedir. Yani CPU mikroişlemcilerin kavramsal ismidir. Aslında
+kavramsal olarak *CPU (Central Processing Unit)* da denilmektedir. Yani CPU mikroişlemcilerin kavramsal ismidir. Aslında
 bir bilgisayar sisteminde komut çalıştıran pek çok yardımcı işlemci de bulunabilmektedir. CPU bu işlemcileri de programlayan
-ana (merkezi) işlemcidir. Bilgisayar sisteminde yerel bazı işlemlerden sorumlu yardımcı işlemciler de vardır. Örneğin
-*kesme denetleyicisi (interrupt controller)*, *disk denetleyicisi (disk controller)*, *DMA denetleyicisi (DMA controller)*
-gibi. Kursumuzda yalnızca *işlemci (processor)* dediğimizde *mikroişlemci (microprocessor)* anlaşılmalıdır. Kursumuzda
+ana (merkezi) işlemcidir. Örneğin *kesme denetleyicisi (interrupt controller)*, *disk denetleyicisi (disk controller)*, 
+*DMA denetleyicisi (DMA controller)* birer yardımcı işlemcidir. Bunlar merkezi işlemci tarafından programlanmaktadır. 
+Kitabımızda yalnızca *işlemci (processor)* dediğimizde *mikroişlemci (microprocessor)* anlaşılmalıdır. Kitabımızda
 *işlemci* yerine kavramsal ismi olan CPU terimi de kullanılacaktır.
 
 Ana Bellek ve İkincil Bellekler
@@ -1288,44 +1285,17 @@ Ana Bellek ve İkincil Bellekler
 Bilgisayar sistemlerinde CPU ile elektriksel biçimde bağlı olan ve CPU'nun çalışması sırasında sürekli başvurulan
 belleklere *ana bellek (main memory)*, *birincil bellek (primary memory)* ya da *RAM (Random Access Memory)* denilmektedir.
 Programlarımız işletim sistemi tarafından ana belleğe yani RAM'e yüklenir ve CPU tarafından ana bellekten komutlar ve
-veriler alınarak işlenir. CPU ile RAM arasındaki bağlantıda üç tür uç kullanılmaktadır: Veri uçları (data bus), adres
+veriler alınarak işlenir. CPU ile RAM arasındaki bağlantıda kabacaüç tür uç kullanılmaktadır: Veri uçları (data bus), adres
 uçları (address bus) ve kontrol uçları (control bus).
 
-.. code-block:: text
-
-   ┌───────────────────────────┐                      ┌───────────────────────────┐
-   │           CPU             │                      │           RAM             │
-   │   Central Processing Unit │                      │   Random Access Memory    │
-   │                           │                      │                           │
-   │  ┌──────────┐ ┌─────────┐ │                      │  ┌─────────────────────┐  │
-   │  │   ALU    │ │Registers│ │                      │  │    Memory Cells     │  │
-   │  └──────────┘ └─────────┘ │                      │  └─────────────────────┘  │
-   │                           │                      │                           │
-   │  ┌───────────────────────┐│                      │  ┌─────────────────────┐  │
-   │  │   Cache (L1/L2/L3)    ││                      │  │  Row / Col Decoder  │  │
-   │  └───────────────────────┘│                      │  └─────────────────────┘  │
-   │                           │                      │                           │
-   └───────────────────────────┘                      └───────────────────────────┘
-               │                                                   │
-               │         ┌─────────────────────────┐               │
-               ├────────>│      Address Bus        │──────────────>│
-               │         │  (Tek Yönlü / 32-64 bit)│               │
-               │         └─────────────────────────┘               │
-               │                                                   │
-               │         ┌─────────────────────────┐               │
-               │<────────│       Data Bus          │<──────────────┤
-               ├────────>│   (Çift Yönlü / 64 bit) │──────────────>│
-               │         └─────────────────────────┘               │
-               │                                                   │
-               │         ┌─────────────────────────┐               │
-               └────────>│      Control Bus        │──────────────>┘
-                         │  (Tek Yönlü: READ/WRITE)│
-                         └─────────────────────────┘
+.. figure:: _static/cpu-ram-bus.png
+    :align: center
+    :width: 60%
 
 RAM içerisindeki bilgiler bilgisayar sistemi kapatıldığında kaybolmaktadır. İşte bilgisayar sistemi kapatıldığında
 bilgilerin güç gereksinimi olmadan saklanması için kullanılan belleklere *ikincil bellek (secondary memory)* denilmektedir.
-SSD ve hard diskler, flash bellekler, optik diskler ikincil bellek durumundadır. Kursumuzda *disk* terimini yalnızca
-hard diskler ve SSD diskler için değil genel olarak ikincil bellek anlamında kullanacağız.
+SSD (Solid State Disk) ve hard diskler, flash bellekler, optik diskler ikincil bellek durumundadır. Kitabımızda *disk* 
+terimini yalnızca hard diskler ve SSD diskler için değil genel olarak ikincil bellek anlamında kullanacağız.
 
 Eskiden ikincil bellek olarak elektromekanik biçimde üretilmiş olan hard diskler kullanılıyordu. Bugün artık hard
 disklerin kullanımı gittikçe azalmıştır ve ağırlıklı olarak mekanik parçası olmayan flash bellekler disk olarak
@@ -1333,7 +1303,7 @@ kullanılmaktadır. Bunlara *SSD (Solid State Disk)* de denilmektedir. İkincil 
 *dizinler ve dosyalar biçiminde* kullanıcıya gösterilmektedir. İşletim sistemlerinin bu organizasyonu yapan alt
 sistemine de *dosya sistemi (file system)* denilmektedir. Yani aslında dosya kavramı işletim sistemi tarafından
 oluşturulan yüksek seviyeli bir kavramdır. İşletim sistemi dosyalara birer isim yoluyla erişimi mümkün hale getirmektedir.
-Aslında dosyanın parçaları diskte ardışıl bir biçimde de bulunmamaktadır. İşletim sistemi dosyanın hangi parçasının
+Dosyanın parçaları diskte ardışıl bir biçimde de bulunmamaktadır. İşletim sistemi dosyanın hangi parçasının
 diskin hangi bloğunda bulunduğu bilgisini tutar ve sanki dosyayı kullanıcılara ardışıl topluluğuymuş gibi gösterir.
 
 Bir diskten transfer edilecek (okunabilecek ya da yazılabilecek) en küçük birime *blok (block)* ya da *sektör (sector)*
@@ -1341,7 +1311,7 @@ denilmektedir. Diskten 1 byte okumak mümkün değildir. En az 1 blok okunabilme
 büyüklüktedir. Diskteki her bloğun fiziksel bir numarası vardır. İşte işletim sisteminin dosya sistemi her dosyanın
 diskte hangi bloklarda tutulduğunu bir biçimde saklamaktadır. Aslında işletim sistemleri dosya parçalarını 512 byte'lık
 bloklara bölmek yerine ardışıl bloklardan oluşan parçalara bölmektedir. Böylece dosyanın parçalarının disk üzerindeki
-yerleri daha az bilgiyle tutulmuş olur. Örneğin tipik olarak Linux sistemlerinde dosyanın parçaları ardışıl 8 disk
+yerleri daha az metaveriyle tutulmuş olur. Örneğin tipik olarak Linux sistemlerinde dosyanın parçaları ardışıl 8 disk
 bloğunda olacak biçimde bölünmektedir. Ancak bu durum formatlama sırasında değiştirilebilmektedir. Yani disk bloğu ile
 işletim sisteminin kullandığı blok farklı uzunluklarda olabilmektedir.
 
@@ -1355,72 +1325,25 @@ denilen birimler tarafından yapılmaktadır. Böylece modern bilgisayar sisteml
 işlemleri yapılırken işletim sistemleri CPU'ya başka işlemler yaptırabilmektedir. Aşağıdaki şekilde CPU, disk denetleyicisi
 ve DMA birimlerinin etkileşimi özetlenmektedir:
 
-.. code-block:: text
-
-       ┌─────────────────────┐
-       │         CPU         │
-       │                     │
-       │  ┌───┐  ┌───────┐   │
-       │  │ALU│  │  CU   │   │
-       │  └───┘  └───────┘   │
-       │  ┌───────────────┐  │
-       │  │  Registers    │  │
-       │  └───────────────┘  │
-       └──────────┬──────────┘
-                  │
-                  │  ① CPU, DMA'yı programlar
-                  │     (src, dst, count)
-                  ▼
-       ┌─────────────────────┐
-       │  DMA Denetleyici    │
-       │                     │
-       │  src_addr: 0x1000   │
-       │  dst_addr: 0x5000   │
-       │  word_count: 512    │
-       └──────┬──────┬───────┘
-              │      │
-              │      └─────────────────────────────────┐
-              │  ② Bus isteği                          │  ③ Disk'ten veri oku
-              │  (Bus Request)                         │     (read trigger)
-              ▼                                        ▼
-       ┌─────────────────────┐              ┌─────────────────────┐
-       │         RAM         │              │   Disk Denetleyici  │
-       │                     │              │                     │
-       │  [ 0x0000...... ]   │              │  ┌───────────────┐  │
-       │  [ 0x1000 SRC  ]    │◄─────────────│  │  Veri Tamponu │  │
-       │  [ ........... ]    │  ④ DMA,      │  │  (Buffer)     │  │
-       │  [ 0x5000 DST  ]    │  RAM'e yazar │  └───────────────┘  │
-       │  [ ........... ]    │              │        │            │
-       │  [ 0xFFFF...... ]   │              │  ┌─────▼─────────┐  │
-       └─────────────────────┘              │  │  Disk (HDD/   │  │
-              │                             │  │   SSD)        │  │
-              │                             │  └───────────────┘  │
-              │                             └─────────────────────┘
-              │  ⑤ Transfer bitti → Interrupt
-              │
-              ▼
-   ┌─────────────────────┐
-   │         CPU         │
-   │   (IRQ handler)     │
-   └─────────────────────┘
-
-----
+.. figure:: _static/dma-transfer.png
+    :align: center
+    :width: 60%
 
 Mikrodenetleyici Kavramı
 ------------------------
 
-Kendi içerisinde CPU'su, RAM'i, ROM'u ve bazı çevre birimleri de bulunan entegre devrelere *mikrodenetleyici
-(microcontroller)* denilmektedir. Mikrodenetleyicilerin işlem kapasiteleri ve içerdikleri bellek miktarları düşük olma
-eğilimindedir. Ancak bunlar çok kolay programlanıp uygulamaya sokulabilmektedir. Mikrodenetleyicilere *tek çiplik
-bilgisayar (single chip computer)* da denilmektedir. Mikrodenetleyiciler özellikle gömülü sistemlerde tercih edilirler.
-Bunların düşük güç harcaması ve ucuz olmaları en büyük avantajlarındandır. Mikrodenetleyiciler için İngilizce
-*MCU (Microcontroller Unit)* kısaltması da kullanılabilmektedir. Mikrodenetleyicilerin kapasiteleri düşük olma eğiliminde
-olduğu için bunlara genellikle genel amaçlı işletim sistemleri yüklenememektedir. Mikrodenetleyiciler tipik olarak
-*bare metal* programlama yoluyla kullanılmaktadır. Ancak zaman içerisinde mikrodenetleyiciler de teknolojinin
-gelişmesinden paylarını almıştır. Bunların da kapasiteleri gittikçe yükseltilmektedir. Her ne kadar
+Kendi içerisinde CPU'su, RAM'i, ROM'u (ROM'u genel bir terim olarak kullanıyoruz) ve bazı çevre birimleri de bulunan 
+entegre devrelere *mikrodenetleyici (microcontroller)* denilmektedir. Mikrodenetleyicilerin işlem kapasiteleri ve 
+içerdikleri bellek miktarları düşük olma eğilimindedir. Ancak bunlar çok kolay programlanıp uygulamaya sokulabilmektedir. 
+Mikrodenetleyicilere *tek çiplik bilgisayar (single chip computer)* da denilmektedir. Mikrodenetleyiciler özellikle 
+gömülü sistemlerde tercih edilirler. Bunların düşük güç harcaması ve ucuz olmaları en büyük avantajlarındandır. 
+Mikrodenetleyiciler için İngilizce *MCU (Microcontroller Unit)* kısaltması da kullanılmaktadır. Mikrodenetleyicilerin 
+kapasiteleri düşük olma eğiliminde olduğu için bunlara genellikle genel amaçlı işletim sistemleri yüklenememektedir. 
+Mikrodenetleyiciler tipik olarak *bare metal* programlama yoluyla kullanılırlar. Ancak zaman içerisinde mikrodenetleyiciler 
+de teknolojinin gelişmesinden paylarını almıştır. Bunların da kapasiteleri gittikçe yükseltilmektedir. Her ne kadar
 mikrodenetleyicilere genel amaçlı işletim sistemleri yüklenemiyorsa da küçük yer kaplayan *gerçek zamanlı işletim
-sistemleri* pek çok mikrodenetleyicide kullanılabilmektedir. Mikrodenetleyiciler değişik firmalar tarafından değişik
-mimarilerle üretilmektedir. ARM ailesinin M profilleri ailenin mikrodenetleyici üyeleridir. Mikrodenetleyici üreten
+sistemleri* pek çok mikrodenetleyici ailesinde kullanılabilmektedir. Mikrodenetleyiciler değişik firmalar tarafından 
+değişik mimarilerle üretilmektedir. ARM ailesinin M profilleri ailenin mikrodenetleyici üyeleridir. Mikrodenetleyici üreten
 önemli firmaları ve bunların mimarilerini aşağıdaki tabloda veriyoruz:
 
 .. list-table:: Önemli Mikrodenetleyici Üreticileri ve Ürünleri
@@ -1449,8 +1372,6 @@ mimarilerle üretilmektedir. ARM ailesinin M profilleri ailenin mikrodenetleyici
      - EFM32 (Gecko serisi, düşük güç), EFR32 (kablosuz), BGM220 (BLE modül)
    * - Raspberry Pi Foundation
      - RP2040 (çift çekirdek Cortex-M0+, PIO özelliği), RP2350 (Cortex-M33 / RISC-V)
-
-----
 
 SoC (System on Chip) Kavramı
 ----------------------------
