@@ -1217,8 +1217,8 @@ programlama tekniğinde kod tekrarını engellemek için *türetme (inheritance)
 Bu teknikte iki sınıfın birtakım ortak elemanları varsa bu ortak elemanlar bir taban sınıfta toplanır, bu iki sınıf da
 o taban sınıftan türetilerek gerçekleştirilir.
 
-Kütüphanelerle İlgili Temel Kavramlar Kavramları 
-================================================
+Kütüphanelerle İlgili Temel Kavramlar
+=====================================
 
 Şimdi de kütüpanelere (libraries) ilişkin bazı temel kavramalr üzerinde duracağız.
 
