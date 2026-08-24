@@ -1,6 +1,470 @@
-===============================================
-UNIX/Linux Dünyasında Komut Satırı Argümanları
-===============================================
+============================================
+**Komut Satırı Argümanlarının Ele Alınması**
+============================================
+
+Bir programı çalıştırırken program isminin yanına yazdığımız argümanlara *komut satırı argümanları (command line
+arguments)* denilmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ ls -l -i /usr/include
+
+Burada *ls* program dosyasını, ``-l``, ``-i`` ve ``/usr/include`` ise komut satırı argümanlarını belirtmektedir. Bu bölümde
+UNIX/Linux sistemlerinde komut satırı argümanlarının ele alınması üzerinde duracağız.
+
+POSIX Stili Satırı Argümanları
+==============================
+
+UNIX/Linux dünyasında komut satırı argümanlarının oluşturulması için geniş bir kesim tarafından kullanılan geleneksel
+bir biçim vardır. Bu biçime *POSIX yada UNIX biçimi* de denilmektedir. Biz de kursumuzda UNIX/Linux dünyasında yazacağımız
+programlarda bu geleneği kullanacağız. POSIX stilinde komut satırı argümanları üçe ayrılmaktadır:
+
+| **1.** Argümansız seçenekler
+| **2.** Argümanlı seçenekler
+| **3.** Seçeneksiz argümanlar
+
+Argümansız seçenekler ``-`` karakterine yapışık tek bir harften oluşmaktadır. Harflerde büyük harf-küçük harf
+duyarlılığı (case sensitivity) dikkate alınmaktadır. Örneğin:
+
+.. code-block:: bash
+
+    $ ls -l -i /usr/include
+
+Burada ``-l`` ve ``-i`` argümansız seçeneklerdir. ``/usr/include`` argümanının bu seçeneklerle hiçbir ilgisi yoktur.
+Argümansız seçenekler tek bir karakterden oluşturulduğu için birleştirilebilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    $ ls -li
+
+Buradaki ``-li`` aslında ``-l -i`` ile tamamen aynı anlamdadır. Genel olarak POSIX stilinde seçenekler arasındaki sıranın
+bir önemi yoktur. Yani örneğin ``ls -l -i`` ile ``ls -i -l`` arasında bir farklılık yoktur. Seçenekler istenilen sırada
+belirtilebilmektedir.
+
+Argümanlı seçeneklerde bir seçeneğin yanında o seçenekle ilişkili bir argüman da bulunur. Örneğin:
+
+.. code-block:: bash
+
+    $ gcc -o sample sample.c
+
+Burada ``-o`` seçeneği tek başına kullanılmaz. Hedef dosyanın ismi seçeneğin argümanını oluşturmaktadır. O halde
+buradaki ``-o`` seçeneği tipik olarak argümanlı seçeneğe bir örnektir. Argümanlı seçeneklerin birleştirilmesi tavsiye
+edilmez. Ancak birleştirme yapılabilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    $ gcc -co sample.o sample.c
+
+Bu yazım biçimini pek çok program kabul etse de tavsiye edilmemektedir. Buradaki argümanların aşağıdaki gibi belirtilmesi
+daha uygundur:
+
+.. code-block:: bash
+
+    $ gcc -c -o sample.o sample.c
+
+Argümanlı seçenekleri argümansız seçeneklerle birleştirecekseniz argümanlı seçeneği sonda bulundurmanız gerekir. Örneğin:
+
+.. code-block:: bash
+
+    $ tar -xvzf test.tar.gz
+
+Burada ``test.tar.gz`` argümanı aslında ``-f`` seçeneğinin argümanıdır. Biz bu ``-f`` seçeneğini sonda bulundurmak
+zorundayız. Aşağıdaki kullanım hatalıdır:
+
+.. code-block:: bash
+
+    $ tar -xvfz test.tar.gz
+
+Burada ``-f`` seçeneğindeki argüman sorunu nedeniyle program hata mesajı vererek sonlanacaktır.
+
+Argümanlı seçeneklerde seçeneğin argümanı hiç boşluk karakterleriyle ayrılmasa bile bu durum geçerlidir. Örneğin:
+
+.. code-block:: bash
+
+    $ gcc -osample sample.c
+
+Burada ``-o`` argümanlı seçenek olduğu için onu başka bir seçenek izleyemeyeceğinden dolayı ``sample``, ``-o``
+seçeneğinin argümanı olarak ele alınmaktadır. Tabii seçenekli argümanlarda argümandan sonra bir boşluk bırakmak komutun
+daha iyi algılanmasını sağlamaktadır.
+
+Seçeneklerle ilgisi olmayan argümanlara *seçeneksiz argüman* denilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    $ gcc -o sample sample.c
+
+Burada ``sample.c`` argümanı herhangi bir seçenekle ilgili değildir. Örneğin:
+
+.. code-block:: bash
+
+    $ cp x.txt y.txt
+
+Buradaki ``x.txt`` ve ``y.txt`` argümanları da seçeneklerle ilgili değildir. Seçeneksiz argümanların sonda bulunması
+gerekmez. Örneğin:
+
+.. code-block:: bash
+
+    $ gcc sample.c -o sample
+
+Eskiden yalnızca tek karakterden oluşan kısa seçenekler kullanılıyordu. Ancak daha sonraları bu kısa seçeneklerin
+yetersiz kaldığı ve okunabilirliği bozduğu gerekçesiyle uzun seçenekler de kullanılmaya başlanmıştır. POSIX standartları
+uzun seçenekleri desteklememektedir. Ancak UNIX/Linux dünyasında yaygın biçimde kullanılmaktadır.
+
+Uzun seçenekler ``--`` öneki ile başlatılır. Örneğin:
+
+.. code-block:: bash
+
+    prog --count -a -b --length 100
+
+Uzun seçenekler de argümanlı ve argümansız olabilmektedir. Yukarıdaki örnekte ``--count`` argümansız uzun seçenek,
+``-a`` ve ``-b`` argümansız seçenekler ve ``--length 100`` ise argümanlı uzun seçenektir.
+
+Uzun seçeneklerde *isteğe bağlı argüman (optional argument)* denilen özel bir argüman da kullanılmaktadır. İsteğe bağlı
+argümanlar uzun seçeneklerin yanında verilip verilmemesi isteğe bağlı olan argümanlardır. Uzun seçeneklerin isteğe bağlı
+argümanları ``=`` sentaksı ile yapışık bir biçimde belirtilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    prog --size=512
+
+Burada ``--size`` uzun seçeneğinin argümanı isteğe bağlıdır. Yani bu uzun seçenek argümansız da aşağıdaki gibi
+kullanılabilirdi:
+
+.. code-block:: bash
+
+    prog --size
+
+Günümüzde genel olarak programlar kısa seçenekleri de uzun seçenekleri de bir arada kullanmaktadır. Programcılar bazı
+kısa seçeneklerin alternatif uzun seçeneklerini oluşturabilmektedir. Örneğin Linux'un ``ls`` komutunun seçenek listesi
+şöyledir:
+
+.. list-table:: ``ls`` Komutunun Seçenekleri
+   :header-rows: 1
+   :widths: 38 62
+
+   * - Seçenek
+     - Açıklama
+   * - ``-a``, ``--all``
+     - Nokta ile başlayanlar dahil tüm dosyaları listeler
+   * - ``-A``, ``--almost-all``
+     - ``.`` ve ``..`` hariç gizli dosyaları listeler
+   * - ``-b``, ``--escape``
+     - Yazdırılamaz karakterleri sekizlik gösterimle kaçırır
+   * - ``--block-size=BOYUT``
+     - Boyutları BOYUT katlarında gösterir (örn: ``--block-size=M``)
+   * - ``-B``, ``--ignore-backups``
+     - ``~`` ile biten yedek dosyaları listelemeye dahil etmez
+   * - ``-c``
+     - ``-lt`` ile durum değişikliği zamanını gösterir, ``-l`` ile sıralar
+   * - ``-C``
+     - Çıktıyı sütunlar halinde listeler (varsayılan)
+   * - ``--color[=NE ZAMAN]``
+     - Renklendirmeyi etkinleştirir (always/auto/never)
+   * - ``-d``, ``--directory``
+     - Dizin içeriği yerine dizinin kendisini listeler
+   * - ``-D``, ``--dired``
+     - Emacs dired modu için çıktı üretir
+   * - ``-f``
+     - Sıralama yapmaz; ``-aU`` etkinleştirir, ``-ls`` devre dışı bırakır
+   * - ``-F``, ``--classify[=NE ZAMAN]``
+     - Dosya türünü belirten sembol ekler (``/``, ``*``, ``@``, ``|``, ``=``)
+   * - ``--file-type``
+     - ``-F`` gibi ancak ``*`` eklemez
+   * - ``--format=SÖZCÜK``
+     - Listeleme biçimini belirler (across/commas/long/vb.)
+   * - ``--full-time``
+     - Tam tarih ve saat bilgisini gösterir
+   * - ``-g``
+     - Kullanıcı adı sütunu olmaksızın uzun listeleme yapar
+   * - ``--group-directories-first``
+     - Dizinleri dosyalardan önce listeler
+   * - ``-G``, ``--no-group``
+     - Uzun listede grup adını göstermez
+   * - ``-h``, ``--human-readable``
+     - Boyutları okunabilir birimlerle gösterir (K, M, G)
+   * - ``--si``
+     - Boyutları SI (1000'lik) birimleriyle gösterir
+   * - ``-H``, ``--dereference-command-line``
+     - Sembolik bağlantıları komut satırında takip eder
+   * - ``--dereference-command-line-symlink-to-dir``
+     - Yalnızca dizine işaret eden sembolik bağlantıları takip eder
+   * - ``--hide=KALIP``
+     - Belirtilen glob kalıbıyla eşleşen girişleri gizler
+   * - ``--hyperlink[=NE ZAMAN]``
+     - Dosya adlarına terminal hiper bağlantısı ekler
+   * - ``--indicator-style=SÖZCÜK``
+     - Tür gösterge stilini belirler (none/slash/file-type/classify)
+   * - ``-i``, ``--inode``
+     - Her dosyanın inode numarasını gösterir
+   * - ``-I``, ``--ignore=KALIP``
+     - Belirtilen glob kalıbıyla eşleşen girişleri gizler
+   * - ``-k``, ``--kibibytes``
+     - Blok boyutlarını 1 KiB olarak gösterir
+   * - ``-l``
+     - Uzun biçimde listeler (izin, sahip, boyut, tarih)
+   * - ``-L``, ``--dereference``
+     - Sembolik bağlantılar için bağlantıyı takip eder
+   * - ``-m``
+     - Girişleri virgülle ayrılmış liste olarak gösterir
+   * - ``-n``, ``--numeric-uid-gid``
+     - Kullanıcı ve grup adı yerine UID/GID numarası gösterir
+   * - ``-N``, ``--literal``
+     - Dosya adlarını tırnak içine almaz
+   * - ``-o``
+     - Grup sütunu olmaksızın uzun listeleme yapar
+   * - ``-p``, ``--indicator-style=slash``
+     - Dizinlerin sonuna ``/`` ekler
+   * - ``-q``, ``--hide-control-chars``
+     - Yazdırılamaz karakterleri ``?`` ile değiştirir
+   * - ``--show-control-chars``
+     - Yazdırılamaz karakterleri olduğu gibi gösterir
+   * - ``-Q``, ``--quote-name``
+     - Dosya adlarını çift tırnak içinde gösterir
+   * - ``--quoting-style=SÖZCÜK``
+     - Tırnak stilini belirler (literal/shell/c/escape/vb.)
+   * - ``-r``, ``--reverse``
+     - Sıralama düzenini tersine çevirir
+   * - ``-R``, ``--recursive``
+     - Dizin ağacını özyinelemeli olarak listeler
+   * - ``-s``, ``--size``
+     - Her dosyanın blok cinsinden disk kullanımını gösterir
+   * - ``-S``
+     - Dosya boyutuna göre sıralar (büyükten küçüğe)
+   * - ``--sort=SÖZCÜK``
+     - Sıralama ölçütünü belirler (none/size/time/version/ext)
+   * - ``--time=SÖZCÜK``
+     - Zaman ölçütünü belirler (atime/ctime/mtime/birth)
+   * - ``--time-style=BİÇİM``
+     - Tarih/saat gösterim biçimini belirler
+   * - ``-t``
+     - Değişiklik zamanına göre sıralar (yeniden eskiye)
+   * - ``-T``, ``--tabsize=SÜTUN``
+     - Sekme durakları için sütun genişliğini ayarlar
+   * - ``-u``
+     - ``-lt`` ile erişim zamanını gösterir, ``-l`` ile erişime göre sıralar
+   * - ``-U``
+     - Dizin sırasıyla listeler, sıralama yapmaz
+   * - ``-v``
+     - Dosya adlarındaki sayıları doğal sırada sıralar
+   * - ``-w``, ``--width=SÜTUN``
+     - Çıktı genişliğini n karakter olarak belirler
+   * - ``-x``
+     - Sütunlar yerine satırlar halinde sıralar
+   * - ``-X``
+     - Uzantıya göre alfabetik sıralar
+   * - ``-Z``, ``--context``
+     - SELinux güvenlik bağlamını gösterir
+   * - ``-1``
+     - Her dosyayı ayrı satırda listeler
+   * - ``--help``
+     - Yardım bilgisini gösterip çıkar
+   * - ``--version``
+     - Sürüm bilgisini gösterip çıkar
+
+Burada da gördüğünüz gibi bazı kısa seçeneklerin alternatif uzun seçenekleri de bulunmaktadır. Ancak yalnızca uzun
+seçenekler de vardır. Yukarıda da belirttiğimiz gibi POSIX standartları uzun seçenekleri desteklememektedir.
+
+----
+
+``getopt`` ve ``getopt_long`` Fonksiyonları
+--------------------------------------------
+
+Peki biz programımızda GNU stilinde seçenek kullanmak istersek komut satırı argümanlarını nasıl parse edebiliriz? İşte
+UNIX/Linux dünyasında komut satırı argümanlarını parse etmek için ``getopt`` ve ``getopt_long`` isimli iki fonksiyon
+bulundurulmuştur. ``getopt`` bir POSIX fonksiyonudur. Ancak bu fonksiyon uzun seçenekleri parse etmemektedir.
+``getopt_long`` ise uzun seçenekleri de parse eden ``getopt`` fonksiyonunun daha gelişmiş bir biçimidir. Ancak
+``getopt_long`` bir POSIX fonksiyonu değildir; ``libc`` kütüphanesinde bulunmaktadır. ``getopt`` ve ``getopt_long``
+fonksiyonları Windows sistemlerinde hazır bir biçimde herhangi bir kütüphanede bulunmamaktadır. Zaten yukarıda da
+belirttiğimiz gibi Windows sistemlerindeki komut satırı argüman stili UNIX/Linux sistemlerindekinden farklıdır.
+
+``getopt`` Fonksiyonunun Kullanımı
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``getopt`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int getopt(int argc, char * const argv[], const char *optstring);
+
+``getopt`` fonksiyonunun ilk iki parametresi ``main`` fonksiyonunun ``argc`` ve ``argv`` parametreleri gibidir. Yani
+programcı ``main`` fonksiyonunun bu parametrelerini ``getopt`` fonksiyonuna geçirir. Fonksiyonun üçüncü parametresinde
+kısa seçenekler belirtilmektedir. Bu parametre bir yazı biçiminde girilir. Bu yazıdaki her bir karakter bir kısa seçeneği
+belirtmektedir. Bir karakterin sağında ``:`` karakteri varsa bu ``:`` karakterinin solundaki seçeneğin argümanlı bir
+seçenek olduğunu belirtmektedir. Örneğin ``"ab:c"`` yazısında ``-a``, ``-b`` ve ``-c`` seçenekleri belirtilmiştir.
+Ancak ``-b`` seçeneğinin argümanı da vardır.
+
+``getopt`` fonksiyonu bir kez çağrılmaz. Bir döngü içerisinde çağrılmalıdır. Çünkü fonksiyon her çağrıldığında bir
+kısa seçeneği bulmaktadır. Fonksiyon bütün kısa seçenekleri bulduktan sonra artık bulacak bir seçenek kalmadığında
+``-1`` değerine geri dönmektedir. Fonksiyonun tipik çağrılma kalıbı şöyledir:
+
+.. code-block:: c
+
+    int result;
+
+    while ((result = getopt(argc, argv, "ab:c")) != -1) {
+        /* ... */
+    }
+
+``getopt``, her kısa seçeneği bulduğunda o kısa seçeneğe ilişkin karakterle (yani o karakterin sayısal karşılığı ile)
+geri dönmektedir. O halde bizim ``getopt`` fonksiyonunun geri dönüş değerini ``switch`` içerisinde ele almamız gerekir:
+
+.. code-block:: c
+
+    while ((result = getopt(argc, argv, "ab:c")) != -1) {
+        switch (result) {
+            case 'a':
+                /* ... */
+                break;
+            case 'b':
+                /* ... */
+                break;
+            case 'c':
+                /* ... */
+                break;
+        }
+    }
+
+``getopt`` fonksiyonu, olmayan (yani üçüncü parametresinde belirtilmeyen) bir kısa seçenekle karşılaştığında ya da
+argümanı olması gerektiği halde girilmemiş bir kısa seçenekle karşılaştığında ``'?'`` özel değerine geri dönmektedir.
+Programcının ``switch`` deyimine bu ``case`` bölümünü ekleyerek bu durumu da ele alması uygun olur. Örneğin:
+
+.. code-block:: c
+
+    while ((result = getopt(argc, argv, "ab:c")) != -1) {
+        switch (result) {
+            case 'a':
+                /* ... */
+                break;
+            case 'b':
+                /* ... */
+                break;
+            case 'c':
+                /* ... */
+                break;
+            case '?':
+                /* ... */
+                break;
+        }
+    }
+
+``getopt`` Fonksiyonunun Global Değişkenleri
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``getopt`` fonksiyonunun kullandığı dört global değişken vardır. Bu global değişkenler kütüphanenin içerisinde
+tanımlanmıştır. Bunları biz ``extern`` bildirimi ile kullanabiliriz. Ancak bunların ``extern`` bildirimleri zaten
+``<unistd.h>`` dosyası içerisinde yapılmış durumdadır:
+
+.. code-block:: c
+
+    extern int opterr;
+    extern int optopt;
+    extern int optind;
+    extern char *optarg;
+
+Varsayılan durumda, ``getopt`` fonksiyonu geçersiz bir seçenekle (yani üçüncü parametresinde belirtilmeyen bir
+seçenekle) karşılaştığında ya da seçenek argümana sahip olduğu halde argümanın belirtilmemesi durumunda ``stderr``
+dosyasına (ekranda çıkacaktır) kendisi hata mesajını yazdırmaktadır. Programcılar genellikle bunu istemezler.
+``getopt`` fonksiyonunun geçersiz seçenekler için hata mesajını yazdırması ``opterr`` değişkenine ``0`` değeri
+atanarak engellenebilmektedir. Yani ``opterr`` değişkeni sıfır dışı bir değerdeyse (varsayılan durum) fonksiyon mesajı
+``stderr`` dosyasına kendisi de yazar; sıfır değerindeyse fonksiyon hata mesajını ``stderr`` dosyasına yazmaz.
+
+``getopt`` fonksiyonu geçersiz bir seçenekle ya da argümanı girilmemiş argümanlı bir seçenekle karşılaştığında ``'?'``
+karakteri ile geri dönmekle birlikte aynı zamanda ``optopt`` global değişkenine geçersiz seçeneğin karakter karşılığını
+da yerleştirmektedir. Böylece programcı daha yeterli bir mesaj verebilmektedir. Örneğin:
+
+.. code-block:: c
+
+    opterr = 0;
+    while ((result = getopt(argc, argv, "ab:c")) != -1) {
+        switch (result) {
+            case 'a':
+                printf("-a given...\n");
+                break;
+            case 'b':
+                printf("-b given...\n");
+                break;
+            case 'c':
+                printf("-c given...\n");
+                break;
+            case '?':
+                if (optopt == 'b')
+                    fprintf(stderr, "-b option given without argument!...\n");
+                else
+                    fprintf(stderr, "invalid option: -%c\n", optopt);
+                break;
+        }
+    }
+
+Argümanlı bir kısa seçenek bulunduğunda ``getopt`` fonksiyonu, ``optarg`` global değişkenini o kısa seçeneğin
+argümanını gösterecek biçimde set eder. Ancak ``optarg`` her argümanlı seçenekte yeni bulunan argümanlı seçeneğin
+argümanını gösterecek biçimde ayarlanmaktadır. Dolayısıyla programcı argümanlı kısa seçeneği bulduğu anda ``optarg``
+değişkenine başvurmalı, gerekirse onu başka bir göstericede saklamalıdır.
+
+Seçeneksiz Argümanların Elde Edilmesi
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Peki seçeneksiz argümanları nasıl elde edebiliriz? Seçeneksiz argümanlar ``argv`` dizisinin herhangi bir yerine
+bulunuyor olabilir. İşte ``getopt`` fonksiyonu her zaman seçeneksiz argümanları girildiği sırada ``argv`` dizisinin
+sonuna taşır ve onların başladığı indeksi de ``optind`` global değişkeninin göstermesini sağlar. O halde programcı
+``getopt`` ile işini bitirdikten sonra (yani ``while`` döngüsünden çıktıktan sonra) ``optind`` indeksinden ``argc``
+indeksine kadar ilerleyerek tüm seçeneksiz argümanları elde edebilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    $ ./sample -a ali -b veli selami -c
+
+Burada ``ali`` ve ``selami`` seçeneksiz argümanlardır. ``getopt`` bu ``argv`` dizisini şu hale getirmektedir:
+
+.. code-block:: bash
+
+    ./sample -a -b veli -c ali selami
+
+Şimdi burada ``optind`` indeksi artık ``ali`` argümanının başladığı indeksi belirtecektir. Onun ötesindeki tüm argümanlar
+seçeneksiz argümanlardır. Bu argümanları ``while`` döngüsünün dışında şöyle yazdırabiliriz:
+
+.. code-block:: c
+
+    for (int i = optind; i < argc; ++i)
+        puts(argv[i]);
+
+Burada bir noktaya dikkatinizi çekmek istiyoruz. Argümanlı seçeneklerde argüman girilmemişse fakat bu seçenekten sonra
+başka bir komut satırı seçeneği ya da argümanı varsa ``getopt`` bu argümanlı seçeneğin argümanının ondan sonra gelen
+seçenek ya da argüman olduğunu sanmaktadır. Örneğin ``"ab:c"`` seçeneklerinin söz konusu olduğu durumda kullanıcı
+programı şöyle çalıştırmış olsun:
+
+.. code-block:: bash
+
+    $ ./sample -a -b -c
+
+Burada kullanıcı ``-b`` için bir argüman girmeyi unutmuştur. ``getopt`` bunu anlayamaz. Bu durumda ``getopt`` sanki
+``-c`` seçeneğini ``-b`` seçeneğinin argümanıymış gibi ele almaktadır. Dolayısıyla ``getopt`` bu durumda ``-b``
+seçeneği için ``'?'`` karakteriyle geri dönmeyecektir.
+
+Bayrak Değişkenleriyle Seçenek Yönetimi
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Peki komut satırı seçeneklerini program içerisinde nasıl kullanabiliriz? İşte bunun için en klasik yöntem her komut
+satırı seçeneği için bir bayrak bulundurmak, bayrakları da ``getopt`` döngüsünde set etmektir. ``getopt`` döngüsünden
+çıkıldıktan sonra bayraklara bakılarak hangi seçeneklerin belirtildiği tespit edilebilir. Uygulamaların çoğunda bazı
+seçenekler bazı seçeneklerle birlikte kullanılamamaktadır. Programcının ``getopt`` döngüsünden çıktıktan sonra
+seçeneklerin doğru kullanılmış olduğunu kontrol etmesi gerekir. Bunun için kullanabileceğiniz bir kalıp şöyle olabilir:
+
+- Her seçenek için bir bayrak değişkeni tutulur. Bu bayrak değişkenlerine başlangıçta ``0`` atanır.
+- Her argümanlı seçenek için bir gösterici bulundurulur.
+- ``getopt`` döngüsünde her seçenekle karşılaşıldığında bayrak değişkenine ``1`` atanarak o seçeneğin verilmiş olduğu
+  kaydedilir.
+- Argümanlı seçeneklerle karşılaşıldığında ``optarg`` global değişkeninden faydalanılarak ilgili göstericinin seçeneğin
+  argümanını göstermesi sağlanır.
+
+Genellikle programlarda aynı seçeneğin birden fazla kez belirtilmesine yönelik kontroller yapılmamaktadır. Bu tür
+durumlarda aynı bayrak değişkeni birden fazla kez set edilir ancak programda bir davranış farklılığı oluşmaz. Örneğin
+``ls`` programında da böyle bir kontrol yapılmamıştır:
+
+.. code-block:: bash
+
+    $ ls -lllllllllll
 
 
 
