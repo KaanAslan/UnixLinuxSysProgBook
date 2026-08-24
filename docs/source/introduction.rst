@@ -203,9 +203,51 @@ Tek parçalı çekirdekler genel olarak daha hızlı ve kırılgan, mikro çekir
 daha yavaş ve sağlam olma eğilimindedir. Aşağıdaki tabloda iki tasarım mimarisini avantaj ve dezavantaj
 bakımından karşılaştırıyoruz:
 
-.. figure:: _static/mono-vs-micro.png
-    :align: center
-    :width: 85%
+.. list-table::
+   :header-rows: 1
+
+   * - Ölçüt
+     - Monolitik Çekirdek
+     - Mikro Çekirdek
+   * - Performans
+     - * [+] Sistem çağrıları doğrudan çekirdek alanında işlenir; düşük gecikme
+       * [+] Bağlamsal geçiş maliyeti düşük
+     - * [-] IPC (mesaj geçişi) ek yük getirir ve gecikmeyi artırır
+       * [-] Kullanıcı modu/çekirdek modu geçişi sık yaşanır
+   * - Güvenilirlik / Kararlılık
+     - * [-] Bir sürücü hatası tüm sistemi çökertebilir
+       * [-] Hata yayılımı (fault propagation) engellenemez
+     - * [+] Servisler kullanıcı alanında izole çalışır
+       * [+] Hatalı servis yeniden başlatılabilir, sistemi çökertmeden
+   * - Güvenlik
+     - * [-] Çekirdek büyüdükçe güvenlik açığı yüzeyi genişler
+       * [-] Tüm kod aynı öncelik seviyesinde
+     - * [+] Minimal TCB (Trusted Computing Base)
+       * [+] Servisler birbirinden izole edilir
+       * [+] seL4 gibi biçimsel doğrulama mümkün
+   * - Modülerlik / Geliştirilebilirlik
+     - * [-] Yeni servis eklemek çekirdeği doğrudan etkiler
+       * [+] LKM ile kısmi modülerlik sağlanır
+     - * [+] Servisler bağımsız geliştirilebilir
+       * [+] Yeni sürücü/servis kullanıcı alanına eklenir, çekirdek değişmez
+   * - Donanım Erişimi
+     - * [+] Donanıma yakın çalışma kolaylığı
+       * [+] DMA, kesmelerin ele alınması doğrudan çekirdekten yönetilir
+     - * [-] Donanım sürücüleri kullanıcı alanında çalışır, donanım erişimi dolaylıdır
+       * [-] Sürücü geliştirmesi daha karmaşık
+   * - Bakım / Test
+     - * [-] Çekirdek kod tabanı büyük ve karmaşık
+       * [-] Hata ayıklama (debugging) güçtür
+       * [+] Geniş topluluk ve araç desteği
+     - * [+] Çekirdek küçük ve anlaşılırdır
+       * [+] Her servis bağımsız test edilebilir
+       * [-] IPC katmanı debug'ı karmaşık olabilir
+   * - Uygun Kullanım Alanı
+     - * [+] Genel amaçlı sistemlerde olgunlaşmış
+       * [+] Masaüstü, sunucu, HPC ortamları
+       * [+] Linux, BSD aileleri kanıtlanmış
+     - * [+] Gömülü, gerçek zamanlı ve güvenlik kritik sistemler için idealdir
+       * [+] QNX, seL4 üretim ortamında başarılı
 
 **Dışsal Olaylara Yanıt Verebilme Özelliğine Göre:** İşletim sistemleri dışsal olaylara yanıt verme bakımından 
 *gerçek zamanlı olan (real-time)* ve *gerçek zamanlı olmayan (non-real-time)* sistemler olmak üzere ikiye ayrılabilir. 
@@ -217,9 +259,64 @@ sistemlerin ise bu konudaki toleransı daha yüksektir. Linux gerçek zamanlı b
 değişiklikleriyle (kernel patches) gevşek gerçek zamanlılık sağlanabilmektedir. Yaygın kullanılan bazı gerçek zamanlı 
 işletim sistemleri aşağıdaki tabloda listeliyoruz:
 
-.. figure:: _static/rtos-systems.png
-    :align: center
-    :width: 90%
+.. list-table::
+   :header-rows: 1
+
+   * - RTOS
+     - Geliştirici
+     - Lisans
+     - Kullanım Alanı
+     - Öne Çıkan Özellik
+   * - VxWorks
+     - Wind River
+     - Ticari
+     - Havacılık, uzay, savunma
+     - DO-178C DAL-A sertifikalı
+   * - INTEGRITY-178B
+     - Green Hills
+     - Ticari
+     - F-35, askeri aviyonik
+     - NSA onaylı, çok güvenli
+   * - LynxOS-178
+     - Lynx Software
+     - Ticari
+     - Askeri, havacılık
+     - POSIX uyumlu, DO-178C
+   * - QNX
+     - BlackBerry
+     - Ticari
+     - Otomotiv, medikal, endüstri
+     - Microkernel mimarisi
+   * - FreeRTOS
+     - Amazon (AWS)
+     - MIT (Açık kaynak)
+     - IoT, gömülü sistemler
+     - Çok küçük footprint
+   * - Zephyr
+     - Linux Found.
+     - Apache 2.0 (Açık kaynak)
+     - IoT, wearable, sensor sistemleri
+     - Modern, modüler yapı
+   * - RTEMS
+     - Topluluk/NASA
+     - BSD (Açık kaynak)
+     - Uzay, bilimsel ekipman
+     - NASA Mars görevlerinde
+   * - embOS
+     - SEGGER
+     - Ticari
+     - Medikal, endüstriyel
+     - Çok küçük RAM kullanımı
+   * - ThreadX (Azure)
+     - Microsoft
+     - MIT (Açık kaynak)
+     - IoT, tüketici elektroniği
+     - IEC 61508 sertifikalı
+   * - PikeOS
+     - SYSGO
+     - Ticari
+     - Airbus, demiryolu, otomotiv
+     - Çoklu işletim Sistemi
 
 **Dağıtıklık Durumuna Göre:** İşletim sistemleri dağıtıklık durumuna göre *dağıtık olan (distributed)* ve *dağıtık olmayan
 (non-distributed)* sistemler biçiminde ikiye ayrılabilmektedir. Dağıtık işletim sistemlerinde sistem birden
@@ -241,11 +338,29 @@ Ancak Microsoft 2010 yılında Windows Mobile işletim sistemini 2017'de Windows
 ve bu alandaki rekabetten tamamen çekilmiştir. Windows CE ise bugün *Windows IoT Core* ismi altında farklı bir 
 tasarımla evrimleşerek devam ettirilmektedir.
 
-Mart 2025 ve Mart 2026'daki masaüstü bilgisayarlarda kullanılan işletim sistemlerinin kullanım oranları şöyledir:
+Kursun yapıldığı (2026 Ocak) sırada masaüstü bilgisayarlarda kullanılan işletim sistemlerinin kullanım oranları şöyledir:
 
-.. figure:: _static/desktop-os-share.png
-    :align: center
-    :width: 55%
+.. list-table::
+   :header-rows: 1
+
+   * - İşletim Sistemi
+     - Mart 2025 (Küresel)
+     - Mart 2026 (Küresel)
+   * - Windows
+     - ~71%
+     - ~60.8%
+   * - macOS
+     - ~15.7%
+     - ~14.4%
+   * - Linux
+     - ~4.2%
+     - ~3.2%
+   * - ChromeOS
+     - ~1.86%
+     - ~1.6%
+   * - Bilinmeyen / Diğer
+     - ~7.2%
+     - ~19.7%
 
 Bunu çubuk grafiği ile şöyle de gösterebiliriz:
 

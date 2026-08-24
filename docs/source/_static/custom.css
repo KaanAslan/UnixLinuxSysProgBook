@@ -71,14 +71,22 @@ table.docutils th {
     table-layout: auto;
 }
 
-@media screen and (max-width: 768px) {
-    .rst-content table.docutils.narrow-table {
-        max-width: 100%;
-    }
-    .rst-content .wy-table-responsive table td,
-    .rst-content .wy-table-responsive table th {
-        white-space: normal !important;
-    }
+.rst-content .wy-table-responsive {
+    overflow: visible;          /* yatay kaydırma çubuğunu kaldır */
+    margin-bottom: 24px;
+}
+
+.rst-content .wy-table-responsive table {
+    width: auto;                /* içeriğe göre daralsın, ekranı zorla kaplamasın */
+    max-width: 100%;            /* ama asla kapsayıcıyı aşmasın */
+    table-layout: auto;
+}
+
+.rst-content .wy-table-responsive table td,
+.rst-content .wy-table-responsive table th {
+    white-space: normal !important;   /* metin satır atlasın */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 @media screen and (max-width: 1024px) {
@@ -86,16 +94,6 @@ table.docutils th {
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .rst-content table.docutils.narrow-table {
-        max-width: 100%;
-    }
-    .rst-content .wy-table-responsive table td,
-    .rst-content .wy-table-responsive table th {
-        white-space: normal !important;
     }
 }
 
