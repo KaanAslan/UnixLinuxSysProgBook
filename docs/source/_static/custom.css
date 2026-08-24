@@ -71,7 +71,7 @@ table.docutils th {
     table-layout: auto;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 768px) {
     .rst-content table.docutils.narrow-table {
         max-width: 100%;
     }
@@ -142,6 +142,6 @@ table.docutils th {
     img.fig-mapping1 { width: 60% !important; }
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 768px) {
     img.fig-mapping1 { width: 50% !important; }
 }

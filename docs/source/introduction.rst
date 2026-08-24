@@ -165,9 +165,39 @@ parçalı *(monolithic)* tarafa daha yakındır. Mikro çekirdekli sistemlerden 
 Genel olarak UNIX türevi sistemlerin çekirdekleri tek parçalı biçimde tasarlanmaktadır. Aşağıda tek parçalı
 çekirdekli tarafa yakın olan işletim sistemlerine örnekler veriyoruz:
 
-.. figure:: _static/monolithic-systems.png
-    :align: center
-    :width: 60%
+.. list-table::
+   :header-rows: 1
+
+   * - Sistem
+     - Tür
+     - Not
+   * - Linux
+     - Modüler Monolitik
+     - LKM desteği var
+   * - FreeBSD
+     - Saf Monolitik
+     - POSIX uyumlu
+   * - NetBSD
+     - Saf Monolitik
+     - Taşınabilirlik odaklı
+   * - OpenBSD
+     - Saf Monolitik
+     - Güvenlik odaklı
+   * - Solaris
+     - Modüler Monolitik
+     - SVR4 tabanlı
+   * - AIX
+     - Modüler Monolitik
+     - IBM Power mimarisi
+   * - Original Unix
+     - Saf Monolitik
+     - Tarihsel referans
+   * - Windows 95/98
+     - Monolitik (Hibrit eğilimli)
+     - Üretim dışı, tarihsel
+   * - Klasik (Eski) Mac OS
+     - Saf Monolitik
+     - Üretim dışı, tarihsel
 
 Tek parçalı çekirdekler genel olarak daha hızlı ve kırılgan, mikro çekirdekli tasarım ise genellikle
 daha yavaş ve sağlam olma eğilimindedir. Aşağıdaki tabloda iki tasarım mimarisini avantaj ve dezavantaj
