@@ -1346,9 +1346,8 @@ sistemleri* pek çok mikrodenetleyici ailesinde kullanılabilmektedir. Mikrodene
 değişik mimarilerle üretilmektedir. ARM ailesinin M profilleri ailenin mikrodenetleyici üyeleridir. Mikrodenetleyici üreten
 önemli firmaları ve bunların mimarilerini aşağıdaki tabloda veriyoruz:
 
-.. list-table:: Önemli Mikrodenetleyici Üreticileri ve Ürünleri
+.. list-table:: 
    :header-rows: 1
-   :widths: 25 75
 
    * - Firma
      - Tipik Ürünler
@@ -1373,27 +1372,26 @@ değişik mimarilerle üretilmektedir. ARM ailesinin M profilleri ailenin mikrod
    * - Raspberry Pi Foundation
      - RP2040 (çift çekirdek Cortex-M0+, PIO özelliği), RP2350 (Cortex-M33 / RISC-V)
 
-SoC (System on Chip) Kavramı
-----------------------------
+SoC Kavramı
+-----------
 
 Bazı firmalar ayrı birimler olarak tasarlanmış mikroişlemcileri, RAM'leri, ROM'ları ve diğer bazı üniteleri tek bir
 entegre devrenin içerisine sıkıştırmaktadır. Bunlara genel olarak *SoC (System On Chip)* denilmektedir. SoC
 mikrodenetleyicilere benzese de aslında onlardan farklıdır. SoC'lar içerisindeki işlemcilerin ve belleklerin kapasiteleri
 yüksektir. Bunlar özel amaçlı üretilirler ve bunların devrelerde kullanılmaları mikrodenetleyiciler kadar kolay değildir.
-Bunların en önemli avantajları *az yer kaplamasıdır*. Örneğin Raspberry Pi kitlerinde Broadcom isimli firmanın 2835,
+Bunların en önemli avantajları az yer kaplamasıdır. Örneğin Raspberry Pi kitlerinde Broadcom isimli firmanın 2835,
 2836, 2837 numaralı SoC entegreleri, BeagleBone Black kitlerinde TI firmasının 335X SoC entegreleri kullanılmıştır.
 Bunların içerisinde Cortex A serisi ARM işlemcileri, RAM ve ROM bellekler ve başka birtakım çevre birimleri de
 bulunmaktadır.
 
 Mikrodenetleyiciler çok hızlı bir biçimde başka devrelere bağlanabilmekte, hemen uygulamalarda kullanılabilmektedir.
 SoC'ların amacı bu değildir. SoC'lar belli birimleri tek bir entegre devre içerisinde toplamak için üretilmektedir.
-Bunların devrelerde kullanılması ancak özel kartlar tasarlanarak mümkün hale getirilmiştir. Örneğin Apple firmasının
-M1, M2, M3, M4, M5 isimleriyle belirtilen çipleri birer SoC'tur. Aşağıda çok kullanılan bazı SoC'ların listesi
-verilmiştir:
+Bunların devrelerde kullanılması ancak özel kartlar tasarlanarak mümkün hale getirilmektedir. Örneğin Apple firmasının
+M1, M2, M3, M4, M5 isimleriyle belirtilen çipleri birer SoC'tur. Aşağıda çok kullanılan bazı SoC'ların listesini
+veriyoruz:
 
-.. list-table:: Yaygın SoC Üreticileri ve Ürünleri
+.. list-table:: 
    :header-rows: 1
-   :widths: 18 17 25 40
 
    * - Üretici
      - SoC Serisi
@@ -1460,8 +1458,6 @@ verilmiştir:
      - Tegra X1, Jetson Orin, Jetson Xavier NX, Jetson Nano
      - Otonom araç, robot, edge AI, endüstriyel görüntü işleme
 
-----
-
 SoM ve SBC Kavramları
 ---------------------
 
@@ -1477,8 +1473,6 @@ Computer)* denilmektedir. Örneğin Raspberry Pi ve BeagleBoard kartları birer 
 diğer önemli çevre birimleri bulunmaktadır ve bunlar doğrudan güç verildiğinde kişisel bir bilgisayar gibi
 kullanılabilmektedir.
 
-----
-
 Gömülü Sistemler
 ================
 
@@ -1491,25 +1485,29 @@ yıllarda Raspberry Pi gibi, BeagleBone Black gibi güçlü ARM işlemcilerine s
 gömülü sistemlerde de doğrudan kullanılır hale gelmiştir. Bu SBC'ler yukarıda da belirttiğimiz gibi tamamen bir
 bilgisayarın işlevselliğine sahiptir. Bunlara genellikle Linux işletim sistemi ya da Android işletim sistemi yüklenir.
 Böylece gömülü yazılımların güçlü donanımlarda ve bir işletim sistemi altında çalışması sağlanabilmektedir. Örneğin
-Raspberry Pi'a Mono yükleyerek C# ile program yazıp çalıştırabiliriz. Onlarda Python ile de programlama yapabiliriz.
+Raspberry Pi'a Mono yükleyerek C# ile program yazıp yazdığımız programı çalıştırabiliriz. Onlarda Python ile de 
+programlama yapabiliriz.
 
 Gömülü sistemlerde Linux işletim sistemi yoğun bir biçimde kullanılmaktadır. Tabii Linux'un yüklenip çalışabilmesi için
-gömülü sistemdeki bilgisayar donanımının da belli kapasiteye sahip olması gerekir. Linux'ın gömülü sistemlerdeki
+gömülü sistemdeki bilgisayar donanımının da belli bir kapasiteye sahip olması gerekir. Linux'un gömülü sistemlerdeki
 kullanımına bilgisayar dünyasında *gömülü Linux (embedded Linux)* da denilebilmektedir. Gömülü Linux isminde ayrı bir
-işletim sistemi yoktur. Gömülü Linux dendiğinde *Linux'un gömülü sistemler için konfigüre edilmiş hali* anlaşılmalıdır.
+işletim sistemi yoktur. Gömülü Linux dendiğinde *Linux'un gömülü sistemler için konfigüre edilmiş hali* anlaşılmaktadır.
+
+Programlamaya İlişkin Temel Kavramlar ve Araçlar
+================================================
+
+Bu başlıkta programlamada kullanılan çeşitli kavramlar ve araçlar hakkında temel bilgiler vereceğiz. 
 
 Çevirici Programlar, Derleyiciler ve Yorumlayıcılar
-===================================================
+---------------------------------------------------
 
 Bir programlama dilinde yazılmış olan programı eşdeğer olarak başka bir dile dönüştüren programlara *çevirici programlar
 (translators)* denilmektedir. Çevirici programlarda dönüştürülmek istenen programın diline *kaynak dil (source language)*,
 dönüşüm sonucunda elde edilen programın diline de *hedef dil (target/destination language)* denir. Örneğin:
 
-.. code-block:: text
-
-                     ┌──────────────────┐
-    C# Programı  ──► │ Çevirici Program │ ──►  VB.NET Programı
-                     └──────────────────┘
+.. figure:: _static/csharp-to-vbnet.png
+    :align: center
+    :width: 60%
 
 Burada kaynak dil C#, hedef dil VB.NET'tir.
 
@@ -1521,67 +1519,63 @@ bir derleme işlemi yapmaktadır. Sembolik makine dilini saf makine diline dön�
 Derleyiciler genellikle kaynak dil belirtilerek isimlendirilmektedir. Örneğin *C derleyicisi*, *Rust derleyicisi*,
 *Java derleyicisi* gibi.
 
-.. code-block:: text
-
-                     ┌──────────────────┐
-    C Programı  ──►  │  C Derleyicisi   │ ──►  Saf makine dili ya da sembolik makine dili
-                     └──────────────────┘
+.. figure:: _static/c-compiler.png
+    :align: center
+    :width: 75%
 
 Bazı programlar kaynak programı alarak hedef kod üretmeden onu o anda çalıştırırlar. Bunlara *yorumlayıcı (interpreter)*
 denilmektedir. Yorumlayıcılar birer çevirici program değildir. Yorumlayıcı yazmak derleyici yazmaktan daha kolaydır.
-Fakat programın çalışması genel olarak daha yavaş olur. Yorumlayıcılarda kaynak kodun çalıştırılması için onun başka
-kişilere verilmesi gerekir. Bu da kaynak kod güvenliğini bozar. (Aslında *yorumlayıcı* sözcüğü İngilizce *interpreter*
-sözcüğünün verdiği anlamı karşılamamaktadır. İngilizce *interpreter* çeviri dünyasında *mütercim tercümanlar* için
-kullanılmaktadır. İngilizce *interpreter* sözcüğü *translator* sözcüğü dikkate alınarak uydurulmuştur. İngilizce yazılı
-metni çevirerek yazı biçiminde veren kişilere *translator*, sözel metni o anda sözel olarak çeviren kişilere de
-*interpreter* denilmektedir. *Interpreter* sözcüğünde vurgulanan çeviri sonucunda herhangi bir belge yani dosya
-oluşmamasıdır.)
+Fakat programın yorumlayıcı yoluyla çalışması göreli olarak yavaştır. Yorumlayıcılarda kaynak kodun çalıştırılması için onun 
+başka kişilere verilmesi gerekir. Bu da kaynak kod güvenliğini bozar. (Her ne kadar bu kitabım yazarı *yorumlayıcı* söcüğünün
+kullanımında ve yaygınlaşmasında katkı sağlamış biri olsa da aslında *yorumlayıcı* sözcüğü İngilizce *interpreter* sözcüğünün 
+verdiği anlamı karşılamamaktadır. İngilizce *interpreter* çeviri dünyasında *mütercim tercümanlar* için kullanılmaktadır. 
+İngilizce *interpreter* sözcüğü *translator* sözcüğü dikkate alınarak uydurulmuştur. İngilizce yazılı metni çevirerek yazı 
+biçiminde veren kişilere *translator*, sözel metni o anda sözel olarak çeviren kişilere de *interpreter* denilmektedir. 
+*Interpreter* sözcüğünde vurgulanan çeviri sonucunda herhangi bir belge yani dosya oluşmamasıdır.)
 
 Bazı diller yalnızca derleyicilere sahiptir (C, C++, C#, Java, Rust gibi). Bazıları yalnızca yorumlayıcılara sahiptir
 (PHP, Perl gibi). Bazılarının hem derleyicileri hem de yorumlayıcıları vardır (Basic, Swift, Python gibi). Genel olarak
 belli bir alana yönelik (domain specific) dillerde ve çok yüksek seviyeli dillerde çalışma yorumlayıcılar yoluyla
 yapılmaktadır. Genel amaçlı diller daha çok derleyiciler ile derlenerek çalıştırılırlar.
 
-Çapraz Derleyiciler (Cross Compilers)
--------------------------------------
+Çapraz Derleyiciler
+-------------------
 
 Kullandığımız CPU'lar ikilik sistemdeki makine komutlarını çalıştırmaktadır. Bir kodun CPU tarafından çalıştırılabilmesi
 için o kodun o CPU'nun makine diline göre oluşturulmuş olması gerekir. Zaten derleyiciler de bunu yapmaktadır. Eğer bir
 derleyici o anda çalışılmakta olan makinenin CPU'sunun işletebileceği makine kodlarını üretmek yerine başka bir CPU'nun
 makine komutlarını üretiyorsa bu tür derleyicilere *çapraz derleyiciler (cross compilers)* denilmektedir. Çapraz
 derleyiciler özellikle gömülü sistemlerde yoğun olarak kullanılmaktadır. Çünkü gömülü sistemlerin çoğundaki donanımlar
-bir derleyicinin etkin bir biçimde çalıştırılmasına izin vermemektedir. Örneğin elimizde BeagleBone Black isimli SBC
+bir derleyicinin etkin bir biçimde çalıştırılmasına izin vermemektedir. Örneğin elimizde *BeagleBone Black* isimli SBC
 bulunuyor olsun. Biz de yazdığımız programı orada çalıştırmak isteyelim. İşte biz bu derleme işlemini Intel tabanlı
 masaüstü bilgisayarlarımızda çapraz derleyicilerle yapabiliriz. Bu çapraz derleyiciler Intel makine komutları yerine ARM
 makine komutlarını üretmektedir. Derleme sonucunda elde edilen kod hedef sisteme götürülerek orada çalışabilmektedir.
 Çapraz derleyiciler geliştirme sürecinin daha güçlü donanımlarda yapılmasını sağlamaktadır.
 
-Decompiler
-^^^^^^^^^^
+Tersine Derleyiciler
+--------------------
 
 Alçak seviyeli dillerden yüksek seviyeli dillere dönüştürme yapan (yani derleyicilerin yaptığının tam tersini yapan)
-yazılımlara *decompiler* denilmektedir. Örneğin C#'ta yazılıp derlenmiş olan ``.exe`` dosyadan yeniden C# programı
-oluşturan bir yazılım *decompiler*'dır. Saf makine dilini decompile etmek neredeyse mümkün değildir. Ancak .NET'in
-arakodu olan *CIL (Common Intermediate Language)* ve Java'nın arakodu olan *Java Byte Code* kolay bir biçimde decompile
-edilebilmektedir. C#'ta derlenmiş ve çalıştırılabilir hale getirilmiş dosyayı yeniden C#'a dönüştüren pek çok decompiler
-vardır (örneğin Salamander, Dis#, Reflector, ILSpy gibi). İşte decompile işlemini engellemek için C# ve Java programcıları
-başka önlemlere başvurmaktadır. Ancak C, C++, Rust gibi doğal kod üreten derleyicilerin ürettiği kodlar etkin bir biçimde
-geri dönüştürülememektedir.
+yazılımlara *tersine derleyici (decompiler)* denilmektedir. Örneğin C#'ta yazılıp derlenmiş olan ``.exe`` dosyadan yeniden 
+C# programı oluşturan bir yazılım tersine derleyicidir. Saf makine dilini decompile etmek neredeyse mümkün değildir. Ancak 
+.NET'in arakodu olan *CIL (Common Intermediate Language)* ve Java'nın arakodu olan *Java Byte Code* kolay bir biçimde 
+decompile edilebilmektedir. C#'ta derlenmiş ve çalıştırılabilir hale getirilmiş dosyayı yeniden C#'a dönüştüren pek çok 
+tersine derleyici vardır (örneğin Salamander, Dis#, Reflector, ILSpy gibi). İşte decompile işlemini engellemek için C# ve 
+Java programcıları başka önlemlere başvurmaktadır. Ancak C, C++, Rust gibi doğal kod üreten derleyicilerin ürettiği kodlar 
+etkin bir biçimde geri dönüştürülememektedir.
 
-----
-
-IDE (Integrated Development Environment)
------------------------------------------
+IDE'ler
+-------
 
 Derleyiciler komut satırından çalıştırılan programlardır. Bir programlama faaliyetinde program editör denilen bir program
-kullanılarak yazılır. Diske kaydedilir. Sonra komut satırından derleme yapılır. Bu yorucu bir faaliyettir. İşte yazılım
+kullanılarak yazılır, diske kaydedilir, sonra komut satırından derleme yapılır. Bu yorucu bir faaliyettir. İşte yazılım
 geliştirmeyi kolaylaştıran çeşitli araçları içerisinde barındıran (integrated) özel yazılımlara *IDE (Integrated
 Development Environment)* denilmektedir. IDE'lerin editörleri vardır, menüleri vardır ve çeşitli araçları vardır.
 IDE'lerde derleme yapılırken derlemeyi IDE'lerin kendisi yapmaz. IDE derleyiciyi çalıştırır. Yani IDE'ler yardımcı
 araçlardır, yazılım geliştirme için mutlak gerekli araçlardan değildir.
 
 Yazılım geliştirme sürecinde IDE'ler özellikle bazı dillerde yoğun olarak kullanılmaktadır. Microsoft'un ünlü IDE'sine
-*Visual Studio* denilmektedir. Apple firmasının da *XCode* isimli bir IDE'si vardır. IntelliJ özellikle IDE yazımına
+*Visual Studio* denilmektedir. Apple firmasının da *XCode* isimli bir IDE'si vardır. JetBrains özellikle IDE yazımına
 yönelmiş bir firmadır. Farklı programlama dilleri için farklı IDE'ler oluşturmuştur. Firmanın C/C++ IDE'sine *CLion*
 denilmektedir. Bazı IDE'ler açık kaynak kodlu biçimde yazılmıştır. Dolayısıyla bu IDE'ler aynı zamanda bedavadır. Bazı
 IDE'ler paralı olsa da bunların parasız versiyonları da oluşturulmuştur. Yine IDE'lerin bazıları *cross platform*
@@ -1592,17 +1586,15 @@ dili için oluşturulmuştur. Bazı IDE'ler ise pek çok programlama dilini dest
 
 Bazı araçlar tam bir IDE gibi olmasa da IDE'ye benzer özelliklere sahiptir. Bunlar adeta editör ile IDE arasında bir
 konumda bulunmaktadır. İngilizce bunlara *lightweight IDE (hafif siklet IDE)* ya da *code editor* de denilmektedir.
-Günümüzde bu editör ile IDE arasında kalan araçlardan en yaygın kullanılanlardan biri Microsoft'un geliştirdiği VSCode
-isimli programdır.
+Günümüzde bu editör ile IDE arasında kalan araçlardan en yaygın kullanılanlardan biri Microsoft'un geliştirdiği *VSCode*
+isimli araçtır.
 
-UNIX/Linux sistemlerinde C ve C++ IDE'si ve kod editörü olarak QtCreator, VSCode, KDevelop, Eclipse (CDT) kullanılabilir.
-Ancak kursumuzdaki uygulamalarda biz bir IDE kullanmayacağız. Kodları VSCode gibi bir editörde yazıp programlarımızı
-komut satırından derleyeceğiz.
+UNIX/Linux sistemlerinde C ve C++ IDE'si ve kod editörü olarak QtCreator, VSCode, KDevelop, Eclipse (CDT), CLion kullanılabilir.
+Ancak sistem programlama uygulamalarında IDE kullanmanızı önermiyoruz. Kodları VSCode gibi bir editörde yazıp programlarınızı
+komut satırından derleyebilirsiniz.
 
-----
-
-Arakod (Intermediate Code) ve JIT Derleme
-------------------------------------------
+Arakod (Intermediate Code) ve JIT Derlemesi
+--------------------------------------------
 
 Bazı sistemlerde derleyiciler doğrudan doğal kod üretmek yerine hiçbir CPU'nun makine dili olmayan (dolayısıyla hiçbir
 CPU tarafından işletilemeyen) yapay bir kod üretmektedir. Bu yapay kodlara genel olarak *arakod (intermediate code)*
@@ -1618,61 +1610,57 @@ Java ortamında bu JIT derlemesini yaparak programı çalıştıran alt sisteme 
 Şüphesiz doğal kodlu çalışma arakodla çalışmadan daha hızlıdır. Pek çok benchmark testi aradaki hız farkının %20
 civarında olduğunu göstermektedir. Peki arakodlu çalışmanın avantajları nelerdir? İşte bu çalışma biçimi derlenmiş
 kodun platform bağımsız olmasını sağlamaktadır. Buna *binary portability* de denilmektedir. Böylece arakodlar başka bir
-CPU'nun ya da işletim sisteminin bulunduğu bir bilgisayara götürüldüğünde eğer orada ilgili ortam (framework) kuruluysa
+CPU'nun ve/veya işletim sisteminin bulunduğu bir bilgisayara götürüldüğünde eğer orada ilgili ortam (framework) kuruluysa
 doğrudan çalıştırılabilmektedir.
 
-----
-
 Linux Ortamının Oluşturulması
-------------------------------
+-----------------------------
 
 Şimdi de Linux ortamının bilgisayarlarımızda nasıl oluşturulacağı üzerinde duralım. Linux'unuzu makinenize doğrudan
 *host sistem* olarak kurabilirsiniz. Ancak pek çok kişi ayrı bir Linux makinesi bulundurmak istememektedir.
 
-Windows'ta Linux ortamının oluşturulması için üç yöntem kullanılabilmektedir.
+Windows'ta Linux ortamının oluşturulması için üç yöntem kullanılabilmektedir:
 
-**1) Cygwin Ortamı Yoluyla:** Cygwin isimli ortam yapay biçimde bize Linux çalışma ortamını (genel olarak POSIX çalışma
-ortamını) sunmaktadır. Cygwin bir sanal makine değildir. Bize yapay biçimde UNIX/Linux ortamı sunan bir platformdur.
-Biz bu platformda UNIX/Linux kabuk komutlarını, ``gcc``, ``g++`` gibi derleyicilerle POSIX fonksiyonlarını kullanabiliriz.
-Burada geliştirdiğimiz programlar ilgili UNIX/Linux ortamına götürülerek yeniden derlenmek suretiyle çalıştırılabilir.
-Ancak Cygwin ortamının bir sanallaştırma yapmadığına, arka planda Windows'un olanaklarıyla UNIX/Linux ortamını emüle
-ettiğine dikkat ediniz. Bu ortam bizim kursumuz için uygun değildir.
-
-**2) Microsoft'un WSL Ortamı Yoluyla:** Microsoft *Windows Subsystem for Linux (WSL)* adı altında sanallaştırma ile
-Linux ortamı sunabilmektedir. Windows bilgisayarlarınıza bu ortamı kurabilirsiniz. Ancak bu ortam da kursumuz için uygun
-değildir. WSL'nin 2. versiyonu arka planda Microsoft'un *Hyper-V* denilen hypervisor programını kullanmaktadır.
-
-**3) Sanallaştırma Yoluyla:** Bugün VMWare, VirtualBox, Xen gibi hypervisor yazılımlarla orijinal işletim sisteminin
-kodları tamamen sanallaştırma yoluyla çalıştırılabilmektedir. Artık Cygwin ve WSL kullanımı Windows sistemlerinde bu
-nedenle çok azalmıştır. Sanallaştırmada *host* ve *guest* sistemler arasında copy-paste işlemleri de yapılabilmektedir.
-Sanallaştırma yazılımları *host* olarak Windows, Linux ve macOS sistemlerinde bulunmaktadır. Biz kursumuzda Linux
-ortamını sanallaştırma yoluyla kullanacağız.
+**1) Sanallaştırma Yoluyla:** Bugün VMWare, VirtualBox, Xen gibi hypervisor yazılımlarla orijinal işletim sisteminin
+kodları tamamen sanallaştırma yoluyla çalıştırılabilmektedir. (Artık Cygwin ve WSL kullanımı Windows sistemlerinde bu
+nedenle çok azalmıştır.) Sanallaştırmada *host* ve *guest* sistemler arasında copy-paste işlemleri de yapılabilmektedir.
+Sanallaştırma yazılımları *host* olarak Windows, Linux ve macOS sistemlerinde bulunmaktadır. Biz Linux'u ayrı 
+bir makineye kurmak istemiyorsanız sanallaştırma yöntemini kullanmanızı salık veriyoruz.
 
 Linux için sanallaştırma ortamı çeşitli hypervisor programlarla sağlanabilmektedir. VMWare firmasının (Broadcom bu firmayı
 satın aldı) *VMWare Player* ya da *Fusion* ürünleri ücret ödemeden kullanılabilmektedir. Oracle firmasının VirtualBox
 ürünü de benzer biçimde kullanılabilmektedir.
 
-Biz kursumuzda Debian türevi Mint dağıtımını kullanacağız. Debian türevi sistemler paket yöneticisi olarak ``apt``
-kullanmaktadır. Bu sistemlerde ``apt-get install`` komutuyla paket indirip kurabilirsiniz. Örneğin:
+**2) Microsoft'un WSL Ortamı Yoluyla:** Microsoft *Windows Subsystem for Linux (WSL)* adı altında sanallaştırma ile
+Linux ortamı sunabilmektedir. Windows bilgisayarlarınıza bu ortamı kurabilirsiniz. Ancak bu ortam da kursumuz için uygun
+değildir. WSL'nin 2'inci versiyonu arka planda Microsoft'un *Hyper-V* denilen hypervisor programını kullanmaktadır.
+
+**3) Cygwin Ortamı Yoluyla:** Cygwin isimli ortam Windows sistemlerinde yapay biçimde bize Linux çalışma ortamını (genel 
+olarak POSIX çalışma ortamını) sunmaktadır. Cygwin bir sanal makine değildir. Bize yapay biçimde UNIX/Linux ortamı sunan 
+bir platformdur. Biz bu platformda UNIX/Linux kabuk komutlarını, ``gcc``, ``g++`` gibi derleyicilerle POSIX fonksiyonlarını 
+kullanabiliriz. Burada geliştirdiğimiz programları UNIX/Linux ortamına götürülerek yeniden derlenmek suretiyle çalıştırılabiliriz.
+Cygwin ortamının bir sanallaştırma yapmadığına, arka planda Windows'un olanaklarıyla UNIX/Linux ortamını emüle ettiğine dikkat 
+ediniz. Bu ortam bizim kursumuz için uygun değildir.
+
+Biz kitabımızda Debian türevi bir dağıtımın kullanıldığını varsayacağız. Debian türevi sistemler paket yöneticisi olarak 
+``apt`` kullanmaktadır. Bu sistemlerde ``apt-get install`` komutuyla paket indirip kurabilirsiniz. Örneğin:
 
 .. code-block:: bash
 
     $ sudo apt-get install clang
 
-macOS Hakkında Not
-^^^^^^^^^^^^^^^^^^
+.. note::
 
-Burada bir noktaya dikkatinizi çekmek istiyoruz: macOS sistemleri aslında belli derecede POSIX uyumu olan UNIX türevi
-sistemlerdir. Dolayısıyla kursumuzda genel olarak UNIX/Linux sistemi denildiğinde macOS sistemi de anlaşılmalıdır.
-Kursumuzdaki UNIX/Linux sistemleri için verilen örneklerin önemli bir bölümü macOS sistemlerinde de benzer biçimde
-derlenerek çalıştırılabilir. (Kursumuzdaki içeriğin %90 civarı macOS sistemleriyle karşılanabilmektedir.) Ancak Linux
-aygıt sürücülerinin ve Linux'a özgü birtakım özelliklerin macOS sistemlerinde kullanılması mümkün değildir. Bu nedenle
-eğer host makineniz macOS ise yine sanallaştırma yoluyla ona Linux'u yüklemeniz gerekir.
+    Burada bir noktaya dikkatinizi çekmek istiyoruz: macOS sistemleri aslında belli derecede POSIX uyumu olan UNIX
+    türevi sistemlerdir. Dolayısıyla kursumuzda genel olarak UNIX/Linux sistemi denildiğinde macOS sistemi de
+    anlaşılmalıdır. Kursumuzdaki UNIX/Linux sistemleri için verilen örneklerin önemli bir bölümü macOS sistemlerinde
+    de benzer biçimde derlenerek çalıştırılabilir. (Kursumuzdaki içeriğin %70 civarı macOS sistemleriyle
+    karşılanabilmektedir.) Ancak Linux aygıt sürücülerinin ve Linux'a özgü birtakım özelliklerin macOS sistemlerinde
+    kullanılması mümkün değildir. Bu nedenle eğer host makineniz macOS ise yine sanallaştırma yoluyla ona Linux'u
+    yüklemeniz gerekir.
 
-----
-
-C Programlarının UNIX/Linux'ta Derlenmesi
-------------------------------------------
+C Programlarının Nnix/Linux Ortamlarında Derlenerek Çalıştırılması
+==================================================================
 
 Bir C programını UNIX/Linux sistemlerinde derlemek için önce programın bir metin editöründe yazılıp bir dosya biçiminde
 diskte saklanması gerekir. Bundan sonra dosya ismi derleyicilere komut satırı argümanı biçiminde verilerek derleme
@@ -1710,7 +1698,7 @@ açmak için genellikle ``-Wall`` seçeneğini de komut satırına eklerler. Ör
 işlemi bittikten sonra ``gcc`` ve ``clang`` oluşturulmuş olan amaç dosyayı (object file) da kendisi siler. UNIX/Linux
 sistemlerinde bağlama (linking) işlemi GNU projesi kapsamında geliştirilmiş olan ``ld`` isimli bağlayıcı programıyla
 yapılmaktadır. Aslında biz derleme ve bağlama işlemini ayrı ayrı iki aşamada da yapabiliriz. ``gcc`` ve ``clang``
-derleyicilerinde ``-c`` seçeneği *yalnızca derle (only compile), bağlama* anlamına gelmektedir. Biz bir C programını
+derleyicilerinde ``-c`` seçeneği "yalnızca derle (only compile), bağlama" anlamına gelmektedir. Biz bir C programını
 yalnızca derleyip ondan amaç dosya elde edebiliriz. Örneğin:
 
 .. code-block:: bash
@@ -1719,14 +1707,14 @@ yalnızca derleyip ondan amaç dosya elde edebiliriz. Örneğin:
 
 Amaç dosyayı bağlamak için ``ld`` bağlayıcısı kullanılabilir. Ancak bu durumda bazı başlangıç dosyalarının (start-up
 object files) da bağlama işlemine dahil edilmesi gerekir. Biz bağlama işlemini de ``gcc`` (ya da ``clang``) ile
-yapabiliriz. ``gcc`` aslında bu durumda arka planda ``ld`` bağlayıcı programını çalıştırmaktadır. Örneğin:
+yapabiliriz. ``gcc`` aslında bu durumda arka planda başlangıç dosyalarını da dahil ederek ``ld`` bağlayıcı programını 
+çalıştırmaktadır. Örneğin:
 
 .. code-block:: bash
 
     $ gcc -c sample.c
     $ gcc -o sample sample.o
 
-Bu biçimde ``gcc`` başlangıç amaç dosyalarını da ``ld`` bağlayıcısına vererek bağlama işlemini ona yaptırmaktadır.
 UNIX/Linux sistemlerinde bulunulan dizindeki bir programı komut satırından çalıştırabilmek için yalnızca dosyanın ismi
 yazılmaz. Onun dizini de belirtilmelidir. Tipik çalıştırma şöyle yapılmaktadır:
 
@@ -1736,9 +1724,10 @@ yazılmaz. Onun dizini de belirtilmelidir. Tipik çalıştırma şöyle yapılma
 
 ``.`` karakterinin bulunulan dizini temsil ettiğini anımsayınız.
 
-GCC pek çok sisteme port edilmiştir. GCC'nin Windows portuna *MinGW* denilmektedir. ``gcc`` ve ``clang`` derleyicileri
-varsayılan durumda eğer sistem 32 bit ise 32 bit derleme, 64 bit ise 64 bit derleme yapmaktadır. Örneğin makinemizdeki
-Linux sistemi 64 bit ise aşağıdaki gibi bir derlemeden 64 bit ELF formatına sahip bir çalıştırılabilir dosya elde ederiz:
+gcc  ve clang derleyicileri pek çok sisteme port edilmiştir. gcc'nin Windows portuna *MinGW* denilmektedir. ``gcc`` ve 
+``clang`` derleyicileri varsayılan durumda eğer sistem 32 bit ise 32 bit derleme, 64 bit ise 64 bit derleme yapmaktadır. 
+Örneğin makinemizdeki Linux sistemi 64 bit ise aşağıdaki gibi bir derlemeden 64 bit ELF formatına sahip bir çalıştırılabilir 
+dosya elde ederiz:
 
 .. code-block:: bash
 
@@ -1766,9 +1755,6 @@ yapılabilir:
 
     $ sudo apt-get install g++-multilib libc6-dev-i386
 
-İlk Program: Hello UNIX/Linux System Programming
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 Şimdi UNIX/Linux sistemlerinde ilk programımız olan *Hello UNIX/Linux System Programming* programını yazıp derleyelim:
 
 .. code-block:: c
@@ -1782,7 +1768,7 @@ yapılabilir:
         return 0;
     }
 
-Programın ``sample.c`` dosyası olarak kaydedildiğini varsayalım. Derleme işlemi ``gcc`` derleyicisi ile şöyle yapılabilir:
+Programın ``sample.c`` dosyası olarak kaydedildiğini varsayalım. Derleme işlemini ``gcc`` derleyicisi ile şöyle yapılabiliriz:
 
 .. code-block:: bash
 
@@ -1794,17 +1780,15 @@ Programın ``sample.c`` dosyası olarak kaydedildiğini varsayalım. Derleme iş
 
     $ ./sample
 
-----
-
 Sistem Fonksiyonları, POSIX Fonksiyonları ve Standart C Fonksiyonları
------------------------------------------------------------------------
+=====================================================================
 
 İşletim sistemlerinin çekirdeklerinde binlerce hatta on binlerce fonksiyon bulunmaktadır. Bunların küçük bir kısmı
-dışarıdan da (kullanıcı modundan da) önemli bazı işleri yapmak için çağrılabilmektedir. Bunlara işletim sisteminin
-*sistem fonksiyonları (system call)* denilmektedir. Her işletim sisteminin sistem fonksiyonlarının isimleri ve parametrik
+dışarıdan da (kullanıcı modundan da) önemli bazı işlemlerin yapılması için çağrılabilmektedir. Bunlara işletim sisteminin
+*sistem fonksiyonları (system calls)* denilmektedir. Her işletim sisteminin sistem fonksiyonlarının isimleri ve parametrik
 yapıları farklı olabilmektedir. Biz C programcısı olarak bu sistem fonksiyonlarını doğrudan çağırabiliriz. Ancak bu
 durumda her işletim sisteminin sistem fonksiyonları farklı olduğu için taşınabilirlik sorunları ortaya çıkabilecektir.
-Zaten POSIX standartlarının oluşturulmasının amacı taşınabilir bir komut ve kütüphane arayüzü sunmaktır.
+Zaten POSIX ve SUS gibi standartların oluşturulmasının amacı taşınabilir bir komut ve kütüphane arayüzü sunmaktır.
 
 Programlarda sık karşılaşılan bazı işlemler aslında aşağı seviyede tamamen işletim sisteminin kontrolü altındadır. O
 faaliyetleri gerçekleştirmek isteyen herkes aslında eninde sonunda işletim sisteminin ilgili sistem fonksiyonunu çağırmak
