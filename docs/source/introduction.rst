@@ -266,57 +266,46 @@ işletim sistemleri aşağıdaki tabloda listeliyoruz:
      - Geliştirici
      - Lisans
      - Kullanım Alanı
-     - Öne Çıkan Özellik
    * - VxWorks
      - Wind River
      - Ticari
      - Havacılık, uzay, savunma
-     - DO-178C DAL-A sertifikalı
    * - INTEGRITY-178B
      - Green Hills
      - Ticari
      - F-35, askeri aviyonik
-     - NSA onaylı, çok güvenli
    * - LynxOS-178
      - Lynx Software
      - Ticari
      - Askeri, havacılık
-     - POSIX uyumlu, DO-178C
    * - QNX
      - BlackBerry
      - Ticari
      - Otomotiv, medikal, endüstri
-     - Microkernel mimarisi
    * - FreeRTOS
      - Amazon (AWS)
      - MIT (Açık kaynak)
      - IoT, gömülü sistemler
-     - Çok küçük footprint
    * - Zephyr
      - Linux Found.
      - Apache 2.0 (Açık kaynak)
      - IoT, wearable, sensor sistemleri
-     - Modern, modüler yapı
    * - RTEMS
      - Topluluk/NASA
      - BSD (Açık kaynak)
      - Uzay, bilimsel ekipman
-     - NASA Mars görevlerinde
    * - embOS
      - SEGGER
      - Ticari
      - Medikal, endüstriyel
-     - Çok küçük RAM kullanımı
    * - ThreadX (Azure)
      - Microsoft
      - MIT (Açık kaynak)
      - IoT, tüketici elektroniği
-     - IEC 61508 sertifikalı
    * - PikeOS
      - SYSGO
      - Ticari
      - Airbus, demiryolu, otomotiv
-     - Çoklu işletim Sistemi
 
 **Dağıtıklık Durumuna Göre:** İşletim sistemleri dağıtıklık durumuna göre *dağıtık olan (distributed)* ve *dağıtık olmayan
 (non-distributed)* sistemler biçiminde ikiye ayrılabilmektedir. Dağıtık işletim sistemlerinde sistem birden

@@ -71,22 +71,24 @@ table.docutils th {
     table-layout: auto;
 }
 
-.rst-content .wy-table-responsive {
-    overflow: visible;          /* yatay kaydırma çubuğunu kaldır */
-    margin-bottom: 24px;
+@media screen and (max-width: 2048px) {
+    .rst-content table.docutils.narrow-table {
+        max-width: 100%;
+    }
+    .rst-content .wy-table-responsive table td,
+    .rst-content .wy-table-responsive table th {
+        white-space: normal !important;
+    }
 }
 
-.rst-content .wy-table-responsive table {
-    width: auto;                /* içeriğe göre daralsın, ekranı zorla kaplamasın */
-    max-width: 100%;            /* ama asla kapsayıcıyı aşmasın */
-    table-layout: auto;
-}
-
-.rst-content .wy-table-responsive table td,
-.rst-content .wy-table-responsive table th {
-    white-space: normal !important;   /* metin satır atlasın */
-    overflow-wrap: break-word;
-    word-wrap: break-word;
+@media screen and (max-width: 1024px) {
+    .rst-content table.docutils.narrow-table {
+        max-width: 100%;
+    }
+    .rst-content .wy-table-responsive table td,
+    .rst-content .wy-table-responsive table th {
+        white-space: normal !important;
+    }
 }
 
 @media screen and (max-width: 1024px) {
