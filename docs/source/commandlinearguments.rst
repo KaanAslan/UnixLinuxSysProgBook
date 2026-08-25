@@ -12,8 +12,8 @@ arguments)* denilmektedir. Örneğin:
 Burada *ls* program dosyasını, ``-l``, ``-i`` ve ``/usr/include`` ise komut satırı argümanlarını belirtmektedir. Bu bölümde
 UNIX/Linux sistemlerinde komut satırı argümanlarının ele alınması üzerinde duracağız.
 
-POSIX Stili Satırı Argümanları
-==============================
+POSIX Stili Komut Satırı Argümanları
+====================================
 
 UNIX/Linux dünyasında komut satırı argümanlarının oluşturulması için geniş bir kesim tarafından kullanılan geleneksel
 bir biçim vardır. Bu biçime *POSIX yada UNIX biçimi* de denilmektedir. Biz de kursumuzda UNIX/Linux dünyasında yazacağımız
@@ -86,7 +86,7 @@ Burada ``-o`` argümanlı seçenek olduğu için onu başka bir seçenek izleyem
 seçeneğinin argümanı olarak ele alınmaktadır. Tabii seçenekli argümanlarda argümandan sonra bir boşluk bırakmak komutun
 daha iyi algılanmasını sağlamaktadır.
 
-Seçeneklerle ilgisi olmayan argümanlara *seçeneksiz argümalarn* denilmektedir. Örneğin:
+Seçeneklerle ilgisi olmayan argümanlara *seçeneksiz argümalar* denilmektedir. Örneğin:
 
 .. code-block:: bash
 
@@ -105,17 +105,22 @@ gerekmez. Örneğin:
 
     $ gcc sample.c -o sample
 
-Eskiden yalnızca tek karakterden oluşan kısa seçenekler kullanılıyordu. Ancak daha sonraları bu kısa seçeneklerin
-yetersiz kaldığı ve okunabilirliği bozduğu gerekçesiyle uzun seçenekler de kullanılmaya başlanmıştır. POSIX standartları
-uzun seçenekleri desteklememektedir. Ancak UNIX/Linux dünyasında yaygın biçimde kullanılmaktadır.
+Uzun Seçenekler
+---------------
 
-Uzun seçenekler ``--`` öneki ile başlatılır. Örneğin:
+Eskiden yalnızca tek karakterden oluşan kısa seçenekler kullanılıyordu. Ancak daha sonraları bu kısa seçeneklerin
+yetersiz kaldığı ve okunabilirliği bozduğu gerekçesiyle uzun seçenekler de kullanılmaya başlanmıştır. Uzun
+seçeneklerin ortaya çıkması eskiye dayansa da GNU projesi sayesinde yaygınlık kazanmıştır. Bu nedenle uzun seçenekli
+komut satırı argümanlarına *GNU stili* de denilmektedir. POSIX standartları uzun seçenekleri desteklememektedir.
+Ancak UNIX/Linux dünyasında uzunca bir süredir yaygın biçimde kullanılmaktadır.
+
+Uzun seçenekler ``--`` öneki ile başlatılmaktadır. Örneğin:
 
 .. code-block:: bash
 
     prog --count -a -b --length 100
 
-Uzun seçenekler de argümanlı ve argümansız olabilmektedir. Yukarıdaki örnekte ``--count`` argümansız uzun seçenek,
+Uzun seçenekler de argümanlı ve argümansız olabilir. Yukarıdaki örnekte ``--count`` argümansız uzun seçenek,
 ``-a`` ve ``-b`` argümansız seçenekler ve ``--length 100`` ise argümanlı uzun seçenektir.
 
 Uzun seçeneklerde *isteğe bağlı argüman (optional argument)* denilen özel bir argüman da kullanılmaktadır. İsteğe bağlı
@@ -134,127 +139,35 @@ kullanılabilirdi:
     prog --size
 
 Günümüzde genel olarak programlar kısa seçenekleri de uzun seçenekleri de bir arada kullanmaktadır. Programcılar bazı
-kısa seçeneklerin alternatif uzun seçeneklerini oluşturabilmektedir. Örneğin Linux'un ``ls`` komutunun seçenek listesi
+kısa seçeneklerin alternatif uzun seçeneklerini oluşturabilmektedir. Örneğin Linux'un ``cat`` komutunun seçenek listesi
 şöyledir:
 
-.. list-table:: ``ls`` Komutunun Seçenekleri
+.. list-table::
+   :widths: 35 65
    :header-rows: 1
-   :widths: 38 62
 
    * - Seçenek
      - Açıklama
-   * - ``-a``, ``--all``
-     - Nokta ile başlayanlar dahil tüm dosyaları listeler
-   * - ``-A``, ``--almost-all``
-     - ``.`` ve ``..`` hariç gizli dosyaları listeler
-   * - ``-b``, ``--escape``
-     - Yazdırılamaz karakterleri sekizlik gösterimle kaçırır
-   * - ``--block-size=BOYUT``
-     - Boyutları BOYUT katlarında gösterir (örn: ``--block-size=M``)
-   * - ``-B``, ``--ignore-backups``
-     - ``~`` ile biten yedek dosyaları listelemeye dahil etmez
-   * - ``-c``
-     - ``-lt`` ile durum değişikliği zamanını gösterir, ``-l`` ile sıralar
-   * - ``-C``
-     - Çıktıyı sütunlar halinde listeler (varsayılan)
-   * - ``--color[=NE ZAMAN]``
-     - Renklendirmeyi etkinleştirir (always/auto/never)
-   * - ``-d``, ``--directory``
-     - Dizin içeriği yerine dizinin kendisini listeler
-   * - ``-D``, ``--dired``
-     - Emacs dired modu için çıktı üretir
-   * - ``-f``
-     - Sıralama yapmaz; ``-aU`` etkinleştirir, ``-ls`` devre dışı bırakır
-   * - ``-F``, ``--classify[=NE ZAMAN]``
-     - Dosya türünü belirten sembol ekler (``/``, ``*``, ``@``, ``|``, ``=``)
-   * - ``--file-type``
-     - ``-F`` gibi ancak ``*`` eklemez
-   * - ``--format=SÖZCÜK``
-     - Listeleme biçimini belirler (across/commas/long/vb.)
-   * - ``--full-time``
-     - Tam tarih ve saat bilgisini gösterir
-   * - ``-g``
-     - Kullanıcı adı sütunu olmaksızın uzun listeleme yapar
-   * - ``--group-directories-first``
-     - Dizinleri dosyalardan önce listeler
-   * - ``-G``, ``--no-group``
-     - Uzun listede grup adını göstermez
-   * - ``-h``, ``--human-readable``
-     - Boyutları okunabilir birimlerle gösterir (K, M, G)
-   * - ``--si``
-     - Boyutları SI (1000'lik) birimleriyle gösterir
-   * - ``-H``, ``--dereference-command-line``
-     - Sembolik bağlantıları komut satırında takip eder
-   * - ``--dereference-command-line-symlink-to-dir``
-     - Yalnızca dizine işaret eden sembolik bağlantıları takip eder
-   * - ``--hide=KALIP``
-     - Belirtilen glob kalıbıyla eşleşen girişleri gizler
-   * - ``--hyperlink[=NE ZAMAN]``
-     - Dosya adlarına terminal hiper bağlantısı ekler
-   * - ``--indicator-style=SÖZCÜK``
-     - Tür gösterge stilini belirler (none/slash/file-type/classify)
-   * - ``-i``, ``--inode``
-     - Her dosyanın inode numarasını gösterir
-   * - ``-I``, ``--ignore=KALIP``
-     - Belirtilen glob kalıbıyla eşleşen girişleri gizler
-   * - ``-k``, ``--kibibytes``
-     - Blok boyutlarını 1 KiB olarak gösterir
-   * - ``-l``
-     - Uzun biçimde listeler (izin, sahip, boyut, tarih)
-   * - ``-L``, ``--dereference``
-     - Sembolik bağlantılar için bağlantıyı takip eder
-   * - ``-m``
-     - Girişleri virgülle ayrılmış liste olarak gösterir
-   * - ``-n``, ``--numeric-uid-gid``
-     - Kullanıcı ve grup adı yerine UID/GID numarası gösterir
-   * - ``-N``, ``--literal``
-     - Dosya adlarını tırnak içine almaz
-   * - ``-o``
-     - Grup sütunu olmaksızın uzun listeleme yapar
-   * - ``-p``, ``--indicator-style=slash``
-     - Dizinlerin sonuna ``/`` ekler
-   * - ``-q``, ``--hide-control-chars``
-     - Yazdırılamaz karakterleri ``?`` ile değiştirir
-   * - ``--show-control-chars``
-     - Yazdırılamaz karakterleri olduğu gibi gösterir
-   * - ``-Q``, ``--quote-name``
-     - Dosya adlarını çift tırnak içinde gösterir
-   * - ``--quoting-style=SÖZCÜK``
-     - Tırnak stilini belirler (literal/shell/c/escape/vb.)
-   * - ``-r``, ``--reverse``
-     - Sıralama düzenini tersine çevirir
-   * - ``-R``, ``--recursive``
-     - Dizin ağacını özyinelemeli olarak listeler
-   * - ``-s``, ``--size``
-     - Her dosyanın blok cinsinden disk kullanımını gösterir
-   * - ``-S``
-     - Dosya boyutuna göre sıralar (büyükten küçüğe)
-   * - ``--sort=SÖZCÜK``
-     - Sıralama ölçütünü belirler (none/size/time/version/ext)
-   * - ``--time=SÖZCÜK``
-     - Zaman ölçütünü belirler (atime/ctime/mtime/birth)
-   * - ``--time-style=BİÇİM``
-     - Tarih/saat gösterim biçimini belirler
+   * - ``-A, --show-all``
+     - ``-vET`` ile eşdeğerdir; tüm görünmez karakterleri gösterir
+   * - ``-b, --number-nonblank``
+     - Yalnızca boş olmayan satırları numaralandırır (``-n`` seçeneğini geçersiz kılar)
+   * - ``-e``
+     - ``-vE`` ile eşdeğerdir
+   * - ``-E, --show-ends``
+     - Her satırın sonuna $ karakteri ekler
+   * - ``-n, --number``
+     - Tüm satırları numaralandırır
+   * - ``-s, --squeeze-blank``
+     - Ardışık boş satırları tek boş satıra indirger
    * - ``-t``
-     - Değişiklik zamanına göre sıralar (yeniden eskiye)
-   * - ``-T``, ``--tabsize=SÜTUN``
-     - Sekme durakları için sütun genişliğini ayarlar
+     - ``-vT`` ile eşdeğerdir
+   * - ``-T, --show-tabs``
+     - Sekme (TAB) karakterlerini ^I olarak gösterir
    * - ``-u``
-     - ``-lt`` ile erişim zamanını gösterir, ``-l`` ile erişime göre sıralar
-   * - ``-U``
-     - Dizin sırasıyla listeler, sıralama yapmaz
-   * - ``-v``
-     - Dosya adlarındaki sayıları doğal sırada sıralar
-   * - ``-w``, ``--width=SÜTUN``
-     - Çıktı genişliğini n karakter olarak belirler
-   * - ``-x``
-     - Sütunlar yerine satırlar halinde sıralar
-   * - ``-X``
-     - Uzantıya göre alfabetik sıralar
-   * - ``-Z``, ``--context``
-     - SELinux güvenlik bağlamını gösterir
-   * - ``-1``
-     - Her dosyayı ayrı satırda listeler
+     - (Yok sayılır; POSIX uyumluluğu için bulunur)
+   * - ``-v, --show-nonprinting``
+     - Yazdırılamaz karakterleri ^ ve M- gösterimiyle yazar (LFD ve TAB hariç)
    * - ``--help``
      - Yardım bilgisini gösterip çıkar
    * - ``--version``
@@ -263,18 +176,16 @@ kısa seçeneklerin alternatif uzun seçeneklerini oluşturabilmektedir. Örneğ
 Burada da gördüğünüz gibi bazı kısa seçeneklerin alternatif uzun seçenekleri de bulunmaktadır. Ancak yalnızca uzun
 seçenekler de vardır. Yukarıda da belirttiğimiz gibi POSIX standartları uzun seçenekleri desteklememektedir.
 
-----
-
 ``getopt`` ve ``getopt_long`` Fonksiyonları
---------------------------------------------
+===========================================
 
 Peki biz programımızda GNU stilinde seçenek kullanmak istersek komut satırı argümanlarını nasıl parse edebiliriz? İşte
 UNIX/Linux dünyasında komut satırı argümanlarını parse etmek için ``getopt`` ve ``getopt_long`` isimli iki fonksiyon
 bulundurulmuştur. ``getopt`` bir POSIX fonksiyonudur. Ancak bu fonksiyon uzun seçenekleri parse etmemektedir.
 ``getopt_long`` ise uzun seçenekleri de parse eden ``getopt`` fonksiyonunun daha gelişmiş bir biçimidir. Ancak
-``getopt_long`` bir POSIX fonksiyonu değildir; ``libc`` kütüphanesinde bulunmaktadır. ``getopt`` ve ``getopt_long``
-fonksiyonları Windows sistemlerinde hazır bir biçimde herhangi bir kütüphanede bulunmamaktadır. Zaten yukarıda da
-belirttiğimiz gibi Windows sistemlerindeki komut satırı argüman stili UNIX/Linux sistemlerindekinden farklıdır.
+``getopt_long`` bir POSIX fonksiyonu değildir; ``glibc`` kütüphanesinde bulunmaktadır. (``getopt`` ve ``getopt_long``
+fonksiyonlarının Windows sistemlerinde herhangi bir kütüphanede hazır bir biçimde bulunmadığını da belirtelim. Zaten 
+Windows sistemlerindeki komut satırı argüman stili UNIX/Linux sistemlerindekinden farklıdır.)
 
 ``getopt`` Fonksiyonunun Kullanımı
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -287,9 +198,9 @@ belirttiğimiz gibi Windows sistemlerindeki komut satırı argüman stili UNIX/L
 
     int getopt(int argc, char * const argv[], const char *optstring);
 
-``getopt`` fonksiyonunun ilk iki parametresi ``main`` fonksiyonunun ``argc`` ve ``argv`` parametreleri gibidir. Yani
-programcı ``main`` fonksiyonunun bu parametrelerini ``getopt`` fonksiyonuna geçirir. Fonksiyonun üçüncü parametresinde
-kısa seçenekler belirtilmektedir. Bu parametre bir yazı biçiminde girilir. Bu yazıdaki her bir karakter bir kısa seçeneği
+``getopt`` fonksiyonunun ilk iki parametresi ``main`` fonksiyonunun ``argc`` ve ``argv`` parametreleri gibidir. Programcı 
+``main`` fonksiyonunun bu parametrelerini ``getopt`` fonksiyonuna geçirir. Fonksiyonun üçüncü parametresinde kısa seçenekler 
+belirtilmektedir. Bu parametre bir yazı biçiminde girilir. Bu yazıdaki her bir karakter bir kısa seçeneği
 belirtmektedir. Bir karakterin sağında ``:`` karakteri varsa bu ``:`` karakterinin solundaki seçeneğin argümanlı bir
 seçenek olduğunu belirtmektedir. Örneğin ``"ab:c"`` yazısında ``-a``, ``-b`` ve ``-c`` seçenekleri belirtilmiştir.
 Ancak ``-b`` seçeneğinin argümanı da vardır.
@@ -348,12 +259,8 @@ Programcının ``switch`` deyimine bu ``case`` bölümünü ekleyerek bu durumu 
         }
     }
 
-``getopt`` Fonksiyonunun Global Değişkenleri
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 ``getopt`` fonksiyonunun kullandığı dört global değişken vardır. Bu global değişkenler kütüphanenin içerisinde
-tanımlanmıştır. Bunları biz ``extern`` bildirimi ile kullanabiliriz. Ancak bunların ``extern`` bildirimleri zaten
-``<unistd.h>`` dosyası içerisinde yapılmış durumdadır:
+tanımlanmıştır. Bunların ``extern`` bildirimleri ``<unistd.h>`` dosyası içerisinde yapılmış durumdadır:
 
 .. code-block:: c
 
@@ -362,6 +269,7 @@ tanımlanmıştır. Bunları biz ``extern`` bildirimi ile kullanabiliriz. Ancak 
     extern int optind;
     extern char *optarg;
 
+<BURADA KALDIK>
 Varsayılan durumda, ``getopt`` fonksiyonu geçersiz bir seçenekle (yani üçüncü parametresinde belirtilmeyen bir
 seçenekle) karşılaştığında ya da seçenek argümana sahip olduğu halde argümanın belirtilmemesi durumunda ``stderr``
 dosyasına (ekranda çıkacaktır) kendisi hata mesajını yazdırmaktadır. Programcılar genellikle bunu istemezler.

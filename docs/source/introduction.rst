@@ -1315,8 +1315,8 @@ yerleri daha az metaveriyle tutulmuş olur. Örneğin tipik olarak Linux sisteml
 bloğunda olacak biçimde bölünmektedir. Ancak bu durum formatlama sırasında değiştirilebilmektedir. Yani disk bloğu ile
 işletim sisteminin kullandığı blok farklı uzunluklarda olabilmektedir.
 
-DMA (Direct Memory Access)
---------------------------
+DMA
+---
 
 Peki diskten blok okuma ve blok yazma işlemleri nasıl yapılmaktadır? Çok eskiden bu işlemler CPU yoluyla yapılıyordu.
 Sonraları bu aktarım işlemlerinde CPU'yu aradan çıkartmak için *DMA (Direct Memory Access)* denilen yerel işlemciler
