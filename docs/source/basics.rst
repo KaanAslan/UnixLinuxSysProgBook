@@ -359,19 +359,16 @@ girebilirsiniz. Editörünüzü ``sudo`` ile çalıştırmayı unutmayınız:
 
 Sonra Ctrl+F1 tuşu ile terminal ekranını açıp giriş yapmayı deneyebilirsiniz. 
 
-POSIX Fonksiyonlarında Hata Yönetimi
-=====================================
+POSIX Fonksiyonlarında Hataların Ele Alınması
+=============================================
 
 Bu bölümde POSIX fonksiyonlarının başarılarının nasıl kontrol edileceği ve başarısızlık durumunda hata mesajlarının
 nasıl rapor edilebileceği üzerinde duracağız.
 
-Başarı Kontrolü
-----------------
-
 POSIX fonksiyonlarının önemli bir bölümü ``int`` türden geri dönüş değerine sahiptir. Bu geri dönüş değeri onların
 başarı durumunu belirtmektedir. Geri dönüş değeri ``int`` türünden olan POSIX fonksiyonlarının çoğu başarı durumunda
 ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir. (``0`` değeri C'de mantıksal olarak *false*
-biçiminde ele alınmasına karşın burada ``0`` değerinin *başarı* belirttiğine dikkat ediniz.) Bu durumda ``int`` geri
+biçimde ele alınmasına karşın burada ``0`` değerinin *başarı* belirttiğine dikkat ediniz.) Bu durumda ``int`` geri
 dönüş değeri türüne sahip bir POSIX fonksiyonunun başarısını tipik olarak şöyle test ederiz:
 
 .. code-block:: c
@@ -388,7 +385,7 @@ Bazı programcılar kontrolü ``== -1`` ile değil ``< 0`` ile de yapabilmektedi
         /* ... */
     }
 
-Böyle bir POSIX başarı kontrolü görürseniz *fonksiyonun başarısızlık durumunda herhangi bir negatif değere geri
+Böyle bir POSIX başarı kontrolü görürseniz fonksiyonun başarısızlık durumunda herhangi bir negatif değere geri
 dönebileceğini* düşünmemelisiniz. ``== -1`` kontrolü yerine ``< 0`` kontrolü bazı işlemcilerde mikro düzeyde daha
 etkin bir kod üretimine yol açabilmektedir. Ancak biz kursumuzda başarı kontrolünü açıkça ``== -1`` ile yapacağız.
 
@@ -402,16 +399,16 @@ NULL adres ile geri dönmektedir. Kontrolü şöyle yapabilirsiniz:
     }
 
 errno Değişkeni
---------------------
+---------------
 
 POSIX fonksiyonları başarısızlık durumunda başarısızlığın nedenine ilişkin hata kodunu ``int`` türden global ``errno``
 isimli bir değişkenin içerisine yazmaktadır. Yani bir POSIX fonksiyonu başarısız olmuşsa global ``errno`` değişkeni
-başarısızlığın nedenini anlatan ``int`` türden bir değerle set edilmektedir. Her thread'in ``errno`` değişkeni
-farklıdır. Bu nedenle ``errno`` uzunca bir süredir artık bir değişken olarak değil bir makro biçiminde
-tanımlanmaktadır. Ancak biz onu bir değişken gibi kullanabiliriz. ``errno`` değişkenini doğrudan kullanabilmemiz
-için ``<errno.h>`` dosyasını include etmemiz gerekir.
+başarısızlığın nedenini belirten ``int`` türden bir değerle set edilmektedir. ``errno`` değişkeni thread'e özgüdür.
+Bu nedenle ``errno`` uzunca bir süredir artık bir değişken olarak değil bir makro biçiminde tanımlanmaktadır. 
+Ancak biz onu bir değişken gibi kullanabiliriz. ``errno`` değişkenini doğrudan kullanabilmemiz için ``<errno.h>`` 
+dosyasını include etmemiz gerekir.
 
-POSIX standartlarında ``errno`` değerleri için sayısal açıklamalar yapılmamıştır. Her ``errno`` değeri için
+POSIX standartlarında ``errno`` değerleri için sayısal düzeyde açıklamalar yapılmamıştır. Her ``errno`` değeri için
 ``<errno.h>`` içerisinde ``EXXX`` biçiminde bir sembolik sabit tanımlanmıştır. POSIX standartlarına göre bu sembolik
 sabitlerin isimleri her sistemde aynı olmak zorundadır. Ancak sayısal değerleri sistemden sisteme farklı olabilir.
 ``0`` numaralı ``errno`` değeri özel bir değerdir ve hata belirtmek için kullanılmamaktadır. POSIX standartlarındaki
@@ -584,20 +581,20 @@ sabitlerin isimleri her sistemde aynı olmak zorundadır. Ancak sayısal değerl
    * - ``EXDEV``
      - Invalid cross-device link
 
-POSIX standartlarında fonksiyonların başarısızlık durumunda ``errno`` değişkenini hangi değerlerle set edeceği her
-fonksiyonda ayrıca belirtilmiştir. POSIX fonksiyonları ``errno`` değişkenini başarısızlık durumunda set etmektedir.
+POSIX standartlarında fonksiyonların başarısızlık durumunda ``errno`` değişkenini hangi değerlerle set edebileceği her
+fonksiyonda açıkça belirtilmiştir. POSIX fonksiyonları ``errno`` değişkenini başarısızlık durumunda set etmektedir.
 Ancak standartlarda başarı durumunda ``errno`` değişkeninin değerinin değiştirilmeyeceği söylenmemiştir. Yani bir
-POSIX fonksiyonu başarılı olsa bile ``errno`` değişkeninin değerini değiştirebilir. Programcının *fonksiyon başarısız
-olmuşsa ``errno`` değişkenine başvurması* gerekir. POSIX fonksiyonları başarı durumunda ``errno`` değişkenine ``0``
-gibi özel bir değer yerleştirmemektedir.
+POSIX fonksiyonu başarılı olsa bile ``errno`` değişkeninin değerini değiştirebilir. Programcının "fonksiyon başarısız
+olmuşsa ``errno`` değişkenine başvurması" gerekir. Ayrıca POSIX standartlarında hiçbir fonksiyonun ``errno`` değişkenine 
+0 yerleştirmeyeceği de garanti edilmiştir. Bazı durumlarda programcılar bu garantiden faydalanabilmektedir.
 
-Ayrıca ``errno`` değişkeni Linux'ta çekirdek tarafından set edilen bir değişken değildir; tamamen kullanıcı
+``errno`` değişkeni Linux'ta çekirdek tarafından set edilen bir değişken değildir; tamamen kullanıcı
 modundaki POSIX kütüphanesi tarafından set edilmektedir. Tipik olarak Linux çekirdeğinde bir sistem fonksiyonu
-başarısız olduğunda sistem fonksiyonu negatif ``errno`` değeriyle geri döner. Sistem fonksiyonunu çağıran POSIX
-fonksiyonu da bu negatif ``errno`` değerini pozitife dönüştürerek ``errno`` değişkenini set etmektedir.
+başarısız olduğunda negatif ``errno`` değeriyle geri döner, sistem fonksiyonunu çağıran POSIX fonksiyonu da bu negatif 
+``errno`` değerini pozitife dönüştürerek ``errno`` değişkenini set eder.
 
-strerror Fonksiyonu
-------------------------
+Hata Mesajlarının Yazdırılması
+------------------------------
 
 Peki bir POSIX fonksiyonu başarısız olduğunda biz hataya ilişkin bir yazıyı nasıl ``stderr`` dosyasına
 yazdırabiliriz? ``errno`` değişkenini ``switch`` içerisine sokarak yazdırma yapmak oldukça zahmetlidir. Örneğin:

@@ -1,7 +1,7 @@
 
-=========================
-UNIX/Linux Dosya Sistemi
-=========================
+======================================
+Dosyalar ve Dizinler Üzerinde İşlemler
+======================================
 
 Dosya işlemleri UNIX/Linux sistemlerinde en önemli konulardan biridir. Çünkü bu sistemlerde pek çok olgu bir
 dosya gibi ele alınmaktadır. UNIX/Linux sistemlerinde sistem programlama için ilk öğrenilecek temel konu dosya

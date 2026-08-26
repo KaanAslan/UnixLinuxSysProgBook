@@ -41,5 +41,5 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    introduction
    commandlinearguments
    basics
-   unixlinuxfilesystem
+   filedirectoryoperations
 
