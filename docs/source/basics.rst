@@ -171,23 +171,22 @@ bulunmaktadır. Örneğin:
 Kullanıcıların İsimleri, Kullanıcı ve Grup ID'leri
 ==================================================
 
-UNIX/Linux sistemlerinde her kullanıcının bir *kullanıcı ismi (user name)* ve bir kullanıcı ID'si (user ID)
-bulunmaktadır. Kullanıcıların isimleri ile onların ID'leri daha önce de belirttiğimiz gibi ``/etc/passwd``
-dosyasında eşleştirilmiştir. Örneğin ``/etc/passwd`` dosyasında *kaan* kullanıcısının bulunduğu satır şöyledir:
+UNIX/Linux sistemlerinde her kullanıcıya bir *kullanıcı ismi (user name)* ve bir *kullanıcı ID'si (user ID)*
+atanmaktadır. Kullanıcıların isimleri ile onların ID'leri daha önce de belirttiğimiz gibi ``/etc/passwd`` dosyasında
+eşleştirilmiştir. Örneğin ``/etc/passwd`` dosyasında *kaan* kullanıcısının bulunduğu satır şöyledir:
 
 .. code-block:: text
 
     kaan:x:1000:1000:Kaan Aslan,,,:/home/kaan:/bin/bash
 
-Burada birinci alandaki ``kaan`` kullanıcının ismini, üçüncü alandaki ``1000`` ise onun ID'sini belirtmektedir.
-Çekirdek isimlerle değil ID'lerle işlem yapmaktadır. İsimler kullanıcılar için okunabilirlik sağlamak amacıyla
-bulundurulmaktadır.
+Burada birinci alandaki *kaan* yazısı kullanıcının ismini, üçüncü alandaki 1000 sayısı ise onun ID'sini belirtmektedir. 
+Çekirdek isimlerle değil ID'lerle işlem yapmaktadır. İsimler algılama kolaylığı sağlamak amacıyla bulundurulmaktadır.
 
 UNIX/Linux sistemlerinde her kullanıcı aynı zamanda bir grup içerisindedir. Buna kullanıcının grubu denilmektedir.
-Grupların da isimleri ve ID'leri vardır. Grup isimleri grup ID'leriyle ``/etc/group`` dosyasında
-eşleştirilmiştir. Yukarıdaki ``/etc/passwd`` dosyasındaki *kaan* kullanıcısına ilişkin satırın dördüncü alanında
-grubun ID'si yer almaktadır. (Kullanıcı ID'leri ile grup ID'leri farklı isim alanlarındadır. Yani bunların
-numaralarının çakışması bir sorun oluşturmamaktadır.) ``/etc/group`` dosyasındaki satırlar aşağıdaki gibidir:
+Grupların da isimleri ve ID'leri vardır. Grup isimleriyle grup ID'leri ``/etc/group`` dosyasında eşleştirilmiştir. 
+Yukarıdaki ``/etc/passwd`` dosyasındaki *kaan* kullanıcısına ilişkin satırın dördüncü alanında
+kullanıcının içinde bulunduğu grubun ID'si yer almaktadır. (Kullanıcı ID'leri ile grup ID'leri farklı isim alanlarındadır. 
+Yani bunların numaralarının çakışması bir sorun oluşturmamaktadır.) ``/etc/group`` dosyasındaki satırlar aşağıdaki gibidir:
 
 .. code-block:: text
 
@@ -195,29 +194,31 @@ numaralarının çakışması bir sorun oluşturmamaktadır.) ``/etc/group`` dos
 
 Burada ``study`` grup ismine karşı gelen ID'nin ``1000`` olduğu görülmektedir.
 
-Peki *grup (group)* ne anlama gelmektedir? İşte *bir grup kullanıcı ortak dosyalar üzerinde işlem yapabilsin ancak
-diğerleri yapmasın* durumunu oluşturmak için grup kavramı kullanılmıştır. Eskiden bir kullanıcının tek bir grubu
-olabiliyordu. Zaman içerisinde bunun yetersizliği görüldü ve bir kullanıcının birden fazla grup içerisinde
+Peki *grup (group)* ne anlama gelmektedir? İşte "bir grup kullanıcı ortak dosyalar ve mekanizmalar üzerinde işlem 
+yapabilsin ancak diğerleri yapamasın" durumunu oluşturmak için grup kavramı kullanılmaktadır. Eskiden bir kullanıcının 
+tek bir grubu olabiliyordu. Zaman içerisinde bunun yetersizliği görüldü ve bir kullanıcının birden fazla grup içerisinde
 bulunabilmesi sağlandı. Güncel UNIX/Linux sistemlerinde her kullanıcının asli bir grubu vardır. Buna *gerçek grup
 (real group)* da denilmektedir. Ancak ayrıca bir kullanıcı birden fazla gruba da üye olabilmektedir. Bunlara da
 kullanıcının *ek grupları (supplementary groups)* denilmektedir. Çekirdek gerçek gruplarla ek gruplar arasında bir
-ayrım yapmamaktadır. Bir kullanıcının bilgileri kabuk üzerinde ``id`` komutuyla görüntülenebilmektedir. Örneğin:
+ayrım yapmamaktadır. 
+
+Bir kullanıcının bilgileri kabuk üzerinde ``id`` komutuyla görüntülenebilmektedir. Örneğin:
 
 .. code-block:: bash
 
-    $ ID
+    $ id
     uid=1000(kaan) gid=1000(study) gruplar=1000(study),4(adm),24(cdrom),27(sudo),30(dip),
     46(plugdev),100(users),105(lpadmin),125(sambashare)
 
-Proseslerin Kullanıcı ve Grup ID'leri
-=====================================
+Proseslerin Gerçek ve Etkin Kullanıcı ID'leri ve Grup ID'leri
+=============================================================
 
 UNIX/Linux sistemlerinde her prosesin bir *gerçek kullanıcı ID'si (real user ID)*, *gerçek grup ID'si (real
 group ID)*, *etkin kullanıcı ID'si (effective user ID)* ve *etkin grup ID'si (effective group ID)* vardır.
-*Prosesin kullanıcı ID'si* denildiğinde varsayılan olarak *gerçek kullanıcı ID'si*, *prosesin grup ID'si*
-denildiğinde de varsayılan olarak *gerçek grup ID'si* anlaşılmaktadır. Peki gerçek ID'lerle etkin ID'ler
-arasında ne farklılık vardır? Aslında prosesin *gerçek kullanıcı ID'si* ile *etkin kullanıcı ID'si*, *gerçek
-grup ID'si* ile de *etkin grup ID'si* çoğu kez aynı değerdedir. Bunlar özel durumlarda farklılaşmaktadır. Biz bu
+Prosesin kullanıcı ID'si denildiğinde varsayılan olarak gerçek kullanıcı ID'si, prosesin grup ID'si
+denildiğinde de varsayılan olarak gerçek grup ID'si anlaşılmaktadır. Peki gerçek ID'lerle etkin ID'ler
+arasında ne farklılık vardır? Aslında prosesin gerçek kullanıcı ID'si ile etkin kullanıcı ID'si, gerçek
+grup ID'si ile de etkin grup ID'si çoğu kez aynı değerdedir. Bunlar özel durumlarda farklılaşmaktadır. Biz bu
 konuyu ileride ele alacağız. Ancak dosyalarda erişim işlemlerinde gerçek ID'ler değil etkin ID'ler test işlemine
 sokulmaktadır. Her ne kadar çekirdek aslında sayısal ID değerleriyle çalışıyorsa da programcılar tarafından
 konuşmalarda kullanıcı ve grup ID'leri Linux sistemlerindeki ``/etc/passwd`` ve ``/etc/group`` dosyalarında
@@ -230,10 +231,10 @@ grup ID'si de ``study`` olsun. Biz kabuk üzerinden ``sample`` programını çal
 ``sample`` prosesinin gerçek ve etkin kullanıcı ID'si ``kaan``, gerçek ve etkin grup ID'si ise ``study``
 olacaktır.
 
-Peki kabuk prosesinin gerçek ve etkin kullanıcı ve grup ID'leri nasıl oluşturulmaktadır? İşte bize *user name* ve
-*password* soran ``login`` prosesi doğrulamayı yaparsa çalıştırdığı ``bash`` prosesinin gerçek ve etkin kullanıcı
-ve grup ID'lerini ``/etc/passwd`` dosyasındaki ilgili satırda belirtilen *kullanıcı ve grup ID'si* ile set
-etmektedir. ``/etc/passwd`` dosyasının satırlarının aşağıdaki gibi olduğunu anımsayınız:
+Peki kabuk prosesinin gerçek ve etkin kullanıcı ve grup ID'leri nasıl oluşturulmaktadır? İşte bize *kullanıcı ismi* ve
+*parola* soran ``login`` prosesi doğrulamayı yaparsa çalıştırdığı kabuk programına ilişkin prosesin (tipik olarak ``bash``) 
+gerçek ve etkin kullanıcı ve grup ID'lerini ``/etc/passwd`` dosyasındaki ilgili satırda belirtilen kullanıcı ve grup ID'si 
+ile set etmektedir. ``/etc/passwd`` dosyasının satırlarının aşağıdaki gibi olduğunu anımsayınız:
 
 .. code-block:: text
 
@@ -243,13 +244,12 @@ Buradaki ilk ``1000`` değeri kullanıcı ID'sini, ikinci ``1000`` değeri grup 
 login olduğumuzda ``/bin/bash`` çalıştırılarak kabuk prosesi oluşturulacak; o prosesin gerçek ve etkin kullanıcı
 id'si ``1000 (kaan)`` olarak, gerçek ve etkin grup ID'si de ``1000 (study)`` olarak set edilecektir.
 
-----
+Örnek Uygulama: Basit Bir Kabuk Programı Yoluyla Sisteme Giriş Yapılması
+========================================================================
 
-Basit Kabuk Programı
-=====================
-
-Şimdi kabuk görevi görecek basit bir program yazalım. Sonra da ``/etc/passwd`` dosyasının 7. alanını değiştirerek
-oturum açtığımızda kendi kabuk programımızın çalıştırılmasını sağlayalım.
+Şimdi kabuk görevi görecek basit bir program yazalım. Sonra da ``/etc/passwd`` dosyasının 7'inci alanını değiştirerek
+oturum açtığımızda kendi kabuk programımızın çalıştırılmasını sağlayalım. Bir komut satırı çıkartıp komut bekleyen 
+basit kabuk programını aşağıdaki gibi yazabiliriz:
 
 .. code-block:: c
 
@@ -350,7 +350,14 @@ oturum açtığımızda kendi kabuk programımızın çalıştırılmasını sa�
         printf("mv command...\n");
     }
 
-----
+Bu ``myshell.c`` programını derleyip ``/etc/passwd`` dosyasında yeni yarattığınız kullanıcının 7'inci alanına
+girebilirsiniz. Editörünüzü ``sudo`` ile çalıştırmayı unutmayınız:
+
+.. code-block:: text
+
+    csd:x:1000:1000:CSD,,,:/home/csd:/myshell
+
+Sonra Ctrl+F1 tuşu ile terminal ekranını açıp giriş yapmayı deneyebilirsiniz. 
 
 POSIX Fonksiyonlarında Hata Yönetimi
 =====================================
