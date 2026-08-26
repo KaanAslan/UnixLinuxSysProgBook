@@ -40,6 +40,6 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
 
    introduction
    commandlinearguments
-   linuxusermanagement
+   basics
    unixlinuxfilesystem
 

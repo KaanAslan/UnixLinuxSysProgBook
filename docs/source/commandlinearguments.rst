@@ -176,9 +176,6 @@ kısa seçeneklerin alternatif uzun seçeneklerini oluşturabilmektedir. Örneğ
 Burada da gördüğünüz gibi bazı kısa seçeneklerin alternatif uzun seçenekleri de bulunmaktadır. Ancak yalnızca uzun
 seçenekler de vardır. Yukarıda da belirttiğimiz gibi POSIX standartları uzun seçenekleri desteklememektedir.
 
-``getopt`` ve ``getopt_long`` Fonksiyonları
-===========================================
-
 Peki biz programımızda GNU stilinde seçenek kullanmak istersek komut satırı argümanlarını nasıl parse edebiliriz? İşte
 UNIX/Linux dünyasında komut satırı argümanlarını parse etmek için ``getopt`` ve ``getopt_long`` isimli iki fonksiyon
 bulundurulmuştur. ``getopt`` bir POSIX fonksiyonudur. Ancak bu fonksiyon uzun seçenekleri parse etmemektedir.
@@ -188,7 +185,7 @@ fonksiyonlarının Windows sistemlerinde herhangi bir kütüphanede hazır bir b
 Windows sistemlerindeki komut satırı argüman stili UNIX/Linux sistemlerindekinden farklıdır.)
 
 ``getopt`` Fonksiyonunun Kullanımı
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==================================
 
 ``getopt`` fonksiyonunun prototipi şöyledir:
 
@@ -269,52 +266,47 @@ tanımlanmıştır. Bunların ``extern`` bildirimleri ``<unistd.h>`` dosyası i�
     extern int optind;
     extern char *optarg;
 
-<BURADA KALDIK>
 Varsayılan durumda, ``getopt`` fonksiyonu geçersiz bir seçenekle (yani üçüncü parametresinde belirtilmeyen bir
 seçenekle) karşılaştığında ya da seçenek argümana sahip olduğu halde argümanın belirtilmemesi durumunda ``stderr``
 dosyasına (ekranda çıkacaktır) kendisi hata mesajını yazdırmaktadır. Programcılar genellikle bunu istemezler.
 ``getopt`` fonksiyonunun geçersiz seçenekler için hata mesajını yazdırması ``opterr`` değişkenine ``0`` değeri
 atanarak engellenebilmektedir. Yani ``opterr`` değişkeni sıfır dışı bir değerdeyse (varsayılan durum) fonksiyon mesajı
-``stderr`` dosyasına kendisi de yazar; sıfır değerindeyse fonksiyon hata mesajını ``stderr`` dosyasına yazmaz.
+``stderr`` dosyasına kendisi yazar; sıfır değerindeyse fonksiyon hata mesajını ``stderr`` dosyasına kendisi yazmaz.
 
 ``getopt`` fonksiyonu geçersiz bir seçenekle ya da argümanı girilmemiş argümanlı bir seçenekle karşılaştığında ``'?'``
 karakteri ile geri dönmekle birlikte aynı zamanda ``optopt`` global değişkenine geçersiz seçeneğin karakter karşılığını
-da yerleştirmektedir. Böylece programcı daha yeterli bir mesaj verebilmektedir. Örneğin:
+da yerleştirmektedir. Böylece programcı daha yeterli bir hata mesajı verebilmektedir. Örneğin:
 
 .. code-block:: c
 
-    opterr = 0;
     while ((result = getopt(argc, argv, "ab:c")) != -1) {
         switch (result) {
             case 'a':
-                printf("-a given...\n");
+                printf("option -a given\n");
                 break;
             case 'b':
-                printf("-b given...\n");
+                printf("option -b given with argument '%s'\n", optarg);
                 break;
             case 'c':
-                printf("-c given...\n");
+                printf("option -c given\n");
                 break;
             case '?':
                 if (optopt == 'b')
-                    fprintf(stderr, "-b option given without argument!...\n");
+                    fprintf(stderr, "option -b requires an argument\n");
                 else
                     fprintf(stderr, "invalid option: -%c\n", optopt);
                 break;
         }
     }
 
-Argümanlı bir kısa seçenek bulunduğunda ``getopt`` fonksiyonu, ``optarg`` global değişkenini o kısa seçeneğin
+Argümanlı bir kısa seçenek bulunduğunda ``getopt`` fonksiyonu ``optarg`` global değişkenini o kısa seçeneğin
 argümanını gösterecek biçimde set eder. Ancak ``optarg`` her argümanlı seçenekte yeni bulunan argümanlı seçeneğin
 argümanını gösterecek biçimde ayarlanmaktadır. Dolayısıyla programcı argümanlı kısa seçeneği bulduğu anda ``optarg``
 değişkenine başvurmalı, gerekirse onu başka bir göstericede saklamalıdır.
 
-Seçeneksiz Argümanların Elde Edilmesi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 Peki seçeneksiz argümanları nasıl elde edebiliriz? Seçeneksiz argümanlar ``argv`` dizisinin herhangi bir yerine
 bulunuyor olabilir. İşte ``getopt`` fonksiyonu her zaman seçeneksiz argümanları girildiği sırada ``argv`` dizisinin
-sonuna taşır ve onların başladığı indeksi de ``optind`` global değişkeninin göstermesini sağlar. O halde programcı
+sonuna taşır ve onların başladığı indeksi de ``optind`` global değişkenine yerleştirir. O halde programcı
 ``getopt`` ile işini bitirdikten sonra (yani ``while`` döngüsünden çıktıktan sonra) ``optind`` indeksinden ``argc``
 indeksine kadar ilerleyerek tüm seçeneksiz argümanları elde edebilmektedir. Örneğin:
 
@@ -328,7 +320,7 @@ Burada ``ali`` ve ``selami`` seçeneksiz argümanlardır. ``getopt`` bu ``argv``
 
     ./sample -a -b veli -c ali selami
 
-Şimdi burada ``optind`` indeksi artık ``ali`` argümanının başladığı indeksi belirtecektir. Onun ötesindeki tüm argümanlar
+Şimdi burada ``optind`` artık ``ali`` argümanının başladığı indeksi belirtecektir. Onun ötesindeki tüm argümanlar
 seçeneksiz argümanlardır. Bu argümanları ``while`` döngüsünün dışında şöyle yazdırabiliriz:
 
 .. code-block:: c
@@ -345,20 +337,21 @@ programı şöyle çalıştırmış olsun:
 
     $ ./sample -a -b -c
 
-Burada kullanıcı ``-b`` için bir argüman girmeyi unutmuştur. ``getopt`` bunu anlayamaz. Bu durumda ``getopt`` sanki
-``-c`` seçeneğini ``-b`` seçeneğinin argümanıymış gibi ele almaktadır. Dolayısıyla ``getopt`` bu durumda ``-b``
+Burada kullanıcı ``-b`` için bir argüman girmeyi unutmuştur. Ancak ``getopt`` bunu anlayamaz. Bu durumda ``getopt`` sanki
+``-c`` seçeneğini ``-b`` seçeneğinin argümanıymış gibi ele alacaktır. Dolayısıyla ``getopt`` bu durumda ``-b``
 seçeneği için ``'?'`` karakteriyle geri dönmeyecektir.
 
-Bayrak Değişkenleriyle Seçenek Yönetimi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+getopt Fonksiyonu İçin Bir Kullanım Kalıbı
+------------------------------------------
 
 Peki komut satırı seçeneklerini program içerisinde nasıl kullanabiliriz? İşte bunun için en klasik yöntem her komut
 satırı seçeneği için bir bayrak bulundurmak, bayrakları da ``getopt`` döngüsünde set etmektir. ``getopt`` döngüsünden
 çıkıldıktan sonra bayraklara bakılarak hangi seçeneklerin belirtildiği tespit edilebilir. Uygulamaların çoğunda bazı
 seçenekler bazı seçeneklerle birlikte kullanılamamaktadır. Programcının ``getopt`` döngüsünden çıktıktan sonra
-seçeneklerin doğru kullanılmış olduğunu kontrol etmesi gerekir. Bunun için kullanabileceğiniz bir kalıp şöyle olabilir:
+seçeneklerin doğru kullanılığ kullanılmadığını kontrol etmesi gerekir. Bunun için kullanabileceğiniz bir kalıp şöyle olabilir:
 
-- Her seçenek için bir bayrak değişkeni tutulur. Bu bayrak değişkenlerine başlangıçta ``0`` atanır.
+- Her seçenek için bir bayrak değişkeni tutulur. Bayrak değişkenleri int türden alınabilir. Bu bayrak değişkenlerine 
+  başlangıçta ``0`` atanır.
 - Her argümanlı seçenek için bir gösterici bulundurulur.
 - ``getopt`` döngüsünde her seçenekle karşılaşıldığında bayrak değişkenine ``1`` atanarak o seçeneğin verilmiş olduğu
   kaydedilir.
@@ -373,15 +366,10 @@ durumlarda aynı bayrak değişkeni birden fazla kez set edilir ancak programda 
 
     $ ls -lllllllllll
 
-
-
-getopt Kullanım Kalıbı
-===============================================
-
-``getopt`` fonksiyonunun kullanımına ilişkin tipik bir kalıp aşağıda verilmiştir. Bu örnekte ``-a``, ``-b``, ``-d``
+``getopt`` fonksiyonunun kullanımına ilişkin aklıp örneğini aşağıda veriyoruz. Bu örnekte ``-a``, ``-b``, ``-d``
 argümansız seçenekler; ``-c`` ve ``-e`` ise argümanlı seçeneklerdir. Bu kalıbı kendi programlarınızda da
 kullanabilirsiniz. Bu örnekte ayrıştırma işleminde bir hata oluştuğunda programın devam etmemesini isteriz. Ancak tüm
-hataların rapor edilmesi de gerekmektedir. Bunun için bir bayrak değişkeninden faydalanılabilir. Bu bayrak değişkeni
+hataların rapor edilmesi de gerekir. Bunun için bir bayrak değişkeninden faydalanılabilir. Bu bayrak değişkeni
 hata durumunda set edilir. Çıkışta kontrol edilip duruma göre program sonlandırılır.
 
 .. code-block:: c
@@ -397,8 +385,8 @@ hata durumunda set edilir. Çıkışta kontrol edilip duruma göre program sonla
         char *c_arg, *e_arg;
 
         a_flag = b_flag = c_flag = d_flag = e_flag = err_flag = 0;
-
         opterr = 0;
+        
         while ((result = getopt(argc, argv, "abc:de:")) != -1) {
             switch (result) {
                 case 'a':
@@ -420,9 +408,9 @@ hata durumunda set edilir. Çıkışta kontrol edilip duruma göre program sonla
                     break;
                 case '?':
                     if (optopt == 'c' || optopt == 'e')
-                        fprintf(stderr, "-%c option must have an argument!\n", optopt);
+                        fprintf(stderr, "-%c requires an argument\n", optopt);
                     else
-                        fprintf(stderr, "-%c invalid option!\n", optopt);
+                        fprintf(stderr, "invalid option: -%c\n", optopt);
                     err_flag = 1;
             }
         }
@@ -431,15 +419,15 @@ hata durumunda set edilir. Çıkışta kontrol edilip duruma göre program sonla
             exit(EXIT_FAILURE);
 
         if (a_flag)
-            printf("-a option given\n");
+            printf("option -a given\n");
         if (b_flag)
-            printf("-b option given\n");
+            printf("option -b given\n");
         if (c_flag)
-            printf("-c option given with argument \"%s\"\n", c_arg);
+            printf("option -c given with argument \"%s\"\n", c_arg);
         if (d_flag)
-            printf("-d option given\n");
+            printf("option -d given\n");
         if (e_flag)
-            printf("-e option given with argument \"%s\"\n", e_arg);
+            printf("option -e given with argument \"%s\"\n", e_arg);
 
         if (optind != argc)
             printf("Arguments without option:\n");
@@ -449,18 +437,16 @@ hata durumunda set edilir. Çıkışta kontrol edilip duruma göre program sonla
         return 0;
     }
 
-----
+getopt Fonksiyonunun Kullanımına Örnekler
+-----------------------------------------
 
-Örnek: disp Programı
--------------------------
+Şimdi ``getopt`` fonksiyonunun kullanımına bir örnek verelim. Örnekteki ``disp`` isimli bir program yazılmıştır. Program 
+şu komut satırı seçeneklerine sahiptir:
 
-``getopt`` fonksiyonunun kullanımına bir örnek. Bu örnekte ``disp`` isimli bir program yazılmıştır. Program şu komut
-satırı seçeneklerine sahiptir:
-
-- ``-x``: Onaltılık (hex) görüntüleme
-- ``-o``: Sekizlik (octal) görüntüleme
-- ``-t``: Metin olarak görüntüleme
-- ``-n <arg>``: Satır başına karakter sayısı
+``-x``: Onaltılık (hex) görüntüleme
+``-o``: Sekizlik (octal) görüntüleme
+``-t``: Metin olarak görüntüleme
+``-n <arg>``: Satır başına karakter sayısı
 
 Burada ``-x``, ``-o`` ve ``-t`` seçeneklerinden yalnızca bir tanesi kullanılabilmektedir. Eğer hiçbir seçenek
 kullanılmazsa varsayılan durum ``-t`` biçimindedir. ``-n`` seçeneği yalnızca hex ve octal görüntülemede
@@ -508,13 +494,13 @@ kullanılabilmektedir. Bu seçenek de belirtilmezse ``-n 16`` gibi bir belirleme
                 case 'n':
                     n_flag = 1;
                     if ((n_arg = check_number(optarg)) < 0) {
-                        fprintf(stderr, "-n argument is invalid!...\n");
+                        fprintf(stderr, "invalid argument for option -n: '%s'\n", optarg);
                         err_flag = 1;
                     }
                     break;
                 case '?':
                     if (optopt == 'n')
-                        fprintf(stderr, "-%c option given without argument!...\n", optopt);
+                        fprintf(stderr, "option -%c requires an argument\n", optopt);
                     else
                         fprintf(stderr, "invalid option: -%c\n", optopt);
                     err_flag = 1;
@@ -526,7 +512,7 @@ kullanılabilmektedir. Bu seçenek de belirtilmezse ``-n 16`` gibi bir belirleme
             exit(EXIT_FAILURE);
 
         if (t_flag + o_flag + x_flag > 1) {
-            fprintf(stderr, "only one of -[tox] option may be specified!...\n");
+            fprintf(stderr, "only one of -t, -o, -x may be specified\n");
             exit(EXIT_FAILURE);
         }
 
@@ -534,21 +520,21 @@ kullanılabilmektedir. Bu seçenek de belirtilmezse ``-n 16`` gibi bir belirleme
             t_flag = 1;
 
         if (t_flag && n_flag) {
-            fprintf(stderr, "-n option cannot be used with -t option!...\n");
+            fprintf(stderr, "option -n cannot be used with option -t\n");
             exit(EXIT_FAILURE);
         }
 
         if (argc - optind == 0) {
-            fprintf(stderr, "file must be specified!...\n");
+            fprintf(stderr, "no file specified\n");
             exit(EXIT_FAILURE);
         }
         if (argc - optind > 1) {
-            fprintf(stderr, "too many files specified!...\n");
+            fprintf(stderr, "too many files specified\n");
             exit(EXIT_FAILURE);
         }
 
         if ((f = fopen(argv[optind], t_flag ? "r" : "rb")) == NULL) {
-            fprintf(stderr, "cannot open file: %s\n", argv[optind]);
+            fprintf(stderr, "cannot open file '%s'\n", argv[optind]);
             exit(EXIT_FAILURE);
         }
         if (t_flag)
@@ -559,7 +545,7 @@ kullanılabilmektedir. Bu seçenek de belirtilmezse ``-n 16`` gibi bir belirleme
             result = disp_octal(f, n_arg);
 
         if (!result) {
-            fprintf(stderr, "cannot read file: %s\n", argv[optind]);
+            fprintf(stderr, "cannot read file '%s'\n", argv[optind]);
             exit(EXIT_FAILURE);
         }
 
@@ -567,80 +553,6 @@ kullanılabilmektedir. Bu seçenek de belirtilmezse ``-n 16`` gibi bir belirleme
 
         return 0;
     }
-
-    bool disp_text(FILE *f)
-    {
-        int ch;
-
-        while ((ch = fgetc(f)) != EOF)
-            putchar(ch);
-
-        return feof(f);
-    }
-
-    bool disp_hex(FILE *f, int n_arg)
-    {
-        size_t i;
-        int ch;
-
-        for (i = 0; (ch = fgetc(f)) != EOF; ++i) {
-            if (i % n_arg == 0) {
-                if (i != 0)
-                    putchar('\n');
-                printf("%08zX ", i);
-            }
-            printf("%02X ", ch);
-        }
-        putchar('\n');
-
-        return feof(f);
-    }
-
-    bool disp_octal(FILE *f, int n_arg)
-    {
-        size_t i;
-        int ch;
-
-        for (i = 0; (ch = fgetc(f)) != EOF; ++i) {
-            if (i % n_arg == 0)
-                printf("%08zo ", i);
-
-            printf("%03o ", ch);
-            if (i % n_arg == n_arg - 1)
-                putchar('\n');
-        }
-        putchar('\n');
-
-        return feof(f);
-    }
-
-    int check_number(const char *str)
-    {
-        const char *temp;
-        int result;
-
-        while (isspace(*str))
-            ++str;
-
-        temp = str;
-
-        while (isdigit(*str))
-            ++str;
-
-        if (*str != '\0')
-            return -1;
-
-        result = atoi(temp);
-        if (!result)
-            return -1;
-
-        return result;
-    }
-
-----
-
-Komut Satırı Argümanlarını Fonksiyona Devretme
-===============================================
 
 Komut satırı argümanlarını parse etmek uzun bir kod bloğu gerektirmektedir. Bu kısım bir fonksiyona da devredilebilir.
 Ancak bu durumda fonksiyondan elde edilen bilgilerin dışarıya iletilmesi gerekir. Bu tipik olarak bir yapı yoluyla
@@ -667,7 +579,8 @@ yapı nesnesinin de adresini almaktadır. Bu yapı nesnesinin elemanları fonksi
 
 Aşağıdaki örnekte komut satırı argümanları böyle bir fonksiyon tarafından parse edilmiştir. Bu örnek aynı zamanda
 yukarıdaki ``disp.c`` örneğinin daha gelişmiş bir biçimidir. Burada hex ve octal görüntüleme yapılırken her satırın
-yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır. Örneğin hex görüntüleme şuna benzer yapılmaktadır:
+yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır. Örneğin hex görüntülemede çıktı aşağıdakine 
+benzer olacaktır:
 
 .. code-block:: text
 
@@ -710,7 +623,7 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
         check_args(argc, argv, &arginfo);
 
         if ((f = fopen(arginfo.path, "r")) == NULL) {
-            fprintf(stderr, "cannot open file: %s\n", argv[optind]);
+            fprintf(stderr, "cannot open file '%s'\n", arginfo.path);
             exit(EXIT_FAILURE);
         }
 
@@ -732,8 +645,8 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
         int bpl;
 
         x_flag = o_flag = t_flag = n_flag = err_flag = 0;
-
         opterr = 0;
+        
         while ((result = getopt(argc, argv, "xotn:")) != -1) {
             switch (result) {
                 case 'x':
@@ -751,9 +664,9 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
                     break;
                 case '?':
                     if (optopt == 'n')
-                        fprintf(stderr, "-%c option must have an argument!\n", optopt);
+                        fprintf(stderr, "option -%c requires an argument\n", optopt);
                     else
-                        fprintf(stderr, "-%c invalid option!\n", optopt);
+                        fprintf(stderr, "invalid option: -%c\n", optopt);
                     err_flag = 1;
             }
         }
@@ -762,12 +675,12 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
             exit(EXIT_FAILURE);
 
         if (argc - optind != 1) {
-            fprintf(stderr, "path must be specified!..\n");
+            fprintf(stderr, "exactly one file must be specified\n");
             exit(EXIT_FAILURE);
         }
 
         if (x_flag + o_flag + t_flag > 1) {
-            fprintf(stderr, "only one option may be specified!..\n");
+            fprintf(stderr, "only one of -x, -o, -t may be specified\n");
             exit(EXIT_FAILURE);
         }
 
@@ -776,16 +689,16 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
 
         if (n_flag) {
             if (x_flag + o_flag != 1) {
-                fprintf(stderr, "-n option must be used with either -x or -o\n");
+                fprintf(stderr, "option -n requires either -x or -o\n");
                 exit(EXIT_FAILURE);
             }
             bpl = atoi(n_arg);
             if (bpl > MAX_BPL) {
-                fprintf(stderr, "-n argument too big!..\n");
+                fprintf(stderr, "argument for -n is too large (max %d)\n", MAX_BPL);
                 exit(EXIT_FAILURE);
             }
             else if (bpl < MIN_BPL) {
-                fprintf(stderr, "-n argument too small!..\n");
+                fprintf(stderr, "argument for -n is too small (min %d)\n", MIN_BPL);
                 exit(EXIT_FAILURE);
             }
         }
@@ -807,7 +720,7 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
             putchar(ch);
 
         if (ferror(f)) {
-            fprintf(stderr, "cannot read file!..\n");
+            fprintf(stderr, "cannot read file\n");
             fclose(f);
             exit(EXIT_FAILURE);
         }
@@ -838,7 +751,7 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
         }
 
         if (ferror(f)) {
-            fprintf(stderr, "cannot read file!..\n");
+            fprintf(stderr, "cannot read file\n");
             fclose(f);
             exit(EXIT_FAILURE);
         }
@@ -858,19 +771,15 @@ yanında o satırdaki byte'ların ASCII karşılıkları da yazdırılmıştır.
         }
     }
 
-----
-
-Örnek: mycalc Programı
----------------------------
 
 Aşağıdaki örnekte ``mycalc`` isimli bir program yazılmıştır. Program iki komut satırı argümanı ile aldığı değerler
 üzerinde dört işlem yapmaktadır. Aşağıdaki seçeneklere sahiptir:
 
-- ``-a``: Toplama işlemi
-- ``-m``: Çarpma işlemi
-- ``-d``: Bölme işlemi
-- ``-s``: Çıkartma işlemi
-- ``-M <msg>``: Çıktının başında ``msg:`` kısmını ekler
+``-a``: Toplama işlemi
+``-m``: Çarpma işlemi
+``-d``: Bölme işlemi
+``-s``: Çıkartma işlemi
+``-M <msg>``: Çıktının başında ``msg:`` kısmını ekler
 
 .. code-block:: c
 
@@ -888,7 +797,6 @@ Aşağıdaki örnekte ``mycalc`` isimli bir program yazılmıştır. Program iki
         double arg1, arg2, calc_result;
 
         a_flag = m_flag = M_flag = d_flag = s_flag = err_flag = 0;
-
         opterr = 0;
 
         while ((result = getopt(argc, argv, "amM:ds")) != -1) {
@@ -911,7 +819,7 @@ Aşağıdaki örnekte ``mycalc`` isimli bir program yazılmıştır. Program iki
                     break;
                 case '?':
                     if (optopt == 'M')
-                        fprintf(stderr, "-M option must have an argument!\n");
+                        fprintf(stderr, "option -M requires an argument\n");
                     else
                         fprintf(stderr, "invalid option: -%c\n", optopt);
                     err_flag = 1;
@@ -922,16 +830,16 @@ Aşağıdaki örnekte ``mycalc`` isimli bir program yazılmıştır. Program iki
             exit(EXIT_FAILURE);
 
         if (a_flag + m_flag + d_flag + s_flag > 1) {
-            fprintf(stderr, "only one option must be specified!\n");
+            fprintf(stderr, "only one of -a, -m, -d, -s may be specified\n");
             exit(EXIT_FAILURE);
         }
         if (a_flag + m_flag + d_flag + s_flag == 0) {
-            fprintf(stderr, "at least one of -amds options must be specified\n");
+            fprintf(stderr, "one of -a, -m, -d, -s must be specified\n");
             exit(EXIT_FAILURE);
         }
 
         if (argc - optind != 2) {
-            fprintf(stderr, "two number must be specified!\n");
+            fprintf(stderr, "exactly two numbers must be specified\n");
             exit(EXIT_FAILURE);
         }
 
@@ -955,10 +863,8 @@ Aşağıdaki örnekte ``mycalc`` isimli bir program yazılmıştır. Program iki
         return 0;
     }
 
-----
-
-getopt_long Fonksiyonu
-=============================
+getopt_long Fonksiyonunun Kullanımı
+===================================
 
 Daha önceden de belirttiğimiz gibi komut satırında uzun seçenek kullanımı POSIX standartlarında yoktur. Ancak Linux gibi
 pek çok sistemdeki çeşitli yardımcı programlar uzun seçenekleri desteklemektedir. Bu programlarda bazı kısa seçeneklerin
@@ -981,15 +887,15 @@ Fonksiyonun birinci ve ikinci parametrelerine ``main`` fonksiyonundan alınan ``
 geçirilir. Fonksiyonun üçüncü parametresi yine kısa seçeneklerin belirtildiği yazının adresini almaktadır. Yani
 fonksiyonun ilk üç parametresi tamamen ``getopt`` fonksiyonu ile aynıdır. Fonksiyonun dördüncü parametresi uzun
 seçeneklerin belirtildiği ``struct option`` türünden bir yapı dizisinin adresini almaktadır. Her uzun seçenek
-``struct option`` türünden bir nesneyle ifade edilmektedir. ``struct option`` yapısı şöyle bildirilmiştir:
+``struct option`` türünden bir nesneyle ifade edilmektedir. ``struct option`` yapısı şöyle tanımlanmıştır:
 
 .. code-block:: c
 
     struct option {
         const char *name;
-        int         has_arg;
+        int        has_arg;
         int        *flag;
-        int         val;
+        int        val;
     };
 
 Fonksiyon bu yapı dizisinin bittiğini nasıl anlayacaktır? İşte yapı dizisinin son elemanına ilişkin yapı nesnesinin
@@ -1010,7 +916,7 @@ ilişkilidir. Yapının ``val`` elemanı uzun seçenek bulunduğunda bunun hangi
 İşte bu ``flag`` elemanına ``int`` bir nesnenin adresi geçilirse bu durumda uzun seçenek bulunduğunda bu ``val`` değeri
 bu ``int`` nesneye yerleştirilir ve ``getopt_long`` bu durumda ``0`` değeri ile geri döner. Ancak bu ``flag``
 göstericisine NULL adres de geçilebilir. Bu durumda ``getopt_long`` uzun seçenek bulunduğunda ``val`` elemanındaki
-değeri geri dönüş değeri olarak verir. Örneğin:
+değeri geri döndürmektedir. Örneğin:
 
 .. code-block:: c
 
@@ -1039,9 +945,6 @@ indeksli uzun seçenek olduğunu anlamak için kullanılmaktadır. Burada belirt
 ``option`` dizisi içerisindeki indeks numarası yerleştirilmektedir. Ancak bu bilgiye genellikle gereksinim
 duyulmamaktadır. Bu parametre NULL geçilebilir. Bu durumda böyle bir yerleştirme yapılmaz.
 
-getopt_long Fonksiyonunun Geri Dönüş Değerleri
-----------------------------------------------------
-
 ``getopt_long`` fonksiyonunun geri dönüş değeri beş biçimden biri olabilir:
 
 1. Fonksiyon bir kısa seçenek bulmuştur. Kısa seçeneğin karakter koduyla geri döner.
@@ -1052,54 +955,49 @@ getopt_long Fonksiyonunun Geri Dönüş Değerleri
    bulunduğunda doğrudan o uzun seçenek için tanımladığımız bayrak değişkenini set edebiliriz.
 4. Fonksiyon geçersiz (yani olmayan) bir kısa ya da uzun seçenekle karşılaşmıştır ya da argümanlı bir kısa seçeneğin
    ya da uzun seçeneğin argümanı girilmemiştir. Bu durumda fonksiyon ``'?'`` karakterinin değeriyle geri döner.
-5. Parse edecek argüman kalmamıştır; fonksiyon ``-1`` ile geri döner.
+5. Parse edecek argüman kalmamıştır; fonksiyon ``-1`` değeri geri döner.
 
 ``getopt`` fonksiyonundaki yardımcı global değişkenlerin aynısı burada da kullanılmaktadır:
 
-- ``opterr``: Hata mesajının fonksiyon tarafından ``stderr`` dosyasına basılıp basılmayacağını belirtir.
-- ``optarg``: Argümanlı bir kısa ya da uzun seçenekte argümanı belirtmektedir. Eğer *isteğe bağlı argümanlı* bir uzun
-  seçenek bulunmuşsa ve bu uzun seçenek için argüman girilmemişse ``optarg`` nesnesine NULL adres yerleştirilmektedir.
-- ``optind``: Bu değişken yine seçeneksiz argümanların başladığı indeksi belirtmektedir.
-- ``optopt``: Bu değişken geçersiz bir uzun ya da kısa seçenek girildiğinde hatanın nedenini belirtmektedir.
+``opterr``: Hata mesajının fonksiyon tarafından ``stderr`` dosyasına basılıp basılmayacağını belirtir.
+``optarg``: Argümanlı bir kısa ya da uzun seçenekte argümanı belirtmektedir. Eğer *isteğe bağlı argümanlı* bir uzun
+seçenek bulunmuşsa ve bu uzun seçenek için argüman girilmemişse ``optarg`` nesnesine NULL adres yerleştirilmektedir.
+``optind``: Bu değişken yine seçeneksiz argümanların başladığı indeksi belirtmektedir.
+``optopt``: Bu değişken geçersiz bir uzun ya da kısa seçenek girildiğinde hatanın nedenini belirtmektedir.
 
 ``getopt_long`` geçersiz bir seçenekle karşılaştığında ``'?'`` karakteri ile geri dönmekle birlikte ``optopt``
 değişkenini şu biçimlerde set etmektedir:
 
-1. Eğer fonksiyon geçersiz bir kısa seçenekle karşılaşmışsa ``optopt`` geçersiz kısa seçeneğin karakter karşılığına
+| **1.** Eğer fonksiyon geçersiz bir kısa seçenekle karşılaşmışsa ``optopt`` geçersiz kısa seçeneğin karakter karşılığına
    set edilir.
-2. Eğer fonksiyon argümanlı bir kısa seçenek bulduğu halde argüman girilmemişse o argümanlı kısa seçeneğin karakter
+| **2.** Eğer fonksiyon argümanlı bir kısa seçenek bulduğu halde argüman girilmemişse o argümanlı kısa seçeneğin karakter
    karşılığını ``optopt`` değişkenine yerleştirir.
-3. Eğer fonksiyon argümanlı bir uzun seçenek bulduğu halde argüman girilmemişse o argümanlı uzun seçeneğin ``option``
+| **3.** Eğer fonksiyon argümanlı bir uzun seçenek bulduğu halde argüman girilmemişse o argümanlı uzun seçeneğin ``option``
    yapısındaki ``val`` değerini ``optopt`` değişkenine yerleştirmektedir.
-4. Eğer fonksiyon geçersiz bir uzun seçenekle karşılaşmışsa ``optopt`` değişkenine ``0`` değeri yerleştirilmektedir.
+| **4.** Eğer fonksiyon geçersiz bir uzun seçenekle karşılaşmışsa ``optopt`` değişkenine ``0`` değeri yerleştirilmektedir.
 
 Maalesef ``getopt_long`` olmayan bir uzun seçenek girildiğinde bu uzun seçeneği bize vermemektedir. Ancak GNU'nun
 ``getopt_long`` gerçekleştirimine bakıldığında bu geçersiz uzun seçeneğin ``argv`` dizisinin ``optind - 1`` indeksinde
 olduğu görülmektedir. Yani bu geçersiz uzun seçeneğe ``argv[optind - 1]`` ifadesi ile erişilebilmektedir. Ancak bu
 durum ``glibc`` dokümanlarında belirtilmemiştir. Bu nedenle bu özelliğin kullanılması uygun değildir.
 
-----
+getopt_long Fonksiyonunun Kullanımına Örnekler
+----------------------------------------------
 
-getopt_long Örnekleri
---------------------------
+Aşağıdaki örnekte verdiğimiz programın komut satırı argümanları şunlardır:
 
-Örnek 1: --count ve --verbose
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``-a``
+``-b``
+``-c <arg>`` ya da ``--count <arg>``
+``--verbose``
 
-Aşağıdaki örnekteki komut satırı argümanları şunlardır:
-
-- ``-a``
-- ``-b``
-- ``-c <arg>`` ya da ``--count <arg>``
-- ``--verbose``
-
-Burada ``option`` yapısı şöyle oluşturulmuştur:
+``option`` yapı dizisi şöyle oluşturulmuştur:
 
 .. code-block:: c
 
     struct option options[] = {
-        {"count",   required_argument, NULL,           'c'},
-        {"verbose", no_argument,       &verbose_flag,  1},
+        {"count",   required_argument, NULL, 'c'},
+        {"verbose", no_argument, &verbose_flag,  1},
         {0, 0, 0, 0}
     };
 
@@ -1135,8 +1033,8 @@ Programda ``getopt_long`` döngüsü şöyledir:
         };
 
         a_flag = b_flag = c_flag = verbose_flag = err_flag = 0;
-
         opterr = 0;
+        
         while ((result = getopt_long(argc, argv, "abc:", options, NULL)) != -1) {
             switch (result) {
                 case 'a':
@@ -1151,11 +1049,11 @@ Programda ``getopt_long`` döngüsü şöyledir:
                     break;
                 case '?':
                     if (optopt == 'c')
-                        fprintf(stderr, "option -c or --count without argument!...\n");
+                        fprintf(stderr, "option -c (--count) requires an argument\n");
                     else if (optopt != 0)
                         fprintf(stderr, "invalid option: -%c\n", optopt);
                     else
-                        fprintf(stderr, "invalid long option!...\n");
+                        fprintf(stderr, "invalid option\n");
                     err_flag = 1;
                     break;
             }
@@ -1165,16 +1063,16 @@ Programda ``getopt_long`` döngüsü şöyledir:
             exit(EXIT_FAILURE);
 
         if (a_flag)
-            printf("-a option given\n");
+            printf("option -a given\n");
         if (b_flag)
-            printf("-b option given\n");
+            printf("option -b given\n");
         if (c_flag)
-            printf("-c or --count option given with argument \"%s\"\n", c_arg);
+            printf("option -c (--count) given with argument '%s'\n", c_arg);
         if (verbose_flag)
-            printf("--verbose given\n");
+            printf("option --verbose given\n");
 
         if (optind != argc) {
-            printf("Arguments without options");
+            printf("non-option arguments:\n");
             for (int i = optind; i < argc; ++i)
                 printf("%s\n", argv[i]);
         }
@@ -1182,39 +1080,36 @@ Programda ``getopt_long`` döngüsü şöyledir:
         return 0;
     }
 
-Örnek 2: --help, --count ve --line
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Aşağıda programın komut satırı argümanları şunlardır:
 
-Aşağıdaki programın komut satırı argümanları şunlardır:
-
-- ``-a``
-- ``-b <arg>``
-- ``-c``
-- ``-h`` ya da ``--help``
-- ``--count <arg>``
-- ``--line[=<arg>]``
+``-a``
+``-b <arg>``
+``-c``
+``-h`` ya da ``--help``
+``--count <arg>``
+``--line[=<arg>]``
 
 Bu programdaki ``option`` yapı dizisi şöyle oluşturulmuştur:
 
 .. code-block:: c
 
     struct option options[] = {
-        {"help",  no_argument,       &h_flag, 1},
-        {"count", required_argument, NULL,    2},
-        {"line",  optional_argument, NULL,    3},
+        {"help", no_argument, &h_flag, 1},
+        {"count", required_argument, NULL, 2},
+        {"line", optional_argument, NULL, 3},
         {0, 0, 0, 0},
     };
 
 Tabii biz bu örnekte de aslında ``--count`` ve ``--line`` için ``--help`` seçeneğinde yaptığımız gibi doğrudan bayrak
-değişkenini set edebilirdik. Ancak örnek alıştırma amacıyla oluşturulmuştur. Siz bu tür durumlarda doğrudan bayrak
+değişkenini set edebilirdik. Ancak örneği alıştırma yapmak amacıyla oluşturduk. Siz bu tür durumlarda doğrudan bayrak
 değişkenini set edebilirsiniz. Örneğin:
 
 .. code-block:: c
 
     struct option options[] = {
-        {"help",  no_argument,       &h_flag,     1},
+        {"help", no_argument, &h_flag,     1},
         {"count", required_argument, &count_flag, 1},
-        {"line",  optional_argument, &line_flag,  1},
+        {"line", optional_argument, &line_flag,  1},
         {0, 0, 0, 0},
     };
 
@@ -1226,8 +1121,8 @@ Programdaki ``getopt_long`` döngüsü de şöyle oluşturulmuştur:
         /* ... */
     }
 
-Burada ``--line`` isteğe bağlı bir argüman almaktadır. İsteğe bağlı uzun seçeneklerde argümanla seçenek yapışık
-biçimde ``=`` karakteri ile belirtilmektedir. Örneğin:
+Burada ``--line`` isteğe bağlı bir argüman almaktadır. Anımsayacağınız gibi isteğe bağlı uzun seçeneklerde argümanla 
+seçenek yapışık biçimde ``=`` karakteri ile belirtilmektedir. Örneğin:
 
 .. code-block:: bash
 
@@ -1259,16 +1154,16 @@ değişkeni ile elde edebiliriz. Argüman belirtilmezse ``optarg`` global deği�
         int i;
 
         struct option options[] = {
-            {"help",  no_argument,       &h_flag, 1},
-            {"count", required_argument, NULL,    2},
-            {"line",  optional_argument, NULL,    3},
+            {"help", no_argument, &h_flag, 1},
+            {"count", required_argument, NULL, 2},
+            {"line", optional_argument, NULL, 3},
             {0, 0, 0, 0},
         };
 
         a_flag = b_flag = c_flag = h_flag = count_flag = line_flag = 0;
         err_flag = 0;
-
         opterr = 0;
+        
         while ((result = getopt_long(argc, argv, "ab:ch", options, NULL)) != -1) {
             switch (result) {
                 case 'a':
@@ -1335,25 +1230,23 @@ değişkeni ile elde edebiliriz. Argüman belirtilmezse ``optarg`` global deği�
         return 0;
     }
 
-Örnek 3: --display, --vertical ve --count
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Bu örnekteki seçenekler şöyledir:
+Aşağıdaki programın seçenekleri şunlardır:
 
-- ``-a``: Argümansız kısa seçenek
-- ``-b``: Argümansız kısa seçenek
-- ``-c <arg>``: Argümanlı kısa seçenek, aynı zamanda ``--count <arg>`` uzun seçeneğiyle eşdeğerdir
-- ``--display``: Argümansız uzun seçenek
-- ``--vertical[=<arg>]``: İsteğe bağlı argümanlı uzun seçenek
+``-a``: Argümansız kısa seçenek.
+``-b``: Argümansız kısa seçenek.
+``-c <arg>``: Argümanlı kısa seçenek, aynı zamanda ``--count <arg>`` uzun seçeneğiyle eşdeğerdir.
+``--display``: Argümansız uzun seçenek.
+``--vertical[=<arg>]``: İsteğe bağlı argümanlı uzun seçenek.
 
 Burada kullanılan ``option`` yapı dizisi şöyle oluşturulmuştur:
 
 .. code-block:: c
 
     struct option long_options[] = {
-        {"display",  no_argument,       NULL, 100},
+        {"display", no_argument, NULL, 100},
         {"vertical", optional_argument, NULL, 101},
-        {"count",    required_argument, NULL, 'c'},
+        {"count", required_argument, NULL, 'c'},
         {0, 0, 0, 0}
     };
 
@@ -1370,15 +1263,15 @@ Burada kullanılan ``option`` yapı dizisi şöyle oluşturulmuştur:
         int a_flag, b_flag, c_flag, display_flag, vertical_flag, err_flag;
 
         struct option long_options[] = {
-            {"display",  no_argument,       NULL, 100},
+            {"display", no_argument, NULL, 100},
             {"vertical", optional_argument, NULL, 101},
-            {"count",    required_argument, NULL, 'c'},
+            {"count", required_argument, NULL, 'c'},
             {0, 0, 0, 0}
         };
 
         a_flag = b_flag = c_flag = display_flag = vertical_flag = err_flag = 0;
-
         opterr = 0;
+        
         while ((result = getopt_long(argc, argv, "abc:", long_options, NULL)) != -1) {
             switch (result) {
                 case 'a':
@@ -1400,11 +1293,11 @@ Burada kullanılan ``option`` yapı dizisi şöyle oluşturulmuştur:
                     break;
                 case '?':
                     if (optopt == 'c')
-                        printf("-%c must have an argument\n", optopt);
+                        fprintf(stderr, "option -c (--count) requires an argument\n");
                     else if (optopt != 0)
-                        printf("invalid option: -%c\n", optopt);
+                        fprintf(stderr, "invalid option: -%c\n", optopt);
                     else
-                        printf("%s invalid long option\n", argv[optind - 1]);
+                        fprintf(stderr, "invalid option: %s\n", argv[optind - 1]);
                     err_flag = 1;
                     break;
             }
@@ -1413,30 +1306,29 @@ Burada kullanılan ``option`` yapı dizisi şöyle oluşturulmuştur:
         if (err_flag)
             exit(EXIT_FAILURE);
 
-        printf("Arguments without option:\n");
-        for (int i = optind; i < argc; ++i)
-            printf("%s\n", argv[i]);
+        if (optind != argc) {
+            printf("non-option arguments:\n");
+            for (int i = optind; i < argc; ++i)
+                printf("%s\n", argv[i]);
+        }
 
         if (a_flag)
-            printf("-a option specified\n");
+            printf("option -a given\n");
         if (b_flag)
-            printf("-b option specified\n");
+            printf("option -b given\n");
         if (c_flag)
-            printf("-c option specified with argument \"%s\"\n", c_arg);
+            printf("option -c (--count) given with argument '%s'\n", c_arg);
         if (vertical_flag) {
             if (vertical_arg != NULL)
-                printf("--vertical option specified with argument \"%s\"\n", vertical_arg);
+                printf("option --vertical given with argument '%s'\n", vertical_arg);
             else
-                printf("--vertical option specified without argument\n");
+                printf("option --vertical given without argument\n");
         }
         if (display_flag)
-            printf("--display option specified\n");
+            printf("option --display given\n");
 
         return 0;
     }
-
-Örnek 4: flag Elemanına Adres Geçme ve Kısa/Uzun Seçenek Eşdeğerleri
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``getopt_long`` fonksiyonunda ``struct option`` yapısındaki ``flag`` elemanına NULL adres yerine ``int`` bir nesnenin
 adresi geçirilirse bu durumda ``getopt_long`` bu uzun seçenek girildiğinde doğrudan yapının ``val`` elemanındaki değeri
@@ -1447,10 +1339,10 @@ eşdeğerleri de bulunabilmektedir. Bunu sağlamanın en kolay yolu uzun seçene
 
 Bu örnekteki seçenekler şöyledir:
 
-- ``-a``: Argümansız kısa seçenek
-- ``-b <arg>`` ya da ``--length <arg>``: Kısa ve uzun seçenek eşdeğeri; ``val`` elemanına ``'l'`` yazılmıştır
-- ``--all``: Argümansız uzun seçenek; bayrak doğrudan ``all_flag`` değişkenine set edilmektedir
-- ``--number[=<arg>]``: İsteğe bağlı argümanlı uzun seçenek
+``-a``: Argümansız kısa seçenek.
+``-b <arg>`` ya da ``--length <arg>``: Kısa ve uzun seçenek eşdeğeri; ``val`` elemanına ``'l'`` girilmiştir.
+``--all``: Argümansız uzun seçenek; bayrak doğrudan ``all_flag`` değişkenine set edilmektedir.
+``--number[=<arg>]``: İsteğe bağlı argümanlı uzun seçenek.
 
 .. code-block:: c
 
@@ -1465,16 +1357,20 @@ Bu örnekteki seçenekler şöyledir:
         char *b_arg, *length_arg, *number_arg;
 
         struct option options[] = {
-            {"all",    no_argument,       &all_flag, 1},
-            {"length", required_argument, NULL,      'l'},
-            {"number", optional_argument, NULL,       3},
+            {"all", no_argument,  &all_flag, 1},
+            {"length", required_argument, NULL, 'l'},
+            {"number", optional_argument, NULL, 3},
             {0, 0, 0, 0},
         };
 
         a_flag = b_flag = all_flag = length_flag = number_flag = err_flag = 0;
         opterr = 0;
+
         while ((result = getopt_long(argc, argv, "ab:l:", options, NULL)) != -1) {
             switch (result) {
+                case 'a':
+                    a_flag = 1;
+                    break;
                 case 'b':
                     b_flag = 1;
                     b_arg = optarg;
@@ -1492,13 +1388,13 @@ Bu örnekteki seçenekler şöyledir:
                     break;
                 case '?':
                     if (optopt == 'b')
-                        fprintf(stderr, "-b option without argument!\n");
-                    else if (optopt == 2)
-                        fprintf(stderr, "--length option without argument!\n");
+                        fprintf(stderr, "option -b requires an argument\n");
+                    else if (optopt == 'l')
+                        fprintf(stderr, "option -l (--length) requires an argument\n");
                     else if (optopt != 0)
                         fprintf(stderr, "invalid option: -%c\n", optopt);
                     else
-                        fprintf(stderr, "invalid long option!\n");
+                        fprintf(stderr, "invalid option\n");
                     err_flag = 1;
             }
         }
@@ -1507,24 +1403,25 @@ Bu örnekteki seçenekler şöyledir:
             exit(EXIT_FAILURE);
 
         if (a_flag)
-            printf("-a option given\n");
+            printf("option -a given\n");
         if (b_flag)
-            printf("-b option given with argument \"%s\"\n", b_arg);
+            printf("option -b given with argument '%s'\n", b_arg);
         if (all_flag)
-            printf("--all option given\n");
+            printf("option --all given\n");
         if (length_flag)
-            printf("--length option given with argument \"%s\"\n", length_arg);
+            printf("option -l (--length) given with argument '%s'\n", length_arg);
         if (number_flag) {
             if (number_arg != NULL)
-                printf("--number option given with argument \"%s\"\n", number_arg);
+                printf("option --number given with argument '%s'\n", number_arg);
             else
-                printf("--number option given without argument\n");
+                printf("option --number given without argument\n");
         }
 
-        if (optind != argc)
-            printf("Arguments without options:\n");
-        for (int i = optind; i < argc; ++i)
-            puts(argv[i]);
+        if (optind != argc) {
+            printf("non-option arguments:\n");
+            for (int i = optind; i < argc; ++i)
+                puts(argv[i]);
+        }
 
         return 0;
     }

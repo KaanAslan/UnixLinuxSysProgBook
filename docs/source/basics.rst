@@ -1,10 +1,87 @@
-==============================
-Unix/Linux Kullanıcı Yönetimi
-==============================
+============================================================
+**Temel Kavramlar ve Hazırlık**
+============================================================
 
+Bu bölümde UNIX/Linux sistemleri hakkında temel bilgileri ve programlama için bazı hazırlık işlemleri üzerinde duracağız.
 
-Kullanıcı Yönetimi: /etc/passwd Dosyası
-============================================
+Proses Kavramı
+===============
+
+İşletim sistemlerinde çalışmakta olan programlara *proses (process)* denilmektedir. (*Process* sözcüğü Türkçede
+*süreç* biçiminde ifade edilmektedir. *Süreç* dilimizde oldukça yaygınlaşmış bir sözcüktür. Ancak biz kursumuzda
+*süreç* yerine bu kavramı *proses* biçiminde ifade edeceğiz.) *Program* terimi "bir programın kaynak kodları"
+anlamında ya da "*çalıştırılabilir (executable)* dosya" anlamında kullanılmaktadır. Biz bir programı çalıştırdığımızda
+işletim sistemi bakımından artık o bir proses haline gelmiştir. İşletim sistemleri bir program çalıştığında
+çekirdek alanı içerisinde çalıştırılan o program için birtakım veri yapıları oluşturmaktadır. Proses canlı bir
+kavramı ifade etmektedir. Aynı programı biz birden fazla kez çalıştırabiliriz. Bu durumda işletim sistemleri
+çalıştırılabilen dosya aynı olsa da birbirinden bağımsız farklı prosesler oluşturmaktadır.
+
+İşletim sistemlerinde her proses (yani her çalışan program) başka bir proses tarafından (yani çalışmakta olan
+başka bir program tarafından) yaratılmaktadır. Örneğin Linux'ta komut satırına geçip ``ls`` komutunu
+uyguladığımızda aslında kabuk ``/bin`` içerisindeki ``ls`` programını çalıştırmaktadır. Yani ``ls`` programı
+proses haline gelmektedir. Kabuk programının kendisi de (örneğin *bash*) bir prosestir. UNIX/Linux sistemlerinde 
+proseslerin yaratılması ileride ayrıntılarıyla görecek olduğumuz ``fork`` isimli POSIX fonksiyonuyla yapılmaktadır.
+
+Her proses diğerini yarattığına göre prosesler arasında bir *altlık-üstlük (parent)* ilişkisinin olması gerekir.
+İşte UNIX/Linux sistemlerinde bir prosesi yaratan prosese *üst proses (parent process)*, yaratılan prosese de
+*alt proses (child process)* denilmektedir. Örneğin biz ``bash`` komut satırında kendi ``sample`` programımızı
+çalıştırmış olalım. Bu durumda ``sample`` programının üst prosesi ``bash`` olacaktır. ``sample`` prosesi de
+``bash`` prosesinin alt prosesi olacaktır.
+
+Her proses başka bir proses tarafından yaratıldığına göre peki ``bash`` gibi bir kabuk prosesi kimin tarafından
+yaratılmaktadır? İşte sisteme girerken bize *kullanıcı adı* ve *parola* soran aslında ``login`` isimli prosestir. 
+``login`` prosesi ``bash`` programını çalıştırmaktadır. Peki ``login`` programını kim çalıştırmaktadır? İşte proses 
+hiyerarşisinin en tepesinde ``init`` denilen bir proses bulunmaktadır. UNIX/Linux sistemleri boot edildiğinde 
+ilk çalıştırılan program bu ``init`` programıdır. Yaratılan bu ``init`` prosesi tüm proseslerin atası durumundadır. 
+``init`` prosesi sonlanmaz, sürekli bir biçimde *bir servis gibi* (UNIX/Linux sistemlerinde *servis* terimi yerine *daemon* 
+terimi kullanılmaktadır) çalışmaya devam etmektedir. Örneğin Linux sistemlerinde ``bash`` kabuğu çalıştırılana kadar
+oluşturulan prosesler şöyledir:
+
+.. figure:: _static/boot-process-tree.png
+    :align: center
+    :width: 50%
+
+Çekirdek yüklendiğinde başlatılan ve bir servis biçiminde çalışan *init* programları zaman içerisinde çeşitlenmiştir. 
+Bugün en çok kullanılan *init* programı *systemd* isimli programdır. 
+
+Proseslerin ID Değerleri
+------------------------
+
+UNIX/Linux sistemlerinde her prosesin sistem genelinde *tek olan (unique)* bir proses ID'si vardır. Proses ID 
+değeri tamsayısal bir değerdir. POSIX standartlarında proseslerin ID değerleri ``pid_t`` türüyle temsil edilmektedir. 
+POSIX standartlarında ``pid_t`` türünün *işaretli bir tamsayı türü olacak biçimde* typedef edilmiş olması geekmektedir. 
+Linux sistemlerinde ``pid_t`` türü ``int`` olarak typedef edilmiştir. Proseslerin ID değerleri belli bir anda sistemde 
+tektir. Bir proses sonlandıktan belli bir zaman sonra o prosesin ID değeri yeni prosesler için kullanılabilir. Prosesler 
+hakkında bilgiler ``ps`` kabuk komutuyla elde edilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    $ ps
+      PID TTY          TIME CMD
+    49784 pts/0    00:00:00 bash
+    51143 pts/0    00:00:00 ps
+
+Buradaki ``PID`` sütununda ilgili prosesin ID değeri belirtilmektedir. Eğer prosesler arasındaki altlık-üstlük
+ilişkisini de görmek isterseniz ``ps`` komutunu ``-l`` seçeneğiyle kullanabilirsiniz. Örneğin:
+
+.. code-block:: bash
+
+    $ ps -l
+    F S   UID     PID    PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+    0 S  1000   49784   49773  0  80   0 -  3568 do_wai pts/0    00:00:00 bash
+    4 R  1000   51157   49784 99  80   0 -  4142 -      pts/0    00:00:00 ps
+
+Buradaki ``PPID`` sütunu üst prosesin proses ID değerini belirtmektedir. ``ps`` prosesinin üst prosesinin
+``bash`` olduğuna dikkat ediniz. ``ps`` komutunun pek çok ayrıntısı vardır. Biz bu komut hakkında ileride daha 
+fazla açıklamalar yapacağız.
+
+Bir programı her çalıştırdığımızda yeni bir proses yaratıldığı için yeni çalıştırılan prosese de yeni bir  
+*proses ID* atanmaktadır. Prosese atanan *proses ID* değeri proses sonlandığında geçerliliğini yitirmektedir. Prosess 
+id değerlerinin belli bir anda sistem genelinde tek olduğunu vurgulamak istiyoruz. Sonlanan bir prosese atanan ID değeri 
+sistem uzun süre açık kaldığına yeni yaratılan bir prosese de atanabilmektedir. 
+
+Linux'ta Kullanıcı Yönetimi: /etc/passwd Dosyası
+================================================
 
 Linux sistemlerinde kullanıcılara ilişkin bilgiler ``/etc/passwd`` dosyası içerisinde tutulmaktadır. ``/etc/passwd``
 dosyası satırlardan oluşmaktadır. Her satır ``:`` karakterleriyle ayrılmış 7 alandan oluşmaktadır. Örneğin:
@@ -22,12 +99,12 @@ Bu alanlardaki bilgiler şunlardır:
 Birinci alanda *username* kullanıcının oturum açarken kullandığı ismi belirtmektedir. İkinci alanda şifrelenmiş parola
 bilgisi bulunmaktadır. Eğer bu ikinci alanda yalnızca ``x`` harfi varsa bu durum şifre bilgisinin burada değil
 ``/etc/shadow`` dosyasında bulundurulduğu anlamına gelmektedir. ``/etc/shadow`` dosyası yalnızca *root* kullanıcısı
-tarafından okunabilmektedir. Oysa ``/etc/passwd`` dosyası herkes tarafından okunabilmektedir. Her kullanıcının ileride
-de ele alacağımız gibi bir kullanıcı adının yanı sıra çekirdek tarafından kullanılan bir kullanıcı id'si (user id)
-vardır. Üçüncü alanda bu kullanıcı id'si bulundurulmaktadır. Sıradan kullanıcılara yönelik kullanıcı id'leri tipik
-olarak 1000'den itibaren atanmaktadır. UNIX/Linux sistemlerinde aynı zamanda her kullanıcının bir grup bilgisi de
-vardır. Gruplar da isimlere ve id'lere sahiptir. İşte dördüncü alanda kullanıcının grubunun id'si bulunmaktadır.
-Kullanıcı id'leri ile isimler ``/etc/group`` dosyasında ilişkilendirilmiştir. Beşinci alanda kullanıcıya ilişkin
+tarafından okunabilmektedir. Oysa ``/etc/passwd`` dosyası herkes tarafından okunabilmektedir. Her kullanıcının izleyen 
+başlıkta da ele alacağımız gibi bir kullanıcı adının yanı sıra çekirdek tarafından kullanılan bir *kullanıcı ID'si 
+(user ID)* vardır. Üçüncü alanda bu kullanıcı ID'si bulundurulmaktadır. Sıradan kullanıcılara yönelik kullanıcı ID'leri tipik
+olarak 1000'den itibaren atanmaktadır. UNIX/Linux sistemlerinde aynı zamanda her kullanıcı bir grubun da üyesidir.
+Gruplar da isimlere ve ID'lere sahiptir. İşte dördüncü alanda kullanıcının grubunun ID'si bulunmaktadır.
+Kullanıcı ID'leri ile isimler ``/etc/group`` dosyasında ilişkilendirilmiştir. Beşinci alanda kullanıcıya ilişkin
 bilgiler bulundurulur; çekirdek bu alanla ilgilenmez. Altıncı alanda oturum açıldıktan sonra çalıştırılacak
 programın çalışma dizini (yani oturum açıldıktan sonra hangi dizine geçileceği) belirtilmektedir. Geleneksel
 olarak her kullanıcı için ``/home`` dizininin altında bir dizin yaratılır. Yedinci alanda oturum açıldığında
@@ -90,6 +167,81 @@ bulunmaktadır. Örneğin:
 .. code-block:: bash
 
     $ sudo userdel -r veli
+
+Kullanıcıların İsimleri, Kullanıcı ve Grup ID'leri
+==================================================
+
+UNIX/Linux sistemlerinde her kullanıcının bir *kullanıcı ismi (user name)* ve bir kullanıcı ID'si (user ID)
+bulunmaktadır. Kullanıcıların isimleri ile onların ID'leri daha önce de belirttiğimiz gibi ``/etc/passwd``
+dosyasında eşleştirilmiştir. Örneğin ``/etc/passwd`` dosyasında *kaan* kullanıcısının bulunduğu satır şöyledir:
+
+.. code-block:: text
+
+    kaan:x:1000:1000:Kaan Aslan,,,:/home/kaan:/bin/bash
+
+Burada birinci alandaki ``kaan`` kullanıcının ismini, üçüncü alandaki ``1000`` ise onun ID'sini belirtmektedir.
+Çekirdek isimlerle değil ID'lerle işlem yapmaktadır. İsimler kullanıcılar için okunabilirlik sağlamak amacıyla
+bulundurulmaktadır.
+
+UNIX/Linux sistemlerinde her kullanıcı aynı zamanda bir grup içerisindedir. Buna kullanıcının grubu denilmektedir.
+Grupların da isimleri ve ID'leri vardır. Grup isimleri grup ID'leriyle ``/etc/group`` dosyasında
+eşleştirilmiştir. Yukarıdaki ``/etc/passwd`` dosyasındaki *kaan* kullanıcısına ilişkin satırın dördüncü alanında
+grubun ID'si yer almaktadır. (Kullanıcı ID'leri ile grup ID'leri farklı isim alanlarındadır. Yani bunların
+numaralarının çakışması bir sorun oluşturmamaktadır.) ``/etc/group`` dosyasındaki satırlar aşağıdaki gibidir:
+
+.. code-block:: text
+
+    study:x:1000:
+
+Burada ``study`` grup ismine karşı gelen ID'nin ``1000`` olduğu görülmektedir.
+
+Peki *grup (group)* ne anlama gelmektedir? İşte *bir grup kullanıcı ortak dosyalar üzerinde işlem yapabilsin ancak
+diğerleri yapmasın* durumunu oluşturmak için grup kavramı kullanılmıştır. Eskiden bir kullanıcının tek bir grubu
+olabiliyordu. Zaman içerisinde bunun yetersizliği görüldü ve bir kullanıcının birden fazla grup içerisinde
+bulunabilmesi sağlandı. Güncel UNIX/Linux sistemlerinde her kullanıcının asli bir grubu vardır. Buna *gerçek grup
+(real group)* da denilmektedir. Ancak ayrıca bir kullanıcı birden fazla gruba da üye olabilmektedir. Bunlara da
+kullanıcının *ek grupları (supplementary groups)* denilmektedir. Çekirdek gerçek gruplarla ek gruplar arasında bir
+ayrım yapmamaktadır. Bir kullanıcının bilgileri kabuk üzerinde ``id`` komutuyla görüntülenebilmektedir. Örneğin:
+
+.. code-block:: bash
+
+    $ ID
+    uid=1000(kaan) gid=1000(study) gruplar=1000(study),4(adm),24(cdrom),27(sudo),30(dip),
+    46(plugdev),100(users),105(lpadmin),125(sambashare)
+
+Proseslerin Kullanıcı ve Grup ID'leri
+=====================================
+
+UNIX/Linux sistemlerinde her prosesin bir *gerçek kullanıcı ID'si (real user ID)*, *gerçek grup ID'si (real
+group ID)*, *etkin kullanıcı ID'si (effective user ID)* ve *etkin grup ID'si (effective group ID)* vardır.
+*Prosesin kullanıcı ID'si* denildiğinde varsayılan olarak *gerçek kullanıcı ID'si*, *prosesin grup ID'si*
+denildiğinde de varsayılan olarak *gerçek grup ID'si* anlaşılmaktadır. Peki gerçek ID'lerle etkin ID'ler
+arasında ne farklılık vardır? Aslında prosesin *gerçek kullanıcı ID'si* ile *etkin kullanıcı ID'si*, *gerçek
+grup ID'si* ile de *etkin grup ID'si* çoğu kez aynı değerdedir. Bunlar özel durumlarda farklılaşmaktadır. Biz bu
+konuyu ileride ele alacağız. Ancak dosyalarda erişim işlemlerinde gerçek ID'ler değil etkin ID'ler test işlemine
+sokulmaktadır. Her ne kadar çekirdek aslında sayısal ID değerleriyle çalışıyorsa da programcılar tarafından
+konuşmalarda kullanıcı ve grup ID'leri Linux sistemlerindeki ``/etc/passwd`` ve ``/etc/group`` dosyalarında
+belirlenmiş olan isimlerle ifade edilmektedir.
+
+Peki bir proses yaratıldığında onun gerçek ve etkin kullanıcı ve grup ID'leri nasıl oluşturulmaktadır? İşte bir
+prosesin gerçek ve etkin kullanıcı ve grup ID'leri alt proses yaratılırken (``fork`` işlemi sırasında) üst
+prosesten alınmaktadır. Örneğin ``bash`` prosesinin gerçek ve etkin kullanıcı ID'si ``kaan``, gerçek ve etkin
+grup ID'si de ``study`` olsun. Biz kabuk üzerinden ``sample`` programını çalıştırmış olalım. Bu durumda
+``sample`` prosesinin gerçek ve etkin kullanıcı ID'si ``kaan``, gerçek ve etkin grup ID'si ise ``study``
+olacaktır.
+
+Peki kabuk prosesinin gerçek ve etkin kullanıcı ve grup ID'leri nasıl oluşturulmaktadır? İşte bize *user name* ve
+*password* soran ``login`` prosesi doğrulamayı yaparsa çalıştırdığı ``bash`` prosesinin gerçek ve etkin kullanıcı
+ve grup ID'lerini ``/etc/passwd`` dosyasındaki ilgili satırda belirtilen *kullanıcı ve grup ID'si* ile set
+etmektedir. ``/etc/passwd`` dosyasının satırlarının aşağıdaki gibi olduğunu anımsayınız:
+
+.. code-block:: text
+
+    kaan:x:1000:1000:Kaan Aslan,,,:/home/kaan:/bin/bash
+
+Buradaki ilk ``1000`` değeri kullanıcı ID'sini, ikinci ``1000`` değeri grup ID'sini belirtmektedir. İşte biz
+login olduğumuzda ``/bin/bash`` çalıştırılarak kabuk prosesi oluşturulacak; o prosesin gerçek ve etkin kullanıcı
+id'si ``1000 (kaan)`` olarak, gerçek ve etkin grup ID'si de ``1000 (study)`` olarak set edilecektir.
 
 ----
 
@@ -311,7 +463,7 @@ sabitlerin isimleri her sistemde aynı olmak zorundadır. Ancak sayısal değerl
    * - ``EHOSTUNREACH``
      - No route to host
    * - ``EIDRM``
-     - Identifier removed
+     - IDentifier removed
    * - ``EILSEQ``
      - Invalid or incomplete multibyte or wide character
    * - ``EINPROGRESS``
@@ -676,195 +828,13 @@ C uyumunu korumak için kursumuzda standart C fonksiyonlarında ``errno`` deği�
 
 ----
 
-Kullanıcı ve Grup Kimlik Bilgileri
-===================================
-
-UNIX/Linux sistemlerinde her kullanıcının bir *kullanıcı ismi (user name)* ve bir kullanıcı id'si (user id)
-bulunmaktadır. Kullanıcıların isimleri ile onların id'leri daha önce de belirttiğimiz gibi ``/etc/passwd``
-dosyasında eşleştirilmiştir. Örneğin ``/etc/passwd`` dosyasında *kaan* kullanıcısının bulunduğu satır şöyledir:
-
-.. code-block:: text
-
-    kaan:x:1000:1000:Kaan Aslan,,,:/home/kaan:/bin/bash
-
-Burada birinci alandaki ``kaan`` kullanıcının ismini, üçüncü alandaki ``1000`` ise onun id'sini belirtmektedir.
-Çekirdek isimlerle değil id'lerle işlem yapmaktadır. İsimler kullanıcılar için okunabilirlik sağlamak amacıyla
-bulundurulmaktadır.
-
-UNIX/Linux sistemlerinde her kullanıcı aynı zamanda bir grup içerisindedir. Buna kullanıcının grubu denilmektedir.
-Grupların da isimleri ve id'leri vardır. Grup isimleri grup id'leriyle ``/etc/group`` dosyasında
-eşleştirilmiştir. Yukarıdaki ``/etc/passwd`` dosyasındaki *kaan* kullanıcısına ilişkin satırın dördüncü alanında
-grubun id'si yer almaktadır. (Kullanıcı id'leri ile grup id'leri farklı isim alanlarındadır. Yani bunların
-numaralarının çakışması bir sorun oluşturmamaktadır.) ``/etc/group`` dosyasındaki satırlar aşağıdaki gibidir:
-
-.. code-block:: text
-
-    study:x:1000:
-
-Burada ``study`` grup ismine karşı gelen id'nin ``1000`` olduğu görülmektedir.
-
-Peki *grup (group)* ne anlama gelmektedir? İşte *bir grup kullanıcı ortak dosyalar üzerinde işlem yapabilsin ancak
-diğerleri yapmasın* durumunu oluşturmak için grup kavramı kullanılmıştır. Eskiden bir kullanıcının tek bir grubu
-olabiliyordu. Zaman içerisinde bunun yetersizliği görüldü ve bir kullanıcının birden fazla grup içerisinde
-bulunabilmesi sağlandı. Güncel UNIX/Linux sistemlerinde her kullanıcının asli bir grubu vardır. Buna *gerçek grup
-(real group)* da denilmektedir. Ancak ayrıca bir kullanıcı birden fazla gruba da üye olabilmektedir. Bunlara da
-kullanıcının *ek grupları (supplementary groups)* denilmektedir. Çekirdek gerçek gruplarla ek gruplar arasında bir
-ayrım yapmamaktadır. Bir kullanıcının bilgileri kabuk üzerinde ``id`` komutuyla görüntülenebilmektedir. Örneğin:
-
-.. code-block:: bash
-
-    $ id
-    uid=1000(kaan) gid=1000(study) gruplar=1000(study),4(adm),24(cdrom),27(sudo),30(dip),
-    46(plugdev),100(users),105(lpadmin),125(sambashare)
-
-
-
-Proses Kavramı
-===============
-
-İşletim sistemlerinde çalışmakta olan programlara *proses (process)* denilmektedir. (*Process* sözcüğü Türkçede
-*süreç* biçiminde ifade edilmektedir. *Süreç* dilimizde oldukça yaygınlaşmış bir sözcüktür. Ancak biz kursumuzda
-*süreç* yerine bu kavramı *proses* biçiminde ifade edeceğiz.) *Program* terimi *bir programın kaynak kodları*
-anlamında ya da *derlenmiş çalıştırılabilir dosya* anlamında kullanılmaktadır. Biz bir programı çalıştırdığımızda
-artık işletim sistemi bakış açısıyla bir proses oluşturulmuş olur. İşletim sistemleri bir program çalıştığında
-çekirdek alanı içerisinde çalıştırılan o program için birtakım veri yapıları oluşturmaktadır. Proses canlı bir
-kavramı ifade etmektedir. Aynı programı biz birden fazla kez çalıştırabiliriz. Bu durumda işletim sistemleri
-çalıştırılabilen dosya aynı olsa da birbirinden bağımsız farklı prosesler oluşturmaktadır.
-
-----
-
-Proses Hiyerarşisi: Üst Proses ve Alt Proses
-=============================================
-
-İşletim sistemlerinde her proses (yani her çalışan program) başka bir proses tarafından (yani çalışmakta olan
-başka bir program tarafından) yaratılmaktadır. Örneğin Linux'ta komut satırına geçip ``ls`` komutunu
-uyguladığımızda aslında kabuk ``/bin`` içerisindeki ``ls`` programını çalıştırmaktadır. Yani ``ls`` programı
-proses haline gelmektedir. Kabuk programının kendisi de bir prosestir. UNIX/Linux sistemlerinde proseslerin
-yaratılması ileride ayrıntılarıyla görecek olduğumuz ``fork`` isimli POSIX fonksiyonuyla yapılmaktadır.
-
-Her proses diğerini yarattığına göre prosesler arasında bir *altlık-üstlük (parent)* ilişkisinin olması gerekir.
-İşte UNIX/Linux sistemlerinde bir prosesi yaratan prosese *üst proses (parent process)*, yaratılan prosese de
-*alt proses (child process)* denilmektedir. Örneğin biz ``bash`` komut satırında kendi ``sample`` programımızı
-çalıştırmış olalım. Bu durumda ``sample`` programının üst prosesi ``bash`` olacaktır. ``sample`` prosesi de
-``bash`` prosesinin alt prosesi olacaktır.
-
-Her proses başka bir proses tarafından yaratıldığına göre peki ``bash`` kabuk prosesi kimin tarafından
-yaratılmaktadır? İşte bize *user name* ve *password* soran aslında ``login`` prosestir. ``login`` prosesi
-``bash`` programını çalıştırmaktadır. Peki ``login`` programını kim çalıştırmaktadır? İşte proses hiyerarşisinin
-en tepesinde ``init`` denilen bir proses bulunmaktadır. UNIX/Linux sistemleri boot edildiğinde ilk çalıştırılan
-proses bu ``init`` prosesidir. ``init`` prosesi tüm proseslerin atası durumundadır. ``init`` prosesi sonlanmaz,
-sürekli bir biçimde *bir servis gibi* (UNIX/Linux sistemlerinde *servis* terimi yerine *daemon* terimi
-kullanılmaktadır) çalışmaya devam etmektedir. Örneğin Linux sistemlerinde ``bash`` kabuğu çalıştırılana kadar
-oluşturulan prosesler şöyledir:
-
-.. code-block:: text
-
-    PID 0 ── idle/swapper (çekirdek, kullanıcı alanı değil)
-                │
-                ▼
-    PID 1 ── init / systemd
-            (ilk kullanıcı alanı prosesi, çekirdek başlatır)
-                │
-        ┌───────┴────────┐
-        │                │
-        ▼                ▼
-    getty / agetty    diğer servisler
-    (TTY bekler)      (sshd, cron …)
-        │                │
-        │ (lokal giriş)  │ (SSH bağlantısı)
-        │                │
-        ▼                ▼
-    login          sshd (child)
-    (kimlik doğr.)  (oturumu yönetir)
-        │                │
-        └───────┬────────┘
-                │
-                ▼
-            bash
-            (kullanıcı kabuğu)
-
-----
-
-Proses ID (PID)
-================
-
-UNIX/Linux sistemlerinde (ileride de ayrıntılarıyla ele alacağız) her prosesin sistem genelinde *tek olan
-(unique)* bir proses id'si vardır. Proses id değeri tamsayısal bir değerdir. POSIX standartlarında proseslerin
-id değerleri ``pid_t`` türüyle temsil edilmektedir. POSIX standartlarında ``pid_t`` türünün *işaretli bir
-tamsayı türü olacak biçimde* typedef edilmesi zorunlu tutulmuştur. Linux sistemlerinde ``pid_t`` türü ``int``
-olarak typedef edilmiştir. Proseslerin id değerleri belli bir anda sistemde tektir. Bir proses sonlandıktan
-belli bir zaman sonra o prosesin id değeri yeni prosesler için kullanılabilir. Prosesler hakkında bilgiler ``ps``
-kabuk komutuyla elde edilmektedir. Örneğin:
-
-.. code-block:: bash
-
-    $ ps
-      PID TTY          TIME CMD
-    49784 pts/0    00:00:00 bash
-    51143 pts/0    00:00:00 ps
-
-Buradaki ``PID`` sütununda ilgili prosesin id değeri belirtilmektedir. Eğer prosesler arasındaki altlık-üstlük
-ilişkisi de görülmek isteniyorsa ``ps`` komutu ``-l`` seçeneğiyle kullanılmalıdır. Örneğin:
-
-.. code-block:: bash
-
-    $ ps -l
-    F S   UID     PID    PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
-    0 S  1000   49784   49773  0  80   0 -  3568 do_wai pts/0    00:00:00 bash
-    4 R  1000   51157   49784 99  80   0 -  4142 -      pts/0    00:00:00 ps
-
-Buradaki ``PPID`` sütunu üst prosesin proses id değerini belirtmektedir. Burada ``ps`` prosesinin üst prosesinin
-``bash`` olduğu görülmektedir.
-
-``ps`` komutunun pek çok ayrıntısı vardır. Biz bu komut hakkında ileride daha fazla açıklamalar yapacağız.
-
-Bir programı her yeniden çalıştırdığımızda yeni bir proses yaratıldığı için prosese yeni *proses id*
-atanmaktadır. Prosese atanan *proses id* değerinin geçerliliği proses sonlandığında yok olmaktadır.
-
-----
-
-Gerçek ve Etkin Kullanıcı/Grup ID'leri
-=======================================
-
-UNIX/Linux sistemlerinde her prosesin bir *gerçek kullanıcı id'si (real user id)*, *gerçek grup id'si (real
-group id)*, *etkin kullanıcı id'si (effective user id)* ve *etkin grup id'si (effective group id)* vardır.
-*Prosesin kullanıcı id'si* denildiğinde varsayılan olarak *gerçek kullanıcı id'si*, *prosesin grup id'si*
-denildiğinde de varsayılan olarak *gerçek grup id'si* anlaşılmaktadır. Peki gerçek id'lerle etkin id'ler
-arasında ne farklılık vardır? Aslında prosesin *gerçek kullanıcı id'si* ile *etkin kullanıcı id'si*, *gerçek
-grup id'si* ile de *etkin grup id'si* çoğu kez aynı değerdedir. Bunlar özel durumlarda farklılaşmaktadır. Biz bu
-konuyu ileride ele alacağız. Ancak dosyalarda erişim işlemlerinde gerçek id'ler değil etkin id'ler test işlemine
-sokulmaktadır. Her ne kadar çekirdek aslında sayısal id değerleriyle çalışıyorsa da programcılar tarafından
-konuşmalarda kullanıcı ve grup id'leri Linux sistemlerindeki ``/etc/passwd`` ve ``/etc/group`` dosyalarında
-belirlenmiş olan isimlerle ifade edilmektedir.
-
-Peki bir proses yaratıldığında onun gerçek ve etkin kullanıcı ve grup id'leri nasıl oluşturulmaktadır? İşte bir
-prosesin gerçek ve etkin kullanıcı ve grup id'leri alt proses yaratılırken (``fork`` işlemi sırasında) üst
-prosesten alınmaktadır. Örneğin ``bash`` prosesinin gerçek ve etkin kullanıcı id'si ``kaan``, gerçek ve etkin
-grup id'si de ``study`` olsun. Biz kabuk üzerinden ``sample`` programını çalıştırmış olalım. Bu durumda
-``sample`` prosesinin gerçek ve etkin kullanıcı id'si ``kaan``, gerçek ve etkin grup id'si ise ``study``
-olacaktır.
-
-Peki kabuk prosesinin gerçek ve etkin kullanıcı ve grup id'leri nasıl oluşturulmaktadır? İşte bize *user name* ve
-*password* soran ``login`` prosesi doğrulamayı yaparsa çalıştırdığı ``bash`` prosesinin gerçek ve etkin kullanıcı
-ve grup id'lerini ``/etc/passwd`` dosyasındaki ilgili satırda belirtilen *kullanıcı ve grup id'si* ile set
-etmektedir. ``/etc/passwd`` dosyasının satırlarının aşağıdaki gibi olduğunu anımsayınız:
-
-.. code-block:: text
-
-    kaan:x:1000:1000:Kaan Aslan,,,:/home/kaan:/bin/bash
-
-Buradaki ilk ``1000`` değeri kullanıcı id'sini, ikinci ``1000`` değeri grup id'sini belirtmektedir. İşte biz
-login olduğumuzda ``/bin/bash`` çalıştırılarak kabuk prosesi oluşturulacak; o prosesin gerçek ve etkin kullanıcı
-id'si ``1000 (kaan)`` olarak, gerçek ve etkin grup id'si de ``1000 (study)`` olarak set edilecektir.
-
-----
 
 Dosyaların Kullanıcı ve Grup ID'leri
 =====================================
 
-UNIX/Linux sistemlerinde aynı zamanda her dosyanın da bir kullanıcı id'si (user id) ve grup id'si (group id)
-bulunmaktadır. (Dosyaların gerçek ve etkin biçiminde id'leri yoktur, yalnızca id'leri vardır.) Dosyanın kullanıcı
-ve grup id'lerini ``ls -l`` komutu ile görebilirsiniz. Örneğin:
+UNIX/Linux sistemlerinde aynı zamanda her dosyanın da bir kullanıcı ID'si (user ID) ve grup ID'si (group ID)
+bulunmaktadır. (Dosyaların gerçek ve etkin biçiminde ID'leri yoktur, yalnızca ID'leri vardır.) Dosyanın kullanıcı
+ve grup ID'lerini ``ls -l`` komutu ile görebilirsiniz. Örneğin:
 
 .. code-block:: bash
 
@@ -878,23 +848,23 @@ ve grup id'lerini ``ls -l`` komutu ile görebilirsiniz. Örneğin:
     -rw-rw-r-- 1 kaan study   110 Haz  9 11:51 sample.c
     -rw-rw-r-- 1 kaan study  1512 May  7 12:39 sample.o
 
-Burada üçüncü sütunda dosyaların kullanıcı id'leri, dördüncü sütunda ise grup id'leri bulunmaktadır. Peki
-dosyaların kullanıcı ve grup id'leri nasıl oluşturulmaktadır?
+Burada üçüncü sütunda dosyaların kullanıcı ID'leri, dördüncü sütunda ise grup ID'leri bulunmaktadır. Peki
+dosyaların kullanıcı ve grup ID'leri nasıl oluşturulmaktadır?
 
 UNIX/Linux sistemlerinde tüm dosyalar ``open`` isimli bir POSIX fonksiyonu tarafından yaratılmaktadır. Bir
-dosyanın kullanıcı id'si onu yaratan prosesin etkin kullanıcı id'sinden alınmaktadır. Örneğin çalışan
-prosesimizin etkin kullanıcı id'si ``kaan (1000)`` olsun. Biz bu programda ``open`` fonksiyonu ile
-``sample.txt`` dosyasını yaratmış olalım. Bu durumda ``sample.txt`` dosyasının kullanıcı id'si de ``kaan (1000)``
+dosyanın kullanıcı ID'si onu yaratan prosesin etkin kullanıcı ID'sinden alınmaktadır. Örneğin çalışan
+prosesimizin etkin kullanıcı ID'si ``kaan (1000)`` olsun. Biz bu programda ``open`` fonksiyonu ile
+``sample.txt`` dosyasını yaratmış olalım. Bu durumda ``sample.txt`` dosyasının kullanıcı ID'si de ``kaan (1000)``
 olacaktır.
 
-Dosyaların grup id'lerinin set edilmesi konusunda tarihsel olarak UNIX/Linux sistemler arasında bir anlaşmazlık
-oluşmuştur. Bazı sistemler ``open`` fonksiyonuyla yaratılan dosyaların grup id'lerini dosyayı yaratan prosesin
-etkin grup id'si olarak, bazı sistemler ise yaratılan dosyanın içinde bulunduğu dizinin grup id'si olarak set
+Dosyaların grup ID'lerinin set edilmesi konusunda tarihsel olarak UNIX/Linux sistemler arasında bir anlaşmazlık
+oluşmuştur. Bazı sistemler ``open`` fonksiyonuyla yaratılan dosyaların grup ID'lerini dosyayı yaratan prosesin
+etkin grup ID'si olarak, bazı sistemler ise yaratılan dosyanın içinde bulunduğu dizinin grup ID'si olarak set
 etmektedir. POSIX standartları her iki biçimi de geçerli kabul etmektedir. Linux sistemlerinde yaratılan
-dosyanın grup id'si onu yaratan prosesin etkin grup id'si biçiminde set edilmektedir. BSD sistemlerinde ise
-yaratılan dosyanın grup id'si dosyanın yaratıldığı dizinin grup id'si biçiminde set edilmektedir. Linux
+dosyanın grup ID'si onu yaratan prosesin etkin grup ID'si biçiminde set edilmektedir. BSD sistemlerinde ise
+yaratılan dosyanın grup ID'si dosyanın yaratıldığı dizinin grup ID'si biçiminde set edilmektedir. Linux
 sistemlerinde *mount parametreleriyle* BSD tarzı davranış istenirse oluşturulabilmektedir. Aynı zamanda Linux
-sistemlerinde *dosyanın içinde bulunduğu dizinin set group id* bayrağı set edilerek de aynı etki
+sistemlerinde *dosyanın içinde bulunduğu dizinin set group ID* bayrağı set edilerek de aynı etki
 oluşturulabilmektedir.
 
 ----
@@ -1015,19 +985,19 @@ dosyanın niyet edilen açış modu ile dosyanın erişim haklarını kontrol ed
 İşletim sistemi ``open`` fonksiyonunda (ve diğer bazı fonksiyonlarda) sırasıyla şu kontrolleri uygulamaktadır
 (bu kontroller ``else-if`` biçiminde sıralanmıştır):
 
-1. Eğer işlem yapmak isteyen prosesin etkin kullanıcı id'si (etkin grup id'sinin burada önemi yoktur) ``0`` ise
+1. Eğer işlem yapmak isteyen prosesin etkin kullanıcı ID'si (etkin grup ID'sinin burada önemi yoktur) ``0`` ise
    işlem yapmak isteyen proses sistemdeki yetkili kullanıcının bir prosesidir. Bu tür proseslere *root
    prosesler* ya da *super user prosesler* ya da *öncelikli (privileged) prosesler* denilmektedir. Bu durumda
    işletim sistemi, yapılmak istenen işlem ne olursa olsun bu işleme onay verir. Yani etkin kullanıcısı ``0``
    olan root prosesler her türlü dosyaya her türlü biçimde erişebilmektedir.
 
-2. Eğer işlem yapmak isteyen prosesin etkin kullanıcı id'si (effective user id) dosyanın kullanıcı id'si ile
+2. Eğer işlem yapmak isteyen prosesin etkin kullanıcı ID'si (effective user ID) dosyanın kullanıcı ID'si ile
    aynıysa bu durumda *dosyanın sahibinin dosya üzerinde işlem yaptığı* gibi mantıksal bir çıkarım
    yapılmaktadır. Yapılmak istenen işlem ile dosyanın sahiplik (owner) erişim bilgileri karşılaştırılır. Eğer
    bu erişim bilgileri işlemi destekliyorsa işleme onay verilir, değilse işlem başarısızlıkla sonuçlanır.
 
-3. Eğer işlem yapmak isteyen prosesin etkin grup id'si (effective group id) ya da *ek grup (supplementary
-   groups)* id'lerinden biri dosyanın grup id'si ile aynıysa bu durumda *dosya ile aynı grupta bulunan bir
+3. Eğer işlem yapmak isteyen prosesin etkin grup ID'si (effective group ID) ya da *ek grup (supplementary
+   groups)* ID'lerinden biri dosyanın grup ID'si ile aynıysa bu durumda *dosya ile aynı grupta bulunan bir
    kullanıcının dosya üzerinde işlem yaptığı* gibi mantıksal bir çıkarım yapılmaktadır. Yapılmak istenen işlem
    ile dosyanın grup (group) erişim bilgileri karşılaştırılır. Eğer bu erişim bilgileri işlemi destekliyorsa
    işleme onay verilir, değilse işlem başarısızlıkla sonuçlanır.
@@ -1046,11 +1016,11 @@ dosyanın niyet edilen açış modu ile dosyanın erişim haklarını kontrol ed
     -rw-r--r-- 1 kaan study    20 Kas 13 13:54 test.txt
 
 Dosyaya erişim yapmak isteyen proses, *okuma ve yazma amaçlı* erişim yapmak istesin. Yani örneğin ``open``
-fonksiyonuyla dosyayı ``O_RDWR`` moduyla açmak istesin. Eğer prosesin etkin kullanıcı id'si ``0`` ise bu işlem
-onaylanacaktır. Eğer prosesin etkin kullanıcı id'si ``kaan`` ise bu işlem yine onaylanacaktır, çünkü dosyanın
-sahiplik erişim hakları ``rw-`` biçimdedir. Ancak prosesin etkin grup id'si ya da ek grup id'lerinden biri
+fonksiyonuyla dosyayı ``O_RDWR`` moduyla açmak istesin. Eğer prosesin etkin kullanıcı ID'si ``0`` ise bu işlem
+onaylanacaktır. Eğer prosesin etkin kullanıcı ID'si ``kaan`` ise bu işlem yine onaylanacaktır, çünkü dosyanın
+sahiplik erişim hakları ``rw-`` biçimdedir. Ancak prosesin etkin grup ID'si ya da ek grup ID'lerinden biri
 ``study`` ise işlem onaylanmayacaktır. Çünkü erişim hakları gruptaki üyelere yalnızca okuma izni vermektedir.
-Benzer biçimde prosesin etkin kullanıcı id'si ya da etkin grup id'si (ve ek grup id'leri) burada
+Benzer biçimde prosesin etkin kullanıcı ID'si ya da etkin grup ID'si (ve ek grup ID'leri) burada
 belirtilenlerin dışında ise yine prosese bu işlem için onay verilmeyecektir.
 
 Yukarıdaki maddeler ``else-if`` biçiminde düşünülmelidir. Örneğin dosyanın erişim hakları aşağıdaki gibi olsun:
@@ -1059,7 +1029,7 @@ Yukarıdaki maddeler ``else-if`` biçiminde düşünülmelidir. Örneğin dosyan
 
     -r--rw-r-- 1 kaan study    20 Kas 13 13:54 test.txt
 
-Burada dosyanın sahibi (yani etkin kullanıcı id'si dosyanın kullanıcı id'si ile aynı olan proses) dosya
+Burada dosyanın sahibi (yani etkin kullanıcı ID'si dosyanın kullanıcı ID'si ile aynı olan proses) dosya
 üzerinde yazma yapamayacaktır. Ancak aynı grupta olan prosesler bunu yapabilecektir. Tabii bu biçimdeki erişim
 hakları mantıksal olarak tuhaf ve anlamsızdır. Yani dosyanın sahibine verilmeyen bir hakkın gruba ya da
 diğerlerine verilmesi normal bir durum değildir.
@@ -1103,15 +1073,15 @@ fonksiyonuyla yaratılmaktadır. ``open`` fonksiyonuna yaratım sırasında eri�
 durumda dosyanın erişim hakları, dosya yaratılırken dosyayı yaratan kişi tarafından belirlenmektedir. Dosyanın
 erişim hakları daha sonra ``chmod`` isimli POSIX fonksiyonuyla ya da komut satırından ``chmod`` komutuyla
 (``chmod`` programı da zaten ``chmod`` POSIX fonksiyonu kullanılarak yazılmıştır) değiştirilebilmektedir. Tabii
-dosyanın erişim haklarını herkes değiştiremez. Erişim hakları ancak etkin kullanıcı id'si dosyanın kullanıcı
-id'si ile aynı olan (yani dosyanın sahibi olan) prosesler tarafından ve etkin kullanıcı id'si ``0`` olan root
+dosyanın erişim haklarını herkes değiştiremez. Erişim hakları ancak etkin kullanıcı ID'si dosyanın kullanıcı
+id'si ile aynı olan (yani dosyanın sahibi olan) prosesler tarafından ve etkin kullanıcı ID'si ``0`` olan root
 prosesleri tarafından değiştirilebilmektedir. ``chmod`` POSIX fonksiyonu ve ``chmod`` kabuk komutu ileride ele
 alınacaktır.
 
 sudo ve su Komutları
 =============================
 
-Modern UNIX/Linux sistemlerinde bir programın *etkin kullanıcı id'si 0 olacak biçimde çalıştırılmasını sağlayan*
+Modern UNIX/Linux sistemlerinde bir programın *etkin kullanıcı ID'si 0 olacak biçimde çalıştırılmasını sağlayan*
 ``sudo`` isimli bir komut vardır. ``sudo`` komutu uygulandığında sistem root kullanıcısına ilişkin parolayı
 sormaktadır. Yani ``sudo`` komutu ancak sistem yöneticileri tarafından kullanılabilmektedir. Tabii kendi Linux
 makinemizde ana kullanıcının parolası aynı zamanda root parolası biçimindedir. Linux sistemlerinde her kullanıcı
@@ -1122,7 +1092,7 @@ gerekmektedir. Biz bu kavramı ileride başka bir bölümde ele alacağız. Örn
 
     $ sudo ./sample
 
-Burada artık ``sample`` programı etkin kullanıcı id'si ``0`` olacak biçimde çalıştırılacaktır. Program her
+Burada artık ``sample`` programı etkin kullanıcı ID'si ``0`` olacak biçimde çalıştırılacaktır. Program her
 türlü dosyaya erişebilecektir. Biz yukarıda ``chmod`` gibi kabuk komutuyla yalnızca kendi dosyalarımızın erişim
 haklarını değiştirebileceğimizi söylemiştik. Tabii bu komutu ``sudo`` ile çalıştırırsak her türlü dosyanın
 erişim haklarını değiştirebiliriz. Örneğin:
@@ -1156,12 +1126,12 @@ appropriate privileges Terimi
 ==================================
 
 POSIX standartlarında erişim mekanizması üzerinde açıklamalar yapılırken *root önceliği* ya da *prosesin etkin
-kullanıcı id'sinin 0 olması* gibi bir anlatım tercih edilmemiştir. Onun yerine POSIX standartlarında
+kullanıcı ID'sinin 0 olması* gibi bir anlatım tercih edilmemiştir. Onun yerine POSIX standartlarında
 *appropriate privileges* terimi kullanılmıştır. Çünkü bir POSIX sistemi *ya hep ya hiç* biçiminde tasarlanmak
 zorunda değildir. Gerçekten de örneğin Linux sistemlerinde *capability* denilen bir özellik bulunmaktadır. Bu
-*capability* sayesinde bir prosesin etkin kullanıcı id'si ``0`` olmamasına karşın o proses, belirlenen bazı
+*capability* sayesinde bir prosesin etkin kullanıcı ID'si ``0`` olmamasına karşın o proses, belirlenen bazı
 şeyleri yapabilir duruma getirilebilmektedir. İşte POSIX standartlarındaki *appropriate privileges* terimi bunu
-anlatmaktadır. Yani buradaki *appropriate privileges* terimi *prosesin etkin kullanıcı id'sinin 0 olduğunu ya da
+anlatmaktadır. Yani buradaki *appropriate privileges* terimi *prosesin etkin kullanıcı ID'sinin 0 olduğunu ya da
 0 olmasa da prosesin bu işlemi yapabilme yeteneğine sahip olduğunu* belirtmektedir. Biz *appropriate
 privileges* terimi yerine Türkçe *uygun önceliğe sahip prosesler* terimini kullanacağız.
 
@@ -1169,7 +1139,7 @@ Klasik UNIX tasarımında *ya hep ya hiç* sistemi kullanılmıştır. Yani ya b
 yapabilir ya da yalnızca kendine ilişkin şeyleri yapabilir. Ancak bu *ya hep ya hiç* sistemi bazı UNIX türevi
 sistemler tarafından zaman içerisinde gevşetilmiştir. Örneğin Linux sistemlerinde yukarıda da belirttiğimiz
 *capability* denilen özellik sayesinde prosesler *her şeyi değil bazı şeyleri yapabilir* hale
-getirilebilmektedir. İşte bu nedenle POSIX standartları *root* terimini ya da *proses id'si 0 olan prosesler*
+getirilebilmektedir. İşte bu nedenle POSIX standartları *root* terimini ya da *proses ID'si 0 olan prosesler*
 terimi yerine *appropriate privileges* terimini kullanmaktadır.
 
 ----
@@ -1679,7 +1649,7 @@ başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil 
 dizinlerine ``x`` hakkının olması gerekir.
 
 ``x`` hakkı dizin ağacında bir noktaya duvar örmek için kullanılabilmektedir. ``mkdir`` gibi kabuk komutları
-dizin yaratırken zaten ``x`` hakkını varsayılan durumda vermektedir. Proses id'si ``0`` olan *root prosesler*
+dizin yaratırken zaten ``x`` hakkını varsayılan durumda vermektedir. Proses ID'si ``0`` olan *root prosesler*
 her zaman yol ifadesinin çözümlenmesi sırasında dizinlerin içerisinden geçebilirler.
 
 Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``r`` hakkının bulunması gerekmemektedir. Örneğin
