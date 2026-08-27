@@ -255,8 +255,8 @@ kullanıcı ID'sinin ``0`` olması" gibi bir anlatım tercih edilmemiştir. Onun
 zorunda değildir. Gerçekten de örneğin Linux sistemlerinde *yeteneklilik (capability)* denilen bir özellik bulunmaktadır. Bu
 *yeteneklilik* sayesinde bir prosesin etkin kullanıcı ID'si ``0`` olmamasına karşın o proses, belirlenen bazı
 şeyleri yapabilir duruma getirilebilmektedir. İşte POSIX standartlarındaki *uygun öncelikler (appropriate privileges)* 
-terimi bunu anlatmaktadır. Yani buradaki *uygun öncelikler* terimi "prosesin etkin kullanıcı ID'sinin 0 olduğunu ya da
-0 olmasa da prosesin bu işlemi yapabilme yeteneğine sahip olduğunu" belirtmektedir. 
+terimi bunu anlatmaktadır. Yani buradaki *uygun öncelikler* terimi "prosesin etkin kullanıcı ID'sinin ``0 ``olduğunu ya da
+``0`` olmasa da prosesin bu işlemi yapabilme yeteneğine sahip olduğunu" belirtmektedir. 
 
 Klasik UNIX tasarımında "ya hep ya hiç" sistemi kullanılmıştır. Yani ya bir proses ``root`` olarak her şeyi
 yapabilir ya da yalnızca kendine ilişkin şeyleri yapabilir. Ancak bu "ya hep ya hiç" sistemi bazı UNIX türevi
@@ -268,20 +268,20 @@ terimi yerine *appropriate privileges* terimini kullanmaktadır.
 sudo ve su Komutları
 ====================
 
-Modern UNIX/Linux sistemlerinde bir programın *etkin kullanıcı ID'si 0 olacak biçimde çalıştırılmasını sağlayan*
-``sudo`` isimli bir komut vardır. ``sudo`` komutu uygulandığında sistem root kullanıcısına ilişkin parolayı
-sormaktadır. Yani ``sudo`` komutu ancak sistem yöneticileri tarafından kullanılabilmektedir. Tabii kendi Linux
-makinemizde ana kullanıcının parolası aynı zamanda root parolası biçimindedir. Linux sistemlerinde her kullanıcı
-``sudo`` komutunu kullanamamaktadır. ``sudo`` komutunu kullanabilmesi için kullanıcının *sudoer* olması
+Modern UNIX/Linux sistemlerinde bir programın "etkin kullanıcı ID'si ``0`` olacak biçimde çalıştırılmasını sağlayan"
+``sudo`` isimli bir komut vardır. ``sudo`` komutu uygulandığında sistem ``sudo`` yapan kullanıcının (``sudoer``) 
+ilişkin parolasını sormaktadır. Yani ``sudo`` komutu ancak "sudo yapabilme yetkisine sahip kullanıcılar tarafından" 
+kullanılabilmektedir. Kendi Linux makinemizde ana kullanıcı ``sudo`` yapabilme yetkisine sahiptir. Ancak Linux sistemlerinde 
+her kullanıcı ``sudo`` komutunu kullanamamaktadır. Bir kullanıcının ``sudo`` komutunu kullanabilmesi için onun *sudoer* olması
 gerekmektedir. Biz bu kavramı ileride başka bir bölümde ele alacağız. Örneğin:
 
 .. code-block:: bash
 
     $ sudo ./sample
 
-Burada artık ``sample`` programı etkin kullanıcı ID'si ``0`` olacak biçimde çalıştırılacaktır. Program her
-türlü dosyaya erişebilecektir. Biz yukarıda ``chmod`` gibi kabuk komutuyla yalnızca kendi dosyalarımızın erişim
-haklarını değiştirebileceğimizi söylemiştik. Tabii bu komutu ``sudo`` ile çalıştırırsak her türlü dosyanın
+Burada artık ``sample`` programı etkin kullanıcı ID'si (ve etkin grup ID'si) ``0`` olacak biçimde çalıştırılacaktır. 
+Böylece program her türlü dosyaya erişebilecektir. Biz yukarıda ``chmod`` gibi kabuk komutuyla yalnızca kendi dosyalarımızın 
+erişim haklarını değiştirebileceğimizi söylemiştik. Tabii bu komutu ``sudo`` ile çalıştırırsak her türlü dosyanın
 erişim haklarını değiştirebiliriz. Örneğin:
 
 .. code-block:: bash
@@ -301,16 +301,64 @@ değiştirilmektedir.
 Burada adeta ``ali`` kullanıcısıyla oturum açılmış etkisi yaratılmaktadır. Geri dönmek için ``exit`` komutu
 uygulanmaktadır.
 
-``su`` komutu ile *root* için komut satırına da geçebilirsiniz. Bunun için sudoer olmak gerekir. Örneğin:
+``su`` komutu ile *root* için komut satırına da geçebilirsiniz. Örneğin:
 
 .. code-block:: bash
 
-    $ sudo su root
+    $ su root
 
-Yol İfadeleri (Pathnames)
-==========================
+``su``komutunda ``root``argümanı verilmese bile varsayılan durumda ``root`` anlaşılmaktadır. Yani yukarıdaki 
+komut ile aşağıdaki eşdeğerdir:
 
-Şimdi de UNIX/Linux sistemlerinde *yol ifadeleri* üzerinde duralım. Bir dosyanın ya da dizinin dosya sisteminde
+.. code-block:: bash
+
+    $ su 
+
+*su* komutunda çalışma dizini gibi bazı unsurlar korunmaktadır. Eğer tam bir *root* girişi simüle edilmek
+isteniyorsa ``-`` komut satırı argümanının da eklenmesi gerekir. Örneğin:
+
+.. code-block:: text
+
+    $ su - root
+
+Tabii varsayılan kullanıcı *root* olduğu için bu komut aşağıdakiyle eşdeğerdir:
+
+.. code-block:: text
+
+    $ su -
+
+Anlattıklarımızı aşağıdaki tabloyla da desteklemek istiyoruz:
+
+.. list-table::
+   :widths: 26 34 40
+   :header-rows: 1
+
+   * - Özellik
+     - ``su``
+     - ``su -``
+   * - Çalışma dizini
+     - Bulunduğunuz dizinde kalır
+     - ``/root``
+   * - ``$HOME``
+     - Kendi home dizininiz
+     - ``/root``
+   * - ``$PATH``
+     - Sizinki korunur
+     - ``root``'unki kurulur
+   * - Okunan dosyalar
+     - ``~/.bashrc`` (root'unki)
+     - ``/etc/profile``, ``/root/.profile``
+   * - Kabuk türü
+     - Etkileşimli, giriş değil
+     - Giriş kabuğu
+   * - Ortam değişkenleri
+     - Çoğu aktarılır
+     - Sıfırdan kurulur
+
+Yol İfadeleri 
+=============
+
+Şimdi de UNIX/Linux sistemlerinde *yol ifadeleri (pathnames* üzerinde duralım. Bir dosyanın ya da dizinin dosya sisteminde
 nerede olduğunu belirten yazısal ifadelere *yol ifadeleri* denilmektedir. Yol ifadesi için İngilizce *path* ya
 da *pathname* terimleri kullanılmaktadır. *Path* sözcüğü günlük yaşamda *pathname* sözcüğüyle eşdeğer biçimde
 kullanılmaktadır. POSIX standartları dosyanın yerini belirten yazısal ifadeler için *pathname* sözcüğünü tercih
