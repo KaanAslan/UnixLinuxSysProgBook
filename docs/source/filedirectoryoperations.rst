@@ -355,8 +355,13 @@ Anlattıklarımızı aşağıdaki tabloyla da desteklemek istiyoruz:
      - Çoğu aktarılır
      - Sıfırdan kurulur
 
+Dosya Sistemine İlişkin Temel Kavramlar
+======================================
+
+Bu ana başlık altında UNIX türevi sistemlerin dosya sistemi ile ilgili önemli kavramları gözden geçireceğix.
+
 Yol İfadeleri 
-=============
+-------------
 
 Şimdi de UNIX/Linux sistemlerinde *yol ifadeleri (pathnames* üzerinde duralım. Bir dosyanın ya da dizinin dosya sisteminde
 nerede olduğunu belirten yazısal ifadelere *yol ifadeleri* denilmektedir. Yol ifadesi için İngilizce *path* ya
@@ -377,7 +382,7 @@ kullanacağız. İngilizce *path* sözcüğü patika yol ya da mantıksal yol an
 birer yol ifadesidir.
 
 Mutlak ve Göreli Yol İfadeleri
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yol ifadeleri iki gruba ayrılmaktadır: *Mutlak yol ifadeleri (absolute pathnames)* ve *göreli yol ifadeleri
 (relative pathnames)*. Eğer yol ifadesinin ilk karakteri ``/`` ise böyle yol ifadelerine mutlak yol ifadeleri
@@ -423,9 +428,6 @@ programı çalıştıracak olsak, yaratılacak prosesin çalışma dizini şu an
 Buradaki ``~`` karakteri programlamada kullanılan bir karakter değildir; kabuk programının kullandığı bir
 semboldür.
 
-Yol Ayıracı ve Yol Bileşenleri
--------------------------------
-
 Bir yol ifadesindeki dizin geçişleri UNIX/Linux sistemlerinde ``/`` karakteriyle belirtilmektedir. Windows
 sistemleri ``/`` karakteri yerine ``\`` karakterini kullanmaktadır. Bu karakterlere *yol ayıracı (path
 separator)* denilmektedir. Yol ifadelerindeki dizin geçişlerinde birden fazla ``/`` karakteri yan yana
@@ -455,9 +457,6 @@ sahiptir. (Ancak Windows sistemlerinde yol bileşenlerinde büyük harf küçük
 dosya ve dizin isimlerini kullanıcının girdiği biçimde saklamaktadır ancak işleme sokarken büyük harf küçük harf
 ayrımı yapmamaktadır.)
 
-. ve .. Özel Yol Bileşenleri
--------------------------------------
-
 Yol ifadelerinde ``.`` ve ``..`` karakterleri özel yol bileşenleridir. ``.`` yol bileşeni *yol ifadesindeki son
 dizini*, ``..`` ise *önceki dizini* belirtmektedir. Örneğin:
 
@@ -480,8 +479,8 @@ sorusu aklınıza gelebilir. İşte bazı durumlarda bu belirlemenin açıkça y
 üzerinde kullanılan ``~`` sembolü *home* dizini anlamına gelmektedir. Ancak bu sembol kabuğa ilişkindir.
 Çekirdekte böyle bir yol bileşeni yoktur.
 
-Yol İfadesinin Çözümlenmesi (Pathname Resolution)
---------------------------------------------------
+Yol İfadelerinin Çözümlenmesi 
+-----------------------------
 
 İşletim sistemlerinde bir yol ifadesi verildiğinde, işletim sisteminin o yol ifadesine ilişkin hedeflenen
 dosyayı ya da dizini elde etmesi sürecine *yol ifadesinin çözümlenmesi (pathname resolution)* denilmektedir.
@@ -506,10 +505,8 @@ dizini değiştiğinde artık tüm mutlak yol ifadeleri o dizin referans alınar
 işlemini yapmadan önce pek çok hazırlığın yapılması gerekebilmektedir. Prosesin kök dizini de proses kontrol
 bloğunda tutulmaktadır.
 
-----
-
-getcwd Fonksiyonu
-======================
+Prosesin Çalışma Dizininin Elde Edilmesi ve Değiştirilmesi
+----------------------------------------------------------
 
 Prosesin çalışma dizini ``getcwd`` isimli POSIX fonksiyonuyla elde edilebilmektedir. Fonksiyonun prototipi
 şöyledir:
@@ -565,10 +562,6 @@ sistemlerinde ``<limits.h>`` dosyası içerisinde ``PATH_MAX`` sembolik sabiti `
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-
-chdir Fonksiyonu
-=====================
 
 Prosesin çalışma dizini ``chdir`` isimli POSIX fonksiyonuyla değiştirilmektedir. Fonksiyonun prototipi şöyledir:
 
@@ -631,10 +624,6 @@ Burada prosesin çalışma dizini ``/home/student/notes`` biçiminde olacaktır.
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-
-Kabuk Programına cd Komutunun Eklenmesi
-============================================
 
 Şimdi daha önce yazmış olduğumuz kabuk programımıza ``cd`` komutunu ekleyelim. Örneğimizde kabuğumuzun çalışma
 dizinini ``g_cwd`` global dizisinde tuttuk. Her ``cd`` komutu girildiğinde ``getcwd`` uygulayarak yeni çalışma
@@ -796,10 +785,8 @@ Programın tamamı şöyledir:
         exit(EXIT_FAILURE);
     }
 
-----
-
 Dizinlerin Yapısı ve Erişim Hakları
-====================================
+-----------------------------------
 
 Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
 *içerisinde dosya bilgilerini tutan dosyalar* gibi düşünebiliriz. Yani dizinler *dizin giriş bilgilerinden*
@@ -816,9 +803,6 @@ bir yapı gibi düşünebilirsiniz:
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
 fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
 
-r, w Hakları
----------------------
-
 Bir dizine ``r`` hakkının olması, o dizinin içeriğinin ``ls`` gibi bir komutla görüntülenebileceği anlamına
 gelmektedir. (Aslında bu kontrol ``opendir`` POSIX fonksiyonunda yapılmaktadır.) Bir dizin içerisinde bir
 dosyanın ya da dizinin yaratılması için dizine ``w`` hakkının olması gerekir. Çünkü dizin içerisinde dosya ya da
@@ -829,9 +813,6 @@ Bir dizin içerisindeki bir dosyayı ya da dizini silmek için tek gereken şey,
 bulunduğu dizine ``w`` hakkının olmasıdır. Silinecek dosya ya da dizine ``w`` hakkının olup olmadığının hiçbir
 önemi yoktur. Ancak bazı kabuk programları, dizine ``w`` hakkı varsa ancak silinmek istenen dosya ya da dizine
 ``w`` hakkı yoksa bir uyarı mesajı da verebilmektedir.
-
-x Hakkı ve Yol İfadesinin Çözümlenmesi
--------------------------------------------
 
 Dizinlerde ``x`` hakkı farklı bir anlama gelmektedir. İşletim sistemi, bir yol ifadesi verildiğinde yol
 ifadesinde hedeflenen dizin girişi için bilgileri elde etmek ister. Buna *yol ifadesinin çözümlenmesi (pathname
@@ -868,33 +849,13 @@ hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu dosya a
 içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde bulunduğunu biliyorsak, o dosyayı
 yine de kullanabiliriz.
 
-İşletim Sistemlerinin Dosya Sistemleri
-======================================
+Dosya Nesneleri
+---------------
 
 İşletim sistemlerinin dosya işlemleriyle ilgili alt sistemlerine *dosya sistemi (file system)* denilmektedir.
 Dosya sisteminin iki yönü vardır: Disk ve Bellek. İşletim sistemi, dosyaların kalıcı olarak diskte saklanması
 için diski bölümlere ayırır ve belli biçimlerde organize eder. Ancak bir dosya açıldığında işletim sistemi
 çekirdek alanı içerisinde o dosyayı yönetebilmek için bazı veri yapıları da oluşturmaktadır.
-
-Pek çok POSIX uyumlu işletim sistemi dosya işlemleri için 5 sistem fonksiyonu bulundurmaktadır:
-
-- Dosyayı açmak için gereken sistem fonksiyonu (Linux'ta ``sys_open``)
-- Dosyayı kapatmak için gereken sistem fonksiyonu (Linux'ta ``sys_close``)
-- Dosyadan okuma yapmak için gereken sistem fonksiyonu (Linux'ta ``sys_read``)
-- Dosyaya yazma yapmak için gereken sistem fonksiyonu (Linux'ta ``sys_write``)
-- Dosya göstericisini konumlandırmak için gereken sistem fonksiyonu (Linux'ta ``sys_lseek``)
-
-Bu 5 sistem fonksiyonunu çağıran 5 POSIX fonksiyonu bulunmaktadır: ``open``, ``close``, ``read``, ``write`` ve
-``lseek``. Dosya işlemleri temelde bu 5 POSIX fonksiyonuyla yapılmaktadır.
-
-Biz bir UNIX/Linux sisteminde hangi düzeyde çalışıyor olursak olalım, eninde sonunda dosya işlemleri bu 5 POSIX
-fonksiyonu çağrılarak gerçekleştirilmektedir. Bu POSIX fonksiyonları da yukarıda belirttiğimiz gibi işletim
-sisteminin ilgili sistem fonksiyonlarını çağırmaktadır. Programlama dili ne olursa olsun, bu sistemlerde tüm
-dosya işlemleri eninde sonunda bu temel POSIX fonksiyonları çağrılarak yapılmaktadır.
-
-
-Dosya Nesnesi (File Object)
-============================
 
 Bir dosya açıldığında işletim sistemi, açılacak dosyanın bilgilerini yol ifadesini çözümleyerek diskten elde
 eder. Bu dosya bilgilerini çekirdek alanı içerisine çeker. Diskteki dosya bilgilerinin çekirdek alanında
@@ -970,10 +931,8 @@ kavramsallaştırıyoruz:
 
     proses kontrol bloğu ---> betimleyici tablosu --> dosya nesneleri
 
-----
-
-Dosya Betimleyici Tablosu (File Descriptor Table)
------------------------------------------------------
+Dosya Betimleyici Tablosu 
+-------------------------
 
 Dosya betimleyici tablosu (file descriptor table), dosya nesnelerinin adreslerini tutan bir gösterici dizisidir:
 
@@ -1012,9 +971,27 @@ Dosya nesnelerinin içerisinde açış bayrakları gibi, dosya göstericisinin k
 pek çok bilgi de dolaylı bir biçimde saklanmaktadır. Yani dosya nesnesi, diskteki dosya üzerinde işlem yapmak
 için gereken tüm bilgileri doğrudan ya da dolaylı biçimde bulundurmaktadır.
 
+Temel Dosya Fonksiyonları
+========================
+
+Pek çok POSIX uyumlu işletim sistemi dosya işlemleri için 5 sistem fonksiyonu bulundurmaktadır:
+
+- Dosyayı açmak için gereken sistem fonksiyonu (Linux'ta ``sys_open``)
+- Dosyayı kapatmak için gereken sistem fonksiyonu (Linux'ta ``sys_close``)
+- Dosyadan okuma yapmak için gereken sistem fonksiyonu (Linux'ta ``sys_read``)
+- Dosyaya yazma yapmak için gereken sistem fonksiyonu (Linux'ta ``sys_write``)
+- Dosya göstericisini konumlandırmak için gereken sistem fonksiyonu (Linux'ta ``sys_lseek``)
+
+Bu 5 sistem fonksiyonunu çağıran 5 POSIX fonksiyonu bulunmaktadır: ``open``, ``close``, ``read``, ``write`` ve
+``lseek``. Dosya işlemleri temelde bu 5 POSIX fonksiyonuyla yapılmaktadır.
+
+Biz bir UNIX/Linux sisteminde hangi düzeyde çalışıyor olursak olalım, eninde sonunda dosya işlemleri bu 5 POSIX
+fonksiyonu çağrılarak gerçekleştirilmektedir. Bu POSIX fonksiyonları da yukarıda belirttiğimiz gibi işletim
+sisteminin ilgili sistem fonksiyonlarını çağırmaktadır. Programlama dili ne olursa olsun, bu sistemlerde tüm
+dosya işlemleri eninde sonunda bu temel POSIX fonksiyonları çağrılarak yapılmaktadır.
 
 open Fonksiyonu
-====================
+---------------
 
 UNIX/Linux sistemlerinde dosyayı açmak için ``open`` isimli POSIX fonksiyonu kullanılmaktadır. (Örneğin ``fopen``
 standart C fonksiyonu da UNIX/Linux sistemlerinde aslında ``open`` fonksiyonunu çağırmaktadır.) Fonksiyonun
@@ -1046,8 +1023,6 @@ Başka bir gösterim de şöyle olabilir:
 Tabii C'de aynı isimli birden fazla fonksiyon bulunamaz. Yukarıdaki gösterim yalnızca kullanımın nasıl
 olabileceğini açıklamaktadır.
 
-Açış Modları
--------------
 
 ``open`` fonksiyonunun birinci parametresi açılacak dosyanın yol ifadesini belirtir. İkinci parametre açış
 bayraklarını (modlarını) belirtmektedir. Bu parametre ``O_XXX`` biçiminde isimlendirilmiş sembolik sabitlerin
@@ -1102,11 +1077,6 @@ Burada işletim sistemi prosesin dosyaya hem ``r`` hem de ``w`` hakkı olup olma
 Zorunlu açış bayraklarından ``O_SEARCH`` bayrağı bazı POSIX fonksiyonlarının *at*'li versiyonları için,
 ``O_EXEC`` bayrağı ise ``fexecve`` fonksiyonu için bulundurulmuştur. Bu bayraklar ileride ele alınacaktır.
 
-----
-
-O_CREAT ve Erişim Hakları
-==============================
-
 ``open`` fonksiyonu yalnızca olan bir dosyayı açmak için değil aynı zamanda yeni bir dosya yaratmak için de
 kullanılmaktadır. ``O_CREAT`` bayrağı, dosya varsa etkili olmaz; dosya yoksa dosyanın yaratılmasını sağlar. Yani
 ``O_CREAT`` bayrağı *dosya varsa olanı aç, yoksa yarat ve aç* anlamına gelmektedir. Bir dosya yaratılırken
@@ -1159,9 +1129,6 @@ Bu sembolik sabitler şöyle oluşturulmuştur:
     #define S_IRWXO (S_IROTH|S_IWOTH|S_IXOTH)
 
 Bu durumda örneğin ``S_IRWXU|S_IRWXG|S_IRWXO`` işlemi ``rwxrwxrwx`` anlamına gelmektedir.
-
-Sayısal Değerler
------------------
 
 Yukarıdaki ``S_IXXX`` biçimindeki sembolik sabitlerin değerlerinin eskiden sistemden sisteme değişebileceği
 varsayılmıştır. Bu nedenle POSIX standartları başlarda bu sembolik sabitlerin sayısal değerlerini işletim
@@ -1254,11 +1221,6 @@ POSIX sistemlerinde yukarıdaki ``S_IXXX`` biçimindeki sembolik sabitler ``mode
 ``mode_t`` türü ``<sys/types.h>`` ve bazı başlık dosyalarında (örneğin ``<sys/stat.h>``) sistemi oluşturanların
 belirlediği bir *tamsayı türü olarak* typedef edilmiştir. Linux'ta ``<sys/types.h>`` dosyası içerisinde
 ``mode_t`` türü ``unsigned int`` biçiminde typedef edilmiştir.
-
-----
-
-Diğer Önemli Açış Bayrakları
-=============================
 
 ``O_TRUNC`` açış bayrağı *eğer dosya varsa onu sıfırlayarak aç* anlamına gelmektedir. Ancak ``O_TRUNC`` yazma
 modunda açılan dosyalarda kullanılabilmektedir. Yani ``O_TRUNC`` bayrağını kullanabilmek için ``O_WRONLY`` ya da
@@ -1406,11 +1368,6 @@ edilmelidir. Örneğin:
     if ((fd = open("test.txt", O_RDONLY)) == -1)
         exit_sys("open");
 
-----
-
-open Sisteminin İşleyişi ve Dosya Betimleyici Tablosu
-==========================================================
-
 ``open`` fonksiyonu işletim sisteminin dosya açan sistem fonksiyonunu (Linux'ta ``sys_open``) çağırmaktadır. Bu
 sistem fonksiyonu açılacak dosyaya ilişkin bilgileri diskten bulur ve o bilgileri daha önceden de belirttiğimiz
 gibi *dosya nesnesi (file object)* denilen bir yapının içerisine yerleştirir. Dosya nesnesinin Linux'un kaynak
@@ -1503,11 +1460,6 @@ proses aynı dosyayı aynı biçimde ikinci kez açmış olsa bile aynı dosya n
         exit(EXIT_FAILURE);
     }
 
-----
-
-Dosya Betimleyici Tablosunun Sınırı: EMFILE
-----------------------------------------------------
-
 Linux sistemlerinde varsayılan olarak proseslerin dosya betimleyici tabloları 1024 slottan oluşmaktadır. Yani
 varsayılan durumda bu sistemlerde bir proses, kapatmadan en fazla 1024 dosyayı açık olarak tutabilmektedir.
 Yukarıda da belirttiğimiz gibi eğer dosya betimleyici tablosunda boş yer yoksa ``open`` fonksiyonu başarısız
@@ -1549,10 +1501,35 @@ dosya bir kez daha açılmak istenmiştir. En sonunda şöyle bir hata ile karş
         exit(EXIT_FAILURE);
     }
 
-----
+creat Fonksiyonu
+----------------
+
+İlk UNIX sistemlerinden beri ``creat`` isimli bir fonksiyon da ``open`` fonksiyonunun bir sarma fonksiyonu
+biçiminde bulundurulmaktadır. ``creat`` fonksiyonu POSIX standartlarında var olan bir fonksiyondur. Fonksiyonun
+prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <fcntl.h>
+
+    int creat(const char *path, mode_t mode);
+
+Fonksiyonun birinci parametresi dosyanın yol ifadesini belirtmektedir. İkinci parametre erişim bilgisini
+belirtir. Görüldüğü gibi fonksiyonda açış modu belirten ``flags`` parametresi yoktur. Çünkü bu parametre
+``O_WRONLY|O_CREAT|O_TRUNC`` biçiminde alınmaktadır. ``creat`` fonksiyonu aşağıdaki gibi yazılmıştır:
+
+.. code-block:: c
+
+    int creat(const char *path, mode_t mode)
+    {
+        return open(path, O_WRONLY|O_CREAT|O_TRUNC, mode);
+    }
+
+Ancak biz kursumuzda bu ``creat`` fonksiyonu yerine asıl fonksiyon olan ``open`` fonksiyonunu kullanacağız.
+
 
 close Fonksiyonu
-------------------------
+----------------
 
 Açılan her dosyanın kapatılması gerekir. Bir dosyanın kapatılması sırasında işletim sistemi, dosyanın açılması
 sırasında yapılan işlemleri geri almaktadır. Tipik olarak UNIX/Linux sistemlerinde dosya kapatıldığında şunlar
@@ -1621,38 +1598,8 @@ başarısız olması mümkün değildir.
         exit(EXIT_FAILURE);
     }
 
-----
-
-creat Fonksiyonu
-------------------------
-
-İlk UNIX sistemlerinden beri ``creat`` isimli bir fonksiyon da ``open`` fonksiyonunun bir sarma fonksiyonu
-biçiminde bulundurulmaktadır. ``creat`` fonksiyonu POSIX standartlarında var olan bir fonksiyondur. Fonksiyonun
-prototipi şöyledir:
-
-.. code-block:: c
-
-    #include <fcntl.h>
-
-    int creat(const char *path, mode_t mode);
-
-Fonksiyonun birinci parametresi dosyanın yol ifadesini belirtmektedir. İkinci parametre erişim bilgisini
-belirtir. Görüldüğü gibi fonksiyonda açış modu belirten ``flags`` parametresi yoktur. Çünkü bu parametre
-``O_WRONLY|O_CREAT|O_TRUNC`` biçiminde alınmaktadır. ``creat`` fonksiyonu aşağıdaki gibi yazılmıştır:
-
-.. code-block:: c
-
-    int creat(const char *path, mode_t mode)
-    {
-        return open(path, O_WRONLY|O_CREAT|O_TRUNC, mode);
-    }
-
-Ancak biz kursumuzda bu ``creat`` fonksiyonu yerine asıl fonksiyon olan ``open`` fonksiyonunu kullanacağız.
-
-----
-
-Dosya Göstericisi (File Pointer) ve Offset Kavramı
-------------------------------------------------------
+Dosya Göstericisi
+-----------------
 
 Dosyadaki her bir byte'a bir offset numarası karşı getirilmiştir. Buna ilgili byte'ın offset'i denilmektedir.
 Dosya göstericisi (file pointer), okuma ve yazma işlemlerinin hangi offset'ten itibaren yapılacağını gösteren
@@ -1723,11 +1670,8 @@ Dosya göstericisinin konumu dosya nesnesi içerisinde saklanmaktadır. (Linux'u
 yapısının ``f_pos`` elemanı dosya göstericisinin konumunu tutmaktadır.) Biz aynı dosyayı ikinci kez açmış olsak
 bile yeni bir dosya nesnesi, dolayısıyla yeni bir dosya göstericisi elde etmiş oluruz.
 
-
-----
-
 read Fonksiyonu
-====================
+---------------
 
 Dosyadan okuma yapmak için ``read`` POSIX fonksiyonu kullanılmaktadır. Pek çok sistemde bu POSIX fonksiyonu
 doğrudan işletim sisteminin okuma yapan sistem fonksiyonunu (Linux'ta ``sys_read``) çağırmaktadır. ``read``
@@ -1882,10 +1826,8 @@ Bu döngüden G/Ç hatası oluşunca ya da dosya göstericisi dosyanın sonuna g
         exit(EXIT_FAILURE);
     }
 
-----
-
 write Fonksiyonu
-=====================
+----------------
 
 Dosyaya yazma yapmak için ``write`` isimli POSIX fonksiyonu kullanılmaktadır. Bu fonksiyon da pek çok sistemde
 doğrudan işletim sisteminin dosyaya yazma yapan sistem fonksiyonunu (Linux'ta ``sys_write``) çağırmaktadır.
@@ -1972,10 +1914,8 @@ yazdırılmıştır. ``fgets`` fonksiyonunun ``'\n'`` karakterini de diziye yerl
         exit(EXIT_FAILURE);
     }
 
-----
-
-Dosya Kopyalama
-================
+Örnek Bir Uygulama: Dosya Kopyalaması
+-------------------------------------
 
 UNIX/Linux sistemlerinde dosya kopyalama tipik olarak bir döngü içerisinde kaynak dosyadan hedef dosyaya blok
 blok okuma yazma işlemi ile yapılmaktadır. Ancak bazı UNIX türevi işletim sistemleri dosya kopyalama işlemi
@@ -2118,10 +2058,8 @@ yazma yapamayabilir. Bu tür durumları diğer durumlardan ayırmak için ayrı 
         exit(EXIT_FAILURE);
     }
 
-----
-
 pread ve pwrite Fonksiyonları
-======================================
+-----------------------------
 
 ``read`` ve ``write`` POSIX fonksiyonları yukarıda da belirttiğimiz gibi dosya göstericisinin gösterdiği yerden
 itibaren okuma ve yazma işlemlerini yapmaktadır. Bu fonksiyonlar dosya göstericisinin konumunu okunan ya da
@@ -2161,10 +2099,8 @@ konumlandırıp, sonra ``read``/``write`` işlemlerini yapıp, sonra da yeniden 
 yerleştirmekle de yapılabilir. Ancak ``pread`` ve ``pwrite`` işlemlerini yapan sistem fonksiyonları bu biçimde
 değil, daha doğrudan aynı işlemi yapmaktadır.
 
-----
-
 lseek Fonksiyonu
-=====================
+----------------
 
 Daha önceden de belirttiğimiz gibi dosya göstericisi dosya açıldığında 0. offset'tedir. Ancak okuma ve yazma
 yapıldığında okunan ya da yazılan miktar kadar otomatik ilerletilmektedir. Dosya göstericisini belli bir konuma
@@ -2250,7 +2186,6 @@ dosyaya ekleme yapılmıştır.
         exit(EXIT_FAILURE);
     }
 
-----
 
 Dosya İşlemleri İçin Hangi Fonksiyonlar Kullanılmalı?
 ======================================================

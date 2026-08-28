@@ -80,8 +80,8 @@ Bir programı her çalıştırdığımızda yeni bir proses yaratıldığı içi
 id değerlerinin belli bir anda sistem genelinde tek olduğunu vurgulamak istiyoruz. Sonlanan bir prosese atanan ID değeri 
 sistem uzun süre açık kaldığına yeni yaratılan bir prosese de atanabilmektedir. 
 
-Linux'ta Kullanıcı Yönetimi: /etc/passwd Dosyası
-================================================
+Linux'ta Kullanıcı Yönetimi: /etc/passwd ve /etc/group Dosyaları
+================================================================
 
 Linux sistemlerinde kullanıcılara ilişkin bilgiler ``/etc/passwd`` dosyası içerisinde tutulmaktadır. ``/etc/passwd``
 dosyası satırlardan oluşmaktadır. Her satır ``:`` karakterleriyle ayrılmış 7 alandan oluşmaktadır. Örneğin:
@@ -167,6 +167,26 @@ bulunmaktadır. Örneğin:
 .. code-block:: bash
 
     $ sudo userdel -r veli
+
+Kullanıcı gruplarına ilişkin bilgiler ``/etc/group`` dosyasında tutulmaktadır. ``/etc/group`` dosyasında da her
+satırda bir grup bilgisi yine ':' ile ayrılmış 4 alandan oluşmaktadır:
+
+.. code-block:: text
+
+    group_name:password:GID:user_list
+
+İlk alanda grubun ismi bulunmaktadır. İkinci alan grup parolasını belirtir. Burada 'x' harfi grubun parolasının
+``/etc/shadow`` dosyasında tutulduğu anlamına gelmektedir. Grup parolası kullanılmayacaksa bu alan boş bırakılabilir.
+Üçüncü alanda grup ID'si bulunmaktadır. Son alan ilgili gruba *ek grup (supplementary group)* olarak eklenen kullanıcıların 
+listesini barındırmaktadır. Burada kullanıcı isimleri ',' karakterleriyle birbirinden ayrılırlar. Örnek bir grup satırı şöyle
+olabilir:
+
+.. code-block:: text
+
+    sudo:x:27:kaan,ali
+
+Burada *sudo* grubun ismini, 27 grup ID'sini, *kaan* ve *ali* de bu gruba dahil edilmiş olan kullanıcıları
+belirtmektedir.
 
 Kullanıcıların İsimleri, Kullanıcı ve Grup ID'leri
 ==================================================
@@ -797,8 +817,8 @@ Bu versiyonda ``exit_sys`` fonksiyonu dosya adı gibi ek bağlam bilgisini de me
         exit(EXIT_FAILURE);
     }
 
-errno ve Standart C Fonksiyonları
---------------------------------------
+errno Değişkeni ve Standart C Fonksiyonları
+-------------------------------------------
 
 Aslında ``errno`` kavramı C standartlarında da bulunmaktadır. Ancak C standartlarında ``errno`` değeri çok kısıtlı
 bir biçimde kullanılmıştır. Yani C standartlarında pek az fonksiyon ``errno`` değişkenini set etmektedir. C
