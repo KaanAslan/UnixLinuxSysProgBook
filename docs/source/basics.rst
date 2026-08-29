@@ -7,14 +7,13 @@ Bu bölümde UNIX/Linux sistemleri hakkında temel bilgileri ve programlama içi
 Proses Kavramı
 ===============
 
-İşletim sistemlerinde çalışmakta olan programlara *proses (process)* denilmektedir. (*Process* sözcüğü Türkçede
-*süreç* biçiminde ifade edilmektedir. *Süreç* dilimizde oldukça yaygınlaşmış bir sözcüktür. Ancak biz kursumuzda
-*süreç* yerine bu kavramı *proses* biçiminde ifade edeceğiz.) *Program* terimi "bir programın kaynak kodları"
-anlamında ya da "*çalıştırılabilir (executable)* dosya" anlamında kullanılmaktadır. Biz bir programı çalıştırdığımızda
-işletim sistemi bakımından artık o bir proses haline gelmiştir. İşletim sistemleri bir program çalıştığında
-çekirdek alanı içerisinde çalıştırılan o program için birtakım veri yapıları oluşturmaktadır. Proses canlı bir
-kavramı ifade etmektedir. Aynı programı biz birden fazla kez çalıştırabiliriz. Bu durumda işletim sistemleri
-çalıştırılabilen dosya aynı olsa da birbirinden bağımsız farklı prosesler oluşturmaktadır.
+İşletim sistemlerinde çalışmakta olan programlara *proses (process)* denilmektedir. (*Process* sözcüğünün Türkçe
+karşılığı olarak *süreç* sözcüğü kullanılmaktadır. Ancak biz kursumuzda *süreç* yerine *proses* sözcüğünü kullanacağız.)
+*Program* terimi "bir programın kaynak kodları" anlamında ya da "*çalıştırılabilir (executable)* dosya" anlamında 
+kullanılmaktadır. Biz bir programı çalıştırdığımızda işletim sistemi bakımından artık o bir proses haline gelmiştir. 
+İşletim sistemleri bir program çalıştığında çekirdek alanı içerisinde çalıştırılan o program için birtakım veri 
+yapıları oluşturmaktadır. Proses canlı bir kavramı ifade etmektedir. Aynı programı biz birden fazla kez çalıştırabiliriz. 
+Bu durumda işletim sistemleri çalıştırılabilen dosya aynı olsa da birbirinden bağımsız farklı prosesler oluşturmaktadır.
 
 İşletim sistemlerinde her proses (yani her çalışan program) başka bir proses tarafından (yani çalışmakta olan
 başka bir program tarafından) yaratılmaktadır. Örneğin Linux'ta komut satırına geçip ``ls`` komutunu
@@ -188,8 +187,8 @@ olabilir:
 Burada *sudo* grubun ismini, 27 grup ID'sini, *kaan* ve *ali* de bu gruba dahil edilmiş olan kullanıcıları
 belirtmektedir.
 
-Kullanıcıların İsimleri, Kullanıcı ve Grup ID'leri
-==================================================
+Kullanıcı İsimleri, Kullanıcı ID'leri ve Grup ID'leri
+=====================================================
 
 UNIX/Linux sistemlerinde her kullanıcıya bir *kullanıcı ismi (user name)* ve bir *kullanıcı ID'si (user ID)*
 atanmaktadır. Kullanıcıların isimleri ile onların ID'leri daha önce de belirttiğimiz gibi ``/etc/passwd`` dosyasında

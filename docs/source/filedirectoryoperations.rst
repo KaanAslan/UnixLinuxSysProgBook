@@ -7,8 +7,8 @@ dosya gibi ele alınmaktadır. UNIX/Linux sistemlerinde sistem programlama için
 işlemleri olmalıdır. Bu bölümde UNIX/Linux sistemlerindeki dosya işlemleri üzerinde duracağız. UNIX/Linux
 sistemlerinde dosya sistemi işletim sisteminin kalbi gibidir.
 
-Dosyaların Kullanıcı ve Grup ID'leri
-=====================================
+Dosyaların Kullanıcı ID'leri ve Grup ID'leri
+============================================
 
 UNIX/Linux sistemlerinde her dosyanın bir kullanıcı ID'si (user ID) ve grup ID'si (group ID)
 bulunmaktadır. (Dosyaların gerçek ve etkin biçiminde ID'leri yoktur, yalnızca ID'leri vardır.) Dosyanın kullanıcı
@@ -125,8 +125,8 @@ Burada dosya normal bir dosyadır. Dosyanın sahiplik haklarının ``rw-`` oldu�
 ``r--`` biçiminde olduğuna dikkat ediniz. Bu da ``r`` hakkının olduğu ancak ``w`` ve ``x`` haklarının
 olmadığı anlamına gelmektedir.
 
-open Fonksiyonunda Erişim Kontrolü
-==================================
+Dosya Erişim Kontrolleri
+========================
 
 UNIX/Linux sistemlerinde normal dosyalar ``open`` POSIX fonksiyonuyla, dizin dosyaları ise ``opendir`` POSIX
 fonksiyonuyla açılmaktadır. ``open`` POSIX fonksiyonunda (ileride ayrıntılarıyla açıklayacağız) dosyayı açarken
@@ -321,7 +321,7 @@ isteniyorsa ``-`` komut satırı argümanının da eklenmesi gerekir. Örneğin:
 
     $ su - root
 
-Tabii varsayılan kullanıcı *root* olduğu için bu komut aşağıdakiyle eşdeğerdir:
+Tabii varsayılan kullanıcı ``root`` olduğu için bu komut aşağıdakiyle eşdeğerdir:
 
 .. code-block:: text
 
@@ -356,22 +356,16 @@ Anlattıklarımızı aşağıdaki tabloyla da desteklemek istiyoruz:
      - Sıfırdan kurulur
 
 Dosya Sistemine İlişkin Temel Kavramlar
-======================================
+=======================================
 
 Bu ana başlık altında UNIX türevi sistemlerin dosya sistemi ile ilgili önemli kavramları gözden geçireceğix.
 
 Yol İfadeleri 
 -------------
 
-Şimdi de UNIX/Linux sistemlerinde *yol ifadeleri (pathnames* üzerinde duralım. Bir dosyanın ya da dizinin dosya sisteminde
-nerede olduğunu belirten yazısal ifadelere *yol ifadeleri* denilmektedir. Yol ifadesi için İngilizce *path* ya
-da *pathname* terimleri kullanılmaktadır. *Path* sözcüğü günlük yaşamda *pathname* sözcüğüyle eşdeğer biçimde
-kullanılmaktadır. POSIX standartları dosyanın yerini belirten yazısal ifadeler için *pathname* sözcüğünü tercih
-etmiştir. Windows sistemlerinde *pathname* genellikle hedefi dizin değil normal bir dosya olan yol ifadeleri
-için kullanılmaktadır. Biz kursumuzda *path* ya da *pathname* terimi yerine Türkçe *yol ifadesi* terimini
-kullanacağız. İngilizce *path* sözcüğü patika yol ya da mantıksal yol anlamına gelmektedir.
-
-Örneğin:
+Bir dosyanın ya da dizinin dosya sisteminde nerede olduğunu belirten yazısal ifadeye yazılım terminolojisinde İngilizce 
+*pathname* denilmektedir. (İngilizce *path* sözcüğü "patika yol" ya da "mantıksal bakımdan yol" anlamına gelmektedir.)
+Biz bu kavrama Türkçe *yol ifadesi* diyeceğiz. Örneğin:
 
 .. code-block:: text
 
@@ -380,9 +374,6 @@ kullanacağız. İngilizce *path* sözcüğü patika yol ya da mantıksal yol an
     "sample.txt"
 
 birer yol ifadesidir.
-
-Mutlak ve Göreli Yol İfadeleri
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yol ifadeleri iki gruba ayrılmaktadır: *Mutlak yol ifadeleri (absolute pathnames)* ve *göreli yol ifadeleri
 (relative pathnames)*. Eğer yol ifadesinin ilk karakteri ``/`` ise böyle yol ifadelerine mutlak yol ifadeleri
@@ -401,9 +392,11 @@ Göreli yol ifadelerinin ilk karakteri ``/`` değildir. Örneğin:
 
     "notes/readme.txt"
 
-Bu bir göreli yol ifadesidir. Peki göreli yol ifadeleri nereden itibaren bir yol belirtmektedir? İşte göreli yol
-ifadeleri prosesin *çalışma dizini (current working directory)* denilen bir dizinden itibaren yol
-belirtmektedir. Proseslerin çalışma dizinleri *proses kontrol bloğu* içerisinde saklanmaktadır ve göreli yol
+Bu bir göreli yol ifadesidir. 
+
+Mutlak yol ifadelerinin kök dizindne itibaren yol belirttiğini söyledik, peki göreli yol ifadeleri nereden itibaren 
+yol belirtmektedir? İşte göreli yol ifadeleri prosesin *çalışma dizini (current working directory)* denilen bir 
+dizinden itibaren yol belirtmektedir. Proseslerin çalışma dizinleri *proses kontrol bloğu* içerisinde saklanmaktadır ve göreli yol
 ifadeleri için orijin belirtmektedir. Örneğin prosesimizin çalışma dizini ``/home/student`` olsun. Bu durumda
 ``notes/readme.txt`` yol ifadesi aslında ``/home/student/notes/readme.txt`` mutlak yol ifadesiyle aynı anlama
 gelmektedir. Örneğin:
@@ -431,7 +424,7 @@ semboldür.
 Bir yol ifadesindeki dizin geçişleri UNIX/Linux sistemlerinde ``/`` karakteriyle belirtilmektedir. Windows
 sistemleri ``/`` karakteri yerine ``\`` karakterini kullanmaktadır. Bu karakterlere *yol ayıracı (path
 separator)* denilmektedir. Yol ifadelerindeki dizin geçişlerinde birden fazla ``/`` karakteri yan yana
-kullanılabilmektedir. Örneğin aşağıdaki yol ifadesi geçerlidir:
+kullanılabilir. Örneğin aşağıdaki yol ifadesi geçerlidir:
 
 .. code-block:: text
 
@@ -457,8 +450,9 @@ sahiptir. (Ancak Windows sistemlerinde yol bileşenlerinde büyük harf küçük
 dosya ve dizin isimlerini kullanıcının girdiği biçimde saklamaktadır ancak işleme sokarken büyük harf küçük harf
 ayrımı yapmamaktadır.)
 
-Yol ifadelerinde ``.`` ve ``..`` karakterleri özel yol bileşenleridir. ``.`` yol bileşeni *yol ifadesindeki son
-dizini*, ``..`` ise *önceki dizini* belirtmektedir. Örneğin:
+Yol ifadelerinde ``.`` ve ``..`` karakterleri özel yol bileşenleridir. ``.`` yol bileşeni "yol ifadesinde kendisinden
+önceki dizini", ``..`` ol bileşeni ise "önceki dizini" belirtmektedir. ``.`` yol bileşeninin yol ifadesinde "bir etki 
+göstermediğine" dikkat ediniz. Örneğin:
 
 .. code-block:: text
 
@@ -972,7 +966,7 @@ pek çok bilgi de dolaylı bir biçimde saklanmaktadır. Yani dosya nesnesi, dis
 için gereken tüm bilgileri doğrudan ya da dolaylı biçimde bulundurmaktadır.
 
 Temel Dosya Fonksiyonları
-========================
+=========================
 
 Pek çok POSIX uyumlu işletim sistemi dosya işlemleri için 5 sistem fonksiyonu bulundurmaktadır:
 
