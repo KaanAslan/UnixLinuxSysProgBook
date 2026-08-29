@@ -394,7 +394,7 @@ Göreli yol ifadelerinin ilk karakteri ``/`` değildir. Örneğin:
 
 Bu bir göreli yol ifadesidir. 
 
-Mutlak yol ifadelerinin kök dizindne itibaren yol belirttiğini söyledik, peki göreli yol ifadeleri nereden itibaren 
+Mutlak yol ifadelerinin kök dizinden itibaren yol belirttiğini söyledik, peki göreli yol ifadeleri nereden itibaren 
 yol belirtmektedir? İşte göreli yol ifadeleri prosesin *çalışma dizini (current working directory)* denilen bir 
 dizinden itibaren yol belirtmektedir. Proseslerin çalışma dizinleri *proses kontrol bloğu* içerisinde saklanmaktadır ve göreli yol
 ifadeleri için orijin belirtmektedir. Örneğin prosesimizin çalışma dizini ``/home/student`` olsun. Bu durumda
@@ -473,14 +473,6 @@ sorusu aklınıza gelebilir. İşte bazı durumlarda bu belirlemenin açıkça y
 üzerinde kullanılan ``~`` sembolü *home* dizini anlamına gelmektedir. Ancak bu sembol kabuğa ilişkindir.
 Çekirdekte böyle bir yol bileşeni yoktur.
 
-Yol İfadelerinin Çözümlenmesi 
------------------------------
-
-İşletim sistemlerinde bir yol ifadesi verildiğinde, işletim sisteminin o yol ifadesine ilişkin hedeflenen
-dosyayı ya da dizini elde etmesi sürecine *yol ifadesinin çözümlenmesi (pathname resolution)* denilmektedir.
-Yol ifadelerinin çözümlenmesi, dizin geçişleriyle yapılan yavaş bir işlemdir. Bu nedenle işletim sistemleri bu
-işlemi hızlandırmak için bir önbellek mekanizması kullanmaktadır.
-
 ``/etc/passwd`` dosyasındaki kullanıcılara ilişkin satırları anımsayınız. Örneğin:
 
 .. code-block:: text
@@ -489,18 +481,25 @@ işlemi hızlandırmak için bir önbellek mekanizması kullanmaktadır.
 
 Burada 6. sütundaki yol ifadesi, 7. sütundaki program çalıştırıldığında onun varsayılan çalışma dizinini
 belirtmektedir. Yani ``login`` prosesi, 7. sütundaki programı, onun çalışma dizini *6. sütundaki dizin* olacak
-biçimde çalıştırmaktadır.
+biçimde çalıştırmaktadır. Böylece kabuk programları çalışmaya başladığında onların çalışma dizinleri `ètc/passwd``
+dosyasında ayarlanabilmektedir. 
 
-Proseslerin çalışma dizinleri proses kontrol bloğunda göreli değil mutlak bir biçimde tutulmaktadır.
+Yol İfadelerinin Çözümlenmesi 
+-----------------------------
 
-Aslında bir prosesin kök dizini de değiştirilebilmektedir. Prosesin kök dizininin değiştirilmesine İngilizce
-*change root* işlemi de denilmektedir. Ancak *change root* işlemi tehlikeli bir işlemdir. Çünkü prosesin kök
-dizini değiştiğinde artık tüm mutlak yol ifadeleri o dizin referans alınarak çözülmeye çalışılır. *Change root*
-işlemini yapmadan önce pek çok hazırlığın yapılması gerekebilmektedir. Prosesin kök dizini de proses kontrol
-bloğunda tutulmaktadır.
+İşletim sistemlerinde bir yol ifadesi verildiğinde işletim sisteminin o yol ifadesine ilişkin hedeflenen
+dosyayı ya da dizini elde etmesi sürecine *yol ifadesinin çözümlenmesi (pathname resolution)* denilmektedir.
+Yol ifadelerinin çözümlenmesi dizin geçişleriyle yapılan yavaş bir işlemdir. Bu nedenle işletim sistemleri bu
+işlemi hızlandırmak için önbellek mekanizmaları kullanmaktadır. Bu nedenle işletim sistemleri bu işlemi hızlandırmak 
+için önbellek mekanizmaları kullanmaktadır. Örneğin işletim sistemi ``/home/kaan/study/sample.c`` yol ifadesini 
+çözümleyecek olsun. Önce kök dizinde ``home`` dizinini, bulursa onun içerisinde ``kaan`` dizinini, bulursa onun 
+içerisinde ``study`` dizinini, nihayet onu da bulursa ``study`` dizininde ``sample.c`` dosyasını arayacaktır. Linux 
+işletim sistemlerinde daha önce erişilmiş olan dizin girişleri *dentry önbelleği (dentry cache)* denilen önbellek 
+sisteminde, daha önce erişilmiş olan dosya ve dizin bilgileri de *inode önbelleği (inode cache)* denilen önbellek 
+sisteminde tutulmaktadır.
 
-Prosesin Çalışma Dizininin Elde Edilmesi ve Değiştirilmesi
-----------------------------------------------------------
+Prosesin Çalışma Dizininlerinin Elde Edilmesi ve Değiştirilmesi
+---------------------------------------------------------------
 
 Prosesin çalışma dizini ``getcwd`` isimli POSIX fonksiyonuyla elde edilebilmektedir. Fonksiyonun prototipi
 şöyledir:
@@ -779,20 +778,32 @@ Programın tamamı şöyledir:
         exit(EXIT_FAILURE);
     }
 
-Dizinlerin Yapısı ve Erişim Hakları
------------------------------------
+
+Proseslerin Kök Dizinlerinin Değiştirilmesi
+-------------------------------------------
+
+Aslında proseslerin kök dizinleri de değiştirilebilmektedir. Bir prosesin kök dizininin değiştirilmesine İngilizce
+*change root* işlemi denilmektedir. Ancak *change root* işleminin dikkatli uygulanması gerekir. Çünkü prosesin kök
+dizini değiştirildiğinde artık tüm mutlak yol ifadeleri o dizin referans alınarak çözülmeye çalışılır. *Change root*
+işlemini yapmadan önce çeşitli hazırlıkların yapılması gerekir. Prosesin kök dizini de proses kontrol bloğunda 
+(Linux'ta ``task_struct`` yapısı içerisinde) tutulmaktadır. Linux sistemlerinde prosesin kök dizininin değiştirilmesi 
+için "glibc" kütüphanesindeki ``chroot`` isimli fonksiyon bulundurulmuştur. Bu fonksiyon da ``sys_chroot`` isimli sistem 
+fonksiyonunu çağırmaktadır.  ``chroot`` bir POSIX fonksiyonu değildir. 
+
+Dizinlerin İçeriği ve Erişim Hakları
+-------------------------------------
 
 Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
-*içerisinde dosya bilgilerini tutan dosyalar* gibi düşünebiliriz. Yani dizinler *dizin giriş bilgilerinden*
-oluşmaktadır. Her dizin girişi bir dosya ya da dizin hakkında bilgi tutmaktadır. Bir dizini temsili olarak şöyle
-bir yapı gibi düşünebilirsiniz:
+"içerisinde dizin girişlerini tutan dosyalar" gibi düşünebiliriz. Her dizin girişi bir isim ve bazı anahtar 
+bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi düşünebilirsiniz:
 
-.. code-block:: text
+.. figure:: _static/directory-entries.png
+    :width: 28%
 
-    <dizin_girişi>
-    <dizin_girişi>
-    <dizin_girişi>
-    ...
+Örneğin ext dosya sistemlerindeki dizin girişi formatı şöyledir:
+
+.. figure:: _static/ext4-dir-entry.png
+    :width: 70%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
 fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
