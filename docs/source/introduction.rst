@@ -1593,8 +1593,8 @@ UNIX/Linux sistemlerinde C ve C++ IDE'si ve kod editörü olarak QtCreator, VSCo
 Ancak sistem programlama uygulamalarında IDE kullanmanızı önermiyoruz. Kodları VSCode gibi bir editörde yazıp programlarınızı
 komut satırından derleyebilirsiniz.
 
-Arakodlar ve JIT Derlemesi
----------------------------
+Arakodlu Çalışma ve JIT Derlemesi
+---------------------------------
 
 Bazı sistemlerde derleyiciler doğrudan doğal kod üretmek yerine hiçbir CPU'nun makine dili olmayan (dolayısıyla hiçbir
 CPU tarafından işletilemeyen) yapay bir kod üretmektedir. Bu yapay kodlara genel olarak *arakod (intermediate code)*
