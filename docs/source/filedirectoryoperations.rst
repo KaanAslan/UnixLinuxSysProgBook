@@ -125,13 +125,13 @@ Burada dosya normal bir dosyadır. Dosyanın sahiplik haklarının ``rw-`` oldu�
 ``r--`` biçiminde olduğuna dikkat ediniz. Bu da ``r`` hakkının olduğu ancak ``w`` ve ``x`` haklarının
 olmadığı anlamına gelmektedir.
 
-Dosya Erişim Kontrolleri
-========================
+Dosyalarda Erişim Kontrolleri
+=============================
 
-UNIX/Linux sistemlerinde normal dosyalar ``open`` POSIX fonksiyonuyla, dizin dosyaları ise ``opendir`` POSIX
-fonksiyonuyla açılmaktadır. ``open`` POSIX fonksiyonunda (ileride ayrıntılarıyla açıklayacağız) dosyayı açarken
-hangi niyetle açtığımızı fonksiyonun bir parametresiyle belirtiriz. Buna dosyanın açış modu da denilmektedir.
-``open`` fonksiyonunda dosyalar üç biçimde açılabilmektedir:
+UNIX/Linux sistemlerinde normal dosyalar ``open`` POSIX fonksiyonuyla fonksiyonuyla açılmakta ve yaratılmaktadır. 
+``open`` POSIX fonksiyonunda (ileride ayrıntılarıyla açıklayacağız) dosyayı açarken hangi niyetle açtığımızı fonksiyonun 
+bir parametresiyle belirtiriz. Buna dosyanın açış modu da denilmektedir. ``open`` fonksiyonunda dosyalar üç biçimde 
+açılabilmektedir:
 
 .. list-table::
    :header-rows: 1
@@ -307,7 +307,7 @@ uygulanmaktadır.
 
     $ su root
 
-``su``komutunda ``root``argümanı verilmese bile varsayılan durumda ``root`` anlaşılmaktadır. Yani yukarıdaki 
+``su`` komutunda ``root`` argümanı verilmese bile varsayılan durumda ``root`` anlaşılmaktadır. Yani yukarıdaki 
 komut ile aşağıdaki eşdeğerdir:
 
 .. code-block:: bash
@@ -498,10 +498,10 @@ işletim sistemlerinde daha önce erişilmiş olan dizin girişleri *dentry önb
 sisteminde, daha önce erişilmiş olan dosya ve dizin bilgileri de *inode önbelleği (inode cache)* denilen önbellek 
 sisteminde tutulmaktadır.
 
-Prosesin Çalışma Dizininlerinin Elde Edilmesi ve Değiştirilmesi
----------------------------------------------------------------
+Proseslerin Çalışma Dizinlerinin Elde Edilmesi ve Değiştirilmesi
+----------------------------------------------------------------
 
-Prosesin çalışma dizini ``getcwd`` isimli POSIX fonksiyonuyla elde edilebilmektedir. Fonksiyonun prototipi
+Bir prosesin çalışma dizini ``getcwd`` isimli POSIX fonksiyonuyla elde edilebilmektedir. Fonksiyonun prototipi
 şöyledir:
 
 .. code-block:: c
@@ -790,15 +790,15 @@ işlemini yapmadan önce çeşitli hazırlıkların yapılması gerekir. Prosesi
 için "glibc" kütüphanesindeki ``chroot`` isimli fonksiyon bulundurulmuştur. Bu fonksiyon da ``sys_chroot`` isimli sistem 
 fonksiyonunu çağırmaktadır.  ``chroot`` bir POSIX fonksiyonu değildir. 
 
-Dizinlerin İçeriği ve Erişim Hakları
--------------------------------------
+Dizinlerin İçeriği ve Dizinlerin Erişim Haklarının Anlamı
+---------------------------------------------------------
 
 Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
 "içerisinde dizin girişlerini tutan dosyalar" gibi düşünebiliriz. Her dizin girişi bir isim ve bazı anahtar 
 bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi düşünebilirsiniz:
 
 .. figure:: _static/directory-entries.png
-    :width: 28%
+    :width: 25%
 
 Örneğin ext dosya sistemlerindeki dizin girişi formatı şöyledir:
 
@@ -808,63 +808,61 @@ bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi dü�
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
 fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
 
-Bir dizine ``r`` hakkının olması, o dizinin içeriğinin ``ls`` gibi bir komutla görüntülenebileceği anlamına
+Bir dizine ``'r'``" hakkının olması, o dizinin içeriğinin ``ls`` gibi bir komutla görüntülenebileceği anlamına
 gelmektedir. (Aslında bu kontrol ``opendir`` POSIX fonksiyonunda yapılmaktadır.) Bir dizin içerisinde bir
-dosyanın ya da dizinin yaratılması için dizine ``w`` hakkının olması gerekir. Çünkü dizin içerisinde dosya ya da
+dosyanın ya da dizinin yaratılması için dizine ``'w'`` hakkının olması gerekir. Çünkü dizin içerisinde dosya ya da
 dizin yaratmak aslında dizin dosyasına yeni bir giriş eklemek (bunun bir yazma işlemi olduğuna dikkat ediniz)
 anlamına gelmektedir.
 
 Bir dizin içerisindeki bir dosyayı ya da dizini silmek için tek gereken şey, o dosya ya da dizinin içinde
-bulunduğu dizine ``w`` hakkının olmasıdır. Silinecek dosya ya da dizine ``w`` hakkının olup olmadığının hiçbir
-önemi yoktur. Ancak bazı kabuk programları, dizine ``w`` hakkı varsa ancak silinmek istenen dosya ya da dizine
-``w`` hakkı yoksa bir uyarı mesajı da verebilmektedir.
+bulunduğu dizine ``'w'`` hakkının olmasıdır. Silinecek dosya ya da dizine ``'w'`` hakkının olup olmadığının hiçbir
+önemi yoktur. Ancak bazı kabuk programları, dizine ``'w'`` hakkı varsa ancak silinmek istenen dosya ya da dizine
+``'w'`` hakkı yoksa bir uyarı mesajı da verebilmektedir.
 
-Dizinlerde ``x`` hakkı farklı bir anlama gelmektedir. İşletim sistemi, bir yol ifadesi verildiğinde yol
-ifadesinde hedeflenen dizin girişi için bilgileri elde etmek ister. Buna *yol ifadesinin çözümlenmesi (pathname
-resolution)* denilmektedir. Örneğin:
+Dizinlerde ``x`` hakkı farklı bir anlama gelmektedir. Daha önce de belirttiğimiz gibi işletim sistemi bir yol 
+ifadesi verildiğinde yol ifadesini çözümleyebilmek için yol bileşenlerini üzerinden tek tek ilerlemektedir. 
+Örneğin:
 
 .. code-block:: text
 
     "/home/kaan/Study/C/sample.c"
 
 Burada hedeflenen dosya ``sample.c`` dosyasıdır. İşletim sistemi bu dosyanın yerini bulabilmek için yol
-ifadesindeki bileşenlerin üzerinden geçmek ister. İşte *yol ifadesinin çözümlenmesi* işleminde dizin geçişleriyle
-hedefe ulaşılabilmesi için prosesin, yol ifadesine ilişkin tüm dizinler için ``x`` hakkına sahip olması gerekir.
-Yani dizinlerdeki ``x`` hakkı *içinden geçilebilirlik* gibi bir anlama gelmektedir. Biz bir dizindeki ``x``
-hakkını kaldırırsak, işletim sistemi *yol ifadesinin çözümlenmesi* işleminde başarısız olur. Yukarıda da
-belirttiğimiz gibi yol ifadesinin başarılı bir biçimde çözümlenmesi için, yol ifadesindeki dizin belirten tüm
-yol bileşenleri için erişim yapan prosesin ``x`` hakkına sahip olması gerekir. Yukarıdaki örnekte *yol
-ifadesinin çözümlenmesi* işleminin başarıyla bitirilebilmesi için prosesin ``home`` dizinine, ``kaan`` dizinine,
-``Study`` dizinine ve ``C`` dizinine ``x`` hakkına sahip olması gerekir.
+ifadesindeki bileşenlerin üzerinden geçmek ister. İşte yol ifadesinin çözümlenmesi işleminde dizin geçişleriyle
+hedefe ulaşılabilmesi için prosesin, yol ifadesine ilişkin tüm dizinler için ``'x'`` hakkına sahip olması gerekir.
+Yani dizinlerdeki ``'x'`` hakkı "içinden geçilebilirlik" gibi bir anlama gelmektedir. Biz bir dizindeki ``'x'``
+hakkını kaldırırsak, işletim sistemi yol ifadesinin çözümlenmesi işleminde başarısız olur. Yukarıdaki örnekte "yol
+ifadesinin çözümlenmesi" işleminin başarıyla bitirilebilmesi için prosesin ``home`` dizinine, ``kaan`` dizinine,
+``Study`` dizinine ve ``C`` dizinine ``'x'`` hakkının olması gerekir.
 
 ``x`` hakkı göreli yol ifadelerinde de aynı biçimde uygulanmaktadır. Örneğin biz ``test.txt`` dosyasını ``open``
-fonksiyonu ile ``test.txt`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için ``x``
-hakkına sahip değilsek yine yol ifadesi başarılı bir biçimde çözümlenemeyecektir. Başka bir deyişle ``test.txt``
-yol ifadesi sanki ``./test.txt`` gibi ele alınmaktadır. Örneğin ``a/b/c/test.txt`` gibi bir yol ifadesinin
-başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil olmak üzere ``a``, ``b`` ve ``c``
-dizinlerine ``x`` hakkının olması gerekir.
+fonksiyonu ile ``test.txt`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için (yani prosesin 
+çalıma dizini için) ``'x'`` hakkına sahip değilsek yine yol ifadesi başarılı bir biçimde çözümlenemeyecektir. Başka 
+bir deyişle ``test.txt`` yol ifadesi sanki ``./test.txt`` gibi ele alınmaktadır. Örneğin ``a/b/c/test.txt`` gibi 
+bir yol ifadesinin başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil olmak üzere ``a``, ``b`` 
+ve ``c`` dizinlerine ``'x'`` hakkının olması gerekir.
 
-``x`` hakkı dizin ağacında bir noktaya duvar örmek için kullanılabilmektedir. ``mkdir`` gibi kabuk komutları
-dizin yaratırken zaten ``x`` hakkını varsayılan durumda vermektedir. Proses ID'si ``0`` olan *root prosesler*
+``'x'`` hakkı dizin ağacında bir noktaya duvar örmek için kullanılabilmektedir. ``mkdir`` gibi kabuk komutları
+dizin yaratırken zaten ``'x'`` hakkını varsayılan durumda vermektedir. Proses ID'si ``0`` olan *root prosesler*
 her zaman yol ifadesinin çözümlenmesi sırasında dizinlerin içerisinden geçebilirler.
 
-Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``r`` hakkının bulunması gerekmemektedir. Örneğin
-``a/b/c/test.txt`` gibi bir yol ifadesinde, prosesin ``a`` dizinine, ``b`` dizinine ve ``c`` dizinine ``r``
-hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu dosya açılabilir. Yani bir dizinin
-içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde bulunduğunu biliyorsak, o dosyayı
-yine de kullanabiliriz.
+Burada bir noktaya dikkatinizi çekmek istiyoruz. Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``'r'`` 
+hakkının bulunması gerekmemektedir. Örneğin ``a/b/c/test.txt`` gibi bir yol ifadesinde, prosesin ``a`` dizinine,
+``b`` dizinine ve ``c`` dizinine ``'r'`` hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu 
+dosya açılabilir. Yani bir dizinin içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde 
+bulunduğunu biliyorsak, o dosyayı yine de kullanabiliriz.
 
 Dosya Nesneleri
 ---------------
 
 İşletim sistemlerinin dosya işlemleriyle ilgili alt sistemlerine *dosya sistemi (file system)* denilmektedir.
-Dosya sisteminin iki yönü vardır: Disk ve Bellek. İşletim sistemi, dosyaların kalıcı olarak diskte saklanması
+Dosya sisteminin iki yönü vardır: Disk ve Bellek. İşletim sistemi dosyaların kalıcı olarak diskte saklanması
 için diski bölümlere ayırır ve belli biçimlerde organize eder. Ancak bir dosya açıldığında işletim sistemi
 çekirdek alanı içerisinde o dosyayı yönetebilmek için bazı veri yapıları da oluşturmaktadır.
 
 Bir dosya açıldığında işletim sistemi, açılacak dosyanın bilgilerini yol ifadesini çözümleyerek diskten elde
-eder. Bu dosya bilgilerini çekirdek alanı içerisine çeker. Diskteki dosya bilgilerinin çekirdek alanında
-yerleştirildiği yere *dosya nesnesi (file object)* denilmektedir. Buradaki *nesne (object)* terimi tahsis
+eder. Bu dosya bilgilerini çekirdek alanı içerisine çeker. Diskteki dosya bilgilerinin bilgilerin çekirdek alanında 
+yerleştirildiği nesneelere *dosya nesneleri (file objects)* denilmektedir. Buradaki *nesne (object)* terimi tahsis
 edilmiş yapı alanları için kullanılmaktadır; nesne yönelimli programlama tekniğindeki *nesne* terimi ile
 doğrudan bir ilgisi yoktur. Dosya nesnesi Linux'un kaynak kodlarında ``file`` isimli bir yapıyla temsil
 edilmektedir. Güncel çekirdeklerde ``file`` yapısı Linux kaynak kodlarında ``include/linux/fs.h`` dosyasında
@@ -912,34 +910,29 @@ edilmektedir. Güncel çekirdeklerde ``file`` yapısı Linux kaynak kodlarında 
         };
         file_ref_t		f_ref;
         /* --- cacheline 3 boundary (192 bytes) --- */
-    } __randomize_layout
+    } __randomize_layout 
     __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
 
-Yapının elemanlarını anlamlandıramayabilirsiniz. Bu yapının pek çok elemanını anlamlandırmak için başka
+Yapının elemanlarını anlamlandıramayabilirsiniz. Bu yapının pek çok elemanını anlanlandırabilmek için başka
 bilgilere sahip olmak gerekir.
 
-İşletim sistemi, bir proses bir dosyayı açtığında açılan dosyayı o proses ile ilişkilendirmektedir. Yani dosya
-nesnelerine proses kontrol blokları yoluyla erişilmektedir. Güncel Linux çekirdeklerinde bu durum biraz
-karmaşıktır:
+İşletim sistemi, bir proses bir dosyayı açtığında açılan dosyayı o proses ile ilişkilendirmektedir. Böylece dosya
+nesnelerine proses kontrol bloğu yoluyla erişilmektedir. Güncel Linux çekirdeklerinde proses kontrol bloğu yoluyla 
+dosya nesnesine erişim süreci biraz karmaşıktır:
 
-.. code-block:: text
+.. figure:: _static/task-struct-to-file.png
+    :align: center
+    :width: 90%
 
-    task_struct (files) ---> files_struct (fdt) ---> fdtable (fd) ---> file * türünden bir dizi ---> file nesnesi
-
-Linux'ta proses kontrol bloğundan dosya nesnesine erişim birkaç yapıdan geçilerek yapılmaktadır. Ancak biz bu
-durumu şöyle basitleştirerek ifade edebiliriz: proses kontrol bloğunda bir eleman bir diziyi göstermektedir. Bu
-diziye *dosya betimleyici tablosu (file descriptor table)* denilmektedir. Dosya betimleyici tablosunun her
-elemanı bir dosya nesnesini göstermektedir. Yani biz yukarıdaki yapıyı aşağıdaki gibi sadeleştirerek
-kavramsallaştırıyoruz:
-
-.. code-block:: text
-
-    proses kontrol bloğu ---> betimleyici tablosu --> dosya nesneleri
+Görüldüğü gibi Linux'ta proses kontrol bloğundan dosya nesnesine erişim birkaç yapıdan geçilerek yapılmaktadır. 
+Ancak biz bu durumu şöyle basitleştirerek ifade edebiliriz: proses kontrol bloğundan hareketle bir gösterici dizisine 
+erişilmektedir. Bu gösterici dizisine *dosya betimleyici tablosu (file descriptor table)* denilmektedir. 
 
 Dosya Betimleyici Tablosu 
 -------------------------
 
-Dosya betimleyici tablosu (file descriptor table), dosya nesnelerinin adreslerini tutan bir gösterici dizisidir:
+Yukarıda da belirttiğimiz gibi *dosya betimleyici tablosu (file descriptor table)*, dosya nesnelerinin adreslerini 
+tutan bir gösterici dizisidir:
 
 .. code-block:: text
 
@@ -962,8 +955,15 @@ Dosya betimleyici tablosu (file descriptor table), dosya nesnelerinin adreslerin
                1023 │      NULL        │
                     └──────────────────┘
 
+Göürldüğü gibi *dosya betimleyici tablosunun* her elemanı bir dosya nesnesini göstermektedir. 
 Dosya betimleyici tablosu prosese özgüdür ve ona o prosesin proses kontrol bloğu (Linux'ta ``task_struct``
-yapısı) yoluyla erişilmektedir. Görüldüğü gibi dosya betimleyici tablosu aslında dosya nesnelerinin
+yapısı) yoluyla erişilmektedir. 
+
+.. figure:: _static/access-to-fdtable.png
+    :align: center
+    :width: 70%
+
+Görüldüğü gibi dosya betimleyici tablosu aslında dosya nesnelerinin
 (``struct file`` türünden nesnelerin) adreslerini tutmaktadır. Bir dosya açıldığında işletim sistemi dosyanın
 bilgilerini diskten elde eder, bir dosya nesnesi tahsis edip o dosyanın bilgilerini dosya nesnesinin içerisine
 yerleştirir ve dosya betimleyici tablosunun bir slotuna (dizinin elemanına) o adresi yazar.
