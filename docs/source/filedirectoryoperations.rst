@@ -871,44 +871,44 @@ edilmektedir. Güncel çekirdeklerde ``file`` yapısı Linux kaynak kodlarında 
 .. code-block:: c
 
     struct file {
-        spinlock_t			f_lock;
-        fmode_t				f_mode;
-        const struct file_operations	*f_op;
-        struct address_space		    *f_mapping;
-        void				    *private_data;
-        struct inode			*f_inode;
-        unsigned int			f_flags;
-        unsigned int			f_iocb_flags;
-        const struct cred		*f_cred;
-        struct fown_struct		*f_owner;
+        spinlock_t.              f_lock;
+        fmode_t	                 f_mode;
+        const struct file_operations    *f_op;
+        struct address_space            *f_mapping;
+        void                     *private_data;
+        struct inode             *f_inode;
+        unsigned int             f_flags;
+        unsigned int             f_iocb_flags;
+        const struct cred.       *f_cred;
+        struct fown_struct.      *f_owner;
         /* --- cacheline 1 boundary (64 bytes) --- */
         union {
             const struct path	f_path;
-            struct path		    __f_path;
+            struct path.        __f_path;
         };
         union {
             /* regular files (with FMODE_ATOMIC_POS) and directories */
-            struct mutex		f_pos_lock;
+            struct mutex        f_pos_lock;
             /* pipes */
-            u64			        f_pipe;
+            u64                 f_pipe;
         };
-        loff_t				    f_pos;
+        loff_t                  f_pos;
     #ifdef CONFIG_SECURITY
-        void				    *f_security;
+        void                    *f_security;
     #endif
         /* --- cacheline 2 boundary (128 bytes) --- */
-        errseq_t			    f_wb_err;
-        errseq_t			    f_sb_err;
+        errseq_t                f_wb_err;
+        errseq_t                f_sb_err;
     #ifdef CONFIG_EPOLL
-        struct hlist_head	    *f_ep;
+        struct hlist_head.      *f_ep;
     #endif
         union {
-            struct callback_head	f_task_work;
-            struct llist_node	    f_llist;
-            struct file_ra_state	f_ra;
-            freeptr_t		        f_freeptr;
+            struct callback_head.   f_task_work;
+            struct llist_node.      f_llist;
+            struct file_ra_state.   f_ra;
+            freeptr_t.              f_freeptr;
         };
-        file_ref_t		f_ref;
+        file_ref_t              f_ref;
         /* --- cacheline 3 boundary (192 bytes) --- */
     } __randomize_layout 
     __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
@@ -934,26 +934,9 @@ Dosya Betimleyici Tablosu
 Yukarıda da belirttiğimiz gibi *dosya betimleyici tablosu (file descriptor table)*, dosya nesnelerinin adreslerini 
 tutan bir gösterici dizisidir:
 
-.. code-block:: text
-
-                  Dosya Betimleyici Tablosu
-    --------->      ┌──────────────────┐
-                0   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                1   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                2   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                3   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                4   │      NULL        │
-                    ├──────────────────┤
-                5   │      NULL        │
-                    ├──────────────────┤
-                ... │      ...         │
-                    ├──────────────────┤
-               1023 │      NULL        │
-                    └──────────────────┘
+.. figure:: _static/fd-table.png
+    :align: center
+    :width: 65%
 
 Göürldüğü gibi *dosya betimleyici tablosunun* her elemanı bir dosya nesnesini göstermektedir. 
 Dosya betimleyici tablosu prosese özgüdür ve ona o prosesin proses kontrol bloğu (Linux'ta ``task_struct``
@@ -961,20 +944,21 @@ yapısı) yoluyla erişilmektedir.
 
 .. figure:: _static/access-to-fdtable.png
     :align: center
-    :width: 70%
+    :width: 75%
 
 Görüldüğü gibi dosya betimleyici tablosu aslında dosya nesnelerinin
-(``struct file`` türünden nesnelerin) adreslerini tutmaktadır. Bir dosya açıldığında işletim sistemi dosyanın
-bilgilerini diskten elde eder, bir dosya nesnesi tahsis edip o dosyanın bilgilerini dosya nesnesinin içerisine
-yerleştirir ve dosya betimleyici tablosunun bir slotuna (dizinin elemanına) o adresi yazar.
+(``struct file`` türünden nesnenin) adreslerini tutmaktadır. Bir dosya açıldığında işletim sistemi dosyanın 
+bilgilerini diskten elde eder, bir dosya nesnesi tahsis edip o dosyanın bilgilerini dosya nesnesinin içerisine, dosya 
+nesnesinin adresini de dosya betimleyici tablosunun bir slotuna (dizinin elemanına) yerleştirir. Böylece dosya 
+betimleyici tablosunun ilgili slotu dosya nesnesini gösteriyor durumda olur. 
 
 Yukarıda da belirttiğimiz gibi dosya betimleyici tablosu prosese özgüdür, thread'e özgü değildir. Prosesin tüm
-thread'leri aynı dosya betimleyici tablosunu kullanmaktadır. İşletim sistemi, o anda çalışan thread'in ilişkin
-olduğu prosesin dosya betimleyici tablosunu kullanmaktadır.
+thread'leri aynı dosya betimleyici tablosunu kullanmaktadır. (Yani işletim sistemi her zaman o anda çalışan thread'in ilişkin
+olduğu prosesin dosya betimleyici tablosunu kullanmaktadır.)
 
-Dosya nesnelerinin içerisinde açış bayrakları gibi, dosya göstericisinin konumu gibi pek çok bilgi doğrudan ve
-pek çok bilgi de dolaylı bir biçimde saklanmaktadır. Yani dosya nesnesi, diskteki dosya üzerinde işlem yapmak
-için gereken tüm bilgileri doğrudan ya da dolaylı biçimde bulundurmaktadır.
+Dosya nesnelerinin içerisinde dosya açılırken kullanılan açış bayrakları gibi, dosya göstericisinin konumu gibi pek 
+çok bilgi doğrudan ve pek çok bilgi de dolaylı bir biçimde saklanmaktadır. Yani dosya nesneleri diskteki dosya üzerinde 
+işlem yapmak için gereken tüm bilgileri doğrudan ya da dolaylı biçimde bulundurmaktadır. 
 
 Temel Dosya Fonksiyonları
 =========================
@@ -990,7 +974,7 @@ Pek çok POSIX uyumlu işletim sistemi dosya işlemleri için 5 sistem fonksiyon
 Bu 5 sistem fonksiyonunu çağıran 5 POSIX fonksiyonu bulunmaktadır: ``open``, ``close``, ``read``, ``write`` ve
 ``lseek``. Dosya işlemleri temelde bu 5 POSIX fonksiyonuyla yapılmaktadır.
 
-Biz bir UNIX/Linux sisteminde hangi düzeyde çalışıyor olursak olalım, eninde sonunda dosya işlemleri bu 5 POSIX
+Biz UNIX türevi bir sistemde hangi düzeyde çalışıyor olursak olalım, eninde sonunda dosya işlemleri bu 5 POSIX
 fonksiyonu çağrılarak gerçekleştirilmektedir. Bu POSIX fonksiyonları da yukarıda belirttiğimiz gibi işletim
 sisteminin ilgili sistem fonksiyonlarını çağırmaktadır. Programlama dili ne olursa olsun, bu sistemlerde tüm
 dosya işlemleri eninde sonunda bu temel POSIX fonksiyonları çağrılarak yapılmaktadır.
@@ -999,7 +983,7 @@ open Fonksiyonu
 ---------------
 
 UNIX/Linux sistemlerinde dosyayı açmak için ``open`` isimli POSIX fonksiyonu kullanılmaktadır. (Örneğin ``fopen``
-standart C fonksiyonu da UNIX/Linux sistemlerinde aslında ``open`` fonksiyonunu çağırmaktadır.) Fonksiyonun
+standart C fonksiyonu da UNIX/Linux sistemlerinde nihayetinde ``open`` fonksiyonunu çağırmaktadır.) Fonksiyonun
 prototipi şöyledir:
 
 .. code-block:: c
@@ -1028,8 +1012,7 @@ Başka bir gösterim de şöyle olabilir:
 Tabii C'de aynı isimli birden fazla fonksiyon bulunamaz. Yukarıdaki gösterim yalnızca kullanımın nasıl
 olabileceğini açıklamaktadır.
 
-
-``open`` fonksiyonunun birinci parametresi açılacak dosyanın yol ifadesini belirtir. İkinci parametre açış
+``open`` fonksiyonunun birinci parametresi açılacak dosyanın yol ifadesini, İkinci parametre açış
 bayraklarını (modlarını) belirtmektedir. Bu parametre ``O_XXX`` biçiminde isimlendirilmiş sembolik sabitlerin
 *bit OR* işlemine sokulmasıyla oluşturulur. Açış sırasında aşağıdaki sembolik sabitlerden yalnızca birinin
 belirtilmesi zorunludur:
@@ -1054,52 +1037,52 @@ belirtilmesi zorunludur:
 Bu bayraklara başka bayraklar da eşlik edebilir; ancak yukarıdaki bayrakların yalnızca bir tanesi kullanılmak
 zorundadır.
 
-Buradaki ``O_RDONLY`` *yalnızca okuma yapma amacıyla*, ``O_WRONLY`` *yalnızca yazma yapma amacıyla* ve ``O_RDWR``
-*hem okuma hem de yazma yapma amacıyla* dosyanın açılmak istendiği anlamına gelmektedir. İşletim sistemi,
+Buradaki ``O_RDONLY`` "yalnızca okuma yapma amacıyla", ``O_WRONLY`` "yalnızca yazma yapma amacıyla" ve ``O_RDWR``
+"hem okuma hem de yazma yapma amacıyla" dosyanın açılmak istendiği anlamına gelmektedir. İşletim sistemi,
 prosesin etkin kullanıcı id'sine ve etkin grup id'sine ve dosyanın kullanıcı ve grup id'sine bakarak prosesin
-dosyaya ``r``, ``w`` hakkının olup olmadığını kontrol eder. Eğer proses bu hakka sahip değilse ``open``
-fonksiyonu başarısız olur. Yani erişim kontrolleri dosyadan okurken ya da dosyaya yazarken değil ``open`` ile
-açış sırasında yapılmaktadır. Örneğin biz dosyayı şöyle açmak isteyelim:
+dosyaya ``'r'``, ``'w'`` hakkının olup olmadığını kontrol eder. Eğer proses bu hakka sahip değilse ``open``
+fonksiyonu başarısız olur. (Erişim erişim kontrollerinin dosyadan okuma yapılırken ya da dosyaya yazma yapılırken 
+değil ``open`` fonksiyonu ile dosya açılırken yapıldığına dikkat ediniz.) Örneğin biz dosyayı şöyle açmak isteyelim:
 
 .. code-block:: c
 
     fd = open("test.txt", O_RDONLY);
 
-Burada işletim sistemi prosesin dosyaya ``r`` hakkı olup olmadığını kontrol edecektir. Örneğin:
+Burada işletim sistemi prosesin dosyaya ``'r'`` hakkı olup olmadığını kontrol edecektir. Örneğin:
 
 .. code-block:: c
 
     fd = open("test.txt", O_WRONLY);
 
-Burada işletim sistemi prosesin dosyaya ``w`` hakkı olup olmadığını kontrol edecektir. Örneğin:
+Burada işletim sistemi prosesin dosyaya ``'w'`` hakkı olup olmadığını kontrol edecektir. Örneğin:
 
 .. code-block:: c
 
     fd = open("test.txt", O_RDWR);
 
-Burada işletim sistemi prosesin dosyaya hem ``r`` hem de ``w`` hakkı olup olmadığını kontrol edecektir.
+Burada işletim sistemi prosesin dosyaya hem ``'r'`` hem de ``'w'`` hakkı olup olmadığını kontrol edecektir.
 
 Zorunlu açış bayraklarından ``O_SEARCH`` bayrağı bazı POSIX fonksiyonlarının *at*'li versiyonları için,
-``O_EXEC`` bayrağı ise ``fexecve`` fonksiyonu için bulundurulmuştur. Bu bayraklar ileride ele alınacaktır.
+``O_EXEC`` bayrağı ise ``fexecve`` fonksiyonu için bulundurulmuştur. 
 
 ``open`` fonksiyonu yalnızca olan bir dosyayı açmak için değil aynı zamanda yeni bir dosya yaratmak için de
 kullanılmaktadır. ``O_CREAT`` bayrağı, dosya varsa etkili olmaz; dosya yoksa dosyanın yaratılmasını sağlar. Yani
-``O_CREAT`` bayrağı *dosya varsa olanı aç, yoksa yarat ve aç* anlamına gelmektedir. Bir dosya yaratılırken
-dosyanın erişim haklarını, dosyayı yaratan kişi ``open`` fonksiyonunun üçüncü parametresinde vermek zorundadır.
+``O_CREAT`` bayrağı "dosya varsa olanı aç, dosya yoksa yarat ve aç" anlamına gelmektedir. Bir dosya yaratılırken
+dosyanın erişim haklarını, dosyayı yaratan kişi ``open`` fonksiyonunun üçüncü parametresinde belirtmek zorundadır.
 Yani dosyanın erişim haklarını dosyayı yaratan kişi belirlemektedir. Biz ``O_CREAT`` bayrağını açış moduna
-eklemişsek bu durumda *dosya yaratılabilir* fikri ile erişim haklarını ``open`` fonksiyonunun üçüncü
-parametresinde belirtmemiz gerekir.
+eklemişsek bu durumda "dosya yaratılabilir" fikri ile erişim haklarını ``open`` fonksiyonunun üçüncü
+parametresine girmek zorundayız. 
 
 Erişim hakları ``<sys/stat.h>`` dosyası içerisinde, tüm bitleri sıfır tek biti ``1`` olan sembolik sabitlerin
-*bit OR* işlemine sokulmasıyla oluşturulmaktadır. Bu sembolik sabitlerin hepsi ``S_I`` öneki ile başlar. Bunu
-``R``, ``W`` ya da ``X`` harfi izler. Bunu da ``USR``, ``GRP`` ya da ``OTH`` harfleri izlemektedir. Yani bu
-sembolik sabitlerin oluşturulma biçimi şöyledir:
+*bit OR* işlemine sokulmasıyla oluşturulmaktadır. Bu sembolik sabitlerin hepsi ``S_I`` öneki ile başlar, bunu
+``R``, ``W`` ya da ``X`` harfi, bunu da ``USR``, ``GRP`` ya da ``OTH`` harfleri izler. Yani bu sembolik sabitlerin 
+oluşturulma biçimi şöyledir:
 
 .. code-block:: text
 
     S_I[RWX][USR GRP OTH]
 
-Böylece 9 tane erişim hakkı şöyle isimlendirilmiştir:
+Bu biçimde 9 erişim hakkı oluşturulabilmektedir:
 
 .. code-block:: c
 
@@ -1137,13 +1120,12 @@ Bu durumda örneğin ``S_IRWXU|S_IRWXG|S_IRWXO`` işlemi ``rwxrwxrwx`` anlamına
 
 Yukarıdaki ``S_IXXX`` biçimindeki sembolik sabitlerin değerlerinin eskiden sistemden sisteme değişebileceği
 varsayılmıştır. Bu nedenle POSIX standartları başlarda bu sembolik sabitlerin sayısal değerlerini işletim
-sistemlerini oluşturanların belirlemesini istemiştir. Ancak daha sonraları (2008 ve sonrasında, SUS 4 ve
-sonrasında) bu sembolik sabitlerin değerleri POSIX standartlarında açıkça belirtilmiştir. Dolayısıyla
-programcılar artık bu sembolik sabitleri kullanmak yerine bunların sayısal karşılıklarını da kullanabilir
-duruma gelmiştir. Ancak eski sistemler dikkate alındığında bunların sayısal karşılıkları yerine yukarıdaki
-sembolik sabitlerin kullanılması tavsiye edilmektedir. Bu sembolik sabitler aynı zamanda okunabilirliği de
-artırmaktadır. POSIX standartları 2008 ve sonrasında bu sembolik sabitlerin sayısal değerlerini aşağıdaki gibi
-belirlemiştir:
+sistemlerini oluşturanların belirlemesini istemiştir. Ancak POSIX 2008 (SUS 4) ve sonrasında bu sembolik 
+sabitlerin değerleri açıkça belirtilmiştir. Dolayısıyla programcılar artık bu sembolik sabitleri kullanmak 
+yerine bunların sayısal karşılıklarını da kullanabilir duruma gelmiştir. Ancak eski sistemler dikkate alındığında 
+bunların sayısal karşılıkları yerine yukarıdaki sembolik sabitlerin kullanılması tavsiye edilmektedir. Bu sembolik 
+sabitler aynı zamanda okunabilirliği de artırabilmektedir. POSIX standartları 2008 ve sonrasında bu sembolik 
+sabitlerin sayısal değerlerini aşağıdaki gibi belirlemiştir:
 
 .. list-table::
    :header-rows: 1
@@ -1182,25 +1164,35 @@ belirlemiştir:
    * - ``S_ISVTX``
      - ``01000``
 
-Yani 2008 ve sonrasında artık ``rwxrwxrwx`` biçiminde owner, group ve other bilgilerine ilişkin ``S_IXXX``
+Yani 2008 ve sonrasında artık ``rwxrwxrwx`` biçiminde *owner*, *group* ve *other* bilgilerine ilişkin ``S_IXXX``
 biçimindeki sembolik sabitler gerçekten yukarıdaki sıraya göre bitleri temsil eder hale gelmiştir. Örneğin
 ``S_IWGRP`` sembolik sabiti ``000010000`` bitlerinden oluşmaktadır. Bu durumda 2008 ve sonrasında örneğin
 ``S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH`` bir erişim hakkını biz doğrudan ``0644`` octal değeri ile de verebiliriz. Bu
 sembolik sabitlerin binary karşılıklarını da vermek istiyoruz:
 
-.. code-block:: text
+.. list-table::
+   :header-rows: 1
 
-    S_IRUSR        100 000 000
-    S_IWUSR        010 000 000
-    S_IXUSR        001 000 000
-
-    S_IRGRP        000 100 000
-    S_IWGRP        000 010 000
-    S_IXGRP        000 001 000
-
-    S_IROTH        000 000 100
-    S_IWOTH        000 000 010
-    S_IXOTH        000 000 001
+   * - Bayrak
+     - Bitsel Karşılığı
+   * - ``S_IRUSR``
+     - 100 000 000
+   * - ``S_IWUSR``
+     - 010 000 000
+   * - ``S_IXUSR``
+     - 001 000 000
+   * - ``S_IRGRP``
+     - 000 100 000
+   * - ``S_IWGRP``
+     - 000 010 000
+   * - ``S_IXGRP``
+     - 000 001 000
+   * - ``S_IROTH``
+     - 000 000 100
+   * - ``S_IWOTH``
+     - 000 000 010
+   * - ``S_IXOTH``
+     - 000 000 001
 
 Örneğin:
 
@@ -1216,30 +1208,33 @@ sembolik sabitlerin binary karşılıklarını da vermek istiyoruz:
 
 ``open`` fonksiyonunda ``O_CREAT`` bayrağı belirtilmemişse erişim haklarının girilmesinin hiçbir anlamı yoktur.
 Kaldı ki ``O_CREAT`` bayrağı girildiğinde de dosya varsa erişim hakları yine dikkate alınmamaktadır. Ancak biz
-``open`` fonksiyonunun ikinci parametresinde ``O_CREAT`` bayrağını girmişsek *dosya yaratılabilir* düşüncesiyle
-dosyanın erişim haklarını da ``open`` fonksiyonunun üçüncü parametresi için girmeliyiz.
+``open`` fonksiyonunun ikinci parametresinde ``O_CREAT`` bayrağını girmişsek "dosya yaratılabilir" düşüncesiyle
+dosyanın erişim haklarını da ``open`` fonksiyonunun üçüncü parametresi için girmeliyiz. ``O_CREAT`` bayrağının 
+``O_WRONLY`` ya da ``O_RDWR`` bayraklarıyla kullanılması anlamlıdır. POSIX standartlarına göre ``O_CREAT`` bayrağının 
+``O_RDONLY`` bayrağı ile kullanılması *belirsiz davranışa (unspecifed behaviour)* yol açmaktadır. 
 
 Yeni yaratılacak dosya için en çok kullanılan erişim hakları ``rw-r--r--`` biçimindedir. Bu haklar
 ``S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH`` ya da doğrudan ``0644`` ile verilebilir.
 
 POSIX sistemlerinde yukarıdaki ``S_IXXX`` biçimindeki sembolik sabitler ``mode_t`` türüyle temsil edilmiştir.
-``mode_t`` türü ``<sys/types.h>`` ve bazı başlık dosyalarında (örneğin ``<sys/stat.h>``) sistemi oluşturanların
-belirlediği bir *tamsayı türü olarak* typedef edilmiştir. Linux'ta ``<sys/types.h>`` dosyası içerisinde
-``mode_t`` türü ``unsigned int`` biçiminde typedef edilmiştir.
+``mode_t`` türü ``<sys/types.h>`` ve bazı başlık dosyalarında (örneğin ``<sys/stat.h>``) "bir tamsayı türü olarak" 
+typedef edilmek zorundadır. Linux'ta ``<sys/types.h>`` dosyası içerisinde ``mode_t`` türü ``unsigned int`` biçiminde 
+typedef edilmiştir.
 
-``O_TRUNC`` açış bayrağı *eğer dosya varsa onu sıfırlayarak aç* anlamına gelmektedir. Ancak ``O_TRUNC`` yazma
+``O_TRUNC`` açış bayrağı "eğer dosya varsa onu sıfırlayarak aç" anlamına gelmektedir. Ancak ``O_TRUNC`` yazma
 modunda açılan dosyalarda kullanılabilmektedir. Yani ``O_TRUNC`` bayrağını kullanabilmek için ``O_WRONLY`` ya da
-``O_RDWR`` bayraklarından birinin de belirtilmiş olması gerekmektedir. Örneğin ``O_WRONLY|O_CREAT|O_TRUNC``
-açış modu *dosya yoksa yarat ancak dosya varsa içini sıfırlayarak aç* anlamına gelmektedir. ``O_TRUNC`` bayrağı
-için dosyanın yaratılıyor olması gerekmez (zaten dosya yaratılırken içinde bir şey olmayacaktır).
-``O_WRONLY|O_TRUNC`` geçerli bir açış modudur. Bu durumda dosya yoksa ``open`` başarısız olur. Ancak dosya
-varsa sıfırlanarak açılır.
+``O_RDWR`` bayraklarından birinin de belirtilmiş olması gerekir. (Eğer ``O_TRUNC`` bayrağı ``O_WRONLY`` ya da 
+``O_RDWR`` bayrağı olmadan kullanılırsa POSIX standartlarına göre bu durum *tanımsız davranışa* yol açmaktadır.)
+Örneğin ``O_WRONLY|O_CREAT|O_TRUNC`` açış modu "dosya yoksa yarat ancak dosya varsa içini sıfırlayarak aç" anlamına 
+gelmektedir. ``O_TRUNC`` bayrağı için dosyanın yaratılıyor olması gerekmez (zaten dosya yaratılırken içinde bir 
+şey olmayacaktır). ``O_WRONLY|O_TRUNC`` geçerli bir açış modudur. Bu durumda dosya yoksa ``open`` başarısız olur. 
+Ancak dosya varsa sıfırlanarak açılır.
 
 ``O_APPEND`` bayrağı yazma işlemlerinin dosyanın sonuna yapılacağı anlamına gelmektedir. Yani bu bayrak
 kullanılırsa tüm yazma işlemlerinde işletim sistemi dosya göstericisini dosyanın sonuna çekip sonra yazmayı
-yapmaktadır. Bu açış modu da ``O_WRONLY`` ya da ``O_RDWR`` için anlamlıdır. Örneğin ``O_RDWR|O_APPEND``
-kullanıldığında dosyaya her yazılan sona eklenecektir. Ancak dosyanın herhangi bir yerinden okuma
-yapılabilecektir.
+yapmaktadır. Bu açış bayrağı da ``O_WRONLY`` ya da ``O_RDWR`` için anlamlıdır. Ancak POSIX standartları bu bayrağın 
+O_RDONLY bayrağı ile kullanılmasını yasaklamamıştır. Örneğin ``O_RDWR|O_APPEND`` kullanıldığında dosyaya her 
+yazılan sona eklenecektir. Ancak dosyanın herhangi bir yerinden okuma yapılabilecektir.
 
 O halde standart C'nin ``fopen`` fonksiyonundaki açış modlarının POSIX karşılıkları şöyle oluşturulabilir:
 
@@ -1263,19 +1258,45 @@ O halde standart C'nin ``fopen`` fonksiyonundaki açış modlarının POSIX kar�
      - ``O_RDWR|O_CREAT|O_APPEND``
 
 ``O_EXCL`` bayrağı *exclusive* açım için kullanılmaktadır. Bu bayrak tek başına değil ``O_CREAT`` ile birlikte
-kullanılmak zorundadır. ``O_CREAT|O_EXCL`` biçimindeki açış modu *dosya yoksa yarat, varsa yaratma başarısız ol*
-anlamına gelmektedir. Yani bu modu kullanan programcı *mutlaka dosyanın sıfırdan yaratılmasını* istemektedir.
-``O_EXCL`` bayrağının ``O_CREAT`` olmadan kullanılması *tanımsız davranışa* yol açmaktadır.
+kullanılmak zorundadır. ``O_CREAT|O_EXCL`` biçimindeki açış modu "dosya yoksa yarat, varsa yaratma, başarısız ol"
+anlamına gelmektedir. Yani bu modu kullanan programcı "mutlaka dosyanın sıfırdan yaratılmasını" istemektedir.
+POSIX standartlarına göre ``O_EXCL`` bayrağının ``O_CREAT`` olmadan kullanılması *tanımsız davranışa* yol açmaktadır.
 
 ``O_DIRECTORY`` bayrağı, açılmak istenen dosya bir dizin dosyası değilse açımın başarısız olmasını
 sağlamaktadır. Dizin dosyaları da ``open`` fonksiyonuyla bu bayrak kullanılarak açılabilmektedir.
 
-``open`` fonksiyonunun diğer açış modları ileride başka konular içerisinde ele alınacaktır. Bazı modları
-görmemiş olsak da açış modlarının hepsini aşağıda bir tablo halinde veriyoruz:
+Aşağıda bayrak birleşimlerinin geçerliliğine yönelik özet bir tablo veriyoruz:
 
-.. list-table:: ``open`` Açış Bayrakları
+.. list-table::
    :header-rows: 1
-   :widths: 18 62 20
+
+   * - Bayrak
+     - ``O_RDONLY``
+     - ``O_WRONLY``
+     - ``O_RDWR``
+   * - ``O_APPEND``
+     - İzinli, etkisiz (yazma yok)
+     - Anlamlı: her ``write`` öncesi ofset EOF'a
+     - Anlamlı: her ``write`` öncesi ofset EOF'a
+   * - ``O_TRUNC``
+     - TANIMSIZ DAVRANIŞ, kullanmayın
+     - Geçerli; dosya 0 uzunluğa indirilir
+     - Geçerli; dosya 0 uzunluğa indirilir
+   * - ``O_CREAT``
+     - BELİRSİZ DAVRANIŞ; 3. argüman (mode) zorunlu
+     - Geçerli; 3. argüman (mode) zorunlu
+     - Geçerli; 3. argüman (mode) zorunlu
+   * - ``O_EXCL``
+     - ``O_CREAT`` ile kullanılmak zorunda
+     - ``O_CREAT`` ile kullanılmak zorunda
+     - ``O_CREAT`` ile kullanılmak zorunda
+
+Linux sistemlerinde POSIX standartlarında olmayan bazı açış bayrakları da bulunmaktadır. Biz open fonksiyonunun diğer açış
+bayraklarını ileride başka konular içerisinde ele alacağız. Bazılarını henüz görmemiş olsak da açış bayraklarının 
+hepsini aşağıda bir tablo halinde veriyoruz:
+
+.. list-table::
+   :header-rows: 1
 
    * - Bayrak
      - İşlev
@@ -1296,62 +1317,64 @@ görmemiş olsak da açış modlarının hepsini aşağıda bir tablo halinde ve
      - ``O_CREAT`` ile birlikte: dosya zaten varsa hata döndür (``EEXIST``).
      - POSIX
    * - ``O_TRUNC``
-     - Dosya varsa ve yazma modundaysa içeriğini sıfırla.
+     - Dosya varsa ve yazma modundaysa içeriği sıfırlanır.
      - POSIX
    * - ``O_APPEND``
-     - Her ``write()`` çağrısından önce dosya göstericisini sona taşır; atomik ekleme garantisi verir.
+     - Her ``write`` çağrısından önce dosya göstericisini sona taşı; atomik ekleme garantisi verir.
      - POSIX
    * - ``O_NONBLOCK``
-     - G/Ç işlemlerini bloke etmeyen (non-blocking) modda gerçekleştirir.
+     - IO işlemlerini bloke etmeyen (non-blocking) modda gerçekleştir.
      - POSIX
    * - ``O_NOCTTY``
-     - Dosya bir terminal aygıtıysa, sürecin kontrol terminali (controlling terminal) olarak atanmasını
-       engeller.
+     - Dosya bir terminal aygıtıysa prosesin kontrol terminali (controlling terminal) olarak
+       atanmasını engeller.
      - POSIX
    * - ``O_CLOEXEC``
-     - Dosya tanımlayıcısına ``FD_CLOEXEC`` bayrağı atar; ``exec()`` sonrası fd otomatik kapanır.
-       ``fork()`` + ``exec()`` yarış koşulunu önler.
+     - Dosya betimleyicisine ``FD_CLOEXEC`` bayrağı atar; ``exec`` sonrası betimleyici otomatik
+       kapanır. ``fork`` + ``exec`` yarış koşulunu önler.
      - POSIX
    * - ``O_DSYNC``
-     - Her ``write()``, yalnızca veriyi diske flush edene kadar bloke eder; meta veri (erişim zamanı vb.)
+     - Her ``write``, yalnızca veriyi diske flush edene kadar bloke et; meta veri (erişim zamanı vs)
        beklenmez.
      - POSIX (2008'den)
    * - ``O_SYNC``
-     - Her ``write()``, veri ve meta veriyi diske flush edene kadar bloke eder. ``O_DSYNC`` + meta veri
+     - Her ``write``, veri ve meta veriyi diske flush edene kadar bloke eder. ``O_DSYNC`` + meta veri
        garantisi; ``__O_SYNC | O_DSYNC`` olarak tanımlıdır.
      - POSIX (2008'den)
    * - ``O_RSYNC``
-     - ``read()`` çağrıları, bekleyen ``write()`` G/Ç'lerinin tamamlanmasını bekler. Linux'ta ``O_SYNC`` ile
-       eş anlamlı davranır.
+     - ``read`` çağrıları, bekleyen ``write`` I/O'larının tamamlanmasını bekler. Linux'ta ``O_SYNC``
+       ile eş anlamlı davranır.
      - POSIX (2008'den)
    * - ``O_NDELAY``
      - ``O_NONBLOCK`` ile eş anlamlı; eski BSD uyumluluğu için korunur.
      - Linux'a Özgü
    * - ``O_DIRECTORY``
-     - Yol bir dizin dosyası değilse ``ENOTDIR`` döndürür; yalnızca dizin dosyası açmak için kullanılır.
+     - Yol ifadesi bir dizin dosyası belirtmiyorsa ``ENOTDIR`` döndür; yalnızca dizin dosyalarını
+       açmak için kullanılır.
      - Linux'a Özgü
    * - ``O_NOFOLLOW``
-     - Yolun son bileşeni sembolik bağsa (symlink) ``ELOOP`` döndürür; symlink takibini engeller.
+     - Yol ifadesinin son bileşeni sembolik bağsa (symlink) ``ELOOP`` döndürür. Sembolik bağın
+       izlenmesini engeller.
      - Linux'a Özgü
    * - ``O_NOATIME``
-     - ``read()`` çağrılarında inode'un ``atime`` (erişim zamanı) alanını güncellemez. Yedekleme ve dizin
-       tarama araçlarında kullanılır.
+     - ``read`` çağrılarında inode'un ``atime`` (erişim zamanı) alanı güncellenmez. Yedekleme ve
+       dizin dosyası tarama araçlarında kullanılır.
      - Linux'a Özgü
    * - ``O_PATH``
-     - Dosya içeriğine değil yalnızca dosya sistemi konumuna referans için fd açar. Okuma/yazma yapılamaz;
-       ``fstatat()``, ``openat()`` vb. için kullanılır.
+     - Dosya içeriğine değil yalnızca dosya sistemi konumuna referans için fd aç. Okuma/yazma
+       yapılamaz; at'li fonksiyonlar için kullanılır.
      - Linux'a Özgü
    * - ``O_TMPFILE``
-     - İsimsiz geçici bir dosya oluşturur; fd kapanınca dosya otomatik silinir. ``linkat()`` ile kalıcı hale
-       getirilebilir.
+     - İsimsiz geçici bir dosya oluştur; fd kapanınca dosya otomatik silinir. ``linkat`` ile kalıcı
+       hale getirilebilir.
      - Linux'a Özgü
    * - ``O_LARGEFILE``
-     - 32-bit sistemlerde 2 GB'ı aşan dosyaların açılmasına izin verir. 64-bit sistemlerde örtük olarak
-       etkindir.
+     - 32-bit sistemlerde 2 GB'ı aşan dosyaların açılmasına izin ver. 64-bit sistemlerde örtük
+       olarak etkindir.
      - Linux'a Özgü
    * - ``O_ASYNC``
-     - Dosya üzerinde G/Ç hazır olduğunda ``SIGIO`` sinyali gönderir (sinyal güdümlü G/Ç). ``fcntl()`` ile de
-       ayarlanabilir.
+     - Dosya üzerinde IO hazır olduğunda ``SIGIO`` sinyali gönder (sinyal güdümlü G/Ç). ``fcntl``
+       ile de ayarlanabilir.
      - Linux'a Özgü
 
 Yukarıda da belirttiğimiz gibi erişim hakları ``open`` fonksiyonu tarafından (yani ``open`` fonksiyonunun
@@ -1361,9 +1384,9 @@ için bu haklara sahip değilse ``open`` başarısız olur ve ``errno`` ``EACCES
 set edilir. Burada önemli olan nokta, kontrolün en başta ``open`` fonksiyonu tarafından yapılmasıdır.
 
 ``open`` fonksiyonu başarı durumunda ``int`` türden *dosya betimleyicisi (file descriptor)* denilen bir değerle
-geri dönmektedir. Dosya betimleyicisi bir handle olarak diğer fonksiyonlar tarafından istenmektedir. ``open``
+geri dönmektedir. Dosya betimleyicisi bir handle olarak diğer fonksiyonlara geçirilmektedir. ``open``
 başarısızlık durumunda ``-1`` ile geri döner ve ``errno`` uygun biçimde set edilir. ``open`` fonksiyonunun
-başarısız olması için pek çok neden söz konusudur. Bundan dolayı açma işleminin başarısı kesinlikle test
+başarısız olması için pek çok neden söz konusudur. Bundan dolayı açma işleminin başarısı kesinlikle kontrol
 edilmelidir. Örneğin:
 
 .. code-block:: c
@@ -1373,8 +1396,8 @@ edilmelidir. Örneğin:
     if ((fd = open("test.txt", O_RDONLY)) == -1)
         exit_sys("open");
 
-``open`` fonksiyonu işletim sisteminin dosya açan sistem fonksiyonunu (Linux'ta ``sys_open``) çağırmaktadır. Bu
-sistem fonksiyonu açılacak dosyaya ilişkin bilgileri diskten bulur ve o bilgileri daha önceden de belirttiğimiz
+Yukarıda da belirttiğimiz gibi``open`` fonksiyonu işletim sisteminin dosya açan sistem fonksiyonunu (Linux'ta ``sys_open``) 
+çağırmaktadır. Bu sistem fonksiyonu açılacak dosyaya ilişkin bilgileri diskten bulur ve o bilgileri daha önceden de belirttiğimiz
 gibi *dosya nesnesi (file object)* denilen bir yapının içerisine yerleştirir. Dosya nesnesinin Linux'un kaynak
 kodlarında ``struct file`` türü ile temsil edildiğini söylemiştik. İşletim sistemi dosya nesnesinin içini
 doldurduktan sonra dosya betimleyici tablosunda boş bir slot bulur ve o slota dosya nesnesinin adresini yazar.
@@ -1384,26 +1407,9 @@ edilmektedir. İşte ``open`` fonksiyonunun bize geri döndürdüğü dosya beti
 tablosunda (yani gösterici dizisinde) bir indeks belirtmektedir. Örneğin ``open`` fonksiyonu dosya nesnesinin
 adresini dosya betimleyici tablosunun 3. indeksli slotuna yerleştirmiş olsun:
 
-.. code-block:: text
-
-                 Dosya Betimleyici Tablosu
-    --------->      ┌──────────────────┐
-                0   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                1   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                2   │      adres       │──────────►  dosya nesnesi
-                    ├──────────────────┤
-                3   │      adres       │──────────► Açtığımız dosyaya ilişkin dosya nesnesi
-                    ├──────────────────┤
-                4   │      NULL        │
-                    ├──────────────────┤
-                5   │      NULL        │
-                    ├──────────────────┤
-                ... │      ...         │
-                    ├──────────────────┤
-               1023 │      NULL        │
-                    └──────────────────┘
+.. figure:: _static/fd-table-new.png
+    :align: center
+    :width: 65%
 
 Bu durumda ``open`` fonksiyonu ``3`` değeri ile geri dönecektir.
 
