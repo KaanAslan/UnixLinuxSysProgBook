@@ -1419,30 +1419,38 @@ oluşturulmuş dosya nesnesini göstermektedir. Buna *stdin dosya betimleyicisi*
 numaralı betimleyiciler yine terminal aygıt sürücüsü için oluşturulmuş dosya nesnesini gösterir (``1`` ve ``2``
 numaralı betimleyiciler aynı nesneyi göstermektedir). Bu betimleyicilere de sırasıyla *stdout ve stderr dosya
 betimleyicileri* denilmektedir. Böylece ilk boş betimleyici genellikle ``3`` numaralı betimleyici olmaktadır.
-Yukarıda da belirttiğimiz gibi ``open`` fonksiyonunun dosya betimleyici tablosunda ilk boş betimleyiciyi vermesi
-POSIX standartlarında garanti edilmiştir.
 
-Her prosesin proses kontrol bloğu ve dolayısıyla dosya betimleyici tablosu birbirinden farklıdır. O halde
-dosya betimleyicileri kendi prosesinin dosya betimleyici tablosunda bir indeks belirtmektedir. Yani dosya
+``open`` fonksiyonunun dosya betimleyici tablosunda ilk boş betimleyiciyi vermesi POSIX standartlarında garanti edilmiştir. 
+Örneğin ``open`` fonksiyonunun çağrıldığı durumda dosya betimleyici tablosunun durumu şöyle olsun:
+
+.. figure:: _static/fd-table-2.png
+    :align: center
+
+Bu durumda ``open`` fonksiyonunun ``4`` ile geri dönecektir. Çünkü ilk boş slot ``4`` numaralı slottur.  
+
+Her prosesin proses kontrol bloğu ve dolayısıyla dosya betimleyici tablosu birbirinden farklıdır. Dosya 
+betimleyicileri kendi prosesinin dosya betimleyici tablosunda bir indeks belirtmektedir. Yani dosya
 betimleyicileri prosese özgü bir anlama sahiptir. Biz bir prosesteki dosya betimleyicisini prosesler arası
 haberleşme yöntemleriyle başka bir prosese göndersek, o betimleyici o proseste farklı bir dosyaya referans
 edebilir ya da geçersiz olabilir.
 
-Bu durumda tipik olarak işletim sisteminin dosya açan sistem fonksiyonu sırasıyla şu işlemleri yapmaktadır:
+Bu durumda işletim sisteminin dosya açan sistem fonksiyonu kabaca sırasıyla şu işlemleri yapmaktadır:
 
-1. Dosya betimleyici tablosunda ilk boş betimleyiciyi bulmaya çalışır. Boş bir betimleyici bulamazsa
-   başarısız olur ve ``errno`` değerini ``EMFILE`` ile set eder.
-2. Dosya nesnesini tahsis eder ve bunun içini diskten elde ettiği bilgilerle doldurur. Bunun adresini de dosya
-   betimleyici tablosunda ilk boş betimleyiciye ilişkin slota yerleştirir.
-3. Dosya betimleyici tablosunda indeks belirten betimleyici değeri ile geri döner.
+| **1.** Dosya betimleyici tablosunda ilk boş betimleyiciyi bulmaya çalışır. Boş bir betimleyici bulamazsa
+   başarısız olur ve ``errno`` değerini ``EMFILE`` (*Too many open files*) ile set eder.
+| **2.** Dosya nesnesini ve diğer başka nesneleri tahsis eder, bunların içini diskten elde ettiği bilgilerle 
+   doldurur. Dosya nesnesinin adresini de dosya betimleyici tablosunda ilk boş betimleyiciye ilişkin slota yerleştirir.
+| **3.** Dosya betimleyici tablosunda indeks belirten betimleyici değeri ile geri döner.
 
 C'nin ``fopen`` fonksiyonunda dosya açımı sırasında *text mode*, *binary mode* gibi bir kavram vardır. Halbuki
 işletim sisteminde böyle bir kavram yoktur. İşletim sistemine göre dosya byte'lardan oluşmaktadır. *Text mode*,
-*binary mode* C ve diğer diller tarafından uydurulmuş olan yapay bir kavramdır.
+*binary mode* C ve diğer bazı diller tarafından kullanılan yapay bir kavramdır.
 
-Bir proses her ``open`` işlemi yaptığında kesinlikle yeni bir dosya nesnesi oluşturulmaktadır. Bu durumda bir
+Bir proses her ``open`` işlemi yaptığında yeni bir dosya nesnesi oluşturulmaktadır. Bu durumda bir
 proses aynı dosyayı aynı biçimde ikinci kez açmış olsa bile aynı dosya nesnesi kullanılmaz. Her iki ``open``
-çağrısı iki farklı dosya nesnesinin ve dosya betimleyicisinin oluşmasına yol açmaktadır.
+çağrısı iki farklı dosya nesnesinin ve dosya betimleyicisinin oluşmasına yol açmaktadır. 
+
+Aşağıda örnek bir dosya açım kodu verilmiştir:
 
 .. code-block:: c
 
@@ -1471,12 +1479,17 @@ proses aynı dosyayı aynı biçimde ikinci kez açmış olsa bile aynı dosya n
         exit(EXIT_FAILURE);
     }
 
-Linux sistemlerinde varsayılan olarak proseslerin dosya betimleyici tabloları 1024 slottan oluşmaktadır. Yani
-varsayılan durumda bu sistemlerde bir proses, kapatmadan en fazla 1024 dosyayı açık olarak tutabilmektedir.
+Linux sistemlerinde varsayılan olarak proseslerin dosya betimleyici tabloları 1024 slottan oluşmaktadır. 
+Yani varsayılan durumda bu sistemlerde bir proses, kapatmadan en fazla 1024 dosyayı açık olarak tutabilmektedir.
 Yukarıda da belirttiğimiz gibi eğer dosya betimleyici tablosunda boş yer yoksa ``open`` fonksiyonu başarısız
-olur ve ``EMFILE`` ``errno`` değeri set edilir. Aşağıdaki örnekte döngü içerisinde dosya hiç kapatılmadan
-sürekli açılmıştır. Açım işlemi başarısız olduğunda döngüden çıkılmış ve ``errno`` değerini gözlemlemek için
-dosya bir kez daha açılmak istenmiştir. En sonunda şöyle bir hata ile karşılaşılacaktır:
+olur ve ``errno`` değişkenine ``EMFILE`` (*Too many open files*)  set edilir. (Her ne kadar Linux sistemlerinde işin 
+başında dosya betimleyici tablosu `1024`` slottan oluşuyorsa da bu değer çeşitli biçimlerde artırılabilmektedir. 
+Bu konuyu "proseslerin kaynak limitlerini" anlattığımız bölümde ele alacağız.)
+
+Aşağıdaki örnekte döngü içerisinde "var olan bir dosya" kapatılmadan sürekli yeniden açılmıştır. En sonunda şöyle bir 
+hata ile karşılaşılacaktır:
+
+open: Too many open files
 
 .. code-block:: text
 
@@ -1536,18 +1549,18 @@ belirtir. Görüldüğü gibi fonksiyonda açış modu belirten ``flags`` parame
         return open(path, O_WRONLY|O_CREAT|O_TRUNC, mode);
     }
 
-Ancak biz kursumuzda bu ``creat`` fonksiyonu yerine asıl fonksiyon olan ``open`` fonksiyonunu kullanacağız.
+Ancak biz kitabımızda bu ``creat`` fonksiyonu yerine asıl fonksiyon olan ``open`` fonksiyonunu kullanacağız.
 
 
 close Fonksiyonu
 ----------------
 
 Açılan her dosyanın kapatılması gerekir. Bir dosyanın kapatılması sırasında işletim sistemi, dosyanın açılması
-sırasında yapılan işlemleri geri almaktadır. Tipik olarak UNIX/Linux sistemlerinde dosya kapatıldığında şunlar
-yapılmaktadır:
+sırasında yapılan işlemleri geri almaktadır. Kabaca (tabii ayrıntıları var) UNIX/Linux sistemlerinde dosya kapatıldığında 
+şunlar yapılmaktadır:
 
-1. Dosya nesnesi, eğer onu gösteren tek bir betimleyici varsa, yok edilir.
-2. Dosya betimleyici tablosundaki betimleyiciye ilişkin slot boşaltılır.
+| **1.** Dosya nesnesi ve bununla ilgili diğer çekirdek nesneleri yok edilir.
+| **2.** Dosya betimleyici tablosundaki betimleyiciye ilişkin slot boşaltılır.
 
 İleride de göreceğimiz gibi dosya betimleyici tablosunda birden fazla betimleyici aynı dosya nesnesini
 gösteriyor durumda olabilmektedir. Bu durumda işletim sistemi dosya nesnesi içerisinde bir sayaç tutup bu
@@ -1557,11 +1570,11 @@ elemanında tutulmaktadır.)
 
 Bir dosya artık kullanılmayacaksa onu kapatmak iyi bir tekniktir. Çünkü bu sayede:
 
-1. Dosya betimleyici tablosundaki slot serbest bırakılır.
-2. Dosya nesnesi gereksiz bir biçimde çekirdek alanı içerisinde yer kaplamaz.
+| **1.** Dosya nesnesi ve bununla ilgili diğer çekirdek nesneleri gereksiz bir biçimde çekirdek alanı içerisinde yer kaplamaz.
+| **2.** Dosya betimleyici tablosundaki slot serbest bırakılır.
 
 Tabii işletim sistemi, proses dosyayı kapatmasa bile proses sonlandırılırken prosesin dosya betimleyici
-tablosunu inceler ve açık dosyaları ``close`` işlemi ile kapatır. Yani biz bir dosyayı kapatmasak bile proses
+tablosunu inceler ve açık dosyaları ``close`` fonksiyonu çağrılmış gibi kapatır. Yani biz bir dosyayı kapatmasak bile proses
 bittiğinde dosyalar zaten kapatılmaktadır. Ancak dosyaların kullanımı bittikten sonra erken bir biçimde
 programcı tarafından kapatılması iyi bir tekniktir.
 
@@ -1575,10 +1588,12 @@ fonksiyonunun prototipi şöyledir:
 
     int close(int fd);
 
-Fonksiyon parametre olarak dosya betimleyicisini alır. ``close`` fonksiyonu başarı durumunda ``0``,
+Fonksiyon parametre olarak dosya betimleyicisini alır. ``close`` fonksiyonu başarı durumunda ``0`` değerine,
 başarısızlık durumunda ``-1`` değerine geri dönmektedir. Fonksiyonun geri dönüş değeri genellikle kontrol
 edilmez. Eğer programcı fonksiyona geçerli bir dosya betimleyicisini argüman olarak geçmişse fonksiyonun
 başarısız olması mümkün değildir.
+
+Aşağıda bir dosyayı açıp kapatan örnek bir program veriyoruz.
 
 .. code-block:: c
 
@@ -1614,71 +1629,53 @@ Dosya Göstericisi
 
 Dosyadaki her bir byte'a bir offset numarası karşı getirilmiştir. Buna ilgili byte'ın offset'i denilmektedir.
 Dosya göstericisi (file pointer), okuma ve yazma işlemlerinin hangi offset'ten itibaren yapılacağını gösteren
-bir offset belirtmektedir. Okuma ya da yazma miktarı kadar dosya göstericisi otomatik olarak ilerletilmektedir.
-Dosya ilk açıldığında dosya göstericisi ``0`` durumundadır. Örneğin dosyanın içerisinde ``ankara`` byte'ları
+bir offset belirtmektedir. Okunan ya da yazılan byte sayısı kadar dosya göstericisi otomatik olarak ilerletilmektedir.
+Dosya ilk açıldığında dosya göstericisi ``0`` konumundadır. Örneğin dosyanın içerisinde ``ankara`` byte'ları
 olsun:
 
-.. code-block:: text
+.. figure:: _static/file-offset.png
+    :width: 25%
 
-    0123456
-    ankara
-    ^
-
-Bu dosya açıldığında dosya göstericisi ilk byte'ın offset'i olan ``0``'ı göstermektedir. Biz bu pozisyondan iki
+Bu dosya açıldığında dosya göstericisinin değeri ilk byte'ın offset'i olan ``0``'dır. Biz bu pozisyondan iki
 byte okursak ``an`` byte'larını okuruz ve dosya göstericisi de 2 byte ilerletilir:
 
-.. code-block:: text
-
-    0123456
-    ankara
-      ^
+.. figure:: _static/file-offset-2.png
+    :width: 25%
 
 Şimdi 2 byte daha okursak artık ``ka`` byte'larını okuruz:
 
-.. code-block:: text
-
-    0123456
-    ankara
-        ^
+.. figure:: _static/file-offset-3.png
+    :width: 25%
 
 Dosya göstericisinin dosyanın son byte'ından sonraki byte'ı göstermesi durumuna *EOF (End of File) durumu*
-denir. EOF durumunda dosyadan okuma yapılamaz, çünkü okunacak bir şey yoktur. Ancak EOF durumunda dosyaya yazma
+denilmektedir. EOF durumunda dosyadan okuma yapılamaz, çünkü okunacak bir şey yoktur. Ancak EOF durumunda dosyaya yazma
 yapılabilir. Bu durumda yazılanlar dosyaya eklenmiş olur. Dosyada araya bir şey eklemek (insert) diye bir
-kavram yoktur. Dosya boyutunu değiştirmek için dosya göstericisini EOF'a çekip yazma yapmak gerekir. Örneğin:
+kavram yoktur. Dosya boyutunu değiştirmek için dosya göstericisini EOF durumuna çekip yazma yapmak gerekir. 
+Şimdi dosyadan 2 byte daha okuyalım:
 
-.. code-block:: text
+.. figure:: _static/file-offset-4.png
+    :width: 25%
 
-    0123456
-    ankara
-          ^
-
-Burada dosya göstericisi EOF konumundadır. Şimdi biz bu dosyaya ``istanbul`` yazısının byte'larını yazacak
+Burada dosya göstericisi artık EOF konumundadır. Şimdi biz bu dosyaya ``istanbul`` yazısının byte'larını yazacak
 olsak bunlar artık dosyaya eklenecektir:
 
-.. code-block:: text
-
-    012345678901234
-    ankaraistanbul
-                  ^
+.. figure:: _static/file-offset-5.png
+    :width: 55%
 
 Bir dosya yeni yaratıldığında dosyanın içi boştur, dolayısıyla dosya göstericisi de zaten EOF durumundadır.
 Örneğin:
 
-.. code-block:: text
+.. figure:: _static/file-offset-empty.png
+    :width: 30%
 
-    0
-    ^
+Biz yeni yaratılmış bir dosyaya yazma yaparsak ona ekleme yapmış oluruz. Örneğin boş bir dosyaya ``istanbul`` yazısının 
+karakterlerine iişkin byte'ları yazmış olalım:
 
-Biz yeni yaratılmış bir dosyaya yazma yaparsak ona ekleme yapmış oluruz. Örneğin:
-
-.. code-block:: text
-
-    012345678
-    istanbul
-            ^
+.. figure:: _static/file-offset-istanbul.png
+    :width: 35%
 
 Dosya göstericisinin konumu dosya nesnesi içerisinde saklanmaktadır. (Linux'un kaynak kodlarında ``file``
-yapısının ``f_pos`` elemanı dosya göstericisinin konumunu tutmaktadır.) Biz aynı dosyayı ikinci kez açmış olsak
+yapısının ``f_pos`` elemanı dosya göstericisinin konumunu tutmaktadır.) Biz aynı dosyayı ikinci kez açsak
 bile yeni bir dosya nesnesi, dolayısıyla yeni bir dosya göstericisi elde etmiş oluruz.
 
 read Fonksiyonu
