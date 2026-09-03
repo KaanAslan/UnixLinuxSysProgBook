@@ -2709,8 +2709,8 @@ Burada biz ``ls -l`` tarzında erişim haklarını yazdırıyoruz. Aşağıdaki 
     ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
 
 Burada döngünün her yinelenmesinde ``'r'``, ``'w'``, ``'x'`` haklarından biri varsa ilgili karakter, bu haklar yoksa
-``'-''`` karakteri elde edilmektedir. POSIX 2008 ve sonrasında artık erişim haklarının maskeleme değerleri açıkça
-belirtilmiştir. Bu maskeleme değerleri ``rwxrwxrwx`` dizilimiyle uyuşmaktadır:
+``'-''`` karakteri elde edilmektedir. Daha önce de belirttiğimiz gibi POSIX 2008 ve sonrasında artık erişim haklarının 
+maskeleme değerleri açıkça belirtilmiştir. Bu maskeleme değerleri ``rwxrwxrwx`` dizilimiyle uyuşmaktadır:
 
 .. code-block:: text
 
@@ -2724,7 +2724,7 @@ belirtilmiştir. Bu maskeleme değerleri ``rwxrwxrwx`` dizilimiyle uyuşmaktadı
     876543210
     010000000
 
-Bunun da octal karşılığı ``0200``'dür. Dolayısıyla biz aynı işlemi POSIX 2008 ve sonrasında şöyle de
+Bunun da octal karşılığı ``0200``'dür. Dolayısıyla biz aynı işlemi POSIX 2008 ve sonrası için şöyle de
 yapabiliriz:
 
 .. code-block:: c
@@ -2737,11 +2737,11 @@ yapabiliriz:
 Dosyanın türü de yine ``st_mode`` elemanının içerisine bitsel olarak kodlanmıştır. Ancak hangi bitlerin hangi
 türleri belirttiği POSIX standartlarında belirtilmemiştir. Bu durum sistemden sisteme değişebilmektedir.
 (Anımsanacağı gibi eskiden aynı durum ``S_IXXX`` sembolik sabitleri için de geçerliydi. Ancak daha sonra bu
-sembolik sabitlerin sayısal değerleri yani bit pozisyonları POSIX standartlarında belirlendi.) Dosyanın türünü
-anlamak için iki yöntem bulunmaktadır.
+sembolik sabitlerin sayısal değerleri yani bit pozisyonları POSIX standartlarında belirlendi.) 
 
-Birinci yöntemde ``<sys/stat.h>`` içerisindeki ``S_ISXXX`` biçimindeki makrolar kullanılır. Bu makrolar, eğer
-dosya ilgili türdense sıfır dışı bir değer, ilgili türden değilse sıfır değerini verir. Makrolar şunlardır:
+Dosyanın türünü anlamak için iki yöntem bulunmaktadır. Birinci yöntemde ``<sys/stat.h>`` içerisindeki ``S_ISXXX`` 
+biçimindeki makrolar kullanılır. Bu makrolar, eğer dosya ilgili türdense sıfır dışı bir değer, ilgili türden değilse 
+sıfır değerini verir. Makrolar şunlardır:
 
 .. list-table::
    :header-rows: 1
@@ -2790,8 +2790,8 @@ dosya ilgili türdense sıfır dışı bir değer, ilgili türden değilse sıf�
     else
         putchar('?');
 
-Dosya türünün tespiti için ikinci yöntemde ``st_mode`` değeri ``S_IFMT`` sembolik sabiti ile bit AND işlemine
-sokulup aşağıdaki sembolik sabitlerle karşılaştırılmaktadır:
+İkinci yöntemde ``st_mode`` değeri ``S_IFMT`` sembolik sabiti ile bit AND işlemine sokularak aşağıdaki sembolik sabitlerle 
+karşılaştırılmaktadır:
 
 .. list-table::
    :header-rows: 1
@@ -2891,11 +2891,8 @@ O halde biz bir dosyanın türünü ve erişim haklarını ``ls -l`` formatında
         return 0;
     }
 
-Diğer Yapı Elemanları
-^^^^^^^^^^^^^^^^^^^^^^^
-
-``stat`` yapısının ``st_nlink`` elemanı dosyanın *hard link* sayısını belirtmektedir. Hard link kavramı ileride
-ele alınacaktır. ``nlink_t`` türü bir tamsayı türü olmak koşuluyla herhangi bir tür olarak typedef
+``stat`` yapısının ``st_nlink`` elemanı dosyanın *katı bağ (hard link)* sayısını belirtmektedir. Katı bağ kavramı
+ileride ele alınacaktır. ``nlink_t`` bir tamsayı türü olmak koşuluyla herhangi bir tür olarak ``typedef``
 edilebilmektedir.
 
 Yapının ``st_uid`` elemanı dosyanın kullanıcı id'sini belirtmektedir. ``ls -l`` komutu bu id'yi sayı olarak
@@ -2917,15 +2914,12 @@ Yapının ``st_blksize`` elemanı dosyanın içinde bulunduğu dosya sisteminin 
 belirtmektedir. Dosyaların parçaları diskte *blok* denilen ardışıl byte topluluklarında tutulmaktadır. İşte
 bir bloğun kaç byte olduğu bilgisi bu elemanla belirtilmektedir. Aynı zamanda programcılar dosya kopyalama
 gibi işlemlerde bu büyüklüğü tampon büyüklüğü (buffer size) olarak da kullanmaktadır. ``blksize_t`` işaretli
-bir tamsayı türü olarak typedef edilmek zorundadır. Bu konunun ayrıntılarını kursumuzun inode tabanlı dosya
+bir tamsayı türü olarak ``typedef`` edilmek zorundadır. Bu konunun ayrıntılarını kursumuzun inode tabanlı dosya
 sistemlerini ele aldığımız bölümde açıklayacağız.
 
 Yapının ``st_blocks`` elemanı dosyanın diskte kapladığı blok sayısını belirtmektedir. (Ancak buradaki sayı 512
 byte'lık blokların sayısıdır. Yani dosya sistemindeki dosyanın parçaları olan bloklara ilişkin sayı değildir.)
-``blkcnt_t`` işaretli bir tamsayı türü olarak typedef edilmek zorundadır.
-
-Dosyaların Zaman Bilgileri
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``blkcnt_t`` işaretli bir tamsayı türü olarak ``typedef`` edilmek zorundadır.
 
 UNIX/Linux sistemlerinde kullanılan inode tabanlı dosya sistemleri bir dosya için üç zaman bilgisi
 tutmaktadır:
@@ -2938,7 +2932,7 @@ POSIX standartları hangi POSIX fonksiyonlarının hangi zamanları dosya için 
 Örneğin ``read`` fonksiyonu dosyanın son okuma zamanını, ``write`` fonksiyonu son yazma ve inode bilgilerinin
 değiştirilme zamanını güncellemektedir.
 
-``stat`` yapısının bu zamanı tutan elemanları eski POSIX standartlarında ``time_t`` türündendi ve isimleri
+``stat`` yapısının zamansal bilgileri tutan elemanları eski POSIX standartlarında ``time_t`` türündendi ve isimleri
 ``st_atime``, ``st_mtime`` ve ``st_ctime`` biçimindeydi. Bu elemanlar epoch olan 01/01/1970'ten geçen saniye
 sayısını tutuyordu. (C Programlama Dili'nde epoch'un 01/01/1970 olması zorunlu değildir. Ancak POSIX
 standartlarında bu zorunludur.) Ancak daha sonra POSIX standartlarında bu zaman bilgisi nanosaniye çözünürlüğe
