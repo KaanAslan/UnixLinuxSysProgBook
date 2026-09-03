@@ -2233,60 +2233,56 @@ UNIX/Linux sistemlerinde ``open``, ``close``, ``read``, ``write`` ve ``lseek`` f
 çok yardımcı dosya fonksiyonu da vardır. Bu yardımcı dosya fonksiyonları dosyalar üzerinde bazı önemli işlemleri
 yapmaktadır. Bu bölümde bu fonksiyonların önemli olanlarını tanıtacağız.
 
-Proseslerin umask Değeri ve umask Fonksiyonu
---------------------------------------------
+Proseslerin umask Değerleri ve umask Fonksiyonu
+-----------------------------------------------
 
-Biz ``open`` fonksiyonu ile bir dosya yaratırken yaratacağımız dosyaya verdiğimiz erişim hakları dosyaya tam
-olarak yansıtılmayabilir. Yani örneğin biz gruba ``w`` hakkı vermek istesek bile bunu sağlayamayabiliriz. Çünkü
-belirtilen erişim değerlerini maskeleyen (yani ortadan kaldıran) bir mekanizma vardır. Buna prosesin *umask
-değeri* denilmektedir. Prosesin umask değeri ``mode_t`` türü ile ifade edilir; sahiplik, grupluk ve diğerlik
-bilgilerini içerir. Bu bilgiler aslında maskelenecek değerleri belirtmektedir.
-
-Örneğin prosesin umask değerinin ``S_IWGRP|S_IWOTH`` olduğunu varsayalım. Bu umask değeri *biz ``open``
-fonksiyonu ile bir dosyayı yaratırken grup için ve diğerleri için ``w`` hakkı versek bile bu hak dosyaya
-yansıtılmayacak* anlamına gelmektedir. Eğer prosesin umask değeri ``0`` ise bu durumda maskelenecek bir şey
-yoktur; dolayısıyla verilen hakların hepsi dosyaya yansıtılır. Prosesin umask değerinin ``umask`` olduğunu,
-dosyaya vermek istediğimiz erişim haklarının da ``mode`` olduğunu varsayalım. (Yani ``mode``, ``S_IXXX`` gibi
-tek biti ``1`` olan değerlerin bit düzeyinde OR'lanması ile oluşturulmuş değer olsun.) Bu durumda dosyaya
-yansıtılacak erişim hakları ``mode & ~umask`` olacaktır. Yani prosesin umask değerindeki ``1`` olan bitler
-maskelenecek erişim haklarını belirtmektedir.
+Biz ``open`` fonksiyonu ile bir dosya yaratırken yaratacağımız dosyaya verdiğimiz erişim hakları dosyaya tam olarak
+yansıtılmayabilir. Yani örneğin biz gruba *w* hakkı vermek istesek bile bunu sağlayamayabiliriz. Çünkü belirtilen
+erişim değerlerini maskeleyen (yani ortadan kaldıran) bir mekanizma vardır. Buna prosesin *umask değeri*
+denilmektedir. Prosesin umask değeri ``mode_t`` türü ile ifade edilir; sahiplik, grupluk ve diğerlerine ilişkin
+maskeleme bilgisini içerir. Örneğin prosesin umask değerinin ``S_IWGRP|S_IWOTH`` olduğunu varsayalım. Bu umask
+değeri *biz open fonksiyonu ile bir dosyayı yaratırken grup için ve diğerleri için w hakkı versek bile bu hak
+dosyaya yansıtılmayacak* anlamına gelmektedir. Eğer prosesin umask değeri 0 ise bu durumda maskeleme yapılmaz,
+dolayısıyla verilen hakların hepsi dosyaya yansıtılır. Prosesin umask değerinin ``umask`` olduğunu, dosyaya vermek
+istediğimiz erişim haklarının da ``mode`` olduğunu varsayalım. (Yani ``mode`` ``S_IXXX`` gibi tek biti 1 olan
+değerlerin bit düzeyinde OR'lanması ile oluşturulmuş değer olsun.) Bu durumda dosyaya yansıtılacak erişim hakları
+``mode & ~umask`` olacaktır. Yani prosesin umask değerindeki 1 olan bitlere karşı gelen erişim hakları
+kaldırılacaktır.
 
 Prosesin başlangıçtaki umask değeri üst prosesten aktarılmaktadır. Örneğin biz kabuktan program çalıştırırken
-çalıştırdığımız programın umask değeri, kabuğun (örneğin ``bash`` prosesinin) umask değeri olarak bizim
-prosesimize geçirilecektir. Kabuğun umask değeri ``umask`` isimli komutla elde edilebilir. Kabuğun umask
-değeri genellikle ``0022`` ya da ``0002`` gibi bir değerde olur. Buradaki basamaklar octal sayı (sekizlik
-sistemde sayı) belirtmektedir. Bir octal digit 3 bitle açılmaktadır. Dolayısıyla bu bitler maskelenecek erişim
-haklarının durumunu belirtir:
+çalıştırdığımız programın umask değeri kabuğun (örneğin *bash* prosesinin) umask değeri olarak bizim prosesimize
+geçirilecektir. Kabuğun umask değeri *umask* isimli komutla elde edilebilir. Kabuğun umask değeri genellikle *0022*
+ya da *0002* gibi bir değerde olur. Buradaki basamaklar octal sayı (sekizlik sistemde sayı) belirtmektedir. Bir
+octal digit 3 bitle açılmaktadır. Dolayısıyla bu bitler maskelenecek erişim haklarının durumunu belirtir:
 
 .. code-block:: text
 
     ? owner group other
 
-En yüksek anlamlı octal digit (``?`` ile gösterilenin) şimdiye kadar görmediğimiz başka haklarla ilgilidir. Bu
-haklara *set user id*, *set group id* ve *sticky* hakları denilmektedir. Ancak diğer üç octal digit sırasıyla
-owner, group ve other maskeleme bitlerini belirtmektedir.
+En yüksek anlamlı octal digit (bizim ? ile gösterdiğimiz) şimdiye kadar görmediğimiz başka bayraklarla ilgilidir.
+Bu bayraklara *set user ID*, *set group ID* ve *sticky* bayrakları denilmektedir. Ancak diğer üç octal digit
+sırasıyla *owner*, *group* ve *other* maskeleme bitlerini belirtmektedir.
 
-``umask`` komutuyla aynı zamanda kabuğun umask değeri de değiştirilebilir. Bu durumda yine değiştirme değerleri
-octal digit biçiminde verilmelidir. Örneğin:
+*umask* komutuyla aynı zamanda kabuğun umask değeri de değiştirilebilir. Bu durumda yine değiştirme değerleri octal
+digitler biçiminde verilmelidir. Örneğin:
 
-.. code-block:: bash
+.. code-block:: text
 
     $ umask 022
 
-Burada en yüksek anlamlı octal digit verilmediğine göre o digit ``0`` kabul edilir. O halde burada belirtilen
-umask değeri grup için ve diğerleri için ``w`` hakkını maskeleyecektir. (Zaten pek çok kabukta umask değerinin
-varsayılan durumu böyledir.) Bazen programcı umask değerini tamamen sıfırlamak da isteyebilir. Bu işlem şöyle
-yapılabilir:
+Burada en yüksek anlamlı octal digit verilmediğine göre o digit 0 kabul edilir. O halde burada belirtilen umask
+değeri grup için ve diğerleri için *w* hakkını maskeleyecektir. (Zaten pek çok kabukta umask değerinin default
+durumu böyledir.) Bazen programcı umask değerini tamamen sıfırlamak da isteyebilir. Bu işlem şöyle yapılabilir:
 
-.. code-block:: bash
+.. code-block:: text
 
     $ umask 0
 
-Burada yüksek anlamlı üç octal digit de ``0`` kabul edilmektedir. Bu durumda artık çalıştırdığımız programda
-``open`` fonksiyonunun tüm erişim hakları dosyalara yansıtılacaktır.
+Burada yüksek anlamlı üç octal digit de 0 kabul edilmektedir. Bu durumda artık çalıştırdığımız programda ``open``
+fonksiyonunun tüm erişim hakları dosyalara yansıtılacaktır.
 
-Bir proses başlangıçta umask değerini üst prosesten almaktadır. Ancak proses istediği zaman ``umask`` isimli
-POSIX fonksiyonu ile kendi umask değerini değiştirebilmektedir. ``umask`` fonksiyonunun prototipi şöyledir:
+Prosesin umask değerini programlama yoluyla değiştirmek için ``umask`` isimli POSIX fonksiyonu kullanılmaktadır.
+``umask`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -2294,9 +2290,9 @@ POSIX fonksiyonu ile kendi umask değerini değiştirebilmektedir. ``umask`` fon
 
     mode_t umask(mode_t cmask);
 
-Fonksiyon belirtilen değerle prosesin umask değerini set eder ve prosesin eski umask değerine geri döner.
-Fonksiyon başarısız olamaz. ``umask`` fonksiyonu ile kendi prosesimizin umask değerini almak için onu
-değiştirmemiz gerekir. Bunu aşağıdaki gibi bir kodla yapabiliriz:
+Fonksiyon belirtilen değerle prosesin umask değerini set eder ve prosesin eski umask değerine geri döner. Fonksiyon
+başarısız olamaz. ``umask`` fonksiyonu ile kendi prosesimizin umask değerini almak için onu değiştirmemiz gerekir.
+Bunu aşağıdaki gibi bir kodla yapabiliriz:
 
 .. code-block:: c
 
@@ -2306,9 +2302,8 @@ değiştirmemiz gerekir. Bunu aşağıdaki gibi bir kodla yapabiliriz:
     printf("%03jo\n", (intmax_t)mode);
     umask(mode);
 
-Tabii programcı ``umask`` fonksiyonuna octal değerler de girebilir. Ancak daha önceden de bahsedildiği gibi
-POSIX standartlarında 2008'de ``S_IXXX`` sembolik sabitlerinin değerleri octal değerlerle eşleştirilmiştir.
-Örneğin:
+Tabii programcı ``umask`` fonksiyonuna octal digitler de girebilir. Ancak daha önceden de bahsedildiği gibi POSIX
+standartlarında 2008'de bu ``S_IXXX`` sembolik sabitlerinin değerleri octal değerlerle eşleştirilmiştir. Örneğin:
 
 .. code-block:: c
 
@@ -2316,8 +2311,8 @@ POSIX standartlarında 2008'de ``S_IXXX`` sembolik sabitlerinin değerleri octal
     umask(S_IWGRP|S_IWOTH);     /* Bu biçimde belirleme daha okunabilirdir. */
 
 Aşağıdaki örnekte prosesin umask değeri önce sıfırlanmış, sonra bir dosya yaratılmıştır. ``open`` fonksiyonunda
-verilen erişim hakları artık dosyaya tamamen yansıtılacaktır. Ayrıca bu programda prosesin eski umask değeri
-de yazdırılmaktadır.
+verilen erişim hakları artık dosyaya tamamen yansıtılacaktır. Ayrıca bu programda prosesin eski umask değeri de
+yazdırılmaktadır.
 
 .. code-block:: c
 
@@ -2400,9 +2395,9 @@ sınaması aşağıdaki gibi basit bir fonksiyonla yapılmıştır:
 
 Programın tamamı şöyledir:
 
-.. code-block:: c
+``myshell.c```
 
-    /* myshell.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -2574,26 +2569,17 @@ Programın tamamı şöyledir:
         exit(EXIT_FAILURE);
     }
 
-
-Inode Tabanlı Dosya Sistemleri ve Disk Organizasyonu
-=====================================================
+Inode Tabanlı Dosya Sistemlerinin Disk Organizasyonuna Özet Bir Bakış
+---------------------------------------------------------------------
 
 UNIX/Linux sistemlerinde ``ext2``, ``ext3``, ``ext4`` gibi inode tabanlı dosya sistemlerinde bir disk bölümü
-formatlandığında kabaca disk bölümünde üç mantıksal bölüm oluşturulmaktadır: Süper Blok (Super Block), Inode
+formatlandığında kabaca (ayrınları var) disk bölümünde üç mantıksal bölüm oluşturulmaktadır: Süper Blok (Super Block), Inode
 Blok (Inode Block) ve Data Blok (Data Block):
 
-.. code-block:: text
-
-    ┌────────────┐
-    │ Süper Blok │
-    ├────────────┤
-    │ Inode Blok │
-    ├────────────┤
-    │            │
-    │ Data Blok  │
-    │            │
-    │            │
-    └────────────┘
+.. figure:: _static/disk-block-layout.png
+    :align: center
+    :class: fig-mapping1
+    :width: 25%
 
 Aslında inode tabanlı dosya sistemlerinin disk organizasyonu daha ayrıntılıdır. Bu ayrıntıları kursumuzun inode
 tabanlı dosya sistemlerini anlattığımız bölümde ele alacağız. Süper Blok, dosya sistemine ilişkin en önemli
@@ -4827,7 +4813,6 @@ dolayı o dizinin hard link sayacını artıracaktır.
 Belli bir inode elemanını gösteren dizin girişlerinin elde edilmesine yönelik bu sistemlerde pratik bir yol yoktur.
 Yapılacak şey diskteki tüm dosyaları gözden geçirip inode numaralarından onların aynı inode elemanını gösterip
 göstermediğini anlamaktır.
-
 
 Erişim Haklarının ve Sahiplik Bilgilerinin Değiştirilmesi
 =========================================================
