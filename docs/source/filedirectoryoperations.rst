@@ -798,12 +798,12 @@ Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktad�
 bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi düşünebilirsiniz:
 
 .. figure:: _static/directory-entries.png
-    :width: 25%
+    :width: 20%
 
 Örneğin ext dosya sistemlerindeki dizin girişi formatı şöyledir:
 
 .. figure:: _static/ext4-dir-entry.png
-    :width: 70%
+    :width: 65%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
 fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
@@ -922,7 +922,7 @@ dosya nesnesine erişim süreci biraz karmaşıktır:
 
 .. figure:: _static/task-struct-to-file.png
     :align: center
-    :width: 90%
+    :width: 95%
 
 Görüldüğü gibi Linux'ta proses kontrol bloğundan dosya nesnesine erişim birkaç yapıdan geçilerek yapılmaktadır. 
 Ancak biz bu durumu şöyle basitleştirerek ifade edebiliriz: proses kontrol bloğundan hareketle bir gösterici dizisine 
@@ -938,18 +938,21 @@ Dosya ilk açıldığında dosya göstericisi ``0`` konumundadır. Örneğin dos
 olsun:
 
 .. figure:: _static/file-offset.png
-    :width: 25%
+    :class: fig-mapping1
+    :width: 20%
 
 Bu dosya açıldığında dosya göstericisinin değeri ilk byte'ın offset'i olan ``0``'dır. Biz bu pozisyondan iki
 byte okursak ``an`` byte'larını okuruz ve dosya göstericisi de 2 byte ilerletilir:
 
 .. figure:: _static/file-offset-2.png
-    :width: 25%
+    :class: fig-mapping1
+    :width: 20%
 
 Şimdi 2 byte daha okursak artık ``ka`` byte'larını okuruz:
 
 .. figure:: _static/file-offset-3.png
-    :width: 25%
+    :class: fig-mapping1
+    :width: 20%
 
 Dosya göstericisinin dosyanın son byte'ından sonraki byte'ı göstermesi durumuna *EOF (End of File) durumu*
 denilmektedir. EOF durumunda dosyadan okuma yapılamaz, çünkü okunacak bir şey yoktur. Ancak EOF durumunda dosyaya yazma
@@ -958,25 +961,28 @@ kavram yoktur. Dosya boyutunu değiştirmek için dosya göstericisini EOF durum
 Şimdi dosyadan 2 byte daha okuyalım:
 
 .. figure:: _static/file-offset-4.png
-    :width: 25%
+    :class: fig-mapping1
+    :width: 20%
 
 Burada dosya göstericisi artık EOF konumundadır. Şimdi biz bu dosyaya ``istanbul`` yazısının byte'larını yazacak
 olsak bunlar artık dosyaya eklenecektir:
 
 .. figure:: _static/file-offset-5.png
-    :width: 55%
+    :width: 45%
 
 Bir dosya yeni yaratıldığında dosyanın içi boştur, dolayısıyla dosya göstericisi de zaten EOF durumundadır.
 Örneğin:
 
 .. figure:: _static/file-offset-empty.png
-    :width: 30%
+    :class: fig-mapping2
+    :width: 25%
 
 Biz yeni yaratılmış bir dosyaya yazma yaparsak ona ekleme yapmış oluruz. Örneğin boş bir dosyaya ``istanbul`` yazısının 
 karakterlerine iişkin byte'ları yazmış olalım:
 
 .. figure:: _static/file-offset-istanbul.png
-    :width: 35%
+    :class: fig-mapping2
+    :width: 30%
 
 Dosya göstericisinin konumu dosya nesnesi içerisinde saklanmaktadır. (Linux'un kaynak kodlarında ``file``
 yapısının ``f_pos`` elemanı dosya göstericisinin konumunu tutmaktadır.) Biz aynı dosyayı ikinci kez açsak

@@ -139,9 +139,29 @@ table.docutils th {
 }
 
 @media screen and (max-width: 1024px) {
-    img.fig-mapping1 { width: 60% !important; }
+    img.fig-mapping-1 { width: 30% !important; }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1024px) {
+    img.fig-mapping0 { width: 40% !important; }
+}
+
+@media screen and (max-width: 1024px) {
     img.fig-mapping1 { width: 50% !important; }
+}
+
+@media screen and (max-width: 1024px) {
+    img.fig-mapping2 { width: 60% !important; }
+}
+
+@media screen and (max-width: 1024px) {
+    img.fig-mapping3 { width: 70% !important; }
+}
+
+@media screen and (max-width: 1024px) {
+    img.fig-mapping4 { width: 80% !important; }
+}
+
+@media screen and (max-width: 1024px) {
+    img.fig-mapping5 { width: 90% !important; }
 }

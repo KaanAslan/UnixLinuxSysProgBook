@@ -1722,7 +1722,7 @@ yazılmaz. Onun dizini de belirtilmelidir. Tipik çalıştırma şöyle yapılma
 
     $ ./sample
 
-``.`` karakterinin bulunulan dizini temsil ettiğini anımsayınız.
+``.`` yol bileşeninin bulunulan dizini (current working directory) temsil ettiğini anımsayınız.
 
 gcc  ve clang derleyicileri pek çok sisteme port edilmiştir. gcc'nin Windows portuna *MinGW* denilmektedir. ``gcc`` ve 
 ``clang`` derleyicileri varsayılan durumda eğer sistem 32 bit ise 32 bit derleme, 64 bit ise 64 bit derleme yapmaktadır. 
