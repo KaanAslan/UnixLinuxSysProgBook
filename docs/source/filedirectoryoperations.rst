@@ -2581,54 +2581,42 @@ Blok (Inode Block) ve Data Blok (Data Block):
     :class: fig-mapping1
     :width: 25%
 
-Aslında inode tabanlı dosya sistemlerinin disk organizasyonu daha ayrıntılıdır. Bu ayrıntıları kursumuzun inode
-tabanlı dosya sistemlerini anlattığımız bölümde ele alacağız. Süper Blok, dosya sistemine ilişkin en önemli
-parametrik bilgilerin tutulduğu bölümdür. Inode Blok ise inode elemanlarından oluşmaktadır:
+Aslında inode tabanlı dosya sistemlerinin disk organizasyonu daha ayrıntılıdır. Bu ayrıntıları kitabımızın inode
+tabanlı dosya sistemlerini anlattığımız bölümünde ele alacağız. 
 
-.. code-block:: text
+Süper Blok, dosya sistemine ilişkin en önemli parametrik bilgilerin tutulduğu bölümdür. Inode Blok inode elemanlarından 
+oluşmaktadır. Inode bloğu şöyle düşünebilirsiniz:
 
-         Inode Blok
-      ┌───────────────┐
-   0  │ inode elemanı │
-      ├───────────────┤
-   1  │ inode elemanı │
-      ├───────────────┤
-   2  │ inode elemanı │
-      ├───────────────┤
-      │     .....     │
-      ├───────────────┤
-  n-1 │ inode elemanı │
-      ├───────────────┤
-  n   │ inode elemanı │
-      └───────────────┘
+.. figure:: _static/inode-block.png
+    :align: center
+    :class: fig-mapping1
+    :width: 25%
 
-Dosya bilgileri inode elemanlarında tutulmaktadır. Her inode elemanının bir numarası olduğuna dikkat ediniz. Her
-inode elemanına, ilk eleman ``0`` olmak üzere artan sırada bir numara karşılık düşürülmüştür. Örneğin
+Dosyaların metadata bilgileri inode elemanlarında tutulmaktadır. Her inode elemanının bir numarası olduğuna dikkat ediniz. 
+Her inode elemanına, ilk eleman ``0`` olmak üzere artan sırada bir numara karşılık düşürülmüştür. Örneğin
 ``test.txt`` dosyası için inode blok içerisinde bir inode elemanı bulunmaktadır ve bu inode elemanında bu
 dosyanın bilgileri tutulmaktadır. Örneğin ``test.txt`` dosyasının inode numarasının ``51546`` olduğunu
-varsayalım. Bu durumda bu dosyaya ilişkin bilgiler Inode Bloktaki ``51546``. inode elemanında bulunmaktadır.
+varsayalım. Bu durumda bu dosyaya ilişkin bilgiler Inode Bloktaki ``51546`` numaralı inode elemanında bulunmaktadır.
 Inode elemanında tutulan önemli dosya bilgileri şunlardır:
 
 - Dosyanın erişim hakları
-- Dosyanın kullanıcı ve grup id'si
+- Dosyanın kullanıcı ve grup ID'si
 - Dosyanın hard link sayacı
 - Dosyanın uzunluğu
-- Dosyanın zaman bilgisi
+- Dosyanın zamansal bilgileri (timestamps)
 - Dosyayı oluşturan bilgilerin Data Blok'taki yerleri
 
 Inode elemanında yalnızca dosyanın metadata bilgileri tutulmaktadır. Dosyanın içerisindeki bilgiler Data
 Blok'ta saklanmaktadır. Her dosyanın sistem genelinde tek olan (unique) bir inode numarasının olduğuna dikkat
 ediniz.
 
-Inode elemanındaki dosya bilgileri aşağıda açıklayacağımız ``stat``, ``lstat`` ve ``fstat`` fonksiyonlarıyla
-elde edilmektedir.
-
-----
+Inode elemanındaki dosyaya ilişkin metadata bilgileri izleyen başlıkta açıklayacağımız ``stat``, ``lstat`` ve ``fstat`` 
+fonksiyonlarıyla elde edilmektedir.
 
 stat, lstat ve fstat Fonksiyonları
 -------------------------------------------------
 
-Bir dosyaya ilişkin bilgileri elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
+Bir dosyaya metadata bilgilerini elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
 kullanılmaktadır. Bu fonksiyonlar aslında aynı şeyi yaparlar. Fakat parametrik yapı bakımından ve semantik
 bakımdan bunların arasında küçük farklılıklar vardır. Fonksiyonların prototipleri şöyledir:
 
@@ -2640,27 +2628,23 @@ bakımdan bunların arasında küçük farklılıklar vardır. Fonksiyonların p
     int fstat(int fd, struct stat *buf);
     int lstat(const char *path, struct stat *buf);
 
-``stat`` fonksiyonları dosyaya ilişkin inode elemanından dosyanın bilgilerini elde etmektedir. Örneğin dosyanın
+``stat`` fonksiyonları dosyaya ilişkin inode elemanından dosyanın metadata bilgilerini elde etmektedir. Örneğin dosyanın
 erişim hakları, kullanıcı ve grup id'leri, dosyanın uzunluğu, dosyanın tarih-zaman bilgileri bu ``stat``
 fonksiyonlarıyla elde edilmektedir. ``ls`` komutu ``-l`` seçeneği ile kullanıldığında aslında dosya bilgilerini
 bu ``stat`` fonksiyonlarıyla elde edip ekrana (``stdout`` dosyasına) yazdırmaktadır.
 
-``stat`` fonksiyonlarından en çok kullanılanı ``stat`` isimli fonksiyondur. Fonksiyonun prototipine dikkat
-ediniz:
+``stat`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
 
     int stat(const char *path, struct stat *buf);
 
-Fonksiyonun birinci parametresi bilgisi elde edilecek dosyanın yol ifadesini, ikinci parametresi ise dosya
-bilgilerinin yerleştirileceği ``struct stat`` isimli bir yapı nesnesinin adresini almaktadır. ``stat`` isimli
-yapı ``<sys/stat.h>`` dosyası içerisinde bildirilmiştir. Fonksiyon başarı durumunda ``0``, başarısızlık
+Fonksiyonun birinci parametresi metadata bilgisi elde edilecek dosyanın yol ifadesini, ikinci parametresi ise dosyanın
+metadata bilgilerinin yerleştirileceği ``struct stat`` isimli yapı türünden nesnesinin adresini almaktadır. ``stat`` 
+isimli yapı ``<sys/stat.h>`` dosyası içerisinde bildirilmiştir. Fonksiyon başarı durumunda ``0`` değerine başarısızlık
 durumunda ``-1`` değerine geri dönmektedir. (``stat`` isminin hem bir yapı belirttiğine hem de bir fonksiyon
 belirttiğine dikkat ediniz. C'de yapı ismiyle aynı isimli bir değişken ya da fonksiyon ismi bulunabilmektedir.
 Yapı isimleri zaten ``struct`` anahtar sözcüğüyle kullanılmaktadır.)
-
-struct stat Yapısının Elemanları
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``stat`` yapısının elemanları şöyledir:
 
@@ -2692,18 +2676,14 @@ struct stat Yapısının Elemanları
     };
 
 Yapının elemanlarının ``st_`` öneki ile isimlendirildiğine dikkat ediniz. Yapının ``st_dev`` elemanı dosyanın
-içinde bulunduğu aygıtın aygıt numarasını belirtir. Genellikle sıradan programcılar bu bilgiye gereksinim
-duymazlar. ``dev_t`` herhangi bir tamsayı türü biçiminde typedef edilebilen bir tür ismidir. Biz aygıt numarası
-kavramını kursumuzun *aygıt sürücülere ilişkin bölümünde* ele alacağız.
+içinde bulunduğu aygıtın aygıt numarasını belirtir. ``dev_t`` herhangi bir tamsayı türü biçiminde ``typedef``
+edilebilen bir tür ismidir. Biz aygıt numarası kavramını kursumuzun 1aygıt sürücülere ilişkin bölümünde ele alacağız.
 
 Yapının ``st_ino`` elemanı dosyaya ilişkin inode elemanının numarasını belirtmektedir. Dosyaların inode
 numaraları ``ls`` komutunda ``-i`` seçeneği ile de görüntülenebilmektedir. ``ino_t`` türü işaretsiz olmak
-koşuluyla herhangi bir tamsayı türü biçiminde typedef edilebilmektedir.
+koşuluyla herhangi bir tamsayı türü biçiminde ``typedef`` edilebilmektedir.
 
-st_mode Elemanı: Erişim Hakları ve Dosya Türü
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Yapının ``st_mode`` elemanı dosyanın erişim haklarını ve türünü içermektedir. Bu elemanın içerisindeki değerler
+Yapının ``st_mode`` elemanı dosyanın erişim haklarını ve türünü tutmaktadır. Bu elemanın içerisindeki değerler
 bitler biçiminde oluşturulmuştur. ``1`` olan bitler ilgili özelliğin olduğunu belirtmektedir. Belli bir erişim
 hakkının (örneğin ``S_IWGRP`` gibi) olup olmadığını anlamak için programcı ilgili bitin set edilip edilmediğine
 ``st_mode & S_IXXX`` işlemi ile bakmalıdır. Örneğin:
@@ -2728,8 +2708,8 @@ Burada biz ``ls -l`` tarzında erişim haklarını yazdırıyoruz. Aşağıdaki 
 
     ch = finfo.st_mode & masks[i] ? "rwx"[i % 3] : '-';
 
-Burada döngünün her yinelenmesinde ``r``, ``w``, ``x`` haklarından biri varsa ilgili karakter, bu haklar yoksa
-``-`` karakteri elde edilmektedir. POSIX 2008 ve sonrasında artık erişim haklarının maskeleme değerleri açıkça
+Burada döngünün her yinelenmesinde ``'r'``, ``'w'``, ``'x'`` haklarından biri varsa ilgili karakter, bu haklar yoksa
+``'-''`` karakteri elde edilmektedir. POSIX 2008 ve sonrasında artık erişim haklarının maskeleme değerleri açıkça
 belirtilmiştir. Bu maskeleme değerleri ``rwxrwxrwx`` dizilimiyle uyuşmaktadır:
 
 .. code-block:: text
