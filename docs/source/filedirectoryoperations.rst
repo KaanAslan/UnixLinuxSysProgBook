@@ -221,7 +221,7 @@ Burada muhtemelen dosya bir program dosyasıdır. Dosyanın sahibi (ve tabii roo
 
     -rw-r--r-- 1 kaan study 16816 Kas 13 13:49 sample
 
-Burada artık ``root`` prosesler de dosyayı çalıştıramaz. ``root`` proseslerin (etkin kullanıcı id'si ``0`` olan 
+Burada artık ``root`` prosesler de dosyayı çalıştıramaz. ``root`` proseslerin (etkin kullanıcı ID'si ``0`` olan 
 proseslerin) dosyayı çalıştırabilmesi için sahiplik, grup ya da diğer erişim haklarının en az birinde ``x`` 
 hakkının belirtilmiş olması gerekmektedir.
 
@@ -242,7 +242,7 @@ ve dizinlerin erişim hakları onlar yaratılırken onları yaratan kişiler tar
 dizinlerin erişim hakları daha sonra ``chmod`` isimli POSIX fonksiyonuyla ya da komut satırından ``chmod`` komutuyla
 (``chmod`` programı da zaten ``chmod`` POSIX fonksiyonu kullanılarak yazılmıştır) değiştirilebilmektedir. Tabii
 dosyaların ve dizinlerin erişim haklarını herkes değiştiremez. Bunların erişim hakları ancak etkin kullanıcı ID'si 
-dosyanın ya da dizinin ullanıcı id'si ile aynı olan (yani dosyanın sahibi olan) prosesler tarafından ve etkin kullanıcı 
+dosyanın ya da dizinin ullanıcı ID'si ile aynı olan (yani dosyanın sahibi olan) prosesler tarafından ve etkin kullanıcı 
 ID'si ``0`` olan ``root`` prosesleri tarafından değiştirilebilmektedir. ``chmod`` POSIX fonksiyonu ve ``chmod`` kabuk 
 komutu ileride ele alınacaktır.
 
@@ -1099,7 +1099,7 @@ zorundadır.
 
 Buradaki ``O_RDONLY`` "yalnızca okuma yapma amacıyla", ``O_WRONLY`` "yalnızca yazma yapma amacıyla" ve ``O_RDWR``
 "hem okuma hem de yazma yapma amacıyla" dosyanın açılmak istendiği anlamına gelmektedir. İşletim sistemi,
-prosesin etkin kullanıcı id'sine ve etkin grup id'sine ve dosyanın kullanıcı ve grup id'sine bakarak prosesin
+prosesin etkin kullanıcı ID'sine ve etkin grup ID'sine ve dosyanın kullanıcı ve grup ID'sine bakarak prosesin
 dosyaya ``'r'``, ``'w'`` hakkının olup olmadığını kontrol eder. Eğer proses bu hakka sahip değilse ``open``
 fonksiyonu başarısız olur. (Erişim erişim kontrollerinin dosyadan okuma yapılırken ya da dosyaya yazma yapılırken 
 değil ``open`` fonksiyonu ile dosya açılırken yapıldığına dikkat ediniz.) Örneğin biz dosyayı şöyle açmak isteyelim:
@@ -2614,7 +2614,7 @@ Inode elemanındaki dosyaya ilişkin metadata bilgileri izleyen başlıkta açı
 fonksiyonlarıyla elde edilmektedir.
 
 stat, lstat ve fstat Fonksiyonları
--------------------------------------------------
+----------------------------------
 
 Bir dosyaya metadata bilgilerini elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
 kullanılmaktadır. Bu fonksiyonlar aslında aynı şeyi yaparlar. Fakat parametrik yapı bakımından ve semantik
@@ -2629,7 +2629,7 @@ bakımdan bunların arasında küçük farklılıklar vardır. Fonksiyonların p
     int lstat(const char *path, struct stat *buf);
 
 ``stat`` fonksiyonları dosyaya ilişkin inode elemanından dosyanın metadata bilgilerini elde etmektedir. Örneğin dosyanın
-erişim hakları, kullanıcı ve grup id'leri, dosyanın uzunluğu, dosyanın tarih-zaman bilgileri bu ``stat``
+erişim hakları, kullanıcı ve grup ID'leri, dosyanın uzunluğu, dosyanın tarih-zaman bilgileri bu ``stat``
 fonksiyonlarıyla elde edilmektedir. ``ls`` komutu ``-l`` seçeneği ile kullanıldığında aslında dosya bilgilerini
 bu ``stat`` fonksiyonlarıyla elde edip ekrana (``stdout`` dosyasına) yazdırmaktadır.
 
@@ -2895,11 +2895,11 @@ O halde biz bir dosyanın türünü ve erişim haklarını ``ls -l`` formatında
 ileride ele alınacaktır. ``nlink_t`` bir tamsayı türü olmak koşuluyla herhangi bir tür olarak ``typedef``
 edilebilmektedir.
 
-Yapının ``st_uid`` elemanı dosyanın kullanıcı id'sini belirtmektedir. ``ls -l`` komutu bu id'yi sayı olarak
+Yapının ``st_uid`` elemanı dosyanın kullanıcı ID'sini belirtmektedir. ``ls -l`` komutu bu ID'yi sayı olarak
 değil ``/etc/passwd`` dosyasına başvurarak isim biçiminde yazdırmaktadır. ``uid_t`` türü herhangi bir tamsayı
 türü olarak typedef edilebilmektedir.
 
-Yapının ``st_gid`` elemanı dosyanın grup id'sini belirtmektedir. ``ls -l`` komutu bu id'yi sayı olarak değil
+Yapının ``st_gid`` elemanı dosyanın grup ID'sini belirtmektedir. ``ls -l`` komutu bu ID'yi sayı olarak değil
 ``/etc/group`` dosyasına başvurarak isim biçiminde yazdırmaktadır. ``gid_t`` türü herhangi bir tamsayı türü
 olarak typedef edilebilmektedir.
 
@@ -2970,24 +2970,22 @@ Linux'ta geçmişe doğru uyumu koruyabilmek için tanımlanmıştır. ``ls -l``
 değiştirilme zamanını göstermektedir. Ancak ``ls -lu`` ile son erişim zamanı, ``ls -lc`` ile inode bilgilerinin
 son değiştirildiği zaman da görüntülenebilmektedir.
 
-----
+Dosya Bilgilerini ls -l Stilinde Yazdıran Örnek Program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Örnek: finfo.c — ls -l Tarzında Dosya Bilgisi Yazdırma
--------------------------------------------------------
-
-Aşağıda dosya bilgilerini ``stat`` fonksiyonu ile alıp yazdıran bir örnek verilmiştir. Bu programda dosya
-bilgileri ``ls -l`` stilinde yazdırılmıştır. Ancak ayrıca ``ls -l`` çıktısında olmayan bilgiler de
-yazdırılmaktadır. Biz henüz kullanıcı ve grup id değerlerinden kullanıcı ve grup isimlerinin nasıl elde
-edileceğini bilmiyoruz. Bu nedenle örneğimizde kullanıcı ve grup id değerleri isimsel biçimde değil sayısal
-biçimde yazdırılmıştır. Dosyanın tarih bilgisini yazdırırken ``ls -l`` komutunun yaptığı gibi dosyanın içinde
-bulunulan yıla ilişkin olup olmadığını da kontrol ettik. Eğer dosya içinde bulunduğumuz yıla ilişkinse yıl
-bilgisini hiç yazdırmadık. Programı aşağıdaki gibi çalıştırıp test edebilirsiniz:
+Aşağıda dosya bilgilerini ``stat`` fonksiyonu ile alıp yazdıran bir örnek veriyoruz. Bu programda dosya
+bilgileri ``ls -l`` stilinde yazdırılmıştır. Biz henüz kullanıcı ve grup ID değerlerinden kullanıcı ve grup 
+isimlerinin nasıl elde dileceğini henüz görmedik. Bu nedenle örneğimizde kullanıcı ve grup ID değerleri 
+isimsel biçimde değil sayısal biçimde yazdırılmıştır. Dosyanın tarih bilgisini yazdırırken ``ls -l`` komutunun 
+yaptığı gibi dosyanın son değiştirme zamanının içinde bulunulan yıla ilişkin olup olmadığı da kontrol edilmiştir. 
+Eğer dosya içinde bulunulan yıla ilişkinse yıl bilgisini hiç yazdırılmamıştır. Programı aşağıdaki gibi çalıştırıp test 
+edebilirsiniz:
 
 .. code-block:: bash
 
     $ ./finfo /bin/ls
 
-Buradan elde edilen çıktı denemenin yapıldığı makinede şöyledir:
+Buradan elde edilen çıktı denemenin yapılmakinede şöyledir:
 
 .. code-block:: text
 
@@ -3004,7 +3002,7 @@ Aynı dosyayı ``ls -l`` ile yazdıralım:
     $ ls -l /bin/ls
     -rwxr-xr-x 1 root root 142312 Haz 22  2025 /bin/ls
 
-Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup id'lerinin isimlerinde ortaya çıkmaktadır.
+Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup bilgilerinin görünümüyle ilgilidir. 
 
 .. code-block:: c
 
@@ -3091,14 +3089,7 @@ Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup id'leri
         exit(EXIT_FAILURE);
     }
 
-
-Dosya Bilgilerinin Elde Edilmesi: stat, fstat ve lstat
-------------------------------------------------------
-
-getpwuid ve getgrgid ile Kullanıcı ve Grup İsimlerinin Elde Edilmesi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Kullanıcı ve grup id'sinden hareketle kullanıcı ve grup isimlerinin elde edilmesi için ``getpwuid`` ve ``getgrgid``
+Kullanıcı ve grup ID'sinden hareketle kullanıcı ve grup isimlerinin elde edilmesi için ``getpwuid`` ve ``getgrgid``
 POSIX fonksiyonları kullanılmaktadır. Biz bu fonksiyonları zaten göreceğiz. Ancak yine biz yukarıdaki örneği kullanıcı
 ve grup isimlerini de basacak biçimde aşağıda yeniden veriyoruz.
 
@@ -3111,9 +3102,7 @@ ve grup isimlerini de basacak biçimde aşağıda yeniden veriyoruz.
     #include <stdint.h>
     #include <sys/stat.h>
 
-
     void exit_sys(const char *msg);
-
 
     int main(int argc, char *argv[])
     {
@@ -3187,8 +3176,23 @@ ve grup isimlerini de basacak biçimde aşağıda yeniden veriyoruz.
         exit(EXIT_FAILURE);
     }
 
-Dosya Bilgisinin disp_ls Fonksiyonu ile Basılması
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Şimdi denemeyi yeniden yapalım:
+
+.. code-block:: bash
+
+    $ ./finfo /bin/ls
+
+Buradan elde edilen çıktı denemenin yapılmakinede şöyledir:
+
+.. code-block:: text
+
+    -rwxr-xr-x 1 root root 142312 Haz 22 19:21  2025 /bin/ls
+
+    Inode No: 4719482
+    Block Size: 4096
+    Number of 512B blocks: 280
+
+Artık kullanıcı ve grup ID'leri yerine onların isimleri bastırılmıştır.
 
 Dosyanın bilgilerinin ekrana (``stdout`` dosyasına) yazdırılması işlemini bir fonksiyona da yaptırabiliriz::
 
@@ -4690,7 +4694,7 @@ Fonksiyonlar başarı durumunda 0 değerine, başarısızlık durumunda -1 değe
 
 ``remove`` ve ``unlink`` fonksiyonlarıyla bir dosyayı silebilmek için prosesin dosyaya *w* hakkına sahip olması
 gerekmez. Ancak dosyanın içinde bulunduğu dizin için *w* hakkına sahip olması gerekir. Bizim eğer dosyanın içinde
-bulunduğu dizine *w* hakkımız varsa dosyanın sahibi olmasak bile dosyayı silebiliriz. Tabii proses id'si 0 olan
+bulunduğu dizine *w* hakkımız varsa dosyanın sahibi olmasak bile dosyayı silebiliriz. Tabii proses ID'si 0 olan
 prosesler (*root* prosesler) her zaman silme işlemini yapabilirler.
 
 Bir dosya ``remove`` ya da ``unlink`` fonksiyonlarıyla silindiğinde dizin girişi silinir. Ancak yukarıda da
@@ -4816,9 +4820,9 @@ bir sayı biçiminde girebilmektedir. Fakat okunabilirlik ve geçmişe uyum göz
 (Yani biz sembolik bağların kendi erişim haklarını değiştiremeyiz. Anımsayacağınız gibi sembolik bağların kendi erişim
 hakları her zaman *rwxrwxrwx* biçimindedir.)
 
-Bir dosyanın erişim haklarını ``chmod`` fonksiyonuyla değiştirebilmek için prosesin etkin kullanıcı id'sinin dosyanın
-kullanıcı id'si ile aynı olması ya da prosesin etkin kullanıcı id'sinin 0 olması (root proses) gerekmektedir. Linux
-yeteneklilik (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı id'si 0 olmasa bile proses
+Bir dosyanın erişim haklarını ``chmod`` fonksiyonuyla değiştirebilmek için prosesin etkin kullanıcı ID'sinin dosyanın
+kullanıcı ID'si ile aynı olması ya da prosesin etkin kullanıcı ID'sinin 0 olması (root proses) gerekmektedir. Linux
+yeteneklilik (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı ID'si 0 olmasa bile proses
 ``CAP_FSETID`` yeteneğine sahipse herhangi bir dosyanın erişim haklarını değiştirebilmektedir.
 
 set-user-id, set-group-id ve sticky Bitleri
@@ -5078,8 +5082,8 @@ Komutun başka ayrıntıları da vardır. Bunun için ilgili dokümanlara başvu
 chown, fchown ve lchown Fonksiyonları
 -------------------------------------
 
-Bir dosyanın kullanıcı id'si ve grup id'si dosya yaratılırken belirleniyordu. Ancak programcı isterse dosyanın kullanıcı
-id'sini ve grup id'sini ``chown``, ``fchown`` ve ``lchown`` isimli POSIX fonksiyonları ile değiştirebilir.
+Bir dosyanın kullanıcı ID'si ve grup ID'si dosya yaratılırken belirleniyordu. Ancak programcı isterse dosyanın kullanıcı
+ID'sini ve grup ID'sini ``chown``, ``fchown`` ve ``lchown`` isimli POSIX fonksiyonları ile değiştirebilir.
 Fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
@@ -5090,32 +5094,32 @@ Fonksiyonların prototipleri şöyledir:
     int lchown(const char *path, uid_t owner, gid_t group);
     int fchown(int fd, uid_t owner, gid_t group);
 
-``chown`` fonksiyonunun birinci parametresi dosyanın yol ifadesini, ikinci parametresi değiştirilecek kullanıcı id'sini
-ve üçüncü parametresi de değiştirilecek grup id'sini belirtmektedir. Fonksiyonlar başarı durumunda 0 değerine,
+``chown`` fonksiyonunun birinci parametresi dosyanın yol ifadesini, ikinci parametresi değiştirilecek kullanıcı ID'sini
+ve üçüncü parametresi de değiştirilecek grup ID'sini belirtmektedir. Fonksiyonlar başarı durumunda 0 değerine,
 başarısızlık durumunda -1 değerine geri dönmektedir. ``chown`` fonksiyonu sembolik bağları izlemektedir. Yani bu
 fonksiyona biz yol ifadesi olarak sembolik bağ verirsek fonksiyon onun referans ettiği dosyanın sahiplik ve grup
 bilgilerini değiştirmeye çalışır. ``lchown`` fonksiyonu ``chown`` fonksiyonu gibidir. Ancak aralarındaki tek fark
 ``lchown`` fonksiyonunun sembolik bağı izlememesi ve sembolik bağın kendisi üzerinde işlem yapmasıdır. ``fchown``
 fonksiyonu ``chown`` fonksiyonunun dosya betimleyicisi ile çalışan biçimidir.
 
-Bir dosyanın kullanıcı ve grup id'lerinin değiştirilmesi kötüye kullanıma açık bir durum oluşturabilmektedir. (Yani
+Bir dosyanın kullanıcı ve grup ID'lerinin değiştirilmesi kötüye kullanıma açık bir durum oluşturabilmektedir. (Yani
 örneğin *kaan* kullanıcısı kendi dosyasını sanki *ali* kullanıcısının dosyasıymış gibi gösterirse burada bir kötü niyet
 de söz konusu olabilir.) Bu nedenle bu fonksiyonun kullanımı üzerinde bazı kısıtlar vardır. Şöyle ki:
 
-1) Eğer prosesin etkin kullanıcı id'si dosyanın kullanıcı id'si ile aynı ise bu durumda ``chown`` fonksiyonu dosyanın
-grup id'sini kendi grup id'si olarak ya da ek gruplarının (supplementary groups) birinin id'si olarak
-değiştirebilmektedir. Ancak dosyanın kullanıcı id'sinin değiştirilmesi işletim sisteminin iznine bağlıdır. Modern
+1) Eğer prosesin etkin kullanıcı ID'si dosyanın kullanıcı ID'si ile aynı ise bu durumda ``chown`` fonksiyonu dosyanın
+grup ID'sini kendi grup ID'si olarak ya da ek gruplarının (supplementary groups) birinin ID'si olarak
+değiştirebilmektedir. Ancak dosyanın kullanıcı ID'sinin değiştirilmesi işletim sisteminin iznine bağlıdır. Modern
 sistemler bu izni vermemektedir. Ancak bazı eski sistemler bu izni vermektedir. Bu izin *change own restricted* ismiyle
 ifade edilmektedir. İlgili sistemin bu izni verip vermediği ``<unistd.h>`` dosyası içerisindeki
 ``_POSIX_CHOWN_RESTRICTED`` sembolik sabitiyle derleme aşamasında sorgulanabilir. Eğer bu mevcutsa sistem bu izni
 vermemektedir, mevcut değilse sistem bu izni vermektedir. (Bu durumda sorgulamayı ``#ifdef`` önişlemci komutuyla
 yapmalısınız.) Linux sistemleri de *change own restricted* durumdadır. Yani bu işleme izin vermemektedir.
 
-2) Proses id'si 0 olan root prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yeteneğine sahip prosesler) her zaman
-dosyanın kullanıcı ve grup id'sini istedikleri gibi değiştirebilirler. (Yani biz bir dosyanın kullanıcı ve grup id'sini
+2) Proses ID'si 0 olan root prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yeteneğine sahip prosesler) her zaman
+dosyanın kullanıcı ve grup ID'sini istedikleri gibi değiştirebilirler. (Yani biz bir dosyanın kullanıcı ve grup ID'sini
 istediğimiz gibi değiştirmek istiyorsak programımızı *sudo* ile çalıştırmalıyız.)
 
-Fonksiyonlar ile yalnızca kullanıcı id'si ya da grup id'si değiştirilebilir. Bu durumda değiştirilmeyecek değer için -1
+Fonksiyonlar ile yalnızca kullanıcı ID'si ya da grup ID'si değiştirilebilir. Bu durumda değiştirilmeyecek değer için -1
 girilmelidir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
 
 *Change own restricted* durumu aşağıdaki gibi ``#ifdef`` komutuyla sorgulanabilir:
@@ -5168,27 +5172,27 @@ Dosya ve Dizin İşlemleri: chown, truncate, mkdir, rmdir ve Kullanıcı Bilgile
 chown Kabuk Komutu (Kullanıcı:Grup Formatı)
 -------------------------------------------
 
-Dosyanın kullanıcı ve grup id'lerini değiştirebilmek için *chown* isimli bir kabuk komutu da bulundurulmuştur. Komut
+Dosyanın kullanıcı ve grup ID'lerini değiştirebilmek için *chown* isimli bir kabuk komutu da bulundurulmuştur. Komut
 aşağıdaki biçimlerde kullanılmaktadır:
 
 .. code-block:: text
 
     $ sudo chown kaan:study test.txt
 
-Burada ``:`` karakterinin solu kullanıcı ismini, sağı ise grup ismini belirtmektedir. İsimler yerine doğrudan id'ler de
-kullanılabilmektedir. Eğer tek bir isim ya da id kullanılırsa bu kullanıcıya ilişkin kabul edilmektedir. Örneğin:
+Burada ``:`` karakterinin solu kullanıcı ismini, sağı ise grup ismini belirtmektedir. İsimler yerine doğrudan ID'ler de
+kullanılabilmektedir. Eğer tek bir isim ya da ID kullanılırsa bu kullanıcıya ilişkin kabul edilmektedir. Örneğin:
 
 .. code-block:: text
 
     $ sudo chown kaan test.txt
 
-Burada dosyanın kullanıcı id'si kaan yapılmıştır. Aynı şeyi ``:`` karakterinin sağını boş bırakarak da yapabilirdik:
+Burada dosyanın kullanıcı ID'si kaan yapılmıştır. Aynı şeyi ``:`` karakterinin sağını boş bırakarak da yapabilirdik:
 
 .. code-block:: text
 
     $ sudo chown kaan: test.txt
 
-Dosyanın yalnızca grup id'sini değiştirmek için ``:`` karakterinin sol tarafı boş bırakılır. Örneğin:
+Dosyanın yalnızca grup ID'sini değiştirmek için ``:`` karakterinin sol tarafı boş bırakılır. Örneğin:
 
 .. code-block:: text
 
@@ -5507,7 +5511,7 @@ Linux sistemlerinde ``/etc/passwd`` dosyasındaki satır bilgisini okuyup onu st
 adresiyle geri dönmektedir.
 
 Yapının ``pw_name`` elemanı kullanıcı ismini, ``pw_passwd`` elemanı parola bilgisini, ``pw_uid`` ve ``pw_gid``
-elemanları kullanıcının gerçek kullanıcı ve group id değerlerini, ``pw_gecos`` elemanı yorum bilgisini (yani kullanıcıya
+elemanları kullanıcının gerçek kullanıcı ve group ID değerlerini, ``pw_gecos`` elemanı yorum bilgisini (yani kullanıcıya
 ilişkin ek birtakım bilgileri), ``pw_dir`` elemanı login olunduğunda çalıştırılacak programa ilişkin prosesin çalışma
 dizinini ve ``pw_shell`` elemanı da login olunduğunda çalıştırılacak programı belirtmektedir.
 
@@ -5605,7 +5609,7 @@ Programı şöyle çalıştırabilirsiniz:
 getpwuid Fonksiyonu
 -------------------
 
-``getpwuid`` fonksiyonu da ``getpwnam`` fonksiyonu gibidir. Yalnızca kullanıcı ismi ile değil kullanıcı id'si ile
+``getpwuid`` fonksiyonu da ``getpwnam`` fonksiyonu gibidir. Yalnızca kullanıcı ismi ile değil kullanıcı ID'si ile
 kullanıcı bilgilerini elde etmektedir. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
@@ -5615,7 +5619,7 @@ kullanıcı bilgilerini elde etmektedir. Fonksiyonun prototipi şöyledir:
     struct passwd *getpwuid(uid_t uid);
 
 Fonksiyon yine başarı durumunda statik düzeyde tahsis edilmiş olan ``struct passwd`` türünden yapı nesnesinin adresiyle,
-başarısızlık durumunda ``NULL`` adresle geri dönmektedir. Başarısızlığın nedeni kullanıcı id'sine ilişkin kullanıcının
+başarısızlık durumunda ``NULL`` adresle geri dönmektedir. Başarısızlığın nedeni kullanıcı ID'sine ilişkin kullanıcının
 bulunamaması nedeni ile ise bu durumda fonksiyon ``errno`` değerini değiştirmemektedir. Yine kullanımı şöyle olabilir:
 
 .. code-block:: c
@@ -5632,7 +5636,7 @@ bulunamaması nedeni ile ise bu durumda fonksiyon ``errno`` değerini değiştir
 Bir getpwuid Örneği: uid-info.c
 -------------------------------
 
-Aşağıdaki örnekte komut satırından verilen kullanıcı id'sine ilişkin kullanıcı bilgileri ekrana (``stdout`` dosyasına)
+Aşağıdaki örnekte komut satırından verilen kullanıcı ID'sine ilişkin kullanıcı bilgileri ekrana (``stdout`` dosyasına)
 yazdırılmıştır. Programı şöyle çalıştırabilirsiniz:
 
 .. code-block:: text
@@ -5841,7 +5845,7 @@ Bu fonksiyonlardaki ``struct group`` yapısı ``<grp.h>`` dosyası içerisinde �
     };
 
 Yapının ``gr_name`` elemanı grubun ismini, ``gr_passwd`` elemanı grubun parola bilgisini, ``gr_gid`` elemanı grubun
-id'sini belirtir. Gruba ek olarak dahil olan kullanıcılar yapının ``gr_mem`` elemanından elde edilmektedir. Bu elemanın
+ID'sini belirtir. Gruba ek olarak dahil olan kullanıcılar yapının ``gr_mem`` elemanından elde edilmektedir. Bu elemanın
 göstericiyi gösteren gösterici olduğuna dikkat ediniz:
 
 .. code-block:: text
@@ -5864,7 +5868,7 @@ edilebilmesi için ``/etc/group`` dosyasının baştan sona gözden geçirilip k
 ayrılmış son bölümünde geçtiğinin belirlenmesi gerekmektedir. İşte ``group`` yapısının ``gr_mem`` elemanının gösterdiği
 gösterici dizisinin ``NULL`` adresle sonlandığına dikkat ediniz.
 
-``getgrnam`` fonksiyonu grubun isminden hareketle grup bilgilerini, ``getgrgid`` fonksiyonu ise grup id'sinden hareketle
+``getgrnam`` fonksiyonu grubun isminden hareketle grup bilgilerini, ``getgrgid`` fonksiyonu ise grup ID'sinden hareketle
 grup bilgilerini vermektedir. Tıpkı kullanıcı bilgilerinde olduğu gibi grup bilgilerinin de tek tek elde edilmesi benzer
 biçimde ``setgrent``, ``getgrent`` ve ``endgrent`` fonksiyonlarıyla yapılmaktadır. Bu fonksiyonlarda da yine IO hatası
 dışındaki hatalarda ``errno`` set edilmemektedir.
@@ -7947,7 +7951,7 @@ Bir access Örneği
 GNU Uzantıları: euidaccess ve eaccess
 -------------------------------------
 
-``access`` fonksiyonunun GNU libc kütüphanesinde prosesin etkin kullanıcı id'sini ve etkin grup ID'sini kullanarak test
+``access`` fonksiyonunun GNU libc kütüphanesinde prosesin etkin kullanıcı ID'sini ve etkin grup ID'sini kullanarak test
 eden ``euidaccess`` ve ``eaccess`` (ikisi aynı şeyi yapmaktadır) biçimleri de bulunmaktadır. Ancak bu iki fonksiyon
 POSIX standartlarında yoktur. Dolayısıyla taşınabilir programlarda bu konuya dikkat edilmesi gerekir. Bu fonksiyonları
 kullanmak için ``_GNU_SOURCE`` test makrosunun programın başında define edilmesi ya da derleme sırasında ``-D
