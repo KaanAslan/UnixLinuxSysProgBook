@@ -7217,3 +7217,2334 @@ Burada önce prosesin çalışma dizininin elde edilip sonra geri set edildiğin
         exit(EXIT_FAILURE);
     }
 
+
+at'li Fonksiyonlar, Callback Mekanizması ve scandir
+===================================================
+
+at'li Fonksiyonlarla chdir Kullanmadan Dizin Ağacı Dolaşımı
+-----------------------------------------------------------
+
+Dizin ağacını dolaşırken her defasında prosesin çalışma dizinini değiştirmek yerine fonksiyonların at'li biçimlerinden
+de faydalanabiliriz. Aşağıdaki örnekte özyinelemeli fonksiyona üst dizinin betimleyicisi (``dirfd``) ve dosyanın ismi
+geçirilmiştir. at'li fonksiyonların eğer yol ifadesi mutlak ise at'siz fonksiyonlar gibi davrandığını anımsayınız. Bunun
+için özyinelemeli fonksiyona dizinin yol ifadesini değil betimleyicisini geçiririz:
+
+.. code-block:: c
+
+    void walkdir_recur(int dirfd, int level)
+    {
+        /* ... */
+    }
+
+Tabii fonksiyonu çağırmadan önce dizine ilişkin betimleyiciyi elde etmemiz gerekir. Dizine ilişkin betimleyici
+elimizdeyken ``fdopendir`` fonksiyonu ile bundan ``DIR`` handle değerini elde edebiliriz:
+
+.. code-block:: c
+
+    if ((dir = fdopendir(dirfd)) == NULL) {
+        perror("fdopendir");
+        close(dirfd);
+        return;
+    }
+
+Bundan sonra yine dizin dolaşılır ancak dosya bilgileri ``fstat`` ile değil ``fstatat`` ile elde edilir. ``fstatat``
+fonksiyonunun göreli yol ifadesiyle işlem yapabildiğini anımsayınız:
+
+.. code-block:: c
+
+    while (errno = 0, (ent = readdir(dir)) != NULL) {
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+            continue;
+        printf("%*s%s\n", level * 4, "", ent->d_name);
+        if (fstatat(dirfd, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+            perror(ent->d_name);
+            continue;
+        }
+        if (S_ISDIR(finfo.st_mode)) {
+            if ((subdir_fd = openat(dirfd, ent->d_name, O_RDONLY)) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            walkdir_recur(subdir_fd, level + 1);
+        }
+    }
+    if (errno != 0)
+        perror(ent->d_name);
+
+Burada dizin girişi bir dizine ilişkinse dizin ``openat`` fonksiyonuyla açılıp özyineleme uygulanmıştır. Fonksiyonun
+çıkışında ``closedir`` fonksiyonuyla dizin kapatılmıştır:
+
+.. code-block:: c
+
+    closedir(dir);
+
+``closedir`` fonksiyonunun eğer dizin ``fdopendir`` ile açılmışsa zaten dizin betimleyicisini de kapattığını
+anımsayınız.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    void walkdir_recur(int dirfd, int level)
+    {
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+        int subdir_fd;
+
+        if ((dir = fdopendir(dirfd)) == NULL) {
+            perror("fdopendir");
+            close(dirfd);
+            return;
+        }
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+            printf("%*s%s\n", level * 4, "", ent->d_name);
+            if (fstatat(dirfd, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            if (S_ISDIR(finfo.st_mode)) {
+                if ((subdir_fd = openat(dirfd, ent->d_name, O_RDONLY)) == -1) {
+                    perror(ent->d_name);
+                    continue;
+                }
+                walkdir_recur(subdir_fd, level + 1);
+            }
+        }
+        if (errno != 0)
+            perror(ent->d_name);
+
+        closedir(dir);
+    }
+
+    void walkdir(const char *path)
+    {
+        int dirfd;
+
+        if ((dirfd = open(path, O_RDONLY)) == -1) {
+            perror(path);
+            return;
+        }
+
+        walkdir_recur(dirfd, 0);
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+        walkdir(argv[1]);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Callback Mekanizmasıyla Genelleştirilmiş Dizin Dolaşımı
+-------------------------------------------------------
+
+Dizin ağacını dolaşırken genelleştirme sağlamak için fonksiyon göstericilerinden faydalanabiliriz. Yani fonksiyonumuz
+dizin ağacını dolaşırken dosya isimlerini ekrana yazdırmak yerine parametresiyle aldığı bir callback fonksiyonu
+çağırabilir.
+
+Aşağıda dizin girişi bulundukça çağrılan bir callback mekanizması örneği verilmiştir. Buradaki fonksiyonun prototipi
+şöyledir:
+
+.. code-block:: c
+
+    void walkdir(const char *path, void (*callback)(int, const char *, const struct stat *, int));
+
+Fonksiyonun birinci parametresi dolaşılacak dizinin yol ifadesini belirtir. İkinci parametre callback fonksiyonunun
+adresini almaktadır. Callback fonksiyonunun parametrik yapısı şöyledir:
+
+.. code-block:: c
+
+    bool callback(int dirfd, const char *filename, const struct stat *finfo, int level)
+
+Fonksiyonun birinci parametresi o anki dizine ilişkin dosya betimleyicisini belirtmektedir. Bu dosya betimleyicisinden
+hareketle bulunan dosya ``openat`` fonksiyonuyla açılabilir. Fonksiyonun ikinci parametresi bulunan dosyanın ismini,
+üçüncü parametresi dosya bilgilerinin içinde bulunduğu ``stat`` nesnesinin adresini belirtmektedir. Son parametre iç içe
+girişteki düzeyi belirtmektedir. Callback fonksiyonunun ``bool`` değerine geri döndüğüne dikkat ediniz. Fonksiyon
+kullanıcı tarafından ``true`` değerine geri döndürülürse özyinelemeli dolaşma devam eder, ``false`` değerine geri
+döndürülürse özyinelemeli dolaşma sonlandırılır. Örneğin:
+
+.. code-block:: c
+
+    bool callback(int dirfd, const char *filename, const struct stat *finfo, int level)
+    {
+        printf("%*s%s\n", level * 4, "", filename);
+
+        if (strcmp(filename, "sample.c") == 0)
+            return false;
+
+        return true;
+    }
+
+Burada callback fonksiyonu dosyaları kademeli bir biçimde yazdırmakta, ancak ``sample.c`` dosyası bulunduğunda işlemini
+sonlandırmaktadır.
+
+Fonksiyon özyineleme yaparken hatalarla karşılaştığında özyineleme devam etmekte, ancak ``stderr`` dosyasına hata
+mesajları yazdırılmaktadır. Genel fonksiyonların yan etki oluşturması istenen bir durum değildir. Eğer bu yan etkiyi
+ortadan kaldırmak istiyorsanız hata mesajlarının yazdırıldığı ``perror`` satırlarını silebilirsiniz. Alternatif olarak
+fonksiyonun ilk hatayla karşılaştığında özyinelemeyi sonlandırarak geri dönmesini sağlayabilirsiniz.
+
+Callback fonksiyonunda ele geçirilen dosyanın mutlak yol ifadesine erişilememektedir. Bunu sağlamak için at'li
+fonksiyonlar yerine dizin değiştirme yöntemini tercih edebilirsiniz. Ya da özyinelemeli fonksiyonda mutlak yol ifadesini
+oluşturup bunu da callback fonksiyonuna aktarabilirsiniz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <stdbool.h>
+    #include <errno.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    bool walkdir_recur(int dirfd, int level, bool (*callback)(int, const char *, const struct stat *, int))
+    {
+        DIR *dir;
+        struct dirent *ent;
+        struct stat finfo;
+        int subdir_fd;
+        int result;
+
+        if ((dir = fdopendir(dirfd)) == NULL) {
+            perror("fdopendir");
+            close(dirfd);
+            return true;
+        }
+
+        result = true;
+        while (errno = 0, (ent = readdir(dir)) != NULL) {
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+                continue;
+
+            if (fstatat(dirfd, ent->d_name, &finfo, AT_SYMLINK_NOFOLLOW) == -1) {
+                perror(ent->d_name);
+                continue;
+            }
+            if (!callback(dirfd, ent->d_name, &finfo, level)) {
+                result = false;
+                goto EXIT;
+            }
+
+            if (S_ISDIR(finfo.st_mode)) {
+                if ((subdir_fd = openat(dirfd, ent->d_name, O_RDONLY)) == -1) {
+                    perror(ent->d_name);
+                    continue;
+                }
+                if (!walkdir_recur(subdir_fd, level + 1, callback)) {
+                    result = false;
+                    goto EXIT;
+                }
+            }
+        }
+        if (errno != 0)
+            perror(ent->d_name);
+    EXIT:
+        closedir(dir);
+
+        return result;
+    }
+
+    bool walkdir(const char *path, bool (*callback)(int, const char *, const struct stat *, int))
+    {
+        int dirfd;
+
+        if ((dirfd = open(path, O_RDONLY)) == -1) {
+            perror(path);
+            return true;
+        }
+
+        return walkdir_recur(dirfd, 0, callback);
+    }
+
+    bool disp(int dirfd, const char *filename, const struct stat *finfo, int level)
+    {
+        printf("%*s%s\n", level * 4, "", filename);
+
+        if (strcmp(filename, "sample.c") == 0)
+            return false;
+
+        return true;
+    }
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+        walkdir(argv[1], disp);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+scandir Fonksiyonu
+------------------
+
+``scandir`` bir dizindeki belli koşulları sağlayan girişleri veren, biraz karmaşık parametreye sahip bir POSIX
+fonksiyonudur. Fonksiyonun parametrik yapısı şöyledir:
+
+.. code-block:: c
+
+    #include <dirent.h>
+
+    int alphasort(const struct dirent **d1, const struct dirent **d2);
+    int scandir(const char *dir, struct dirent ***namelist, int (*sel)(const struct dirent *),
+                int (*compar)(const struct dirent **, const struct dirent **));
+
+``scandir`` fonksiyonunun birinci parametresi dizinin yol ifadesini almaktadır. İkinci parametreye ``struct dirent``
+türünden göstericiyi gösteren bir göstericinin adresi geçirilmelidir. Üçüncü parametre filtre işleminde kullanılacak
+fonksiyonu belirtir. Her dizin girişi bulundukça bu fonksiyon çağrılır. Eğer bu fonksiyon sıfır dışı bir değerle geri
+dönerse dizin girişi biriktirilir, sıfır ile geri dönerse dizin girişi geri döndürülmez. Bu parametreye ``NULL`` adres
+geçilebilir. Bu durumda dizindeki tüm girişler elde edilir. Son parametre filtrelenen girişlere ilişkin gösterici
+dizisini sort etmek için kullanılacak karşılaştırma fonksiyonunu belirtmektedir. Bu karşılaştırma fonksiyonunun
+prototipi şöyle olmalıdır:
+
+.. code-block:: c
+
+    int cmp(const struct dirent **dirent1, const struct dirent **dirent2);
+
+Fonksiyon tıpkı ``qsort`` fonksiyonunda olduğu gibi birinci parametresiyle belirtilmiş olan dizin girişi ikinci
+parametresiyle belirtilmiş olan dizin girişinden büyükse pozitif herhangi bir değere, küçükse negatif herhangi bir
+değere ve eşitse sıfır değerine geri dönmelidir. Alfabetik sıralamayı sağlamak amacıyla zaten hazır bir ``alphasort``
+isimli fonksiyon da bulundurulmuştur.
+
+``scandir`` fonksiyonu başarı durumunda gösterici dizisine yerleştirilen eleman sayısı ile, başarısızlık durumunda -1
+ile geri döner ve ``errno`` uygun biçimde değer alır.
+
+``scandir`` fonksiyonu tüm tahsisatları ``malloc`` fonksiyonunu kullanarak yapmaktadır. Dolayısıyla programcının tahsis
+edilen bu alanları kendisinin ``free`` hale getirmesi gerekmektedir.
+
+``scandir`` kendi içerisinde her biriktirilecek dizin girişi için ``malloc`` fonksiyonu ile bir ``struct dirent`` yapısı
+tahsis eder, bunların adreslerini de yine tahsis ettiği bir gösterici dizisine yerleştirir. Bu gösterici dizisinin
+adresini de bizim adresini geçtiğimiz göstericiyi gösteren göstericinin içerisine yerleştirmektedir.
+
+Aşağıdaki örnekte komut argümanı olarak girilen bir dizinde başı ``'a'`` ya da ``'A'`` harfi ile başlayan girişler elde
+edilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    int myfilter(const struct dirent *de)
+    {
+        return de->d_name[0] == 'a' || de->d_name[0] == 'A';
+    }
+
+    int main(int argc, char *argv[])
+    {
+        int result;
+        struct dirent **dents;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((result = scandir(argv[1], &dents, myfilter, alphasort)) == -1)
+            exit_sys("scandir");
+
+        for (int i = 0; i < result; ++i)
+            printf("%s\n", dents[i]->d_name);
+
+        for (int i = 0; i < result; ++i)
+            free(dents[i]);
+        free(dents);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+
+scandir Kusuru, ftw/nftw, access Fonksiyonları ve Dosya Betimleyici Tablosu
+===========================================================================
+
+scandir Fonksiyonunun Tasarım Kusuru ve Bir Karşılaştırma Fonksiyonu Örneği
+---------------------------------------------------------------------------
+
+``scandir`` fonksiyonunun tasarımında bize göre kusurlar vardır. Fonksiyonun ``dirent`` yapılarını biriktirmesi
+karşılaştırma fonksiyonu yazacak kişiler için yük oluşturmaktadır. Buradaki daha doğru tasarım yeni bir yapı bildirip
+yapının içerisinde hem ``dirent`` bilgilerinin hem de ``stat`` bilgilerinin bulunması olabilir. Tabii bu tasarımda da
+yapı nesneleri bellekte toplamda daha fazla yer kaplayacaktır.
+
+Aşağıda bir karşılaştırma fonksiyonu yazımına örnek verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <unistd.h>
+    #include <sys/stat.h>
+    #include <dirent.h>
+
+    void exit_sys(const char *msg);
+
+    int cmp_size(const struct dirent **de1, const struct dirent **de2)
+    {
+        struct stat finfo1, finfo2;
+
+        if (stat((**de1).d_name, &finfo1) == -1)
+            exit_sys("stat");
+
+        if (stat((**de2).d_name, &finfo2) == -1)
+            exit_sys("stat");
+
+        if (finfo1.st_size > finfo2.st_size)
+            return 1;
+
+        if (finfo1.st_size < finfo2.st_size)
+            return -1;
+
+        return 0;
+    }
+
+    int main(int argc, char *argv[])
+    {
+        int result;
+        struct dirent **dents;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (chdir(argv[1]) == -1)
+            exit_sys("chdir");
+
+        if ((result = scandir(argv[1], &dents, NULL, cmp_size)) == -1)
+            exit_sys("scandir");
+
+        for (int i = 0; i < result; ++i)
+            printf("%s\n", dents[i]->d_name);
+
+        for (int i = 0; i < result; ++i)
+            free(dents[i]);
+        free(dents);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+ftw ve nftw Fonksiyonları
+-------------------------
+
+Dizin ağacını özyinelemeli biçimde dolaşan ``ftw`` (file traverse walk) ve ``nftw`` (new file traverse walk) isimli
+POSIX fonksiyonları da bulunmaktadır. Aslında eskiden yalnızca ``ftw`` fonksiyonu vardı. Ancak bu fonksiyona bazı
+eklemeler yapılıp ``nftw`` fonksiyonu oluşturuldu ve ``ftw`` fonksiyonu *deprecated* yapıldı. Yani bugün hem ``ftw`` hem
+de ``nftw`` fonksiyonları bulunuyor olsa da ``nftw`` fonksiyonunun kullanılması önerilmektedir. Zaten ``nftw``
+fonksiyonu işlevsel olarak ``ftw`` fonksiyonunu kapsamaktadır. ``nftw`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <ftw.h>
+
+    int nftw(const char *path, int (*fn)(const char *, const struct stat *, int, struct FTW *), int fd_limit,
+             int flags);
+
+Linux altında bu fonksiyonu libc kütüphanesi ile kullanırken *feature test macro* oluşturulmalıdır. Burada başlık
+dosyalarının yukarısında aşağıdaki gibi bir sembolik sabitin bulundurulması gerekir:
+
+.. code-block:: c
+
+    #define _XOPEN_SOURCE 500
+
+Tabii bu sembolik sabit derleme sırasında ``-D _XOPEN_SOURCE=500`` seçeneği ile de belirtilebilir.
+
+Feature test macro kavramından daha sonra bahsedilecektir. Buradaki sayının 500'e eşit ya da daha büyük olması
+gerekmektedir.
+
+Fonksiyonun birinci parametresi özyinelemeli biçimde dolaşılacak dizinin yol ifadesini, ikinci parametre her dizin
+girişi bulundukça çağrılacak *callback* fonksiyonunun adresini almaktadır. Buradaki fonksiyonun aşağıdaki parametrik
+yapıya sahip olması gerekir:
+
+.. code-block:: c
+
+    int callback(const char *path, const struct stat *finfo, int flag, struct FTW *ftw);
+
+``nftw`` fonksiyonunun üçüncü parametresi kullanılacak maksimum dosya betimleyici sayısını belirtmektedir. Fonksiyon her
+derine indikçe o dizini ``opendir`` fonksiyonu ile açtığı için (bizde öyle yapmıştık) dosya betimleyici tablosunda bir
+betimleyici harcamaktadır. Linux'ta default durumda prosesin dosya betimleyici tablosunda 1024 tane betimleyici için yer
+ayrıldığını anımsayınız. Dolayısıyla derine inildikçe bu tabloda betimleyiciler yer kaplayacağından derin ağaçlarda
+betimleyici yememe sorunu oluşabilecektir. İşte fonksiyonun dördüncü parametresi (``fd_limit``) fonksiyonun en fazla kaç
+betimleyiciyi açık olarak tutacağını belirtmektedir. Programcı bu parametreye ortalama bir değer girebilir. Fonksiyon
+kendi içerisinde burada belirtilen derinlik aşıldığında özyineleme yaparken üst dizinin betimleyicisini kapatıp geri
+dönüşte yeniden açmaktadır. Ayrıca fonksiyonun dokümantasyonunda fonksiyonun her kademe için en fazla bir tane
+betimleyici kullanacağı belirtilmiştir. Bu durumda bu parametre dizin ağacındaki derinlikle de ilişkilidir. Fonksiyonun
+son parametresi özyinelemeli dolaşım sırasında bazı belirlemeler için kullanılmaktadır. Bu parametre çeşitli sembolik
+sabitlerin bit düzeyinde OR'lanması ile oluşturulmaktadır. Bu sembolik sabitler şunlardır:
+
+nftw Bayrakları (FTW_CHDIR, FTW_DEPTH, FTW_MOUNT, FTW_PHYS)
+-----------------------------------------------------------
+
+``FTW_CHDIR``: Eğer bu bayrak belirtilirse fonksiyon her dizine geçtiğinde prosesin çalışma dizinini de o dizin olarak
+değiştirmektedir.
+
+``FTW_DEPTH``: Normalde dolaşım *pre-order* biçimde yapılmaktadır. Bu bayrak girilirse *post-order* dolaşım yapılır.
+Bayrağın ismi yanlış verilmiştir. *pre-order* dolaşım demek bir dizin ile karşılaşıldığında önce dizin girişinin ele
+alınması, sonra özyineleme yapılması demektir. *post-order* dolaşım ise önce özyineleme yapılıp sonra dizin girişinin
+ele alınması demektir. Default durum *pre-order* dolaşım biçimindedir. Bizim yaptığımız yukarıdaki örnekler buradaki
+*pre-order* biçimdedir.
+
+``FTW_MOUNT``: Bu bayrak belirtilirse özyineleme yapılırken bir *mount point* ile karşılaşıldığında o dosya sistemine
+girilmez. Default durumda özyineleme sırasında bir *mount point* ile karşılaşılırsa özyineleme o dosya sisteminin içine
+girilerek devam ettirilmektedir.
+
+``FTW_PHYS``: Default durumda ``nftw`` fonksiyonu bir sembolik bağ dosyası ile karşılaştığında bağları izler ve bağın
+hedefine yönelik hareket eder. Daha önce biz dizinlerden sembolik bağ yapılabildiği sistemlerde böyle bir durumun sonsuz
+döngüye yol açabileceğinden bahsetmiştik. İşte bu bayrak belirtilirse artık ``nftw`` fonksiyonu sembolik bağ dosyaları
+ile karşılaştığında bağı izlemez, sembolik bağ dosyasının kendisi hakkında bilgi verir. Biz de yaptığımız örneklerde
+``lstat`` kullandığımız için sembolik bağları izlememiştik.
+
+Programcı bu dördüncü parametreye hiçbir bayrak girmek istemezse 0 girebilir.
+
+``nftw`` fonksiyonu başarı durumunda callback fonksiyonunun geri dönüş değeriyle, başarısızlık durumunda -1 değerine
+geri dönmektedir. Biz callback fonksiyonunu 0 ile geri döndürürsek özyinelemeye devam etmek istediğimizi belirtmiş
+oluruz. Bu durumda bir IO hatası da olmazsa ``nftw`` fonksiyonu 0 ile geri döner. Eğer biz bu fonksiyondan sıfır dışı
+bir değerle geri dönersek, ``nftw`` fonksiyonu özyinelemeyi bırakıp geri çıkar ve bizim callback fonksiyonundan
+döndürdüğümüz sıfır dışı değerle geri döner. Fonksiyon başarısız olup -1 değeriyle geri döndüğünde ``errno`` değişkeni
+set edilmemektedir.
+
+Callback Fonksiyonunun Parametreleri ve FTW_ Tür Sabitleri
+----------------------------------------------------------
+
+Şimdi de callback fonksiyonunun parametrelerine gelelim:
+
+.. code-block:: c
+
+    int callback(const char *path, const struct stat *finfo, int flag, struct FTW *ftw);
+
+Fonksiyonun birinci parametresine bulunan dizin girişinin yol ifadesi yerleştirilir. Bu yol ifadesinin baş kısmı tamamen
+bizim ``nftw`` fonksiyonuna verdiğimiz dizin ifadesinden oluşmaktadır. (Yani biz ``nftw`` fonksiyonuna mutlak bir yol
+ifadesi verirsek buraya mutlak bir yol ifadesi geçirilir, biz ``nftw`` fonksiyonuna göreli bir yol ifadesi verirsek
+buraya göreli bir yol ifadesi geçirilir.) Fonksiyonun ikinci parametresi bulunan dizin girişine ilişkin ``struct stat``
+yapısının adresini belirtmektedir. Fonksiyonun üçüncü parametresi ise bulunan dizin girişinin türünü belirtmektedir. Bu
+tür şunlardan birine tam eşit olmak zorundadır:
+
+``FTW_D``: Bulunan giriş bir dizin girişidir.
+
+``FTW_DNR``: Bulunan giriş bir dizin girişidir. Ancak bu dizinin içi okunamamaktadır. Dolayısıyla bu dizin özyinelemede
+dolaşılamayacaktır.
+
+``FTW_DP``: Post-order dolaşımda bir dizinle karşılaşıldığında bayrak ``FTW_D`` yerine ``FTW_DP`` olarak set
+edilmektedir.
+
+``FTW_F``: Bulunan dizin girişi sıradan bir dosyadır (regular file).
+
+``FTW_NS``: Bulunan dizin girişi için ``stat`` ya da ``lstat`` fonksiyonu başarısız olmuştur. Dolayısıyla fonksiyona
+geçirilen ``stat`` yapısı da anlamlı değildir.
+
+``FTW_SL``: Bulunan giriş bir sembolik bağ dosyasına ilişkindir. Sembolik bağ dosyasının hedefi mevcuttur (yani
+*dangling* değildir).
+
+``FTW_SLN``: Bulunan giriş bir sembolik bağ dosyasına ilişkindir. Sembolik bağ dosyasının hedefi mevcut değildir (yani
+*dangling* durumdadır).
+
+callback fonksiyonunun son parametresi ``FTW`` isimli bir yapı türündendir. Bu yapı şöyle bildirilmiştir:
+
+.. code-block:: c
+
+    struct FTW {
+        int base;
+        int level;
+    };
+
+Yapının ``level`` elemanı ağaçtaki derinlik düzeyini belirtmektedir. Bu değer 0'dan başlayarak derine indikçe
+artırılmaktadır. ``base`` elemanı ise dizin girişinin birinci parametrede belirtilen yol ifadesinin kaçıncı indeksinden
+başladığını belirtmektedir. Örneğin biz ``/home/kaan/Study`` dizinini dolaşmak istemiş olalım. Fonksiyon da dizin girişi
+olarak ``sample.c`` bulmuş olsun. Fonksiyon bize bu girişi ``/home/kaan/Study/sample.c`` biçiminde verecektir. İşte
+buradaki ``base`` 17 olarak verilecektir.
+
+Bir nftw Örneği
+---------------
+
+Aşağıda ``nftw`` fonksiyonunun kullanımına bir örnek verilmiştir.
+
+.. code-block:: c
+
+    #define _XOPEN_SOURCE 500
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <sys/stat.h>
+    #include <ftw.h>
+
+    int callback(const char *path, const struct stat *finfo, int flag, struct FTW *ftw);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (nftw(argv[1], callback, 100, FTW_PHYS) == -1) {
+            fprintf(stderr, "nftw failed!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        return 0;
+    }
+
+    int callback(const char *path, const struct stat *finfo, int flag, struct FTW *ftw)
+    {
+        switch (flag) {
+            case FTW_DNR:
+                printf("%*s%s (cannot read directory)\n", ftw->level * 4, "", path + ftw->base);
+                break;
+            case FTW_NS:
+                printf("%*s%s (cannot get statinfo)\n", ftw->level * 4, "", path + ftw->base);
+                break;
+            default:
+                printf("%*s%s\n", ftw->level * 4, "", path + ftw->base);
+        }
+
+        return 0;
+    }
+
+access Fonksiyonu
+-----------------
+
+``access`` isimli POSIX fonksiyonu bir dosyaya okuma, yazma, çalıştırma gibi erişimlerin mümkün olup olmadığı bilgisini
+bize vermektedir. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int access(const char *path, int amode);
+
+Fonksiyonun birinci parametresi erişim testinin yapılacağı dosyanın yol ifadesini belirtmektedir. İkinci parametresi
+test edilecek erişimi belirtir. Bu parametre aşağıdaki sembolik sabitlerin bit düzeyinde OR işlemine sokulmasıyla
+oluşturulabilir:
+
+- ``R_OK``: Okuma yapılabilir mi?
+- ``W_OK``: Yazma yapılabilir mi?
+- ``X_OK``: Çalıştırılabilir mi?
+- ``F_OK``: Dosya var mı?
+
+Örneğin:
+
+.. code-block:: c
+
+    if (access(argv[1], F_OK) == 0)
+        printf("file exists...\n");
+    else {
+        printf("file doesn't exist!..\n");
+        exit(EXIT_SUCCESS);
+    }
+
+``access`` fonksiyonuyla ilgili iki önemli nokta vardır. Birincisi, ``access`` fonksiyonu test işleminde prosesin etkin
+kullanıcı ID'sini ve grup ID'sini değil, gerçek kullanıcı ID'sini ve grup ID'sini işleme sokar. Her ne kadar prosesin
+gerçek kullanıcı ve grup ID'leri çoğu kez etkin kullanıcı ve grup ID'leri ile aynı olsa da bazen farklılaşabilmektedir.
+İkinci durum ise, ``access`` fonksiyonu ile bir test yapıldıktan sonra bu teste dayalı olarak dosya üzerinde işlem
+yapılmak istendiğinde bu işlemin başarılı olması garanti değildir. Çünkü o arada sistemdeki başka bir proses dosyanın
+erişim hakları üzerinde değişiklik yapmış olabilir. Bu durumu programcının dikkate alması gerekir.
+
+``access`` fonksiyonu test olumluysa 0 değerine, olumsuzsa -1 değerine geri dönmektedir. Tabii ``access`` fonksiyonunun
+başarısızlığının başka nedenleri de olabilir. Ancak programcı genellikle öyle ya da böyle istediği işlemi yapıp
+yapamayacağı ile ilgilenmektedir. Ancak yine de fonksiyon başarısız olduğunda ``errno`` değeri incelenebilir ve
+başarısızlığın ``EACCES`` nedeniyle olduğu doğrulanabilir.
+
+``access`` fonksiyonu Linux sistemlerinde ``sys_access`` sistem fonksiyonunu çağırmaktadır. Bu fonksiyon çekirdek
+kodlarında testi manuel yöntemlere göre daha hızlı yapabilmektedir.
+
+Bir access Örneği
+-----------------
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (access(argv[1], F_OK) == 0)
+            printf("file exists...\n");
+        else {
+            printf("file doesn't exist!..\n");
+            exit(EXIT_SUCCESS);
+        }
+        if (access(argv[1], R_OK) == 0)
+            printf("read access ok...\n");
+        else
+            printf("can't read...\n");
+
+        if (access(argv[1], W_OK) == 0)
+            printf("write access ok...\n");
+        else
+            printf("can't write...\n");
+
+        if (access(argv[1], X_OK) == 0)
+            printf("execute access ok\n...");
+        else
+            printf("can't execute...\n");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+GNU Uzantıları: euidaccess ve eaccess
+-------------------------------------
+
+``access`` fonksiyonunun GNU libc kütüphanesinde prosesin etkin kullanıcı id'sini ve etkin grup ID'sini kullanarak test
+eden ``euidaccess`` ve ``eaccess`` (ikisi aynı şeyi yapmaktadır) biçimleri de bulunmaktadır. Ancak bu iki fonksiyon
+POSIX standartlarında yoktur. Dolayısıyla taşınabilir programlarda bu konuya dikkat edilmesi gerekir. Bu fonksiyonları
+kullanmak için ``_GNU_SOURCE`` test makrosunun programın başında define edilmesi ya da derleme sırasında ``-D
+_GNU_SOURCE`` seçeneğinin kullanılması gerekmektedir.
+
+.. code-block:: c
+
+    #define _GNU_SOURCE            /* See feature_test_macros(7) */
+    #include <unistd.h>
+
+    int euidaccess(const char *pathname, int mode);
+    int eaccess(const char *pathname, int mode);
+
+Bu fonksiyonların semantiği etkin kullanıcı ID'sini ve grup ID'sini kullanmalarının dışında bir farklılık
+içermemektedir.
+
+faccessat Fonksiyonu
+--------------------
+
+``access`` fonksiyonunun ``faccessat`` isminde at'li bir versiyonu da vardır. Bu versiyonda aynı zamanda istenirse
+gerçek kullanıcı ve grup ID'leri yerine etkin kullanıcı ve grup ID'leri de işleme sokulabilmektedir. Fonksiyonun
+parametrik yapısı şöyledir:
+
+.. code-block:: c
+
+    #include <fcntl.h>
+
+    int faccessat(int fd, const char *path, int amode, int flag);
+
+Fonksiyonun birinci parametresi ikinci parametresiyle belirtilen yol ifadesinin göreli olması durumunda aramanın
+yapılacağı dizini belirtmektedir. Son parametre 0 geçilebilir ya da ``AT_EACCESS`` geçilebilir. Bu ``AT_EACCESS`` değeri
+test işleminin etkin kullanıcı ve grup ID'lerine bakılarak yapılacağı anlamına gelmektedir. (Tabii ikinci parametre ile
+belirtilen yol ifadesi mutlak olduğunda birinci parametrede belirtilen dizine ilişkin betimleyici yine dikkate alınmaz.
+Ancak üçüncü parametreyle belirtilen bayrak dikkate alınır.)
+
+Bir faccessat Örneği
+--------------------
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int fd;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (faccessat(AT_FDCWD, argv[1], F_OK, AT_EACCESS) == 0)
+            printf("file exists...\n");
+        else {
+            printf("file doesn't exist!...\n");
+            exit(EXIT_SUCCESS);
+        }
+        if (faccessat(AT_FDCWD, argv[1], R_OK, AT_EACCESS) == 0)
+            printf("read access ok...\n");
+        else
+            printf("can't read...\n");
+
+        if (faccessat(AT_FDCWD, argv[1], W_OK, AT_EACCESS) == 0)
+            printf("write access ok...\n");
+        else
+            printf("can't write...\n");
+
+        if (faccessat(AT_FDCWD, argv[1], X_OK, AT_EACCESS) == 0)
+            printf("execute access ok\n...");
+        else
+            printf("can't execute...\n");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dosya Betimleyici Tablosu ve Dosya Nesnesi Kavramı
+--------------------------------------------------
+
+Anımsanacağı gibi *dosya betimleyici tablosu (file descriptor table)* proses kontrol bloğu yoluyla erişilebilen dosya
+nesnelerinin adreslerinin tutulduğu bir gösterici dizisi biçimindeydi. İşletim sisteminin çekirdeği ne zaman bir dosya
+açılsa o dosya için bir dosya nesnesi (Linux'ta ``file`` yapısı) yaratıp dosya betimleyici tablosunda bir slotun o
+nesneyi göstermesini sağlıyordu. Zaten *dosya betimleyicisi (file descriptor)* de dosya betimleyici tablosunda bir
+indeks belirtiyordu. Linux çekirdeklerinde buradaki veri yapıları zamanla biraz değiştirilmiştir. Güncel çekirdekte
+proses kontrol bloktan dosya nesnesine erişim birkaç yapıdan geçilerek yapılmaktadır:
+
+.. code-block:: c
+
+    task_struct (files) ---> files_struct (fdt) ---> fdtable (fd) ---> file * türünden bir dizi ---> file
+
+Genellikle bir proses çalışmaya başladığında ilk üç betimleyici doludur. Bu betimleyicilere sırasıyla ``stdin``,
+``stdout`` ve ``stderr`` betimleyicileri denilmektedir. Bu ilk üç betimleyici için ``<unistd.h>`` dosyasında üç sembolik
+sabit de bulundurulmuştur:
+
+.. code-block:: c
+
+    #define STDIN_FILENO        0
+    #define STDOUT_FILENO       1
+    #define STDERR_FILENO       2
+
+Daha önce de belirttiğimiz gibi aygıt *sürücüler (device drivers)* dosya gibi açılarak kullanılmaktadır. (Yani bir aygıt
+sürücü de kullanılmadan önce ``open`` fonksiyonuyla açılır, sonra ``read`` fonksiyonuyla ondan okuma yapılıp ``write``
+fonksiyonu ile ona yazma yapılabilir.) Dolayısıyla bir dosya nesnesi bir disk dosyasına ilişkin olabileceği gibi bir
+aygıt sürücüsü dosyasına da ilişkin olabilir. Örneğin biz bir betimleyiciden ``read`` fonksiyonu ile okuma yapmak
+istediğimizde sistem eğer bu betimleyicinin gösterdiği dosya nesnesi bir disk dosyasına ilişkinse bizim dosyadan okuma
+yapmamızı sağlar. Ancak bir aygıt sürücüye ilişkinse bu durumda sistem o aygıt sürücünün ``read`` fonksiyonunu çağırır.
+Yani aygıt sürücülerin içerisinde ``read`` yapıldığında ve ``write`` yapıldığında çağrılacak fonksiyonlar vardır. İşte
+örneğin biz 0 numaralı betimleyiciden okuma yapmak istediğimizde aslında *terminal aygıt sürücüsünün* ``read``
+fonksiyonu çağrılmaktadır. 0 numaralı betimleyici ``O_RDONLY`` modunda açılmıştır. Terminal aygıt sürücüsünün ``read``
+fonksiyonu da bize klavyeden okunanları verir. Program çalışmaya başladığında 1 ve 2 numaralı betimleyicilerin her ikisi
+de aynı dosya nesnesini göstermektedir. Bu dosya da ``O_WRONLY`` modunda açılmış durumdadır. Bu dosya nesneleri de yine
+*terminal aygıt sürücüsüne* ilişkindir. Dolayısıyla biz ``write`` işlemi yaptığımızda aslında terminal aygıt sürücüsünün
+``write`` fonksiyonunu çağırmış oluruz. O da bilgileri imlecin bulunduğu yerden itibaren ekrana yazar. Burada ``stdout``
+ve ``stderr`` betimleyicilerinin aynı dosya nesnesini gösterdiğine dikkat ediniz. Dolayısıyla bu betimleyiciler
+kullanıldığında yazdırılmak istenen şeyler ekrana çıkacaktır. (O halde ``stdout`` ile ``stderr`` arasında ne farklılık
+vardır? İzleyen bölümlerde bunu açıklayacağız.)
+
+``open`` fonksiyonunun ilk boş betimleyiciyi vereceği garanti edilmiştir. Yani örneğin programımız başladığında 0, 1 ve
+2 numaralı betimleyiciler dolu olduğuna göre ``open`` fonksiyonu bize 3 numaralı betimleyiciyi verecektir. Tabii
+dosyaları kapattığımızda o betimleyicilere ilişkin slot'lar serbest bırakılır. Bu durumda ``open`` ilk boş betimleyiciyi
+bize verir.
+
+Dosya Betimleyicilerinin Çiftlenmesi (Duplicate) ve struct file
+---------------------------------------------------------------
+
+Dosya betimleyici tablosunda iki dosya betimleyicisi aynı dosya nesnesini gösteriyorsa bu duruma *dosya
+betimleyicilerinin çiftlenmiş (duplicate) olması* denilmektedir. Örneğin:
+
+.. code-block:: text
+
+    Dosya Betimleyici Tablosu
+    ┌────────┐
+    │  ...   │
+    ├────────┤                     ┌───────────────┐
+    │  fd1   │────────────────────►│               │
+    ├────────┤                     │ Dosya Nesnesi │
+    │  ...   │              ┌─────►│               │
+    ├────────┤              │      └───────────────┘
+    │  fd2   │──────────────┘
+    ├────────┤
+    │  ...   │
+    └────────┘
+
+Burada ``fd1`` betimleyicisi ile ``fd2`` betimleyicisi aynı dosya nesnesini göstermektedir. Dosya işlemlerinin hepsi
+dosya nesnesinden hareketle yapıldığı için bizim bu betimleyicilerden hangisini kullandığımızın bir önemi kalmamaktadır.
+Peki böyle bir durumda bir betimleyiciyi ``close`` fonksiyonuyla kapattığımızda ne olacaktır? İşte dosya nesnelerinin
+içerisinde bir sayaç bulunmaktadır. ``close`` fonksiyonu bu sayacın değerini bir eksiltir. Dosya nesnesinin silinmesi
+sayaç 0'a düştüğünde yapılmaktadır. O halde ``close`` her durumda betimleyici slotunu boşaltır. Ancak dosya nesnesinin
+referans sayacını bir eksilttikten sonra eğer referans sayacı 0'a düşmüşse dosya nesnesini siler. Aşağıda Linux'un
+güncel çekirdeğindeki dosya nesnesi verilmiştir. Buradaki ``f_ref`` elemanı bu sayacı belirtmektedir:
+
+.. code-block:: c
+
+    struct file {
+        spinlock_t                     f_lock;
+        fmode_t                        f_mode;
+        const struct file_operations   *f_op;
+        struct address_space           *f_mapping;
+        void                            *private_data;
+        struct inode                   *f_inode;
+        unsigned int                   f_flags;
+        unsigned int                   f_iocb_flags;
+        const struct cred              *f_cred;
+        struct fown_struct             *f_owner;
+        /* --- cacheline 1 boundary (64 bytes) --- */
+        union {
+            const struct path  f_path;
+            struct path        __f_path;
+        };
+        union {
+            /* regular files (with FMODE_ATOMIC_POS) and directories */
+            struct mutex    f_pos_lock;
+            /* pipes */
+            u64             f_pipe;
+        };
+        loff_t                          f_pos;
+    #ifdef CONFIG_SECURITY
+        void                            *f_security;
+    #endif
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        errseq_t                       f_wb_err;
+        errseq_t                       f_sb_err;
+    #ifdef CONFIG_EPOLL
+        struct hlist_head  *f_ep;
+    #endif
+        union {
+            struct callback_head    f_task_work;
+            struct llist_node       f_llist;
+            struct file_ra_state    f_ra;
+            freeptr_t                f_freeptr;
+        };
+        file_ref_t                      f_ref;
+        /* --- cacheline 3 boundary (192 bytes) --- */
+    } __randomize_layout
+    __attribute__((aligned(4)));   /* lest something weird decides that 2 is OK */
+
+
+dup, dup2 ve IO Yönlendirmesi (IO Redirection)
+==============================================
+
+dup Fonksiyonu ile Dosya Betimleyicisi Çiftleme
+-----------------------------------------------
+
+Bir dosya betimleyicisinin gösterdiği dosya nesnesini gösteren yeni bir dosya betimleyici oluşturulabilir. Bunun için
+``dup`` ve ``dup2`` isimli POSIX fonksiyonları kullanılmaktadır. Bu POSIX fonksiyonları Linux sistemlerinde doğrudan
+``sys_dup`` ve ``sys_dup2`` sistem fonksiyonlarını çağırmaktadır. ``dup`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int dup(int fildes);
+
+Fonksiyon parametre olarak açık bir dosyanın betimleyicisini almaktadır. Başarı durumunda betimleyicinin gösterdiği
+dosya nesnesini gösteren yeni bir betimleyiciye, başarısızlık durumunda -1 değerine geri dönmektedir. ``dup``
+fonksiyonunun en düşük boş betimleyici slotunu tahsis etmesi garanti edilmiştir. ``dup`` fonksiyonuyla elde edilen yeni
+dosya betimleyicisinin ``FD_CLOEXEC`` ve ``FD_CLOFORK`` bayrakları reset edilmektedir. Örneğin:
+
+.. code-block:: c
+
+    int fd, fd_new;
+
+    if ((fd = open("test.txt", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    if ((fd_new = dup(fd)) == -1)
+        exit_sys("dup");
+
+    /* ... */
+
+    close(fd_new);
+    close(fd);
+
+Açık dosyanın tüm bilgileri dosya nesnesinin içerisinde tutulduğuna göre ``dup`` işlemi sonrasında artık dosya işlemi
+için hangi betimleyicinin kullanıldığının bir önemi kalmamaktadır. Dosya göstericisinin de dosya nesnesi içerisinde
+tutulduğunu anımsayınız. Bu durumda örneğin betimleyicilerden biri ile okuma yaptıktan sonra diğer betimleyici ile okuma
+yaparsak okuma kalınan yerden itibaren yapılacaktır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <fcntl.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd, fd_new;
+        char buf[5 + 1];
+        ssize_t result;
+
+        if ((fd = open("test.txt", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        if ((fd_new = dup(fd)) == -1)
+            exit_sys("dup");
+
+        if ((result = read(fd, buf, 5)) == -1)
+            exit_sys("read");
+        buf[result] = '\0';
+        puts(buf);
+
+        if ((result = read(fd_new, buf, 5)) == -1)
+            exit_sys("read");
+        buf[result] = '\0';
+        puts(buf);
+
+        close(fd_new);
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+dup2 Fonksiyonu
+---------------
+
+``dup2`` isimli POSIX fonksiyonu ``dup`` fonksiyonunun biraz daha ayrıntılı biçimidir. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int dup2(int fildes, int fildes2);
+
+Bu fonksiyon yine birinci parametresiyle belirtilen betimleyiciyi çiftlemek için kullanılmaktadır. Ancak bu fonksiyon
+ilk boş betimleyici ile değil ikinci parametresiyle belirtilen betimleyici ile geri dönmek ister. Yani biz istersek bu
+fonksiyon sayesinde istediğimiz bir betimleyicinin birinci parametresiyle belirtilen betimleyici ile aynı dosya
+nesnesini göstermesini sağlayabiliriz. Eğer ikinci parametresiyle belirtilen betimleyici zaten açık bir dosyaya
+ilişkinse bu durumda dosya önce kapatılır, sonra o betimleyicinin birinci parametresiyle belirtilen betimleyicinin
+gösterdiği dosya nesnesini göstermesi sağlanır. Fonksiyon başarı durumunda ikinci parametresiyle belirtilen
+betimleyicinin aynısına, başarısızlık durumunda -1 değerine geri dönmektedir. Tabii fonksiyon birinci ve ikinci
+parametresinin aynı betimleyiciye ilişkin olduğunu da kontrol etmektedir. Fonksiyonun iki argümanı aynı betimleyiciyi
+belirtiyorsa ``dup2`` hiçbir şey yapmaz, argümanlarla belirtilen betimleyiciye geri döner. Örneğin:
+
+.. code-block:: c
+
+    int fd, fd_new;
+
+    if ((fd = open("test.txt", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    if ((fd_new = dup2(fd, 1)) == -1)
+        exit_sys("dup2");
+
+    /* ... */
+
+    close(fd_new);
+    close(fd);
+
+Burada 1 numaralı betimleyicinin ``fd`` betimleyicisinin gösterdiği dosya nesnesi ile aynı dosya nesnesini göstermesi
+istenmiştir. Eğer 1 numaralı betimleyici doluysa önce ``close`` edilip boşaltılacaktır. Fonksiyon başarılı olursa
+``fd_new`` betimleyicisi 1 değerinde olacaktır.
+
+Aşağıda ``dup2`` fonksiyonunun kullanımına bir örnek verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <fcntl.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd, fd_new;
+        char buf[5 + 1];
+        ssize_t result;
+
+        if ((fd = open("test.txt", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        if ((fd_new = dup2(fd, 25)) == -1)
+            exit_sys("dup");
+
+        printf("fd = %d, fd_new = %d\n", fd, fd_new);      /* fd = 3, fd_new = 25 */
+
+        if ((result = read(fd, buf, 5)) == -1)
+            exit_sys("read");
+        buf[result] = '\0';
+        puts(buf);
+
+        if ((result = read(fd_new, buf, 5)) == -1)
+            exit_sys("read");
+        buf[result] = '\0';
+        puts(buf);
+
+        close(fd_new);
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+IO Yönlendirmesi (IO Redirection) Kavramına Giriş
+-------------------------------------------------
+
+Bu bölümde *IO yönlendirmesi (IO redirection)* denilen süreci ele alacağız. IO yönlendirmesi teknik olarak bir dosya
+betimleyicisinin gösterdiği dosya nesnesinin değiştirilmesi işlemidir. Bu sayede bir kişi belli bir dosya üzerinde işlem
+yaptığını sanırken aslında başka bir dosya üzerinde işlem yapar hale gelmektedir. IO yönlendirmesi en çok ``stdin``,
+``stdout`` ve ``stderr`` dosyaları üzerinde uygulanmaktadır.
+
+stdin, stdout ve stderr Betimleyicileri ile Aygıt Sürücüleri
+------------------------------------------------------------
+
+Anımsanacağı gibi bir proses yaratıldığında genellikle işin başında 0, 1 ve 2 numaralı betimleyiciler zaten dolu
+durumdadır. UNIX/Linux dünyasında 0 numaralı betimleyiciye ``stdin`` betimleyicisi, 1 numaralı betimleyiciye ``stdout``
+betimleyicisi ve 2 numaralı betimleyiciye ise ``stderr`` betimleyicisi denilmektedir. Bu betimleyici değerlerinin
+``STDIN_FILENO``, ``STDOUT_FILENO`` ve ``STDERR_FILENO`` sembolik sabitleriyle de isimlendirildiğini anımsayınız. 1
+numaralı betimleyici ile 2 numaralı betimleyici çiftlenmiştir. Yani bunlar aslında aynı dosya nesnesini göstermektedir:
+
+.. code-block:: text
+
+    Dosya Betimleyici Tablosu
+    ┌───────┐                     ┌──────────────────┐
+    │  fd0  │────────────────────►│  Dosya Nesnesi   │
+    ├───────┤                     │     (stdin)      │
+    │  fd1  │──────────────┐      └──────────────────┘
+    ├───────┤              │
+    │  fd2  │─────────┐    │          ┌──────────────────┐
+    ├───────┤         │    └─────────►│  Dosya Nesnesi   │
+    │  ...  │         └──────────────►│ (stdout, stderr) │
+    └───────┘                         └──────────────────┘
+
+0 numaralı betimleyici *read-only* modda, 1 ve 2 numaralı betimleyiciler ise *read-write* modda açılmış durumdadır.
+
+Bir dosya betimleyicisinin gösterdiği dosya nesnesi bir disk dosyasına ilişkin olabileceği gibi bir *aygıt sürücü
+(device driver)* dosyasına ilişkin de olabilmektedir. Gerçekten de 0, 1 ve 2 numaralı betimleyicilerin gösterdiği dosya
+nesneleri *terminal aygıt sürücüsüne* ilişkindir.
+
+Bir aygıt sürücü çekirdek modunda çalışan bir modüldür. Bir dosya betimleyicisi bir aygıt sürücüsüne ilişkinse bu
+betimleyici ile ``read`` fonksiyonu çağrıldığında aygıt sürücüsünü yazanların ``read`` olarak tanımladıkları fonksiyon,
+``write`` fonksiyonu çağrıldığında ise aygıt sürücüsünü yazanların ``write`` diye tanımladıkları fonksiyon
+çağrılmaktadır. Yani aslında ``read(0, ...)`` işlemi terminal aygıt sürücüsünün içerisindeki ``read`` fonksiyonunun
+çağrılmasına, ``write(1, ...)`` ya da ``write(2, ...)`` işlemi de terminal aygıt sürücüsünün ``write`` fonksiyonunun
+çağrılmasına yol açmaktadır. Terminal aygıt sürücüsünün ``read`` fonksiyonu klavyeden okuma yapmakta, terminal aygıt
+sürücüsünün ``write`` fonksiyonu ise ekrana yazma yapmaktadır. Kabaca durum böyledir ancak sürecin başka ayrıntıları da
+vardır.
+
+Görüldüğü gibi aygıt sürücüler sanki bir dosyaymış gibi ele alınmaktadır. Bunun önemli faydaları vardır. Örneğin
+programcı bu sayede *sanki klavye ve ekran birer dosyaymış gibi* dosya fonksiyonlarını kullanarak onlarla işlem
+yapabilmektedir.
+
+Aşağıdaki örnekte 0 numaralı ``stdin`` betimleyicisinden ``read`` fonksiyonuyla okuma yapılmış ve okunanlar 1 numaralı
+``stdout`` betimleyicisine yazılmıştır. Biz ``read`` fonksiyonuyla ``stdin`` dosyasından okuma yapmak istediğimizde
+``read`` fonksiyonu ENTER tuşuna basılana kadarki klavyeden girilenleri bize vermektedir:
+
+.. code-block:: c
+
+    char buf[4096 + 1];
+    ssize_t result;
+
+    if ((result = read(0, buf, 4096)) == -1)
+        exit_sys("read");
+
+    if (write(1, buf, result) == -1)
+        exit_sys("write");
+
+Bir program çalışmaya başladığında 0, 1 ve 2 numaralı betimleyiciler zaten hazır durumdadır. Bu betimleyicileri
+programcı oluşturmamıştır. O halde bu betimleyicilerin kapatılmasını da programcı yapmamalıdır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        char buf[4096 + 1];
+        ssize_t result;
+
+        if ((result = read(0, buf, 4096)) == -1)
+            exit_sys("read");
+
+        if (write(1, buf, result) == -1)
+            exit_sys("write");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+C Kütüphane Fonksiyonlarının read/write Kullanması
+--------------------------------------------------
+
+C'nin ``<stdio.h>`` dosyası içerisinde prototipleri bulunan ``stdin`` ve ``stdout`` dosyaları üzerinde işlem yapan
+``scanf``, ``puts``, ``printf`` gibi fonksiyonlar eninde sonunda UNIX/Linux sistemlerinde ``read`` ve ``write``
+fonksiyonlarını 0 ve 1 numaralı betimleyicilerle çağırarak işlemlerini yapmaktadır. Zaten bu sistemlerde ekrana bir şey
+yazdırmak için ve klavyeden bir şey okumak için başka bir yol da yoktur. Örneğin biz ``printf`` fonksiyonu ile ekrana
+bir şeyler yazdırmak istediğimiz zaman aslında ``printf`` önce yazdırılacak yazıyı bir tamponda oluşturur, sonra
+``write`` fonksiyonunu 1 numaralı betimleyici ile çağırarak onları ekrana yazar. Diğer programlama dillerindeki bütün
+klavye ve ekran fonksiyonları da yine UNIX/Linux sistemlerinde eninde sonunda 0 ve 1 numaralı betimleyiciler
+kullanılarak okuma ve yazma işlemlerini yapmaktadır.
+
+close + open ile IO Yönlendirmesi (Sorunlu Yöntem)
+--------------------------------------------------
+
+Aşağıdaki örnekte biz önce ``close(1)`` ile 1 numaralı betimleyicinin gösterdiği terminal aygıt sürücüsüne ilişkin
+dosyayı kapattık. Sonra da ``open`` fonksiyonu ile yeni bir dosyayı açtık. ``open`` fonksiyonu en düşük boş
+betimleyiciyi vereceğine göre artık 1 numaralı betimleyici terminal aygıt sürücüsüne ilişkin dosya nesnesini değil bizim
+açtığımız dosya nesnesini gösteriyor durumda olacaktır:
+
+.. code-block:: c
+
+    close(1);
+
+    if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+        exit_sys("open");
+
+Bu örnekte biz ``printf`` fonksiyonu ile ekrana bir şeyler yazdık. ``printf`` eninde sonunda ``write(1, ...)``
+çağrısıyla ekrana bir şeyler yazdırmak isteyeceğine göre artık ``printf`` ekrana değil bizim açtığımız dosyaya yazma
+yapacaktır:
+
+.. code-block:: c
+
+    for (int i = 0; i < 10; ++i)
+        printf("%d\n", i);
+
+IO yönlendirmesinin temel mekanizması bu biçimdedir. Bu örnekte programcı sayıları ekrana yazdırdığını sanırken aslında
+sayılar ``test.txt`` dosyasına yazılmaktadır.
+
+Örneğimizde açmış olduğumuz dosyayı ``close`` etmedik. Çünkü zaten 0, 1 ve 2 numaralı betimleyicilerin ``close``
+edilmesi ``exit`` fonksiyonu tarafından program sonlanırken yapılmaktadır. Aslında örneğimizde açılan dosyaya ilişkin
+betimleyicinin ``fd`` değişkeninde saklanmasına da gerek yoktur. ``fd`` betimleyicisinin 1 olduğu öngörülmektedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <fcntl.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+
+        close(1);
+
+        if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("open");
+
+        for (int i = 0; i < 10; ++i)
+            printf("%d\n", i);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+IO Yönlendirmesinin Sorunları ve dup2 ile Doğru Çözüm
+-----------------------------------------------------
+
+IO yönlendirmesinin yukarıdaki gibi yapılmasının iki önemli problemi vardır:
+
+1) Bu yönlendirme aynı biçimde yüksek numaralı betimleyiciler için yapılmak istenirse o betimleyicilerden önce boş
+betimleyicilerin bulunuyor olma olasılığı yükselir. Dolayısıyla ``open`` istediğimiz betimleyiciyi değil başka bir
+betimleyiciyi tahsis edebilir. Örneğin biz 100 numaralı betimleyiciyi kapatıp onun başka bir dosya nesnesini
+göstermesini bu yöntemle muhtemelen sağlayamayız. Hatta örneğin yukarıdaki programda 0 numaralı betimleyici de
+kapatılmışsa ``open`` fonksiyonu 1 numaralı betimleyiciyi değil 0 numaralı betimleyiciyi geri döndürecektir.
+
+2) Çok thread'li uygulamalarda ``close`` işleminden sonra henüz ``open`` yapılmadan önce başka bir thread dosyayı açarsa
+bu betimleyiciyi o thread kapabilir. Çünkü ``close`` ile ``open`` işlemleri atomik değildir.
+
+İşte IO yönlendirmesi sağlıklı bir biçimde ancak ``dup2`` fonksiyonuyla yapılabilmektedir. Anımsanacağı gibi ``dup2(fd1,
+fd2)`` işleminde ``fd2`` betimleyicisi ``fd1`` betimleyicisi ile aynı dosya nesnesini gösterir hale getirilmektedir.
+``fd2`` zaten açık bir dosyaya ilişkinse önce atomik bir biçimde ``close`` işlemi uygulanmaktadır. ``dup2``
+fonksiyonunun en düşük betimleyiciyi değil, ikinci parametresiyle belirtilen betimleyiciyi verdiğine dikkat ediniz. O
+halde örneğin 1 numaralı betimleyici şöyle yönlendirilebilir:
+
+.. code-block:: c
+
+    int fd;
+    /* ... */
+
+    if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+        exit_sys("open");
+
+    if (dup2(fd, 1) == -1)
+        exit_sys("dup2");
+
+    close(fd);
+
+Burada ``dup2`` ile birlikte hem 1 numaralı betimleyicinin hem de ``fd`` numaralı betimleyicinin yeni açılan dosyaya
+ilişkin dosya nesnesini gösterdiğine dikkat ediniz. ``fd`` betimleyicisini kapatmak doğru tekniktir. 1 numaralı
+betimleyici zaten ileride de ele alınacağı gibi proses bittiğinde ``exit`` fonksiyonu tarafından kapatılmaktadır.
+
+Burada gerçekleşmesi pek olası olmayan bir küçük nokta üzerinde de durmak istiyoruz. Bizim ``open`` fonksiyonuyla
+yönlendirilecek dosyayı açtığımız durumda ya ``stdout`` dosyası zaten kapatılmışsa ne olacaktır? İşte bu durumda
+``close`` işlemi bizim için sorun oluşturur. Şöyle ki bu durumda ``open`` fonksiyonu en düşük betimleyici olan 1
+numaralı betimleyiciyi tahsis edecektir. ``dup2(fd, 1)`` çağrısında her iki betimleyici de aynı olduğu için ``dup2`` bir
+şey yapmayacaktır. Ancak bundan sonra ``fd`` betimleyicisinin kapatılması aslında 1 numaralı betimleyicinin kapatılması
+anlamına gelecektir. Yani sakıncalı bir durum oluşacaktır. Bu sakıncalı durum aşağıdaki gibi bir kontrolle elimine
+edilebilir:
+
+.. code-block:: c
+
+    int fd;
+    /* ... */
+
+    if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+        exit_sys("open");
+    if (fd != 1) {
+        if (dup2(fd, 1) == -1)
+            exit_sys("dup2");
+        close(fd);
+    }
+
+Tabii programcının genellikle böyle bir kontrol yapmasına gerek yoktur. Çünkü içinde bulunduğu durumda 1 numaralı
+betimleyicinin ``stdout`` dosyasını göstermesi normal bir durumdur.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <fcntl.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+
+        if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("open");
+
+        if (fd != 1) {
+            if (dup2(fd, 1) == -1)
+                exit_sys("dup2");
+            close(fd);
+        }
+
+        for (int i = 0; i < 10; ++i)
+            printf("%d\n", i);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+dup2 ile Yönlendirmeyi Geri Alma
+--------------------------------
+
+Yukarıdaki örnekte biz 1 numaralı betimleyicinin bizim dosyamıza ilişkin dosya nesnesini göstermesini sağladık. Peki
+bundan geri dönebilir miyiz? Yani 1 numaralı betimleyicinin yeniden terminale ilişkin aygıt sürücüsünü göstermesini
+sağlayabilir miyiz? Anımsanacağı gibi 1 ve 2 numaralı betimleyicilerin her ikisi de terminal aygıt sürücüsüne ilişkin
+dosya nesnesini belirtiyordu. İşte biz bu sayede geri dönüşü aşağıdaki gibi yapabiliriz:
+
+.. code-block:: c
+
+    int fd;
+
+    if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+        exit_sys("open");
+
+    if (dup2(fd, 1) == -1)
+        exit_sys("dup2");
+    close(fd);
+
+    /* ... */
+
+    if (dup2(2, 1) == -1)
+        exit_sys("dup2");
+
+Aşağıdaki örnekte bu işlem uygulanmıştır. Ancak burada bir ``fflush(stdout)`` çağrısı da yapılmıştır. Bunun nedeni
+izleyen konularda anlaşılabilecektir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+
+        if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("open");
+
+        if (dup2(fd, 1) == -1)
+            exit_sys("dup2");
+
+        close(fd);
+
+        for (int i = 0; i < 10; ++i)
+            printf("Number: %d\n", i);
+
+        fflush(stdout);
+
+        if (dup2(2, 1) == -1)
+            exit_sys("dup2");
+
+        for (int i = 0; i < 10; ++i)
+            printf("Number: %d\n", i);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+dup ile Yedek Betimleyici Oluşturma
+-----------------------------------
+
+Peki yukarıdaki örnekte 2 numaralı betimleyici bir biçimde yönlendirilmişse ya da ``close`` edilmişse geri dönüş nasıl
+sağlanabilir? Burada artık işleme başlamadan önce ``dup`` işlemi ile 1 numaralı betimleyicinin gösterdiği dosya
+nesnesini gösteren başka bir yedek betimleyicinin oluşturulması gerekir. Aşağıda bu duruma örnek verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <fcntl.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd_old;
+        int fd;
+
+        if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("open");
+
+        if (fd != 1) {
+            if ((fd_old = dup(1)) == -1)
+                exit_sys("dup");
+            if (dup2(fd, 1) == -1)
+                exit_sys("dup2");
+            close(fd);
+        }
+
+        for (int i = 0; i < 10; ++i)
+            printf("%d\n", i);
+        fflush(stdout);
+
+        if (dup2(fd_old, 1) == -1)
+            exit_sys("dup2");
+
+        for (int i = 0; i < 10; ++i)
+            printf("%d\n", i);
+
+        close(fd_old);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+0 Numaralı Betimleyicinin (stdin) Yönlendirilmesi
+-------------------------------------------------
+
+Biz yukarıdaki örneklerimizde 1 numaralı betimleyiciyi yönlendirdik. Şimdi de klavye üzerinde çalışan 0 numaralı
+betimleyiciyi yönlendirelim. Yukarıda da belirttiğimiz gibi C'deki ``getchar``, ``gets``, ``scanf`` gibi fonksiyonlar
+aslında sürecin bazı ayrıntıları göz ardı edilirse eninde sonunda ``read(0, ...)`` çağrısı yapmaktadır. Biz 0 numaralı
+betimleyicinin kendi açtığımız dosyaya ilişkin dosya nesnesini göstermesini sağlarsak artık bu fonksiyonlar klavyeden
+değil o dosyadan okuma yapar hale gelecektir. Örneğin:
+
+.. code-block:: c
+
+    int fd;
+    int ch;
+
+    if ((fd = open("test.txt", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    if (fd != 0) {
+        if (dup2(fd, 0) == -1)
+            exit_sys("dup2");
+        close(fd);
+    }
+
+    while ((ch = getchar()) != EOF)
+        putchar(ch);
+
+Burada ``getchar`` artık klavyeden değil ``test.txt`` dosyasından okuma yapacaktır. Aşağıdaki örnek için ``test.txt``
+dosyasının içeriğini şöyle oluşturalım:
+
+.. code-block:: text
+
+    10 20
+    30 40
+    50
+    60
+    70
+
+Bu örnekte scanf ile okuma şöyle yapılmıştır:
+
+.. code-block:: c
+
+    while (scanf("%d", &val) == 1)
+        printf("%d\n", val);
+
+``scanf`` fonksiyonu başarılı biçimde yerleştirdiği parça sayısıyla geri dönmektedir. ``scanf`` dosya sonuna
+gelindiğinden dolayı başarısız olduğunda 0 değerine geri dönecektir. Dolayısıyla yukarıdaki döngüde tüm sayılar tek tek
+okunacaktır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <fcntl.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+        int val;
+
+        if ((fd = open("test.txt", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        if (fd != 0) {
+            if (dup2(fd, 0) == -1)
+                exit_sys("dup2");
+            close(fd);
+        }
+
+        while (scanf("%d", &val) == 1)
+            printf("%d\n", val);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Kabuktan IO Yönlendirmesi: >, >>, cat ve tee
+--------------------------------------------
+
+IO yönlendirmesi kabuk üzerinden de yapılabilmektedir. Kabukta ``>`` sembolü 1 numaralı betimleyicinin yönlendirileceği
+anlamına gelmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ ./sample > test.txt
+
+Burada kabuk önce ``>`` sembolünün sağındaki dosyayı (örneğimizde ``test.txt`` dosyası) ``O_WRONLY|O_TRUNC`` modunda
+açar. Sonra ``./sample`` programı için yaratılacak prosesin 1 numaralı betimleyicisinin bu dosyaya ilişkin dosya
+nesnesini göstermesini sağlar. Böylece ``sample`` programının ekrana yazdığını sandığı şeyler aslında bu dosyaya
+yazılmış olacaktır. Sürecin ayrıntıları fork ve exec işlemlerinin anlatıldığı bölümde ele alınacaktır.
+
+*ls* gibi, *cat* gibi kabuk komutlarının da aslında birer program olduğuna, bunların da 1 numaralı betimleyiciyi
+kullanarak yazdırma yaptığına dikkat ediniz. Örneğin biz kabuk üzerinde şu komutu uygulayalım:
+
+.. code-block:: text
+
+    $ ls -l > test.txt
+
+Burada *ls* programı çıktıyı ekrana yazdırmak yerine artık ``test.txt`` dosyasına yazdıracaktır. Bir programın ekrana
+yazdıklarını dosyaya kaydetmek için en pratik yöntem komut satırında ``>`` ile yönlendirme yapmaktır.
+
+Eğer kabukta ``>`` yerine ``>>`` sembolü kullanılırsa bu durumda ``>>`` sembolünün sağındaki dosya
+``O_CREAT|O_WRONLY|O_APPEND`` modunda açılmaktadır. Yani dosya varsa bu durumda dosyanın içeriği silinmeden dosyanın
+sonuna ekleme yapılacaktır. Örneğin:
+
+.. code-block:: text
+
+    $ ls -l >> test.txt
+
+Örneğin biz kabuk üzerinde sıfırdan bir dosya oluşturup onun içerisine istediğimiz bir şeyi yazmak isteyelim. Bunun en
+pratik yollarından biri şudur:
+
+.. code-block:: text
+
+    $ cat > test.txt
+
+*cat* programı eğer argüman almazsa ``stdin`` dosyasından (yani 0 numaralı betimleyiciden) okuduklarını ``stdout``
+dosyasına (yani 1 numaralı betimleyiciye) yazdırmaktadır. O halde yukarıdaki komutla klavyeden girilenler ekrana değil
+``test.txt`` dosyasına yazdırılacaktır. İşlemi bitirmek için ``Ctrl+d`` tuşlarına basmalısınız.
+
+UNIX/Linux sistemlerinde *tee* isimli çok kullanılan bir POSIX komutu da bulunmaktadır. Bu komut her zaman ``stdin``
+dosyasından (0 numaralı betimleyiciden) okuma yapar, ancak okunanları hem ``stdout`` dosyasına (1 numaralı
+betimleyiciye) hem de argüman olarak verilen dosyaya yazar. Bu dosya zaten varsa içeriği silinmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ tee test.txt
+
+Burada klavyeden girilenler hem ekrana yazdırılacak hem de ``test.txt`` dosyasına yazdırılacaktır. İşlemi sonlandırmak
+için ``Ctrl+d`` tuşlarına basılmalıdır. Komutta ``-a`` seçeneği kullanılırsa dosya içeriği silinmeden onun sonuna ekleme
+yapılmaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ tee -a test.txt
+
+Burada ``test.txt`` dosyasının içeriği yazılanlar silinmeyecek, dosyanın sonuna eklenecektir. *tee* komutu argümansız
+olarak da kullanılabilmektedir. (Aslında genellikle komut böyle kullanılır.) Bu durumda *tee* komutu ``stdin``
+dosyasından okunanları yalnızca ``stdout`` dosyasına yazdırmaktadır. Bu durumda aşağıdaki iki komut aynı etkiye yol
+açacaktır:
+
+.. code-block:: text
+
+    $ tee
+    $ cat
+
+*tee* komutu bazı durumlarda sıkça kullanılmaktadır.
+
+Kabuktan Giriş Yönlendirmesi: <
+-------------------------------
+
+Kabuk üzerinde ``<`` karakteri de 0 numaralı betimleyiciyi yönlendirmektedir. Örneğin:
+
+.. code-block:: text
+
+    $ ./sample < test.txt
+
+Burada kabuk ``test.txt`` dosyasını ``O_RDONLY`` modunda açar. Sonra ``./sample`` programı ile yaratılacak prosese
+ilişkin dosya betimleyici tablosundaki 0 numaralı betimleyicinin ``test.txt`` dosyasına ilişkin dosya nesnesini
+göstermesini sağlar. Sürecin ayrıntıları ileride ele alınacaktır. Böylece program içerisinde klavyeden okunmak istenen
+her şey aslında ``test.txt`` dosyasından okunacaktır. Örneğin ``sample.c`` programında ``scanf`` fonksiyonu ile şöyle
+okuma yapılmış olsun:
+
+.. code-block:: c
+
+    int val;
+
+    while (scanf("%d", &val) == 1)
+        printf("%d\n", val * val);
+
+Burada klavyeden (``stdin`` dosyasından) okunan değerlerin karesi ekrana (``stdout`` dosyasına) yazdırılmaktadır. Biz bu
+programı kabuktan şöyle çalıştırmış olalım:
+
+.. code-block:: text
+
+    $ ./sample < test.txt
+
+Bu durumda ``scanf`` çağrıları aslında dosyadan sayıları okuyacaktır. Aşağıdaki programı ``test.txt`` dosyasının
+içerisine çeşitli sayılar yazarak test edebilirsiniz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    int main(void)
+    {
+        int val;
+
+        while (scanf("%d", &val) == 1)
+            printf("%d\n", val);
+
+        return 0;
+    }
+
+n> ve n< Sembolleri
+-------------------
+
+Aslında kabukta genel olarak yönlendirme için ``n>`` ve ``n<`` sembolleri de kullanılabilmektedir. Buradaki ``n``
+betimleyicinin numarasını belirtir. Bu sayede biz herhangi bir betimleyiciyi okuma ve yazma amacıyla bir dosyaya
+yönlendirebiliriz. Örneğin:
+
+.. code-block:: text
+
+    $ ./sample 2> test.txt
+
+Burada ``test.txt`` dosyası açılıp ``./sample`` programının ``stderr`` olarak isimlendirilen 2 numaralı betimleyiciye
+yazdıkları ``test.txt`` dosyasına yönlendirilecektir.
+
+Kabuk programları ``>``, ``<``, ``n>``, ``n<`` gibi yönlendirmeleri nasıl yapmaktadır? Bu konu ileride ele alınacaktır.
+Tipik olarak kabuk programları önce bir kez fork işlemi yapar, sonra yönlendirme işlemini gerçekleştirir, sonra da exec
+işlemi ile programı çalıştırır.
+
+stdin ve stdout'un Birlikte Yönlendirilmesi
+-------------------------------------------
+
+Tabii hem ``stdout`` dosyasını hem de ``stdin`` dosyasını kabuk üzerinden birlikte de yönlendirebiliriz. Örneğin:
+
+.. code-block:: text
+
+    $ ./sample > out.txt < in.txt
+
+Burada 1 numaralı betimleyici ``out.txt`` dosyasına, 0 numaralı betimleyici ``in.txt`` dosyasına yönlendirilmiştir.
+
+
+freopen, Aygıt Sürücüler, IO Yönlendirmesi ve Boru (Pipe) İşlemi
+================================================================
+
+freopen Fonksiyonu ile Dosya Yönlendirmesi
+------------------------------------------
+
+Dosya yönlendirmesi kısıtlı olsa da ``freopen`` isimli standart C fonksiyonuyla da yapılabilmektedir. Fonksiyonun
+prototipi şöyledir:
+
+.. code-block:: c
+
+    FILE *freopen(const char *path, const char *mode, FILE *stream);
+
+Fonksiyonun birinci parametresi yönlendirmenin yapılacağı disk dosyasının yol ifadesini, ikinci parametre açış modunu
+belirtmektedir. Eğer bu ikinci parametre *w* içeren bir parametre ise yönlendirme bu dosyaya yazılacak biçimde
+yapılmaktadır. Eğer bu parametre *r* içeren biçimdeyse yönlendirme bu dosyadan okunacak biçimde yapılmaktadır.
+Fonksiyonun son parametresi yönlendirilecek dosyaya ilişkin dosya bilgi göstericisini (``stream``) almaktadır. Fonksiyon
+başarı durumunda dosyaya ilişkin dosya bilgi göstericisine, başarısızlık durumunda ``NULL`` adrese geri dönmektedir.
+Fonksiyonun bize verdiği dosya bilgi göstericisi birinci parametreyle belirttiğimiz dosyaya ilişkin dosya bilgi
+göstericisidir. Bu işlem sonrasında son parametreyle belirtilmiş olan gösterici ile fonksiyonun geri döndürdüğü
+gösterici aynı ``FILE`` nesnesini gösteriyor durumda olur. ``freopen`` fonksiyonu işleme başlamadan önce üçüncü
+parametreyle belirtilen dosyayı flush edip kapatmaktadır. Sonra da yönlendirme işlemini yapmaktadır. Fonksiyonun birinci
+parametresine özel bir durum olarak ``NULL`` adres de geçilebilir. Bu durumda fonksiyon yönlendirme yapmaz. Yalnızca
+açılmış olan dosyanın açış modunu değiştirir. Örneğin:
+
+.. code-block:: c
+
+    FILE *f;
+
+    if ((f = freopen("test.txt", "w", stdout)) == NULL) {
+        fprintf(stderr, "cannot open file!..\n");
+        exit(EXIT_FAILURE);
+    }
+
+Burada ``stdout`` dosyası ``test.txt`` dosyasına yönlendirilmiş durumdadır. Yani artık ``stdout`` dosyasına yazılacak
+şeyler ``test.txt`` dosyasına yazılacaktır. Aslında fonksiyon ``stdout`` göstericisinin gösterdiği yerdeki ``FILE``
+nesnesi üzerinde değişiklik yapmaktadır. Dolayısıyla ``stdout`` göstericisinin gösterdiği yer aslında değişmemekte ve
+``freopen`` fonksiyonu yine aynı adresi geri döndürmektedir. ``freopen`` fonksiyonunun geri döndürdüğü dosya bilgi
+göstericisine aslında gerçek anlamda gereksinim duyulmadığına dikkat ediniz. Örneğin:
+
+.. code-block:: c
+
+    FILE *f;
+
+    if ((f = freopen("test.txt", "w+", stdout)) == NULL) {
+        fprintf(stderr, "cannot reopen file!...\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fprintf(f, "this is a test, yes this is a test\n");
+
+    for (int i = 0; i < 10; ++i)
+        printf("%d\n", i);
+
+``freopen`` ile elde ettiğimiz bu betimleyiciyi kapatırsak biz aslında örneğimizdeki ``stdout`` dosyasını kapatmış
+oluruz. ``stdout`` dosyasının kapatılması ``exit`` işlemi sırasında yapılmaktadır.
+
+Peki ``freopen`` ile yapılan yönlendirme geriye alınabilir mi? Yani örneğin biz ``stdout`` ya da ``stderr`` dosyalarını
+bir disk dosyasına yönlendirdikten sonra onları yeniden ilgili aygıt sürücülere yönlendirebilir miyiz? Maalesef bunu
+yapmanın standart bir yolu yoktur.
+
+IO yönlendirmesi çokça karşılaşılan bir uygulama olduğu halde ``freopen`` fonksiyonu çok seyrek kullanılmaktadır. Çünkü
+``freopen`` fonksiyonunda yönlendirilecek dosyanın C'ce açılmış bir dosya olması gerekmektedir. Halbuki IO
+yönlendirmelerinin çoğu daha aşağı seviyede gerçekleştirilmektedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int main(void)
+    {
+        FILE *f;
+
+        if ((f = freopen("test.txt", "w+", stdout)) == NULL) {
+            fprintf(stderr, "cannot reopen file!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0; i < 10; ++i)
+            printf("%d\n", i);
+
+        return 0;
+    }
+
+Aygıt Sürücüler ve /dev Dizini
+------------------------------
+
+Aygıt sürücülerin bir dosya gibi kullanıldığını belirtmiştik. UNIX/Linux sistemlerinde geleneksel olarak aygıt
+sürücülere erişmekte kullanılan dizin girişleri ``/dev`` dizininde bulundurulmaktadır. Biz bir aygıt sürücüyü kullanmak
+için ona ilişkin dizin girişini ``open`` fonksiyonuyla açarız. Örneğin:
+
+.. code-block:: c
+
+    fd = open("/dev/null", O_WRONLY);
+
+Burada ``/dev/null`` aygıt sürücüsü ``open`` fonksiyonuyla açılmıştır. Aygıt sürücülere ilişkin dizin girişleri
+(örneğimizdeki ``/dev/null`` girişi) gerçek bir dosya belirtmemektedir. Aygıt dosyalarına ilişkin dizin girişleri için
+diskte yalnızca bir inode elemanı bulundurulmaktadır. Bu inode elemanı aslında hangi aygıt sürücüyle ilişki kurulacağını
+belirten anahtarı içermektedir. Linux sistemlerinde uzunca bir süredir artık ``/dev`` dizini gerçek bir disk dizini
+değildir. Bu dizin RAM'de oluşturulmaktadır ve bu dizine ilişkin dosya sistemine ``devtmpfs`` denilmektedir. Ancak aygıt
+sürücüler için dizin girişlerinin ``/dev`` dizininde oluşturulması zorunlu da değildir. Biz kursumuzda Linux aygıt
+sürücülerini ayrı bir bölümde ayrıntılı bir biçimde ele alacağız.
+
+İşletim sistemi aygıt sürücüye ilişkin dizin girişi açılmaya çalışıldığında aslında *bir aygıt sürücü ile işlem yapılmak
+istendiğini* anlamakta ve o aygıt sürücüyle ilişki kurmaktadır. Yani aygıt sürücü bir dosya gibi açılıyor olsa da
+aslında onun bir disk dosyasıyla ilgisi yoktur.
+
+Örneğin biz bir disk dosyasını ``open`` fonksiyonuyla açıp ondan ``read`` fonksiyonuyla okuma yaptığımızda dosyanın
+içindekileri okuruz. Ancak biz bir aygıt dosyasına ilişkin dizin girişini ``open`` ile açıp ``read`` yaptığımızda aygıt
+sürücü içerisindeki ``read`` fonksiyonunun kodu çalıştırılır, o fonksiyonun bize verdiklerini okumuş oluruz. Aynı durum
+``write`` işleminde de geçerlidir. Örneğin biz terminal aygıt sürücüsünü ``open`` fonksiyonuyla açıp ``write``
+fonksiyonuyla ona bir şeyler yazmak istesek terminal aygıt sürücüsünün ``write`` fonksiyonu çalıştırılacak ve o
+fonksiyon da bizden aldığı bilgileri fiziksel ekrana yazdıracaktır. Zaten 0 numaralı betimleyici terminal aygıt
+sürücüsünün ``O_RDONLY`` modunda açılmasıyla, 1 numaralı betimleyici de terminal aygıt sürücüsünün ``O_WRONLY`` modunda
+açılmasıyla elde edilmiştir. Siz de şöyle bir deneme yapabilirsiniz. Önce terminalinizde *tty* komutunu uygulayarak
+terminal sürücünüzü belirleyebilirsiniz:
+
+.. code-block:: text
+
+    $ tty
+    /dev/pts/0
+
+Sonra da bu terminal aygıt sürücüsünü ``open`` fonksiyonuyla açıp ``write`` fonksiyonuyla ona bir şeyler yazabilirsiniz:
+
+.. code-block:: c
+
+    int fd;
+
+    if ((fd = open("/dev/pts/0", O_WRONLY)) == -1)
+        exit_sys("open");
+
+    if (write(fd, "ankara\n", 7) == -1)
+        exit_sys("write");
+
+Yazdığınız şeyler terminalde gözükecektir.
+
+Aygıt sürücülerin sanki birer dosyaymış gibi ele alınmasının pratik pek çok faydası bulunmaktadır. Yalnızca Linux
+sistemlerinde değil Windows gibi pek çok işletim sistemindeki tasarım bu biçimdedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fd;
+
+        if ((fd = open("/dev/pts/0", O_WRONLY)) == -1)
+            exit_sys("open");
+
+        if (write(fd, "ankara\n", 7) == -1)
+            exit_sys("write");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+stdin, stdout ve stderr Makroları
+---------------------------------
+
+C'deki ``stdin``, ``stdout`` ve ``stderr`` isimli makrolar betimleyici belirtmezler. Bu makrolar ``FILE *`` türündendir.
+Tabii ``stdin`` UNIX/Linux sistemlerinde 0 numaralı betimleyici ile, ``stdout`` 1 numaralı betimleyici ile, ``stderr``
+de 2 numaralı betimleyici ile ilişkilidir. Biz C'de ``stderr`` dosyasına ``fprintf`` fonksiyonu ile aşağıdaki gibi bir
+şeyler yazabiliriz:
+
+.. code-block:: c
+
+    fprintf(stderr, "stderr\n");
+
+Tabii aslında bilindiği gibi ``printf`` ile ``fprintf`` arasında, ``scanf`` ile ``fscanf`` arasındaki tek farklılık
+``printf`` ve ``scanf`` fonksiyonlarının default olarak ``stdout`` ve ``stdin`` dosya bilgi göstericilerini
+kullanmasıdır. Yani örneğin ``printf(...)`` çağrısı tamamen ``fprintf(stdout, ...)`` çağrısı ile eşdeğerdir. Benzer
+biçimde ``scanf(...)`` çağrısı ile de ``fscanf(stdin, ...)`` eşdeğerdir.
+
+stderr Dosyasının Anlamı ve IO Yönlendirmesiyle Ayrıştırma
+----------------------------------------------------------
+
+Peki ``stderr`` dosyası ne anlama gelmektedir? Anımsanacağı gibi ``stderr`` dosyası 2 numaralı betimleyici ile temsil
+edilmektedir. 1 ve 2 numaralı betimleyicilerin ``dup`` yapılmış olduğunu, yani aynı dosya nesnesini gösterdiğini
+anımsayınız:
+
+.. code-block:: text
+
+    Dosya Betimleyici Tablosu
+
+    ┌───────┐               ┌─────────────────────┐
+    │   0   │──────────────►│ stdin dosya nesnesi │
+    ├───────┤               └─────────────────────┘
+    │   1   │─────────┐
+    ├───────┤         │     ┌──────────────────────┐
+    │   2   │─────────┴────►│ stdout dosya nesnesi │
+    ├───────┤               └──────────────────────┘
+    │  ...  │
+    └───────┘
+
+Bu durumda her iki betimleyici ile de ``write`` yapıldığında yazılanlar ekrana yine çıkacaktır. O halde ``stderr``
+dosyasının anlamı nedir? İşte programcı hata mesajlarını ``stderr`` dosyasına yazdırmalıdır. Bu iyi bir tekniktir.
+Örneğin:
+
+.. code-block:: c
+
+    if ((f = fopen("test.txt", "r")) == NULL) {
+        fprintf(stderr, "cannot open file!...\n");
+        exit(EXIT_FAILURE);
+    }
+
+Böylece ileride gerekirse programın normal çıktılarıyla hata mesajları IO yönlendirmesi yoluyla birbirinden ayrılabilir.
+Tabii biz IO yönlendirmesi yapmadıktan sonra programın normal mesajlarıyla hata mesajlarının her ikisi de ekrana
+çıkacaktır. Aşağıdaki gibi bir program olsun:
+
+.. code-block:: c
+
+    /* sample.c */
+
+    #include <stdio.h>
+
+    int main(void)
+    {
+        fprintf(stderr, "stderr\n");
+        fprintf(stdout, "stdout\n");
+
+        return 0;
+    }
+
+Biz bu programı çeşitli biçimlerde çalıştıralım:
+
+.. code-block:: text
+
+    $ ./sample
+    stderr
+    stdout
+    $ ./sample > test.txt
+    stderr
+    $ ./sample 2> test.txt
+    stdout
+
+Görüldüğü gibi biz programın hata mesajları ile normal mesajları artık ayırabilmekteyiz. Eğer her mesajı ``printf`` ile
+``stdout`` dosyasına yazdırsaydık bunları ayrıştıramayacaktık.
+
+Örneğin biz ``find`` programı ile ``sample.c`` dosyasını dizin ağacında aramak isteyelim:
+
+.. code-block:: text
+
+    $ find / -name "sample.c"
+
+Burada erişilemeyen dizinler için ``find`` programı bir sürü hata mesajını ``stderr`` dosyasına yazdıracaktır.
+Dolayısıyla kafamız karışacaktır. Şimdi programı şöyle çalıştıralım:
+
+.. code-block:: text
+
+    $ find / -name "sample.c" 2> err.txt
+
+Artık hata mesajları ekranda görünmeyecektir. Bu tür durumlar için ``/dev/null`` isimli bir aygıt sürücü
+bulundurulmuştur. Bu aygıt sürücü açılırsa ve ona yazma yapılırsa yazılanlar atılmaktadır. O halde programın yazdığı
+hata mesajları gereksiz yer kaplamasın diye biz yönlendirmeyi ``/dev/null`` aygıt sürücüsüne de yapabiliriz. Örneğin:
+
+.. code-block:: text
+
+    $ find / -name "sample.c" 2> /dev/null
+
+``/dev/null`` aygıt sürücüsünden okuma yapılmaya çalışılırsa sanki dosya sonuna gelinmiş (yani EOF durumuna gelinmiş)
+gibi bir durum oluşmaktadır.
+
+/dev/zero Aygıt Sürücüsü
+------------------------
+
+``/dev/zero`` aygıt sürücüsü ``/dev/null`` aygıt sürücüsüne çok benzemektedir. ``/dev/zero`` aygıt sürücüsüne yazılanlar
+da atılır. Ancak bu aygıt sürücüden okuma yapıldığında hep sıfır okunmaktadır. Örneğin:
+
+.. code-block:: c
+
+    int fd;
+    unsigned char buf[10];
+
+    if ((fd = open("/dev/zero", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    if (read(fd, buf, 10) == -1)
+        exit_sys("read");
+
+    for (int i = 0; i < 10; ++i)
+        printf("%02x\n", buf[i]);
+
+Burada sanki ``/dev/zero`` içerisinde 0'lar bulunan bir dosya gibi davranmaktadır. Aşağıdaki örnekte bu aygıt sürücüyü
+C'nin ``fopen`` fonksiyonuyla açıp kullandık. Burada standart C fonksiyonlarını kullanmanın bizim için bir dezavantajı
+yoktur.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int main(void)
+    {
+        FILE *f;
+        int ch;
+
+        if ((f = fopen("/dev/zero", "rb")) == NULL) {
+            fprintf(stderr, "cannot open file!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0; i < 10; ++i) {
+            if ((ch = fgetc(f)) == EOF) {
+                fprintf(stderr, "cannot read from file!...\n");
+                exit(EXIT_FAILURE);
+            }
+            printf("%d ", ch);
+            fflush(stdout);
+        }
+        printf("\n");
+
+        fclose(f);
+
+        return 0;
+    }
+
+dd Komutu
+---------
+
+UNIX/Linux sistemlerinde *dd* isimli POSIX komutu dosyayı blok blok kopyalamak için kullanılmaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ dd if=x.txt of=y.txt bs=4096 count=10
+
+Komuttaki ``if`` argümanı girdi dosyasını (input file), ``of`` argümanı çıktı dosyasını (output file) belirtmektedir.
+``bs`` (block size) ``read`` ve ``write`` ile kopyalamanın hangi uzunlukta tampon kullanılarak gerçekleştirileceğini,
+``count`` argümanı ise kaç blokluk kopyalama yapılacağını belirtmektedir. ``bs`` argümanı belirtilmezse default blok
+büyüklüğü 512 byte alınmaktadır. ``count`` argümanı belirtilmezse dosya sonuna kadar kopyalama yapılmaktadır. Komutun
+daha pek çok argümanı vardır. Bunları *man sayfalarından* inceleyebilirsiniz. Örneğin biz *dd* komutu ile içi 0'larla
+dolu bir dosyayı şöyle oluşturabiliriz:
+
+.. code-block:: text
+
+    $ dd if=/dev/zero of=test.dat bs=8192 count=1
+    1+0 kayıt girdi
+    1+0 kayıt çıktı
+    8192 bayt (8,2 kB, 8,0 KiB) kopyalandı, 0,000190202 s, 43,1 MB/s
+    $ ls -l test.dat
+    -rw-r--r-- 1 kaan study 8192 Ağu 20 11:56 test.dat
+
+/dev/random ve /dev/urandom Aygıt Sürücüleri
+--------------------------------------------
+
+``/dev/random`` ve ``/dev/urandom`` aygıt sürücüleri her okunduğunda rastgele byte'lar elde edilmektedir. Bu iki aygıt
+sürücü arasında bazı küçük farklılıklar vardır. Ancak burada onun üzerinde durmayacağız. Örneğin:
+
+.. code-block:: c
+
+    int fd;
+    unsigned char buf[10];
+
+    if ((fd = open("/dev/random", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    if (read(fd, buf, 10) == -1)
+        exit_sys("read");
+
+    for (int i = 0; i < 10; ++i)
+        printf("%02x\n", buf[i]);
+
+Örneğin rastgele değerlerden oluşan 5121 byte'lık bir dosyayı şöyle oluşturabiliriz:
+
+.. code-block:: text
+
+    $ dd if=/dev/random of=test.dat bs=5121 count=1
+    1+0 kayıt girdi
+    1+0 kayıt çıktı
+    5121 bayt (5,1 kB, 5,0 KiB) kopyalandı, 0,000342703 s, 14,9 MB/s
+    $ ls -l test.dat
+    -rw-r--r-- 1 kaan study 5121 Ağu 20 11:59 test.dat
+
+Aşağıdaki örnekte bu aygıt sürücüden rastgele byte'lar okunup hex sistemde ekrana yazdırılmıştır. Program beklemelere
+yol açarsa şaşırmayınız. Çünkü konunun bazı ayrıntıları vardır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int main(void)
+    {
+        FILE *f;
+        int ch;
+
+        if ((f = fopen("/dev/random", "rb")) == NULL) {
+            fprintf(stderr, "cannot open file!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0; i < 256; ++i) {
+            if ((ch = fgetc(f)) == EOF) {
+                fprintf(stderr, "cannot read from file!...\n");
+                exit(EXIT_FAILURE);
+            }
+            printf("%02X%c", ch, i % 16 == 15 ? '\n' : ' ');
+            fflush(stdout);
+        }
+        printf("\n");
+
+        fclose(f);
+
+        return 0;
+    }
+
+Boru (Pipe) İşlemi
+------------------
+
+Komut satırındaki diğer önemli bir işlem de *boru (pipe)* işlemidir. Boru işlemi ``|`` ile temsil edilmektedir. Kabuk
+üzerinden aşağıdaki gibi bir komut uygulamış olalım:
+
+.. code-block:: text
+
+    $ a | b
+
+Burada kabuk bu yazıyı ``|`` karakterinden parse eder. ``|`` karakterinin solundaki ve sağındakileri birer program
+olarak ele alır. Her iki programı da çalıştırır. Yani burada ``a`` programı da ``b`` programı da çalıştırılacaktır.
+``a`` programının ``stdout`` dosyasına yazdıklarını ``b`` programı ``stdin`` dosyasından okuyacaktır. Başka bir deyişle
+``a`` programının 1 numaralı betimleyiciyle yaptığı ``write`` işlemlerini ``b`` programı 0 numaralı betimleyici ile
+``read`` fonksiyonunu kullanarak okuyabilecektir. Kabuk boru işlemlerini *prosesler arası haberleşme yöntemlerinden biri
+olan boru haberleşmesi ile* gerçekleştirmektedir. Zaten ilerleyen bölümlerde bu konu ele alınacaktır. Bu durumda ``a |
+b`` işleminde kabuk şöyle davranmaktadır:
+
+1) Kabuk önce bir boru yaratır.
+
+2) ``a`` programının 1 numaralı betimleyicisini, ``b`` programının 0 numaralı betimleyicisini boruya yönlendirir.
+
+3) Bu durumda ``a`` programının ``stdout`` dosyasına yazdıkları boruya gidecek ve ``b`` programının da ``stdin``
+   dosyasından okudukları borudan okunacaktır.
+
+Tabii boru işlemi yapılırken programlara komut satırı argümanları da verilebilir. Örneğin:
+
+.. code-block:: text
+
+    $ a x y z | b k l m
+
+Burada aslında çalıştırılacak programlar ``a`` ve ``b`` programlarıdır. Diğerleri bunların komut satırı argümanlarıdır.
+
+Aşağıdaki örnekte ``a`` programı ekrana (``stdout`` dosyasına) 0'dan 10'a kadar sayıları yazdırmaktadır. ``b`` programı
+ise döngü içerisinde klavyeden (``stdin`` dosyasından) değer okuyup ekrana yazdırmaktadır. Bu iki programı aşağıdaki
+gibi çalıştıralım:
+
+.. code-block:: text
+
+    $ ./a | ./b
+
+Burada artık ``a``'nın ekrana yazdıklarını sanki ``b`` klavyeden okuyormuş gibi bir etki oluşacaktır.
+
+.. code-block:: c
+
+    /* a.c */
+
+    #include <stdio.h>
+
+    int main(void)
+    {
+        for (int i = 0; i < 100; ++i)
+            printf("%d\n", i);
+
+        return 0;
+    }
+
+.. code-block:: c
+
+    /* b.c */
+
+    #include <stdio.h>
+
+    int main(void)
+    {
+        int ch;
+
+        while ((ch = getchar()) != EOF)
+            putchar(ch);
+
+        return 0;
+    }
+
+cat, wc, more ve grep ile Boru Kullanımı
+----------------------------------------
+
+UNIX/Linux sistemlerindeki dosya yol ifadesi alan POSIX kabuk komutları, eğer dosya yol ifadesi verilmezse genellikle
+``stdin`` dosyasından okuma yapacak biçimde yazılmışlardır. Örneğin *cat* komutu bir dosyanın içeriğini ``stdout``
+dosyasına yazdırır:
+
+.. code-block:: text
+
+    $ cat test.txt
+
+Ancak bu *cat* komutu argümansız kullanılırsa okumayı ``stdin`` dosyasından yapar. Örneğin *wc* isimli kabuk komutu
+normal olarak bir dosyanın yol ifadesini argüman olarak alır ve o dosyadaki satır sayısını, sözcük sayısını ve byte
+sayısını ``stdout`` dosyasına yazdırır. Ancak bu program komut satırı argümanı verilmeden kullanılırsa klavyeden
+(``stdin`` dosyasından) okuma yapacaktır. Bu biçimdeki tasarımın nedeni bu komutların *boru* eşliğinde kullanımını
+sağlamaktır. Örneğin:
+
+.. code-block:: text
+
+    $ ps -e | wc
+
+Burada ``ps -e`` komutu satır satır sistemdeki prosesleri ``stdout`` dosyasına yazmaktadır. *wc* komutuna argüman
+verilmediğine göre bu komut ``stdin`` dosyasından okuma yapacaktır. O halde bu durumda aslında ``ps -e`` komutunun
+ekrana yazdıklarını *wc* komutu işleme sokacaktır. Örneğin:
+
+.. code-block:: text
+
+    $ ps -e | wc
+    421    1684   17398
+
+Buradan toplam 421 tane prosesin bulunduğunu görmekteyiz. *wc* komutunda yalnızca satır sayısı görüntülenmek isteniyorsa
+``-l`` seçeneği kullanılabilir:
+
+.. code-block:: text
+
+    $ ps -e | wc -l
+    423
+
+Örneğin bir çıktıyı sayfa sayfa görüntülemek için *more* isimli bir komut bulunmaktadır. *more* programı normalde bir
+dosyayı argüman olarak alır. Ancak eğer dosya verilmezse bu durumda *more* ``stdin`` dosyasından okunanları sayfa sayfa
+görüntüler. Biz de bu sayede aşağıdaki gibi faydalı işlemler yapabiliriz:
+
+.. code-block:: text
+
+    $ ps -e | more
+
+Burada ``ps -e`` komutunun ekrana yazdırdıkları sayfa sayfa görüntülenecektir.
+
+Boru işleminin *grep* komutu ile kullanılmasına da sıkça rastlanmaktadır. *grep* komutu bir dosyada belli bir düzenli
+ifade kalıbını (regular expression pattern) arayıp onun bulunduğu satır numaralarını göstermektedir. Örneğin:
+
+.. code-block:: text
+
+    $ grep "msg" sample.c
+    void exit_sys(const char *msg);
+    void exit_sys(const char *msg)
+        perror(msg);
+
+Burada ``sample.c`` dosyası içerisinde *msg* geçen satırlar ekrana (``stdout`` dosyasına) yazdırılmıştır. Bu satırların
+numaralarını da görmek istiyorsanız ``-n`` seçeneğini kullanmalısınız:
+
+.. code-block:: text
+
+    $ grep -n "msg" sample.c
+    5:void exit_sys(const char *msg);
+    17:void exit_sys(const char *msg)
+    19:    perror(msg);
+
+İşte *grep* komutunda da eğer dosyanın yol ifadesi girilmezse komut ``stdin`` dosyasından okunanlar üzerinde işlem
+yapmaktadır. Bu durumda biz örneğin hiç ara dosya oluşturmadan bir komutun çıktısı üzerinde grep yapabiliriz. Örneğin:
+
+.. code-block:: text
+
+    $ ps -e | grep "bash"
+    12717 pts/0    00:00:00 bash
+    43642 pts/1    00:00:00 bash
+
+Peki ``|`` karakterinin sağındaki program ``stdin`` dosyasından okuma yapmıyorsa ne olur? Örneğin:
+
+.. code-block:: text
+
+    $ ps -e | wc sample.c
+
+Burada *wc* komutu artık ``stdin`` dosyasından okuma yapmayacaktır. Bu durumda yine ``ps -e`` komutunun çıktısı boruya
+yönlendirilir. Ancak *wc* artık ``stdin`` dosyasından okuma yapmadığı için ``ps -e`` komutunun ekrana yazdıklarını
+işleme sokmayacaktır.
+
+Boru işlemleri birbirini izleyen biçimde de yapılabilir. Örneğin:
+
+.. code-block:: text
+
+    $ a | b | c
+
+Burada ``a`` programının ``stdout`` dosyasına yazdıklarını ``b`` programı ``stdin`` dosyasından okuyacaktır, ``b``
+programının da ``stdout`` dosyasına yazdıklarını ``c`` programı ``stdin`` dosyasından okuyacaktır. Örneğin:
+
+.. code-block:: text
+
+    $ ps -e | grep "bash" | wc
+      2       8      62
+
+Burada *ps* programının ``stdout`` dosyasına yazdıklarını *grep* programı ``stdin`` dosyasından, *grep* programının
+``stdout`` dosyasına yazdıklarını ise *wc* programı ``stdin`` dosyasından okuyacaktır.
+
+Eğer boru mekanizması olmasaydı yukarıdaki işlemler yine yapılabilirdi. Ancak bu durumda geçici dosyaların oluşturulması
+gerekirdi. Örneğin:
+
+.. code-block:: text
+
+    $ ps -e > temp.txt
+    $ wc temp.txt
+    $ rm temp.txt
