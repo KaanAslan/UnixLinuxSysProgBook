@@ -2624,9 +2624,9 @@ bakımdan bunların arasında küçük farklılıklar vardır. Fonksiyonların p
 
     #include <sys/stat.h>
 
-    int stat(const char *path, struct stat *buf);
-    int fstat(int fd, struct stat *buf);
-    int lstat(const char *path, struct stat *buf);
+    int stat(const char *restrict path, struct stat *restrict buf);
+    int fstat(int fildes, struct stat *buf);
+    int lstat(const char *restrict path, struct stat *restrict buf);
 
 ``stat`` fonksiyonları dosyaya ilişkin inode elemanından dosyanın metadata bilgilerini elde etmektedir. Örneğin dosyanın
 erişim hakları, kullanıcı ve grup ID'leri, dosyanın uzunluğu, dosyanın tarih-zaman bilgileri bu ``stat``
@@ -2640,7 +2640,7 @@ stat Fonksiyonu
 
 .. code-block:: c
 
-    int stat(const char *path, struct stat *buf);
+    iint stat(const char *restrict path, struct stat *restrict buf);
 
 Fonksiyonun birinci parametresi metadata bilgisi elde edilecek dosyanın yol ifadesini, ikinci parametresi ise dosyanın
 metadata bilgilerinin yerleştirileceği ``struct stat`` isimli yapı türünden nesnesinin adresini almaktadır. ``stat`` 
@@ -3591,11 +3591,12 @@ Prototipi şöyledir:
 
     int fstat(int fd, struct stat *buf);
 
-Genel olarak işletim sisteminin dosya betimleyicisinden hareketle inode bilgilerine erişmesi yol ifadesinden hareketle
-erişmesinden daha hızlı olmaktadır. Çünkü ``open`` fonksiyonuyla dosya açıldığında zaten dosyanın disk üzerindeki inode
-bilgileri elde edilip çekirdek alanına çekilmektedir. Linux sistemlerinde diskteki dosyanın bilgilerinin yerleştirildiği
-çekirdek nesnelerine *inode nesneleri* denilmektedir. Dolayısıyla eğer dosya zaten açılmışsa onun dosya
-betimleyicisinden hareketle dosya bilgilerine erişilmesi çekirdek için daha zahmetsiz ve hızlıdır. Örneğin:
+Genel olarak iUNIX türevi işletim sistemleri inode bilgilerine dosya betimleyicisinden hareketle daha hızlı erişmektedir. 
+Çünkü ``open`` fonksiyonuyla dosya açıldığında zaten dosyanın disk üzerindeki *inode* bilgileri elde edilip çekirdek alanına 
+çekilmektedir. (Linux sistemlerinde diskteki dosyanın bilgilerinin yerleştirildiği çekirdek nesnelerine *inode nesneleri* 
+denilmektedir. Dosya nesnesinin içerisinde inode nesnesinin adresi de tutulmaktadır.) Dolayısıyla eğer dosya zaten 
+açılmışsa onun dosya betimleyicisinden hareketle dosya bilgilerine erişilmesi çekirdek için daha zahmetsiz ve hızlıdır. 
+Örneğin:
 
 .. code-block:: c
 
@@ -3612,129 +3613,26 @@ betimleyicisinden hareketle dosya bilgilerine erişilmesi çekirdek için daha z
 
 Burada bir noktayı yeniden vurgulamak istiyoruz. Dosyayı ``open`` fonksiyonuyla açıp ``fstat`` kullanmak iyi bir teknik
 değildir. Dosya zaten başka işlemler için açılmak zorundaysa ve açık dosyanın bilgilerini elde etmek istiyorsak
-``fstat`` kullanmamız uygun olur.
+``fstat`` kullanmamız uygun olur. 
+
+lstat Fonksiyonu
+~~~~~~~~~~~~~~~~
+
+``lstat`` fonksiyonunun ``stat`` fonksiyonundan tek farkı sembolik bağ dosyaları söz konusu olduğunda sembolik bağı
+izlememesi, sembolik bağ dosyasının kendisine ilişkin bilgileri vermesidir. Dizinler için sembolik bağlar
+oluşturulduğunda dizin ağacı özyinelemeli bir biçimde dolaşılırken sembolik bağların izlenmesi bu tür dolaşımların
+sonsuz döngüye girmesine yol açabilmektedir. Bu tür durumlarda ``stat`` yerine ``lstat`` fonksiyonu kullanılmalıdır.
+Linux sistemleri dizinler üzerinde sembolik bağ oluşturulmasına izin vermemektedir. ``lstat`` fonksiyonunun
+parametrik yapısı tamamen ``stat`` fonksiyonu gibidir:
 
 .. code-block:: c
 
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <time.h>
-    #include <locale.h>
-    #include <fcntl.h>
-    #include <pwd.h>
-    #include <grp.h>
-    #include <sys/stat.h>
-    #include <unistd.h>
-
-    void disp_ls(const struct stat *finfo, const char *path);
-    void exit_sys(const char *msg);
-
-    int main(int argc, char *argv[])
-    {
-        int fd;
-        struct stat finfo;
-
-        if (argc != 2) {
-            fprintf(stderr, "wrong number of arguments!..\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if (setlocale(LC_ALL, "tr_TR.UTF-8") == NULL) {
-            fprintf(stderr, "cannot set locale!...\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if ((fd = open("test.txt", O_RDONLY)) == -1)
-            exit_sys("open");
-
-        /* burada dosyayla ilgili birtakim islemler yapiliyor */
-
-        if (fstat(fd, &finfo) == -1)
-            exit_sys("fstat");
-        disp_ls(&finfo, argv[1]);
-
-        return 0;
-    }
-
-    void disp_ls(const struct stat *finfo, const char *path)
-    {
-        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
-        char ch;
-        struct tm *pt_file;
-        int this_year;
-        time_t tval;
-        char dt[32];
-        struct passwd *pw;
-        struct group *gr;
-
-        if (S_ISBLK(finfo->st_mode))
-            putchar('b');
-        else if (S_ISCHR(finfo->st_mode))
-            putchar('c');
-        else if (S_ISDIR(finfo->st_mode))
-            putchar('d');
-        else if (S_ISFIFO(finfo->st_mode))
-            putchar('p');
-        else if (S_ISREG(finfo->st_mode))
-            putchar('-');
-        else if (S_ISLNK(finfo->st_mode))
-            putchar('l');
-        else if (S_ISSOCK(finfo->st_mode))
-            putchar('s');
-        else
-            putchar('?');
-
-        for (int i = 0; i < 9; ++i) {
-            ch = finfo->st_mode & masks[i] ? "rwx"[i % 3] : '-';
-            putchar(ch);
-        }
-        printf(" %ju", (uintmax_t)finfo->st_nlink);
-        if ((pw = getpwuid(finfo->st_uid)) != NULL)
-            printf(" %s", pw->pw_name);
-        else
-            printf(" %ju", (uintmax_t)finfo->st_uid);
-
-        if ((gr = getgrgid(finfo->st_gid)) != NULL)
-            printf(" %s", gr->gr_name);
-        else
-            printf(" %ju", (uintmax_t)finfo->st_gid);
-
-        printf(" %jd", (intmax_t)finfo->st_size);
-
-        tval = time(NULL);
-        this_year = localtime(&tval)->tm_year;
-
-        pt_file = localtime(&finfo->st_mtim.tv_sec);
-        strftime(dt, 32, "%b %e %H:%M", pt_file);
-        printf(" %s", dt);
-        if (this_year != pt_file->tm_year)
-            printf("  %d", pt_file->tm_year + 1900);
-        printf(" %s\n", path);
-    }
-
-    void exit_sys(const char *msg)
-    {
-        perror(msg);
-        exit(EXIT_FAILURE);
-    }
-
-lstat Fonksiyonu
-^^^^^^^^^^^^^^^^^
-
-``lstat`` fonksiyonunun ``stat`` fonksiyonundan tek farkı sembolik bağlantı dosyaları söz konusu olduğunda ``lstat``
-fonksiyonunun sembolik bağlantıyı izlememesi, sembolik bağlantı dosyasının kendisine ilişkin bilgileri vermesidir.
-Dizinler için sembolik bağlantılar oluşturulduğunda dizin ağacı özyinelemeli bir biçimde dolaşılırken sembolik
-bağlantıların izlenmesi bu tür dolaşımların sonsuz döngüye girmesine yol açabilmektedir. Bu tür durumlarda ``stat``
-yerine ``lstat`` fonksiyonu kullanılmalıdır. ``lstat`` fonksiyonunun parametrik yapısı tamamen ``stat`` fonksiyonu
-gibidir::
-
-    int lstat(const char *path, struct stat *buf);
+    int lstat(const char *restrict path, struct stat *restrict buf);
 
 İzleyen paragraflarda katı bağların (hard link) ve sembolik bağların (soft link) ne anlama geldiğini açıklayacağız.
 
 stat Kabuk Komutu
-^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~
 
 Bir dosyanın ``stat`` bilgileri komut satırından *stat* kabuk komutuyla da elde edilebilmektedir. Örneğin:
 
@@ -3751,7 +3649,7 @@ Bir dosyanın ``stat`` bilgileri komut satırından *stat* kabuk komutuyla da el
         Doğum: 2026-06-25 13:31:48.310425000 +0300
 
 Dizinlerin Organizasyonu ve Dizin Girişleri
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------------
 
 Dizinler de aslında tamamen dosyalar gibi organize edilmektedir. Bir dosyanın içerisinde dosyanın içeriğindeki bilgiler
 vardır. Ancak bir dizinin içerisinde o dizin içerisindeki dosyaların isimleri ve inode numaraları bulunmaktadır.
