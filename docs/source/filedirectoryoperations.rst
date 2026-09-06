@@ -2633,7 +2633,10 @@ erişim hakları, kullanıcı ve grup ID'leri, dosyanın uzunluğu, dosyanın ta
 fonksiyonlarıyla elde edilmektedir. ``ls`` komutu ``-l`` seçeneği ile kullanıldığında aslında dosya bilgilerini
 bu ``stat`` fonksiyonlarıyla elde edip ekrana (``stdout`` dosyasına) yazdırmaktadır.
 
-``stat`` fonksiyonunun prototipi şöyledir:
+stat Fonksiyonu
+~~~~~~~~~~~~~~~
+
+Önce stat fonksiyonunu inceleyelim. ``stat`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -2970,11 +2973,11 @@ Linux'ta geçmişe doğru uyumu koruyabilmek için tanımlanmıştır. ``ls -l``
 değiştirilme zamanını göstermektedir. Ancak ``ls -lu`` ile son erişim zamanı, ``ls -lc`` ile inode bilgilerinin
 son değiştirildiği zaman da görüntülenebilmektedir.
 
-Dosya Bilgilerini ls -l Stilinde Yazdıran Örnek Program
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Dosya Bilgilerini ls -l Formatında Yazdıran Örnek Program
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Aşağıda dosya bilgilerini ``stat`` fonksiyonu ile alıp yazdıran bir örnek veriyoruz. Bu programda dosya
-bilgileri ``ls -l`` stilinde yazdırılmıştır. Biz henüz kullanıcı ve grup ID değerlerinden kullanıcı ve grup 
+bilgileri ``ls -l`` formatında yazdırılmıştır. Biz henüz kullanıcı ve grup ID değerlerinden kullanıcı ve grup 
 isimlerinin nasıl elde dileceğini henüz görmedik. Bu nedenle örneğimizde kullanıcı ve grup ID değerleri 
 isimsel biçimde değil sayısal biçimde yazdırılmıştır. Dosyanın tarih bilgisini yazdırırken ``ls -l`` komutunun 
 yaptığı gibi dosyanın son değiştirme zamanının içinde bulunulan yıla ilişkin olup olmadığı da kontrol edilmiştir. 
@@ -3004,9 +3007,9 @@ Aynı dosyayı ``ls -l`` ile yazdıralım:
 
 Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup bilgilerinin görünümüyle ilgilidir. 
 
-.. code-block:: c
+``fsinfo.c``
 
-    /* finfo.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -3092,6 +3095,8 @@ Görüldüğü gibi çıktılar arasındaki tek fark kullanıcı ve grup bilgile
 Kullanıcı ve grup ID'sinden hareketle kullanıcı ve grup isimlerinin elde edilmesi için ``getpwuid`` ve ``getgrgid``
 POSIX fonksiyonları kullanılmaktadır. Biz bu fonksiyonları zaten göreceğiz. Ancak yine biz yukarıdaki örneği kullanıcı
 ve grup isimlerini de basacak biçimde aşağıda yeniden veriyoruz.
+
+``fsinfo.c``
 
 .. code-block:: c
 
@@ -3194,17 +3199,17 @@ Buradan elde edilen çıktı denemenin yapılmakinede şöyledir:
 
 Artık kullanıcı ve grup ID'leri yerine onların isimleri bastırılmıştır.
 
-Dosyanın bilgilerinin ekrana (``stdout`` dosyasına) yazdırılması işlemini bir fonksiyona da yaptırabiliriz::
+Dosya bilgilerinin ekrana (``stdout`` dosyasına) bastırılması işlemini bir fonksiyona da yaptırabiliriz. Fonksiyonun 
+prototipi şöyle olabilir:
+
+.. code-block:: c
 
     int disp_ls(const char *path);
 
 ``disp_ls`` önce ``stat`` fonksiyonuyla dosya bilgilerini elde edip onu *"ls -l"* formatında ekrana (``stdout``
 dosyasına) basmaktadır. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
 
-Bazen dosyanın bilgileri zaten elde edilmiş durumda olabilir. Bu durumda ``disp_ls`` fonksiyonuna bizim ``stat``
-yapısını geçirmemiz daha uygun olabilir::
-
-    void disp_ls(const struct stat *finfo, const char *path);
+``fsinfo.c``
 
 .. code-block:: c
 
@@ -3305,84 +3310,24 @@ yapısını geçirmemiz daha uygun olabilir::
         exit(EXIT_FAILURE);
     }
 
-Bilgilerin Yazı Olarak Elde Edilmesi: get_ls Fonksiyonu
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Bazen dosyanın bilgileri zaten elde edilmiş durumda olabilir. Bu durumda ``disp_ls`` fonksiyonuna bizim ``stat``
+yapısını geçirmemiz daha uygun olabilir:    
 
-Aslında fonksiyonların doğrudan bilgileri ekrana (``stdout`` dosyasına) basması bazen istenmeyebilir. Programcı
+.. code-block:: c
+    
+    void disp_ls(const struct stat *finfo, const char *path);
+
+Yukarıdaki fonksiyonu kolaylıkla bu biçime dönüştürebilirsiniz.
+
+Aslında fonksiyonların doğrudan bilgileri ekrana (``stdout`` dosyasına) basması istenmeyebilir. Örneğin programcı
 bilgileri elde edip onları başka bir yazının içerisine gömmek isteyebilir. Bu tür durumlarda fonksiyonların formatlanmış
 yazıyı ekrana (``stdout`` dosyasına) basacak biçimde değil onu yazı olarak verecek biçimde tasarlanması daha uygundur.
 Bu tür tasarımlarda fonksiyonların yazıların bulunduğu ``static`` dizilerin adresiyle geri döndürülmesi kullanımı
 kolaylaştırmaktadır. Ancak bu tür tasarımlar fonksiyonun ileride göreceğimiz *thread güvenliliğini (thread safety)*
-ortadan kaldırmaktadır. Aşağıda dosyanın bilgilerini *"ls -l"* formatında ``static`` yerel bir dize yerleştirip o
+ortadan kaldırmaktadır. Aşağıda dosyanın bilgilerini *"ls -l"* formatında ``static`` yerel bir dizye yerleştirip o
 dizinin adresiyle geri dönen fonksiyon örneğini veriyoruz:
 
-.. code-block:: c
-
-    char *get_ls(const char *path)
-    {
-        static char buf[4096];
-        struct stat finfo;
-        int masks[] = {S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH};
-        int i, ch;
-        struct tm *pt_file;
-        int this_year;
-        time_t tval;
-        struct passwd *pw;
-        struct group *gr;
-
-        if (stat(path, &finfo) == -1)
-            return NULL;
-
-        i = 0;
-        if (S_ISBLK(finfo.st_mode))
-            buf[i] = 'b';
-        else if (S_ISCHR(finfo.st_mode))
-            buf[i] = 'c';
-        else if (S_ISDIR(finfo.st_mode))
-            buf[i] = 'd';
-        else if (S_ISFIFO(finfo.st_mode))
-            buf[i] = 'p';
-        else if (S_ISREG(finfo.st_mode))
-            buf[i] = '-';
-        else if (S_ISLNK(finfo.st_mode))
-            buf[i] = 'l';
-        else if (S_ISSOCK(finfo.st_mode))
-            buf[i] = 's';
-        else
-            buf[i] = '?';
-
-        ++i;
-        for (int k = 0; k < 9; ++k) {
-            ch = finfo.st_mode & masks[k] ? "rwx"[k % 3] : '-';
-            buf[i++] = ch;
-        }
-        i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_nlink);
-        if ((pw = getpwuid(finfo.st_uid)) != NULL)
-            i += sprintf(buf + i," %s", pw->pw_name);
-        else
-            i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_uid);
-
-        if ((gr = getgrgid(finfo.st_gid)) != NULL)
-            i += sprintf(buf + i, " %s", gr->gr_name);
-        else
-            i += sprintf(buf + i, " %ju", (uintmax_t)finfo.st_gid);
-
-        i += sprintf(buf + i, " %jd", (intmax_t)finfo.st_size);
-
-        tval = time(NULL);
-        this_year = localtime(&tval)->tm_year;
-
-        pt_file = localtime(&finfo.st_mtim.tv_sec);
-        i += strftime(buf + i, 32, " %b %e %H:%M", pt_file);
-        if (this_year != pt_file->tm_year)
-            i += sprintf(buf + i, "  %d", pt_file->tm_year + 1900);
-        sprintf(buf + i, " %s\n", path);
-
-        return buf;
-    }
-
-Burada ``printf`` çağrıları yerine ``sprintf`` çağrıları kullanılmıştır. ``printf`` türevi fonksiyonların (``strftime``
-fonksiyonunun da) yazdırılan ya da yerleştirilen karakter sayısına geri döndüğünü anımsayınız.
+``fsinfo.c```
 
 .. code-block:: c
 
@@ -3489,8 +3434,8 @@ fonksiyonunun da) yazdırılan ya da yerleştirilen karakter sayısına geri dö
         exit(EXIT_FAILURE);
     }
 
-Thread-Safe get_ls Fonksiyonu
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Burada ``printf`` çağrıları yerine ``sprintf`` çağrıları kullanılmıştır. ``printf`` türevi fonksiyonların (``strftime``
+fonksiyonunun da) yazdırılan ya da yerleştirilen karakter sayısına geri döndüğünü anımsayınız.
 
 Yukarıdaki ``get_ls`` fonksiyonunu thread güvenli hale getirmek için fonksiyonun ``static`` diziye kodlama yapmasının
 önüne geçilmesi gerekir. Fonksiyon parametresiyle aldığı bir diziye kodlama yapabilir. Bu tür fonksiyonlarda dizi
@@ -3639,7 +3584,7 @@ Fonksiyonun bu halini aşağıda veriyoruz.
     }
 
 fstat Fonksiyonu
-^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 ``fstat`` fonksiyonu ``stat`` fonksiyonunun yol ifadesi değil dosya betimleyicisi alan biçimidir. Prototipi şöyledir::
 
