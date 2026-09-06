@@ -3586,7 +3586,8 @@ Fonksiyonun bu halini aşağıda veriyoruz.
 fstat Fonksiyonu
 ~~~~~~~~~~~~~~~~
 
-``fstat`` fonksiyonu ``stat`` fonksiyonunun yol ifadesi değil dosya betimleyicisi alan biçimidir. Prototipi şöyledir::
+``fstat`` fonksiyonu ``stat`` fonksiyonunun parametre olarak yol ifadesini değil dosya betimleyicisini alan biçimidir. 
+Prototipi şöyledir:
 
     int fstat(int fd, struct stat *buf);
 

@@ -10,7 +10,8 @@
    Kitaptaki içerik belli bir kaynak referans alınarak oluşturulmamıştır ve içeriğin oluşturulmasında yapay zeka araçlarından 
    faydalanılmamıştır. Bu bakımdan içerik tamamen özgündür. 
 
-   Kurs notlarının kitap haline getirilmesinde önemli katkılarda bulunan **Ahmet CEFAKAR**'a teşekkür ederiz.
+   Kurs notlarının kitap haline getirilmesinde önemli katkılarda bulunan **Ahmet CEFAKAR**'a ve **Oğuzhan KARA**'ya teşekkür 
+   ederiz.
 
    Kitabımızın konusu ile ilgili en önemli kaynaklar *Kaynaklar* bölümünde listelenmiştir. W. Stevens'in (sonradan Stephen 
    Rago'da eklemeler yapımıştır) "Advanced Programming in the UNIX Envirionment" literatürün en önemli kitabıdır ve 
