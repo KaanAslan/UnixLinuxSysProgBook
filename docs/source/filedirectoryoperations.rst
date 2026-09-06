@@ -2226,8 +2226,8 @@ kullanılması gerekebilmektedir. Genellikle dosya işlemleri yapan sistem fonks
 sistem fonksiyonlarını çağırmaktadır. Biz kursumuzda dosya işlemlerini daha çok POSIX fonksiyonlarını kullanarak 
 gerçekleştireceğiz.
 
-Yardımcı Dosya Fonksiyonları
-=============================
+Yardımcı Dosya Fonksiyonları ve Bunlarla İlişkili Kavramlar
+===========================================================
 
 UNIX/Linux sistemlerinde ``open``, ``close``, ``read``, ``write`` ve ``lseek`` fonksiyonlarının yanı sıra pek
 çok yardımcı dosya fonksiyonu da vardır. Bu yardımcı dosya fonksiyonları dosyalar üzerinde bazı önemli işlemleri
