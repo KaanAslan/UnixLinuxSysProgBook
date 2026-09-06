@@ -866,7 +866,7 @@ yerleştirildiği nesneelere *dosya nesneleri (file objects)* denilmektedir. Bur
 edilmiş yapı alanları için kullanılmaktadır; nesne yönelimli programlama tekniğindeki *nesne* terimi ile
 doğrudan bir ilgisi yoktur. Dosya nesnesi Linux'un kaynak kodlarında ``file`` isimli bir yapıyla temsil
 edilmektedir. Güncel çekirdeklerde ``file`` yapısı Linux kaynak kodlarında ``include/linux/fs.h`` dosyasında
-şöyle bildirilmiştir:
+şöyle tanımlanmıştır:
 
 .. code-block:: c
 
@@ -1160,7 +1160,7 @@ Bu biçimde 9 erişim hakkı oluşturulabilmektedir:
 ``S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH`` erişim hakları ``rw-rw-r--`` anlamına gelmektedir. Burada *owner*
 sözcüğü yerine *user* sözcüğünün kullanıldığına dikkat ediniz.
 
-Ayrıca ``<sys/stat.h>`` içerisinde aşağıdaki sembolik sabitler de bildirilmiştir:
+Ayrıca ``<sys/stat.h>`` içerisinde aşağıdaki sembolik sabitler de tanımlanmıştır:
 
 .. code-block:: c
 
@@ -2641,7 +2641,7 @@ bu ``stat`` fonksiyonlarıyla elde edip ekrana (``stdout`` dosyasına) yazdırma
 
 Fonksiyonun birinci parametresi metadata bilgisi elde edilecek dosyanın yol ifadesini, ikinci parametresi ise dosyanın
 metadata bilgilerinin yerleştirileceği ``struct stat`` isimli yapı türünden nesnesinin adresini almaktadır. ``stat`` 
-isimli yapı ``<sys/stat.h>`` dosyası içerisinde bildirilmiştir. Fonksiyon başarı durumunda ``0`` değerine başarısızlık
+isimli yapı ``<sys/stat.h>`` dosyası içerisinde tanımlanmıştır. Fonksiyon başarı durumunda ``0`` değerine başarısızlık
 durumunda ``-1`` değerine geri dönmektedir. (``stat`` isminin hem bir yapı belirttiğine hem de bir fonksiyon
 belirttiğine dikkat ediniz. C'de yapı ismiyle aynı isimli bir değişken ya da fonksiyon ismi bulunabilmektedir.
 Yapı isimleri zaten ``struct`` anahtar sözcüğüyle kullanılmaktadır.)
@@ -2924,21 +2924,21 @@ byte'lık blokların sayısıdır. Yani dosya sistemindeki dosyanın parçaları
 UNIX/Linux sistemlerinde kullanılan inode tabanlı dosya sistemleri bir dosya için üç zaman bilgisi
 tutmaktadır:
 
-1. Dosyanın son değiştirilme zamanı
-2. Dosyanın son okunma zamanı
-3. Dosyanın inode bilgilerinin son değiştirilme zamanı
+| **1.** Dosyanın son değiştirilme zamanı
+| **2.** Dosyanın son okunma zamanı
+| **3.** Dosyanın inode bilgilerinin son değiştirilme zamanı
 
 POSIX standartları hangi POSIX fonksiyonlarının hangi zamanları dosya için güncellediğini belirtmektedir.
 Örneğin ``read`` fonksiyonu dosyanın son okuma zamanını, ``write`` fonksiyonu son yazma ve inode bilgilerinin
 değiştirilme zamanını güncellemektedir.
 
-``stat`` yapısının zamansal bilgileri tutan elemanları eski POSIX standartlarında ``time_t`` türündendi ve isimleri
-``st_atime``, ``st_mtime`` ve ``st_ctime`` biçimindeydi. Bu elemanlar epoch olan 01/01/1970'ten geçen saniye
-sayısını tutuyordu. (C Programlama Dili'nde epoch'un 01/01/1970 olması zorunlu değildir. Ancak POSIX
-standartlarında bu zorunludur.) Ancak daha sonra POSIX standartlarında bu zaman bilgisi nanosaniye çözünürlüğe
-çekildi. Dolayısıyla zamansal bilgiler ``time_t`` türü ile değil ``timespec`` isimli bir yapıyla belirtilmeye
+``stat`` yapısının zamansal bilgileri (timestamps) tutan elemanları eski POSIX standartlarında ``time_t`` türündendi ve isimleri
+``st_atime``, ``st_mtime`` ve ``st_ctime`` biçimindeydi. Bu elemanlar epoch olan ``01/01/1970``'ten geçen saniye
+sayısını tutuyordu. (C Programlama Dili'nde epoch'un 01/01/1970 olması zorunlu değildir, ancak POSIX
+standartlarında bu zorunlu tutulmuştur.) POSIX'in 2008 sürümünde bu zaman bilgisi nanosaniye çözünürlüğe
+çekildi. Dolayısıyla zamansal bilgiler ``time_t`` türü ile değil ``timespec`` isimli türle temsil edilmeye
 başlandı. Yapı elemanlarının isimleri de ``st_atim``, ``st_mtim`` ve ``st_ctim`` olarak değiştirildi.
-``timespec`` yapısı geçmişe doğru uyumu koruyabilmek için aşağıdaki gibi bildirilmiştir:
+``timespec`` yapısı geçmişe doğru uyumu koruyabilmek için aşağıdaki gibi tanımlanmıştır:
 
 .. code-block:: c
 
@@ -2947,9 +2947,9 @@ başlandı. Yapı elemanlarının isimleri de ``st_atim``, ``st_mtim`` ve ``st_c
         long    tv_nsec;
     };
 
-Yapının ``tv_sec`` elemanı yine 01/01/1970'ten geçen saniye sayısını, ``tv_nsec`` elemanı ise o saniyeden
+Yapının ``tv_sec`` elemanı yine ``01/01/1970``'ten geçen saniye sayısını, ``tv_nsec`` elemanı ise o saniyeden
 sonraki nanosaniye sayısını tutmaktadır. Sistemlerin çoğu POSIX standartlarında bu konuda değişiklik yapılmış
-olsa da geriye doğru uyumu şöyle korumuştur:
+olsa da geriye doğru uyumu şöyle korumaktadır:
 
 .. code-block:: c
 
@@ -5488,7 +5488,7 @@ istiyoruz:
 
 Fonksiyon parametre olarak kullanıcı ismini almaktadır. Başarı durumunda o kullanıcıya ilişkin bilgileri barındıran
 statik biçimde tahsis edilmiş olan ``struct passwd`` isimli bir yapı nesnesinin adresine, başarısızlık durumunda ise
-``NULL`` adrese geri dönmektedir. ``struct passwd`` yapısı şöyle bildirilmiştir:
+``NULL`` adrese geri dönmektedir. ``struct passwd`` yapısı şöyle tanımlanmıştır:
 
 .. code-block:: c
 
