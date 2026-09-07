@@ -2218,7 +2218,7 @@ mekanizmasını da kullanmaktadır. Dolayısıyla ilk tercih bunlar olmalıdır.
 spesifik bir sistemin gereksinimini karşılayacak biçimde tasarlanmamıştır. Bu nedenle bazen doğrudan POSIX fonksiyonlarının 
 kullanılması gerekebilmektedir. Genellikle dosya işlemleri yapan sistem fonksiyonlarının kullanılması hiç gerekmez. 
 Çünkü Linux'ta olduğu gibi pek çok UNIX türevi sistemde yukarıda da belirttiğimiz gibi POSIX fonksiyonları zaten doğrudan 
-sistem fonksiyonlarını çağırmaktadır. Biz kursumuzda dosya işlemlerini daha çok POSIX fonksiyonlarını kullanarak 
+sistem fonksiyonlarını çağırmaktadır. Biz kitabımızda dosya işlemlerini daha çok POSIX fonksiyonlarını kullanarak 
 gerçekleştireceğiz.
 
 Yardımcı Dosya Fonksiyonları ve Bunlarla İlişkili Kavramlar
@@ -2675,7 +2675,7 @@ Yapı isimleri zaten ``struct`` anahtar sözcüğüyle kullanılmaktadır.)
 
 Yapının elemanlarının ``st_`` öneki ile isimlendirildiğine dikkat ediniz. Yapının ``st_dev`` elemanı dosyanın
 içinde bulunduğu aygıtın aygıt numarasını belirtir. ``dev_t`` herhangi bir tamsayı türü biçiminde ``typedef``
-edilebilen bir tür ismidir. Biz aygıt numarası kavramını kursumuzun 1aygıt sürücülere ilişkin bölümünde ele alacağız.
+edilebilen bir tür ismidir. Biz aygıt numarası kavramını kitabımızın 1aygıt sürücülere ilişkin bölümünde ele alacağız.
 
 Yapının ``st_ino`` elemanı dosyaya ilişkin inode elemanının numarasını belirtmektedir. Dosyaların inode
 numaraları ``ls`` komutunda ``-i`` seçeneği ile de görüntülenebilmektedir. ``ino_t`` türü işaretsiz olmak
@@ -2902,7 +2902,7 @@ Yapının ``st_gid`` elemanı dosyanın grup ID'sini belirtmektedir. ``ls -l`` k
 olarak typedef edilebilmektedir.
 
 Yapının ``st_rdev`` elemanı eğer dosya bir aygıt dosyası ise temsil ettiği aygıtın numarasını bize vermektedir.
-Bu eleman da ``dev_t`` türündedir. Bu bilginin ne anlam ifade ettiği kursumuzun *aygıt sürücüleri* bölümünde
+Bu eleman da ``dev_t`` türündedir. Bu bilginin ne anlam ifade ettiği kitabımızın *aygıt sürücüleri* bölümünde
 ele alınmaktadır.
 
 Yapının ``st_size`` elemanı dosyanın uzunluğunu bize vermektedir. ``off_t`` türü daha önceden de belirttiğimiz
@@ -2912,7 +2912,7 @@ Yapının ``st_blksize`` elemanı dosyanın içinde bulunduğu dosya sisteminin 
 belirtmektedir. Dosyaların parçaları diskte *blok* denilen ardışıl byte topluluklarında tutulmaktadır. İşte
 bir bloğun kaç byte olduğu bilgisi bu elemanla belirtilmektedir. Aynı zamanda programcılar dosya kopyalama
 gibi işlemlerde bu büyüklüğü tampon büyüklüğü (buffer size) olarak da kullanmaktadır. ``blksize_t`` işaretli
-bir tamsayı türü olarak ``typedef`` edilmek zorundadır. Bu konunun ayrıntılarını kursumuzun inode tabanlı dosya
+bir tamsayı türü olarak ``typedef`` edilmek zorundadır. Bu konunun ayrıntılarını kitabımızın inode tabanlı dosya
 sistemlerini ele aldığımız bölümde açıklayacağız.
 
 Yapının ``st_blocks`` elemanı dosyanın diskte kapladığı blok sayısını belirtmektedir. (Ancak buradaki sayı 512
@@ -3654,7 +3654,7 @@ formatları dosya sisteminden dosya sistemine değişebilmektedir. Ancak inode t
 girişlerinde en azından girişin ismi ve inode numarası tutulmaktadır. Dosyanın ya da dizinin metadata bilgilerinin
 (erişim hakları, uzunluk gibi) inode bloktaki inode elemanında tutulduğunu ve ``stat`` fonksiyonlarının bu bilgileri
 inode elemanından ya da çekirdek içerisindeki inode nesnesinden elde ettiğini anımsayınız. Biz inode tabanlı dosya
-sistemlerini kursumuzun sonlarına doğru ayrı bir bölümde ayrıntılarıyla ele alacağız. Ancak şimdilik bir dizinin
+sistemlerini kitabımızın sonlarına doğru ayrı bir bölümde ayrıntılarıyla ele alacağız. Ancak şimdilik bir dizinin
 aşağıdaki formatta dizin girişlerine sahip olduğunu varsayabilirsiniz:
 
 .. figure:: _static/directory-entry-format.png
@@ -3704,6 +3704,9 @@ metadata bilgileri inode elemanının içerisinde olduğuna göre bu dosyaya ``x
 ifadesiyle erişmek arasında hiçbir farklılık yoktur. İşte ``x.txt`` ve ``y.txt`` dizin girişleri *katı bağ (hard link)*
 oluşturmuştur. Tabii katı bağa sahip dizin girişleri ikiden fazla da olabilir. 
 
+link Fonksiyonu
+~~~~~~~~~~~~~~~
+
 Katı bağ oluşturmak için ``link`` isimli POSIX fonksiyonu kullanılmaktadır. Linux sistemlerinde bu POSIX fonksiyonu 
 ``sys_link`` isimli sistem fonksiyonunu çağırmaktadır. ``link`` fonksiyonunun prototipi şöyledir:
 
@@ -3730,7 +3733,6 @@ geri dönmektedir. Örneğin:
     #include <unistd.h>
 
     int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
-
 
 POSIX dosya fonksiyonlarının *at*'li versiyonlarının nasıl çalıştığı ileride ele alınmamtadır. 
 
@@ -3909,8 +3911,8 @@ Artık ``x.txt`` girişi yok edilmiştir. Ancak ``y.txt`` girişi durmaktadır:
 Dosyanın katı bağ sayacının 1'e düştüğüne dikkat ediniz. Artık biz bu ``y.txt`` dosyasını da sildiğimizde katı bağ
 sayacı 0'a düştüğü için dosya da gerçekten silinecektir.
 
-Sembolik Bağlar ve symlink Fonksiyonu
--------------------------------------
+Sembolik Bağlar ve symlink ve readlink Fonksiyonları
+----------------------------------------------------
 
 UNIX/Linux sistemlerinde *sembolik bağ (symbolic link)* ya da *gevşek bağ (soft link)*  denilen bir bağ türü de vardır.
 Sembolik bağlar Windows sistemlerindeki *kısa yol dosyalarına* benzemektedir. UNIX/Linux sistemlerinde sembolik bağlar
@@ -3947,6 +3949,9 @@ silinmektedir. (Eğer dosya silmekte kullanılan ``unlink`` fonksiyonu sembolik 
 izlediği halde ``lstat`` fonksiyonu sembolik bağı izlememektedir. Yani biz ``stat`` fonksiyonuna bir sembolik bağ dosyası
 verdiğimizde ``stat`` fonksiyonu senbolik bağı izleyerek bize onun referans ettiği dosyanın bilgilerini vermektedir. Ancak
 ``lstat`` fonksiyonu sembolik bağı izlememekte, sembolik bağ dosyasının kendisine ilişkin dosya bilgilerini vermektedir.
+
+symlink Fonksiyonu
+~~~~~~~~~~~~~~~~~~
 
 Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadır. Linux sistemlerinde bu fonksiyon
 ``sys_symlink`` isimli sistem fonksiyonunu çağırmaktadır. ``symlink`` fonksiyonunun prototipi şöyledir:
@@ -4044,8 +4049,8 @@ girilmelidir. Örneğin:
     6076082 -rw-r--r-- 1 kaan study 38 Tem  9 11:39 x.txt
     6076114 lrwxrwxrwx 1 kaan study  5 Tem  9 11:48 y.txt -> x.txt
 
-Dangling Sembolik Bağlar
-~~~~~~~~~~~~~~~~~~~~~~~~
+Kopuk Sembolik Bağlar
+~~~~~~~~~~~~~~~~~~~~~
 
 Peki bir sembolik bağ dosyasının referans ettiği dosya silinirse ne olur? Yukarıdaki örneğimizde ``x.txt`` dosyasını
 silelim:
@@ -4070,13 +4075,12 @@ fonksiyonu başarısız olup -1 değerine geri döner ve ``errno`` değişkeni `
 değeriyle set edilir.
 
 Sembolik bağ dosyasının referans ettiği dosyanın silinmiş olma durumuna İngilizce *dangling link* denilmektedir.
-Dangling duruma gelmiş bir sembolik bağ dosyasının referans ettiği dosya yeniden yaratılırsa artık dangling durumu
-ortadan kaldırılmış olur.
+Kopmuş bir sembolik bağ dosyasının referans ettiği dosya yeniden yaratılırsa artık kopukluk durumu ortadan kaldırılmış olur.
 
-Döngüsel Sembolik Bağlar
-------------------------
+Sembolik Bağlarda Döngüsel Durum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Bir sembolik bağ dosyasına da sembolik bağ oluşturulabilir. Yani örneğin aşağıdaki gibi bir durum oluşturulabilmektedir:
+Bir sembolik bağ dosyasına da sembolik bağ oluşturulabilmektedir. Örneğin aşağıdaki gibi bir durum söz konusu olabilir:
 
 .. code-block:: text
 
@@ -4094,11 +4098,11 @@ Elimizde yalnızca ``x.txt`` dosyası olsun. Biz yukarıdaki durumu şöyle olu�
     6076115 lrwxrwxrwx 1 kaan study  5 Tem  9 12:23 z.txt -> y.txt
 
 Peki biz böylesi bir durumda ``z.txt`` dosyasını ``open`` fonksiyonuyla açmak istersek ne olur? İşte ``open`` fonksiyonu
-sembolik bağları izler ve bunun nihai hedefindeki dosyayı tespit eder ve onu açar. Örneğimizde ``x.txt`` dosyası
+sembolik bağları izler ve bunun nihai hedefindeki dosyayı tespit eder ve onu açmaya çalışır. Örneğimizde ``x.txt`` dosyası
 açılacaktır.
 
 Sembolik bağ dosyaları döngüsel hale de gelebilir. Örneğin ``y.txt`` sembolik bağ dosyası ``z.txt`` sembolik bağ
-dosyasını, ``z.txt`` sembolik bağ dosyası ise ``y.txt`` sembolik bağ dosyasını gösterir durumda olabilir. Bu durumu
+dosyasını, ``z.txt`` sembolik bağ dosyası ise ``y.txt`` sembolik bağ dosyasını gösterir duruma getirilebilir. Bu durumu
 yapay bir biçimde oluşturalım:
 
 .. code-block:: text
@@ -4107,7 +4111,7 @@ yapay bir biçimde oluşturalım:
     $ ln -s z.txt y.txt
 
 Burada önce ``z.txt -> y.txt`` durumu, sonra da ``y.txt -> z.txt`` durumu oluşturulmuştur. Sembolik bağ oluşturmak için
-kaynak dosyanın var olmasının gerekmediğine dikkat ediniz. Durum şöyledir:
+kaynak dosyanın var olmasının gerekmediğini anımsayınız. Durum şöyledir:
 
 .. code-block:: text
 
@@ -4120,36 +4124,32 @@ dosyaları görüntülemek istersek ne olur? İşte ``open`` fonksiyonu belli bi
 dosya hala bulunamadıysa ``errno`` değişkenini ``ELOOP`` (*Too many levels of symbolic links*) değeri ile set edip
 işlemi başarısızlıkla sonlandırmaktadır.
 
-
 readlink Fonksiyonu
---------------------
+~~~~~~~~~~~~~~~~~~~
 
 Biz ``lstat`` fonksiyonuyla bir dosyanın bilgilerini elde ettiğimizde o dosyanın bir sembolik bağlantı dosyası olup
 olmadığını anlayabiliyorduk. Ancak o sembolik bağ dosyasının hangi dosyaya referans ettiğini ``lstat`` fonksiyonu 
-bize vermemektedir. İşte readlink isimli POSIX fonksiyonu bu işi yapmaktadır. Fonksiyonun prototipi şöyledir:
+bize vermemektedir. İşte ``readlink`` isimli POSIX fonksiyonu bu işi yapmaktadır. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
     
     #include <unistd.h>
 
-    ssize_t readlink(const char *path, char *buf, size_t bufsize);
+    ssize_t readlink(const char *restrict path, char *restrict buf, size_t bufsize);
 
-
-Fonksiyonun birinci parametresi sembolik bağ dosyasının yol ifadesini, ikinci ve üçüncü parametreler sembolik bağ 
-dosyasının referans ettiği dosyanın yol ifadesinin yerleştirileceği yerin adresini ve uzunluğu almaktadır. Bu alan 
-küçük ise fonksiyon başarısız olmaz ancak yol ifadesinin son kısmı budanır. Fonksiyon verdiğimiz adrese yerleştirdiği 
+Fonksiyonun birinci parametresi sembolik bağ dosyasının yol ifadesini, ikinci ve üçüncü parametreleri de sırasıyla
+sembolik bağ dosyasının referans ettiği dosyanın yol ifadesinin yerleştirileceği yerin adresini ve uzunluğu almaktadır. 
+Bu alan küçük ise fonksiyon başarısız olmaz ancak yol ifadesinin son kısmı budanır. Fonksiyon verdiğimiz adrese yerleştirdiği 
 karakter sayısına geri dönmektedir. Fonksiyon (diğer fonksiyonların aksine) ``null`` karakteri dizinin sonuna 
-yerleştirmez. Bu durumda programcı referans edilen yol ifadesine erişirken dikkat etmelidir.
-
+yerleştirmemektedir. Bu durumda programcı referans edilen yol ifadesine erişirken dikkat etmelidir.
 
 Fonksiyon başarı durumunda yerleştirilen karakter sayısına, başarısızlık durumunda -1 değerine geri dönmektedir.
 
-
 ``readlink`` fonksiyonu sembolik bağ dosyasının içeerisindeki hedefi verir. Yani fonksiyonun amacı sembolik bağı 
-izlemek değildir. Dolayısıyla ``readlink`` "dangling" sembolik bağlarda da başarısız olmaz.
+izlemek değildir. Dolayısıyla ``readlink`` "kopuk (dangling)" sembolik bağlarda başarısız olmaz.
 
 
-``readlink`` fonksiyonunun ``readlinkat`` adlı at'li bir biçimi de vardır:
+``readlink`` fonksiyonunun ``readlinkat`` adlı *at*'li bir biçimi de vardır:
 
 .. code-block:: c
 
@@ -4158,26 +4158,24 @@ izlemek değildir. Dolayısıyla ``readlink`` "dangling" sembolik bağlarda da b
     int readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
 
 
-Biz POSIX dosya fonksiyonlarının at'li biçimlerini ileride ele alacağız.
+Biz POSIX dosya fonksiyonlarının *at*'li biçimlerini ileride ele alacağız.
 
-``readlink`` fonksiyonunu çağırarak yazılmış olan ``readlink`` adlı bir kabuk komutu da bulunmaktadır. Mesela:
+``readlink`` fonksiyonu kullanılarak yazılmış olan ``readlink`` adlı bir kabuk komutu da bulunmaktadır. Örneğin:
 
 .. code-block:: bash
 
     $ readlink x.txt
     test.txt
 
-
-Aşağıda ``readlink`` fonksiyonun kullanımına bir emsal verilmiştir. ``readlink`` fonksiyonunun ``null`` karakteri 
+Aşağıda ``readlink`` fonksiyonunun kullanımına bir örnek verilmiştir. ``readlink`` fonksiyonunun ``null`` karakteri 
 diziye yerleştirmediğine dikkat ediniz. Sonunda ``null`` karakter olmayan ``result`` uzunlukta bir yazının ``printf``
 ile bastırılması şöyle yapılabilir:
 
 ``printf("%.*s\n", result, buf);``
 
-
 ``printf`` ``%.10s`` gibi bir format karakterlerinde yazıyı ``null`` karakter görene kadar değil n karakter 
-yazdırmaktadır. (Emsalimizde 10). Tabii biz burada istersek ``null`` karakteri dizinin sonuna yerleştirip onu 
-``%s`` ile de yazdırabiliriz. Ancak bu durumda da dizi uzunluğunun yeterli olduğuna dikkat etmemiz gerekir. Mesela:
+yazdırmaktadır. (örneğimizde 10). Tabii biz burada istersek ``null`` karakteri dizinin sonuna yerleştirip onu 
+``%s`` ile de yazdırabiliriz. Ancak bu durumda da dizi uzunluğunun yeterli olduğuna dikkat etmemiz gerekir. örneğin:
 
 .. code-block:: c
 
@@ -4192,16 +4190,20 @@ yazdırmaktadır. (Emsalimizde 10). Tabii biz burada istersek ``null`` karakteri
         puts(buf);
     }
     else
-        fprintf(stderr, "path maybe truncated!...\n");
+        fprintf(stderr, "path truncated!...\n");
 
-
-Bu emsalde biz yol ifadesinin yerleştirileceği diziyi 4096 eleman uzunluğunda açtık. Linux sistemlerinde x86 ve 
-x64 mimarilerinde (genel olarak sayfa uzunluğunun 4K olduğu mimarilerde) yol ifadeleri en fazla 4096 karakter 
-olabilmektedir. Ancak diğer mimarilerde ve POSIX genelinde böyle bir zorunluluk yoktur. Bu tür durumlarda tavsiye
-edilen yöntem diziyi büyütüp fonksiyonu başarılı olan kadar tekrar tekrar çağırmaktır. Ancak bir yol ifadesinin 4096 
-karakterden büyük olması çok çok uç bir noktadır. (O sistemdeki maksimum yol ifadesi uzunluğu ``<limits.h>`` dosyası 
+Bu örnekte biz yol ifadesinin yerleştirileceği diziyi 4096 eleman uzunluğunda açtık. Linux sistemlerinde x86 ve 
+x64 mimarilerinde (genel olarak sayfa uzunluğunun 4K olduğu mimarilerde) yol ifadeleri en fazla ``null`` karakter dahil 
+4096 karakter olabilmektedir. (Ancak diğer mimarilerde ve POSIX genelinde böyle bir zorunluluk yoktur.) Bu tür durumlarda 
+tavsiye edilen yöntem diziyi büyütüp fonksiyonu başarılı olan kadar tekrar tekrar çağırmaktır. Ancak bir yol ifadesinin 
+4096 karakterden büyük olması çok çok uç bir noktadır. (O sistemdeki maksimum yol ifadesi uzunluğu ``<limits.h>`` dosyası 
 içerisindeki ``PATH_MAX`` sembolik sabitiyle belirtilmektedir. Ancak maalesef bu sembolik sabitin define edilmiş 
-olması da zorunlu değildir.) Bu konunun biraz ayrıntıları olduğu için konu bir başlık altında ileride ele alınacaktır.
+olması da zorunlu değildir.) Yol ifadelerinin ``null`` karakter dahil olmak üzere uzunluğu sistemin izin verdiği uzunluktan 
+daha büyük olursa (Linux'ta tipik olarak 4096) yol ifadesi alan fonksiyonlar başarısız olmakta ve ``errno`` değişkeni 
+``ENAMETOOLONG`` değeri ile set edilmektedir. Bu konunun biraz ayrıntıları olduğu için konu bir başlık altında ileride ele 
+alınacaktır. 
+
+Aşağıda ``readlink`` fonksiyonunun kullanımına bir örnek veriyoruz:
 
 .. code-block:: c
 
@@ -4209,7 +4211,6 @@ olması da zorunlu değildir.) Bu konunun biraz ayrıntıları olduğu için kon
     #include <stdlib.h>
     #include <stdint.h>
     #include <unistd.h>
-
 
     void exit_sys(const char *msg);
 
@@ -4233,7 +4234,7 @@ olması da zorunlu değildir.) Bu konunun biraz ayrıntıları olduğu için kon
             puts(buf);
         }
         else
-            fprintf(stderr, "path maybe truncated!...\n");
+            fprintf(stderr, "path truncated!...\n");
 
         return 0;
     }
@@ -4246,19 +4247,19 @@ olması da zorunlu değildir.) Bu konunun biraz ayrıntıları olduğu için kon
 
 
 Katı Bağ ile Sembolik Bağ Arasındaki Farklar
-============================================
+--------------------------------------------
 
-Katı bağ ile sembolik bağ arasında ne farklılıklar vardır? Katı bağlar aynı inode elemanını gösteren dizin girişleridir.
-Halbuki sembolik bağların kendi inode elemanları vardır. Sembolik bağın inode elemanında o sembolik bağın gösterdiği
-dosyanın yol ifadesi saklanmaktadır. Sembolik bağlar birden fazla geçişli olabilmektedir. Dizinlerin sembolik bağlarının
-oluşturulması mümkündür ve dolaşım sırasında bir soruna yol açmamaktadır. Çünkü dizin ağacını dolaşan programlar
-``stat`` fonksiyonunu değil ``lstat`` fonksiyonunu kullanırlar. Yani sembolik bağı izlemezler. Halbuki katı bağlarda
-böyle bir şey mümkün değildir. Sembolik bağ daha esnek kullanımlara sahiptir. Örneğin sembolik bağı değiştirerek onun
-başka bir dosyayı göstermesi sağlanabilmektedir. Bu özelliklerinden dolayı sembolik bağlar katı bağlara göre çok daha
-fazla kullanılmaktadır. Dosya sistemleri arasında (örneğin disk bölümleri arasında) katı bağların oluşturulamadığını
-belirtmiştik. Ancak dosya sistemleri arasında sembolik bağlar oluşturulabilmektedir.
+Katı bağlar aynı inode elemanını gösteren dizin girişleridir. Halbuki sembolik bağların kendi inode elemanları vardır. 
+Sembolik bağın inode elemanında o sembolik bağın gösterdiği dosyanın yol ifadesi saklanmaktadır. Sembolik bağlar birden 
+fazla geçişli olabilmektedir. Dizinlerin sembolik bağlarının oluşturulması mümkündür ve dolaşım sırasında bir soruna 
+yol açmamaktadır. Çünkü dizin ağacını dolaşan programlar ``stat`` fonksiyonunu değil ``lstat`` fonksiyonunu kullanırlar. 
+Yani sembolik bağları izlemezler. Halbuki katı bağlarda böyle bir şey mümkün değildir. Sembolik bağ daha esnek kullanımlara 
+sahiptir. Örneğin sembolik bağın değiştirerek onun başka bir dosyayı göstermesi sağlanabilmektedir. Bu özelliklerinden 
+dolayı sembolik bağlar katı bağlara göre çok daha sık kullanılmaktadır. Dosya sistemleri arasında (örneğin disk bölümleri 
+arasında) katı bağların oluşturulamadığını belirtmiştik. Ancak dosya sistemleri arasında sembolik bağlar oluşturulabilmektedir.
+Aşağıda sembolik bağlarla katı bağları bir tablo eşliğinde karşılaştırdık:
 
-.. list-table:: Sembolik Bağ ve Katı Bağ Karşılaştırması
+.. list-table:: 
    :header-rows: 1
    :widths: 25 35 35
 
@@ -4299,13 +4300,10 @@ belirtmiştik. Ancak dosya sistemleri arasında sembolik bağlar oluşturulabilm
      - İzinleri dikkate alınmaz
      - inode izinleri aynıdır
 
-Elimizde ``x`` sembolik bağ dosyası olsun. Bu dosya ``y`` dosyasını gösteriyor olsun. Yani ``x -> y`` durumu söz konusu
+Elimizde ``x`` sembolik bağ dosyası olsun ve bu dosya ``y`` dosyasını gösteriyor olsun. Yani ``x -> y`` durumu söz konusu
 olsun. Biz de bu ``x`` dosyasının ``y``'yi değil ``z``'yi göstermesini sağlamak isteyelim. İşte maalesef UNIX/Linux
-sistemlerinde bir sembolik bağ dosyasının hedefini değiştirmenin pratik bir yolu yoktur. Önce sembolik bağın silinmesi
-sonra yeni hedefle yeniden yaratılması gerekir.
-
-Örnek: lstat ile Birden Fazla Dosyanın Bilgilerinin Yazdırılması
-----------------------------------------------------------------
+sistemlerinde bir sembolik bağ dosyasının hedefini değiştirmenin pratik bir yolu yoktur. Bu işlem önce sembolik bağın 
+silinmesi sonra yeni hedefle yeniden yaratılması yoluyla yapılabilmektedir.
 
 Aşağıdaki örnekte birden fazla dosyanın bilgileri ``lstat`` fonksiyonuyla satır satır yazdırılmıştır. Programı şöyle
 kullanabilirsiniz:
@@ -4315,6 +4313,8 @@ kullanabilirsiniz:
     $ ./lstat-test x.txt y.txt z.txt
 
 Denemenin yapıldığı makinede şöyle bir çıktı elde edilmiştir:
+
+``lstat-test.c``
 
 .. code-block:: text
 
@@ -4471,7 +4471,7 @@ Aslında biraz daha gerçekçi temsil şöyle oluşturulabilir:
     └──────────────┘
 
 Burada *Inode Bitmap* alanı Inode Bloktaki boş inode elemanlarının yerlerini, *Data Bitmap* ise Data Bloktaki boş
-blokların yerlerini tutmaktadır. ext dosya sistemlerinin gerçek disk organizasyonlarını kursumuzun son kısımlarına doğru
+blokların yerlerini tutmaktadır. ext dosya sistemlerinin gerçek disk organizasyonlarını kitabımızın son kısımlarına doğru
 inceleyeceğiz.
 
 Anımsayacağınız gibi UNIX/Linux sistemlerinde katı bağlardan dolayı bir dizin girişinin silinmesi o dizin girişine
@@ -5734,7 +5734,7 @@ aşağıdaki gibi dizin girişlerinin bulunduğunu söylemiştik:
     isim    inode_no
     ...
 
-Dizin dosyalarının ext dosya sistemlerindeki gerçek formatları biraz daha ayrıntı içermektedir. Kursumuzun sonlarına
+Dizin dosyalarının ext dosya sistemlerindeki gerçek formatları biraz daha ayrıntı içermektedir. Kitabımızın sonlarına
 doğru ext dosya sistemlerinin disk organizasyonu üzerinde duracağız.
 
 Bir dizini erişim hakları yeterliyse ``open`` fonksiyonuyla açabiliriz. Ancak POSIX standartlarında dizin dosyalarından
@@ -5800,7 +5800,7 @@ ve ``lstat`` fonksiyonları yol ifadesi alırken ``fstat`` fonksiyonu dosya beti
 ``chmod`` için ``fchmod``, ``chown`` için ``fchown`` fonksiyonları bulunmaktaydı. İşte bu fonksiyonların bir de at'li
 versiyonları vardır. Örneğin ``fstatat``, ``fchmodat``, ``fchownat`` gibi. Ayrıca başı ``f`` ile başlamayan çeşitli
 dosya fonksiyonlarının da at'li versiyonları bulunmaktadır. Örneğin ``open`` fonksiyonunun da bir at'li versiyonu
-vardır. Aslında bu at'li fonksiyonlar seyrek kullanılan fonksiyonlardır. Ancak biz kursumuzda bunlar hakkında açıklama
+vardır. Aslında bu at'li fonksiyonlar seyrek kullanılan fonksiyonlardır. Ancak biz kitabımızda bunlar hakkında açıklama
 yapmayı da uygun görüyoruz. Peki bu at'li fonksiyonlar ne yapmaktadır? Aşağıda ``openat`` fonksiyonunun prototipini
 görüyorsunuz:
 
@@ -8854,7 +8854,7 @@ Burada ``/dev/null`` aygıt sürücüsü ``open`` fonksiyonuyla açılmıştır.
 diskte yalnızca bir inode elemanı bulundurulmaktadır. Bu inode elemanı aslında hangi aygıt sürücüyle ilişki kurulacağını
 belirten anahtarı içermektedir. Linux sistemlerinde uzunca bir süredir artık ``/dev`` dizini gerçek bir disk dizini
 değildir. Bu dizin RAM'de oluşturulmaktadır ve bu dizine ilişkin dosya sistemine ``devtmpfs`` denilmektedir. Ancak aygıt
-sürücüler için dizin girişlerinin ``/dev`` dizininde oluşturulması zorunlu da değildir. Biz kursumuzda Linux aygıt
+sürücüler için dizin girişlerinin ``/dev`` dizininde oluşturulması zorunlu da değildir. Biz kitabımızda Linux aygıt
 sürücülerini ayrı bir bölümde ayrıntılı bir biçimde ele alacağız.
 
 İşletim sistemi aygıt sürücüye ilişkin dizin girişi açılmaya çalışıldığında aslında *bir aygıt sürücü ile işlem yapılmak
