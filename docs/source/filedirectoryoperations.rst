@@ -3205,7 +3205,7 @@ prototipi şöyle olabilir:
     int disp_ls(const char *path);
 
 ``disp_ls`` önce ``stat`` fonksiyonuyla dosya bilgilerini elde edip onu *"ls -l"* formatında ekrana (``stdout``
-dosyasına) basmaktadır. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+dosyasına) basmaktadır. Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
 ``fsinfo.c``
 
@@ -3585,7 +3585,7 @@ fstat Fonksiyonu
 ~~~~~~~~~~~~~~~~
 
 ``fstat`` fonksiyonu ``stat`` fonksiyonunun parametre olarak yol ifadesini değil dosya betimleyicisini alan biçimidir. 
-Prototipi şöyledir:
+Prototipi şöyledir::
 
     int fstat(int fd, struct stat *buf);
 
@@ -3720,7 +3720,7 @@ Katı bağ oluşturmak için ``link`` isimli POSIX fonksiyonu kullanılmaktadır
     int link(const char *oldpath, const char *newpath);
 
 Fonksiyonun birinci parametresi katı bağı oluşturulacak dosyanın yol ifadesini, ikinci parametresi oluşturulacak olan
-yeni katı bağın yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine
+yeni katı bağın yol ifadesini belirtmektedir. Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine
 geri dönmektedir. Örneğin:
 
 .. code-block:: c
@@ -3966,7 +3966,7 @@ Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadı
     int symlink(const char *target, const char *linkpath);
 
 Fonksiyonun birinci parametresi gerçek dosyanın yol ifadesini, ikinci parametresi ise oluşturulacak sembolik bağlantı
-dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri
+dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda ``-1`` değerine geri
 dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı *at*'li bir biçimi de vardır:
 
 .. code-block:: c
@@ -4074,7 +4074,7 @@ gösterilmektedir.)
 Peki biz bu durumda ``y.txt`` dosyasını ``open`` fonksiyonuyla açmak istediğimizde (ya da örneğin *cat* komutuyla onun
 içini görmek istediğimizde) ne olacaktır? İşte ``open`` fonksiyonu sembolik bağ dosyasının referans ettiği dosyanın
 olmadığını anlamakta ve sanki olmayan bir dosya açılmak istenmiş gibi davranmaktadır. Yani bu durumda ``open``
-fonksiyonu başarısız olup -1 değerine geri döner ve ``errno`` değişkeni ``ENOENT`` (*No such file or directory*)
+fonksiyonu başarısız olup ``-1`` değerine geri döner ve ``errno`` değişkeni ``ENOENT`` (*No such file or directory*)
 değeriyle set edilir.
 
 Sembolik bağ dosyasının referans ettiği dosyanın silinmiş olma durumuna İngilizce *dangling link* denilmektedir.
@@ -4146,7 +4146,7 @@ Bu alan küçük ise fonksiyon başarısız olmaz ancak yol ifadesinin son kısm
 karakter sayısına geri dönmektedir. Fonksiyon (diğer fonksiyonların aksine) ``null`` karakteri dizinin sonuna 
 yerleştirmemektedir. Bu durumda programcı referans edilen yol ifadesine erişirken dikkat etmelidir.
 
-Fonksiyon başarı durumunda yerleştirilen karakter sayısına, başarısızlık durumunda -1 değerine geri dönmektedir.
+Fonksiyon başarı durumunda yerleştirilen karakter sayısına, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
 ``readlink`` fonksiyonu sembolik bağ dosyasının içeerisindeki hedefi verir. Yani fonksiyonun amacı sembolik bağı 
 izlemek değildir. Dolayısıyla ``readlink`` "kopuk (dangling)" sembolik bağlarda başarısız olmaz.
@@ -4459,11 +4459,11 @@ ilişkin dosyanın silineceği anlamına gelmemektedir. Daha önce de belirttiğ
 fazla dizin girişi söz konusu olabilmektedir. Inode elemanındaki katı bağ sayacı 0'a düştüğünde gerçek dosya silmesi
 yapılmaktadır.
 
-remove ve unlink Fonksiyonlarrı
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+remove ve unlink Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UNIX/Linux sistemlerinde bir dosyayı silmek için ``remove`` ve ``unlink`` isimli fonksiyonlar kullanılmaktadır.
-``remove`` bir standart C fonksiyonudur (her standard C fonksiyonun aynı zamanda bir PSOIX fonksiyonu da olduğunu anımsayınız)
+``remove`` bir standart C fonksiyonudur (her standard C fonksiyonun aynı zamanda bir POSIX fonksiyonu da olduğunu anımsayınız)
 ``unlink`` ise bir POSIX fonksiyonudur. Bu iki fonksiyon tamamen aynı işlemi yapmaktadır. Fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
@@ -4476,17 +4476,25 @@ UNIX/Linux sistemlerinde bir dosyayı silmek için ``remove`` ve ``unlink`` isim
 
     int unlink(const char *path);
 
-Fonksiyonlar başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+Fonksiyonlar başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
-``remove`` ve ``unlink`` fonksiyonlarıyla bir dosyayı silebilmek için prosesin dosyaya *w* hakkına sahip olması
-gerekmez. Ancak dosyanın içinde bulunduğu dizin için *w* hakkına sahip olması gerekir. Bizim eğer dosyanın içinde
-bulunduğu dizine *w* hakkımız varsa dosyanın sahibi olmasak bile dosyayı silebiliriz. Tabii proses ID'si 0 olan
-prosesler (*root* prosesler) her zaman silme işlemini yapabilirler.
+``remove`` ve ``unlink`` fonksiyonlarıyla bir dosyayı silebilmek için prosesin dosyaya ``'w'`` hakkına sahip olması
+gerekmez. Ancak dosyanın içinde bulunduğu dizin için ``'w'`` hakkına sahip olması gerekir. Bizim eğer dosyanın içinde
+bulunduğu dizine ``'w'`` hakkımız varsa dosyanın sahibi olmasak bile dosyayı silebiliriz. Tabii proses ID'si ``0`` olan
+prosesler (*root* prosesler) ya da Linux'ta ``CAP_DAC_OVERRIDE`` yetenekliliğine (capability) sahip olan prosesler her zaman silme 
+işlemini yapabilirler.
 
 Bir dosya ``remove`` ya da ``unlink`` fonksiyonlarıyla silindiğinde dizin girişi silinir. Ancak yukarıda da
-belirttiğimiz gibi dosyanın silinmesi katı bağ sayacı 0'a düştüğünde yapılmaktadır. Yani ``remove`` ve ``unlink``
-fonksiyonları dizin girişini silerler. Sonra dosyanın katı bağ sayacını 1 eksiltirler. Eğer dosyanın katı bağ sayacı 0'a
-düşmüşse dosyayı fiziksel olarak silerler.
+belirttiğimiz gibi dosyanın gerçek anlamda diskten silinmesi katı bağ sayacı 0'a düştüğünde yapılmaktadır. Yani 
+``remove`` ve ``unlink`` fonksiyonları dizin girişini silerler. Sonra dosyanın katı bağ sayacını 1 eksiltirler. Eğer 
+dosyanın katı bağ sayacı ``0``'a düşmüşse dosyayı fiziksel olarak silerler.
+
+Bir dosya çeşitli prosesler tarafından açıkken de silinebilmektedir. Bu durumda ilgili dizin girişi silinir. Ancak
+dosyanın katı bağ sayacı ``0``'a düşse bile dosyaya ilişkin inode elemanının ve data bloklarının diskten silinmesi
+dosyayı açmış olan proseslerin hepsinin dosyayı kapatmasından sonra yapılmaktadır. (Teknik olarak dosyayı açan her
+proses çekirdek alanı içerisinde yaratılan inode nesnesi içerisindeki sayacı artırmakta, dosya kapatıldığında da
+eksiltmektedir. Dosyanın inode elemanının ve data bloklarının silinmesi bu referans sayacının ``0``'a düşmesiyle
+yapılmaktadır.)
 
 Aşağıdaki örnekte komut satırından verilen yol ifadelerine ilişkin dosyalar silinmeye çalışılmıştır.
 
@@ -4510,85 +4518,19 @@ Aşağıdaki örnekte komut satırından verilen yol ifadelerine ilişkin dosyal
         return 0;
     }
 
-Dizin Girişleri ve Hard Link Sayacı
------------------------------------
-
-Daha önceden de belirttiğimiz gibi aslında *dizinler* birer dosya gibi organize edilmiştir. Dizin dosyalarının
-içerisinde *dizin girişleri (directory entries)* bulunmaktadır. Bir dizin girişinin formatı dosya sisteminden dosya
-sistemine değişebilmektedir. Ancak özet olarak bir dizin dosyasının içeriği şöyledir:
-
-.. code-block:: text
-
-    Dizin Dosyası
-    -------------
-    dosya_ismi  inode no
-    dosya_ismi  inode no
-    dosya_ismi  inode no
-    ...
-    dosya_ismi  inode no
-    dosya_ismi  inode no
-    dosya_ismi  inode no
-
-Dosyaların asıl bilgileri (yani ``stat`` fonksiyonuyla elde ettiğimiz bilgiler) diskte *Inode Block* denilen bir bölgede
-saklanmaktadır. Inode Block inode elemanlarından oluşur. Her inode elemanına ilk eleman 0 olmak üzere artan sırada bir
-numara karşılık düşürülmüştür. İşletim sistemi bir dosya ile ilgili işlem yaparken kesinlikle o dosyanın inode elemanına
-erişmek ve oradaki bilgileri kullanmak zorundadır.
-
-Bir dosya ``unlink`` ya da ``remove`` fonksiyonlarıyla silindiğinde kesinlikle dizin girişi silinmektedir. Ancak
-dosyanın silinip silinmeyeceği hard-link sayacına bağlıdır.
-
-Farklı dizin girişleri farklı isimlerle aynı inode numaralarını işaret ediyorsa buna *hard link* denilmektedir. Örneğin:
-
-.. code-block:: text
-
-    Dizin Dosyası
-    --------------
-    a.txt   12345678
-    b.txt   12345678
-    ...
-
-Burada bizim ``open`` fonksiyonuyla ``a.txt`` ya da ``b.txt`` dosyalarını açmamız arasında hiçbir farklılık yoktur.
-Çünkü dosyanın bütün bilgileri inode elemanının içerisindedir. İşte biz bu dosyalardan örneğin ``a.txt`` dosyasını
-silersek aslında yalnızca dizin girişini silmiş oluruz. Çünkü işletim sistemi ``a.txt`` dosyasının işaret ettiği inode
-elemanının başka bir giriş tarafından kullanıldığını gördüğü için inode elemanını ve dosyanın diskteki varlığını silmez.
-İşte bu durum *hard link sayacı* ile kontrol edilmektedir. Yukarıdaki örnekte dosyanın hard link sayacı 2'dir. Biz bu
-dizin girişlerinden birini sildiğimizde hard link sayacı 1'e düşer. Diğerini de sildiğimizde hard link sayacı 0'a düşer
-ve dosya gerçekten silinir.
-
-Bir dosyanın hard link'ini oluşturmak için *ln* kabuk komutu kullanılmaktadır. Örneğin:
-
-.. code-block:: text
-
-    $ ln sample.c mample.c
-
-    $ ls -li sample.c mample.c
-    1207667 -rw-r--r-- 2 kaan study 329 Ara 10 10:59 mample.c
-    1207667 -rw-r--r-- 2 kaan study 329 Ara 10 10:59 sample.c
-
-Dosyanın hard link sayacının 2 olduğuna dikkat ediniz.
-
-Bir dizin yaratıldığında onun içerisinde ``.`` ve ``..`` biçiminde iki dizin girişi otomatik olarak yaratılmaktadır.
-(UNIX/Linux sistemlerinde başı ``.`` ile başlayan dizin girişleri *ls* komutunda default olarak görüntülenmemektedir.
-Bunların görüntülenmesi için *-a (all)* seçeneğinin de kullanılması gerekir.) ``.`` dizin girişi kendi dizin dosyasının
-inode elemanını, ``..`` dizin girişi ise üst dizinin inode elemanını göstermektedir. Bu nedenle bir dizin yaratıldığında
-dizin dosyasına ilişkin hard-link sayacı 2 olur. O dizinin içerisinde yaratılan her dizin ``..`` girişini içereceğinden
-dolayı o dizinin hard link sayacını artıracaktır.
-
-Belli bir inode elemanını gösteren dizin girişlerinin elde edilmesine yönelik bu sistemlerde pratik bir yol yoktur.
-Yapılacak şey diskteki tüm dosyaları gözden geçirip inode numaralarından onların aynı inode elemanını gösterip
-göstermediğini anlamaktır.
-
-Erişim Haklarının ve Sahiplik Bilgilerinin Değiştirilmesi
-=========================================================
-
-chmod ve fchmod Fonksiyonları
------------------------------
+Dosyaların ve Dizinlerin Erişim Haklarının ve Sahipliklerinin Değiştirilmesi
+----------------------------------------------------------------------------
 
 Yukarıda da belirttiğimiz gibi dosya bilgileri disk üzerinde inode bloktaki inode elemanının içerisinde tutulmaktadır.
 ``stat`` fonksiyonları erişim bilgilerini buradan almaktadır (*ls* komutu da ``stat`` fonksiyonları kullanılarak
 yazılmıştır). Dosyanın erişim hakları yine anımsayacağınız gibi ``open`` fonksiyonunda dosya yaratılırken
-belirlenmektedir. İşte bir dosyanın erişim haklarını dışarıdan ``chmod`` ve ``fchmod`` isimli POSIX fonksiyonlarıyla
-değiştirebiliriz. Fonksiyonların prototipleri şöyledir:
+belirlenmektedir. 
+
+chmod ve fchmod Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Bir dosyanın erişim haklarını dışarıdan ``chmod`` ve ``fchmod`` isimli POSIX fonksiyonlarıyla değiştirebiliriz. 
+Fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
 
@@ -4598,23 +4540,23 @@ değiştirebiliriz. Fonksiyonların prototipleri şöyledir:
     int fchmod(int fd, mode_t mode);
 
 Fonksiyonun birinci parametresi dosyanın yol ifadesini, ikinci parametresi erişim haklarını belirtmektedir. Fonksiyonlar
-başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir. Anımsayacağınız gibi erişim hakları
+başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir. Anımsayacağınız gibi erişim hakları
 POSIX'in 2008 standartlarına kadar ``S_IXXX`` sembolik sabitleriyle oluşturulmak zorundaydı. Ancak 2008 ve sonrasında
 artık bu ``S_IXXX`` sembolik sabitlerinin sayısal değerleri belirlendiği için programcı doğrudan erişim haklarını octal
-bir sayı biçiminde girebilmektedir. Fakat okunabilirlik ve geçmişe uyum göz önüne alındığında erişim haklarının
+bir sayı biçiminde de girebilmektedir. Fakat okunabilirlik ve geçmişe uyum göz önüne alındığında erişim haklarının
 ``S_IXXX`` sembolik sabitleriyle verilmesi tavsiye edilmektedir. ``chmod`` fonksiyonu sembolik bağları izlemektedir.
 (Yani biz sembolik bağların kendi erişim haklarını değiştiremeyiz. Anımsayacağınız gibi sembolik bağların kendi erişim
-hakları her zaman *rwxrwxrwx* biçimindedir.)
+hakları her zaman ``rwxrwxrwx`` biçimindedir ve Linux gibi bazı sistemlerinde zaten değiştirilememektedir.)
 
 Bir dosyanın erişim haklarını ``chmod`` fonksiyonuyla değiştirebilmek için prosesin etkin kullanıcı ID'sinin dosyanın
-kullanıcı ID'si ile aynı olması ya da prosesin etkin kullanıcı ID'sinin 0 olması (root proses) gerekmektedir. Linux
+kullanıcı ID'si ile aynı olması ya da prosesin etkin kullanıcı ID'sinin 0 olması (*root* proses) gerekmektedir. Linux
 yeteneklilik (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı ID'si 0 olmasa bile proses
 ``CAP_FSETID`` yeteneğine sahipse herhangi bir dosyanın erişim haklarını değiştirebilmektedir.
 
-set-user-id, set-group-id ve sticky Bitleri
--------------------------------------------
+Dosyaların ve Dizinlerin set-user-id, set-group-id ve sticky Bitleri
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Biz ``open`` fonksiyonunda dosyanın erişim haklarının *rwxrwxrwx* biçiminde üçerli üç gruptan oluştuğunu belirtmiştik.
+Biz ``open`` fonksiyonunda dosyanın erişim haklarının ``rwxrwxrwx`` biçiminde üçerli üç gruptan oluştuğunu belirtmiştik.
 Aslında bunlara ek olarak erişim haklarında üçlü bir grup daha vardır. Bu üçlü gruba *set-user-id*, *set-group-id* ve
 *sticky* denilmektedir. Bu üçlü sırasıyla ``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` sembolik sabitleriyle temsil
 edilmektedir. ``chmod`` ve ``fchmod`` fonksiyonlarıyla bu yeni gördüğümüz üç erişim hakkı da değiştirilebilmektedir. Bu
@@ -4632,14 +4574,12 @@ Tabii biz ilk octal digit'i belirtmezsek bu durum oradaki bitlerin 0 olduğu anl
 
     0666
 
-Erişim hakları *rw-rw-rw-* anlamına gelmektedir. Yukarıda sözünü ettiğimiz üç erişim hakkı set edilmemiştir.
-``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` erişim haklarının işlevlerini ileride başka bir bölümde ele alacağız.
+Erişim hakları ``rw-rw-rw-`` anlamına gelmektedir. (Buradaki ilk ``0`` C'de sayının octal sistemde yazıldığını belirtiyor.) 
+Yukarıda sözünü ettiğimiz üç erişim hakkı set edilmemiştir. ``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` erişim haklarının 
+işlevlerini ileride başka bir bölümde ele alacağız.
 
-``chmod`` POSIX fonksiyonu prosesin umask değerini dikkate almamaktadır. Yani fonksiyonda belirttiğimiz erişim
+``chmod`` POSIX fonksiyonu prosesin ``umask`` değerini dikkate almamaktadır. Yani fonksiyonda belirttiğimiz erişim
 haklarının hepsi dosyaya yansıtılmaktadır.
-
-Bir chmod Örneği: Octal Değerlerle (mychmod.c)
-----------------------------------------------
 
 Aşağıda girilen octal digitlerle dosyaların erişim haklarını değiştiren bir örnek program verilmiştir. Bu örnekte biz
 ``chmod`` fonksiyonunda doğrudan octal değerleri kullandık. Programımız önce en fazla 4 octal digit'i sonra da erişim
@@ -4648,6 +4588,9 @@ hakları değiştirilecek dosyaların yol ifadelerini komut satırı argümanı 
 .. code-block:: text
 
     $ ./mychmod 666 x.txt y.txt
+
+
+``mychmod```
 
 .. code-block:: c
 
