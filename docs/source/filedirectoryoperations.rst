@@ -306,7 +306,13 @@ Erişim Hataları
 
 ``open`` fonksiyonu ile dosya açım işlemi sırasında eğer ``open`` fonksiyonu yukarıda açıkladığımız erişim
 hakları testinde başarısız olursa bu durumda ``errno`` değişkeni ``EACCES`` değeriyle set edilmektedir.
-``EACCES`` ``errno`` değerinin İngilizce mesaj yazısı "*Permission denied*"" biçimindedir.
+``EACCES`` ``errno`` değerinin İngilizce mesaj yazısı "*Permission denied*"" biçimindedir. UNIX/Linux sistemlerinde 
+proseslerin bazı işlemleri yapabilmesi için (bu işlemler dosya sistemine ilişkin olabileceği gibi olmayabilir de) bazı 
+koşulların sağlanması gerekebilmektedir. (Örneğin işlemi yapan prosesin etkin kullanıcı ID'sinin ``0`` olması (*root* proses) 
+ya da Linux sistemlerinde ilgili yetenekliliğe sahip olması gibi.) Eğer proses bu koşulları sağlamıyorsa ilgili fonksiyon 
+``errno`` değişkenini ``EPERM`` değeri ile set ederek başarısız olmaktadır. UNIX/Linux programcıları ``EACCES`` ile 
+``EPERM`` değerlerinin anlamları konusunda tereddüt yaşayabilmektedir. ``EACCES`` dosya erişimlerinde ortaya çıkarken 
+``EPERM`` kaynak erişimleri ve özel bazı işlemlerin yapılması sırasında ortaya çıkmaktadır.
 
 Erişim Haklarının Belirlenmesi
 ------------------------------
