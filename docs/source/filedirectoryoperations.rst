@@ -266,9 +266,9 @@ ifadesinin çözümlenmesi" işleminin başarıyla bitirilebilmesi için prosesi
 ``Study`` dizinine ve ``C`` dizinine ``'x'`` hakkının olması gerekir.
 
 ``x`` hakkı göreli yol ifadelerinde de aynı biçimde uygulanmaktadır. Örneğin biz ``test.txt`` dosyasını ``open``
-fonksiyonu ile ``test.txt`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için (yani prosesin 
+fonksiyonu ile ``"test.txt"`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için (yani prosesin 
 çalıma dizini için) ``'x'`` hakkına sahip değilsek yine yol ifadesi başarılı bir biçimde çözümlenemeyecektir. Başka 
-bir deyişle ``test.txt`` yol ifadesi sanki ``./test.txt`` gibi ele alınmaktadır. Örneğin ``a/b/c/test.txt`` gibi 
+bir deyişle ``"test.txt"`` yol ifadesi sanki ``"./test.txt"`` gibi ele alınmaktadır. Örneğin ``"a/b/c/test.txt"`` gibi 
 bir yol ifadesinin başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil olmak üzere ``a``, ``b`` 
 ve ``c`` dizinlerine ``'x'`` hakkının olması gerekir.
 
@@ -277,7 +277,7 @@ dizin yaratırken zaten ``'x'`` hakkını varsayılan durumda vermektedir. Prose
 her zaman yol ifadesinin çözümlenmesi sırasında dizinlerin içerisinden geçebilirler.
 
 Burada bir noktaya dikkatinizi çekmek istiyoruz. Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``'r'`` 
-hakkının bulunması gerekmemektedir. Örneğin ``a/b/c/test.txt`` gibi bir yol ifadesinde, prosesin ``a`` dizinine,
+hakkının bulunması gerekmemektedir. Örneğin ``"a/b/c/test.txt"`` gibi bir yol ifadesinde, prosesin ``a`` dizinine,
 ``b`` dizinine ve ``c`` dizinine ``'r'`` hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu 
 dosya açılabilir. Yani bir dizinin içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde 
 bulunduğunu biliyorsak, o dosyayı yine de kullanabiliriz.
@@ -454,8 +454,8 @@ Bu bir göreli yol ifadesidir.
 Mutlak yol ifadelerinin kök dizinden itibaren yol belirttiğini söyledik, peki göreli yol ifadeleri nereden itibaren 
 yol belirtmektedir? İşte göreli yol ifadeleri prosesin *çalışma dizini (current working directory)* denilen bir 
 dizinden itibaren yol belirtmektedir. Proseslerin çalışma dizinleri *proses kontrol bloğu* içerisinde saklanmaktadır ve göreli yol
-ifadeleri için orijin belirtmektedir. Örneğin prosesimizin çalışma dizini ``/home/student`` olsun. Bu durumda
-``notes/readme.txt`` yol ifadesi aslında ``/home/student/notes/readme.txt`` mutlak yol ifadesiyle aynı anlama
+ifadeleri için orijin belirtmektedir. Örneğin prosesimizin çalışma dizini ``"/home/student"`` olsun. Bu durumda
+``"notes/readme.txt"`` yol ifadesi aslında ``"/home/student/notes/readme.txt"`` mutlak yol ifadesiyle aynı anlama
 gelmektedir. Örneğin:
 
 .. code-block:: text
@@ -515,17 +515,17 @@ göstermediğine" dikkat ediniz. Örneğin:
 
     "/home/student/notes/./llm/../../test.txt"
 
-Yol ifadesindeki ``.`` yol bileşeninin bir etkisi yoktur. Yani ``/home/student/notes/.`` yol ifadesi ile
-``/home/student/notes`` eşdeğerdir. ``..`` yol bileşeni son dizinin öncesini belirtmektedir. Bu yol ifadesini
+Yol ifadesindeki ``.`` yol bileşeninin bir etkisi yoktur. Yani ``"/home/student/notes/."`` yol ifadesi ile
+``"/home/student/notes"`` eşdeğerdir. ``..`` yol bileşeni son dizinin öncesini belirtmektedir. Bu yol ifadesini
 aşama aşama çözümleyelim:
 
-- ``/home/student/notes/.`` yol ifadesi yukarıda da belirttiğimiz gibi ``/home/student/notes`` ile eşdeğerdir.
-- ``/home/student/notes/./llm`` yol ifadesi ``/home/student/notes/llm`` anlamına gelmektedir.
-- ``/home/student/notes/./llm/..`` yol ifadesi ``/home/student/notes/`` anlamına gelmektedir.
-- ``/home/student/notes/./llm/../..`` yol ifadesi ``/home/student`` anlamına gelmektedir.
-- ``/home/student/notes/./llm/../../test.txt`` yol ifadesi de ``/home/student/test.txt`` anlamına gelmektedir.
+- ``"/home/student/notes/."`` yol ifadesi yukarıda da belirttiğimiz gibi ``"/home/student/notes"`` ile eşdeğerdir.
+- ``"/home/student/notes/./llm"`` yol ifadesi ``"/home/student/notes/llm"`` anlamına gelmektedir.
+- ``"/home/student/notes/./llm/.."`` yol ifadesi ``"/home/student/notes/"`` anlamına gelmektedir.
+- ``"/home/student/notes/./llm/../.."`` yol ifadesi ``"/home/student"`` anlamına gelmektedir.
+- ``"/home/student/notes/./llm/../../test.txt"`` yol ifadesi de ``"/home/student/test.txt"`` anlamına gelmektedir.
 
-Şimdi *mademki ``.`` yol bileşeni zaten bulunulan dizini belirtiyor, o zaman bunun kullanılmasına ne gerek var?*
+Şimdi "mademki ``.`` yol bileşeni zaten bulunulan dizini belirtiyor, o zaman bunun kullanılmasına ne gerek var?""
 sorusu aklınıza gelebilir. İşte bazı durumlarda bu belirlemenin açıkça yapılması gerekebilmektedir. Kabuk
 üzerinde kullanılan ``~`` sembolü *home* dizini anlamına gelmektedir. Ancak bu sembol kabuğa ilişkindir.
 Çekirdekte böyle bir yol bileşeni yoktur.
@@ -548,7 +548,7 @@ Yol İfadelerinin Çözümlenmesi
 dosyayı ya da dizini elde etmesi sürecine *yol ifadesinin çözümlenmesi (pathname resolution)* denilmektedir.
 Yol ifadelerinin çözümlenmesi dizin geçişleriyle yapılan yavaş bir işlemdir. Bu nedenle işletim sistemleri bu
 işlemi hızlandırmak için önbellek mekanizmaları kullanmaktadır. Bu nedenle işletim sistemleri bu işlemi hızlandırmak 
-için önbellek mekanizmaları kullanmaktadır. Örneğin işletim sistemi ``/home/kaan/study/sample.c`` yol ifadesini 
+için önbellek mekanizmaları kullanmaktadır. Örneğin işletim sistemi ``"/home/kaan/study/sample.c"`` yol ifadesini 
 çözümleyecek olsun. Önce kök dizinde ``home`` dizinini, bulursa onun içerisinde ``kaan`` dizinini, bulursa onun 
 içerisinde ``study`` dizinini, nihayet onu da bulursa ``study`` dizininde ``sample.c`` dosyasını arayacaktır. Linux 
 işletim sistemlerinde daha önce erişilmiş olan dizin girişleri *dentry önbelleği (dentry cache)* denilen önbellek 
@@ -2228,8 +2228,8 @@ UNIX/Linux sistemlerinde ``open``, ``close``, ``read``, ``write`` ve ``lseek`` f
 çok yardımcı dosya fonksiyonu da vardır. Bu yardımcı dosya fonksiyonları dosyalar üzerinde bazı önemli işlemleri
 yapmaktadır. Bu bölümde bu fonksiyonların önemli olanlarını tanıtacağız.
 
-Proseslerin umask Değerleri
----------------------------
+Proseslerin umask Değerleri ve umask Fonksiyonu
+-----------------------------------------------
 
 Biz ``open`` fonksiyonu ile bir dosya yaratırken yaratacağımız dosyaya verdiğimiz erişim hakları dosyaya tam olarak
 yansıtılmayabilir. Yani örneğin biz gruba *w* hakkı vermek istesek bile bunu sağlayamayabiliriz. Çünkü belirtilen
@@ -2275,9 +2275,6 @@ durumu böyledir.) Bazen programcı umask değerini tamamen sıfırlamak da iste
 
 Burada yüksek anlamlı üç octal digit de 0 kabul edilmektedir. Bu durumda artık çalıştırdığımız programda ``open``
 fonksiyonunun tüm erişim hakları dosyalara yansıtılacaktır.
-
-umask Fonksiyonu
-~~~~~~~~~~~~~~~~
 
 Prosesin umask değerini programlama yoluyla değiştirmek için ``umask`` isimli POSIX fonksiyonu kullanılmaktadır.
 ``umask`` fonksiyonunun prototipi şöyledir:
@@ -2611,8 +2608,8 @@ ediniz.
 Inode elemanındaki dosyaya ilişkin metadata bilgileri izleyen başlıkta açıklayacağımız ``stat``, ``lstat`` ve ``fstat`` 
 fonksiyonlarıyla elde edilmektedir.
 
-Dosya ve Dizinlerin Metadata Bilgilerinin Elde Edilmesi
--------------------------------------------------------
+Dosya ve Dizinlerin Metadata Bilgilerinin Elde Edilmesi: stat, fstat ve lstat Fonksiyonları
+-------------------------------------------------------------------------------------------
 
 Bir dosyaya metadata bilgilerini elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
 kullanılmaktadır. Bu fonksiyonlar aslında aynı şeyi yaparlar. Fakat parametrik yapı bakımından ve semantik
@@ -2630,9 +2627,6 @@ bakımdan bunların arasında küçük farklılıklar vardır. Fonksiyonların p
 erişim hakları, kullanıcı ve grup ID'leri, dosyanın uzunluğu, dosyanın tarih-zaman bilgileri bu ``stat``
 fonksiyonlarıyla elde edilmektedir. ``ls`` komutu ``-l`` seçeneği ile kullanıldığında aslında dosya bilgilerini
 bu ``stat`` fonksiyonlarıyla elde edip ekrana (``stdout`` dosyasına) yazdırmaktadır.
-
-stat Fonksiyonu
-~~~~~~~~~~~~~~~
 
 Önce stat fonksiyonunu inceleyelim. ``stat`` fonksiyonunun prototipi şöyledir:
 
@@ -2970,9 +2964,6 @@ yapının eski ya da yeni elemanlarını kullanmalıdır. Ancak yukarıda da bel
 Linux'ta geçmişe doğru uyumu koruyabilmek için tanımlanmıştır. ``ls -l`` komutu dosyanın yalnızca son
 değiştirilme zamanını göstermektedir. Ancak ``ls -lu`` ile son erişim zamanı, ``ls -lc`` ile inode bilgilerinin
 son değiştirildiği zaman da görüntülenebilmektedir.
-
-Dosya Bilgilerini ls -l Formatında Yazdıran Örnek Program
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Aşağıda dosya bilgilerini ``stat`` fonksiyonu ile alıp yazdıran bir örnek veriyoruz. Bu programda dosya
 bilgileri ``ls -l`` formatında yazdırılmıştır. Biz henüz kullanıcı ve grup ID değerlerinden kullanıcı ve grup 
@@ -3581,8 +3572,6 @@ Fonksiyonun bu halini aşağıda veriyoruz.
         exit(EXIT_FAILURE);
     }
 
-fstat ve lstat Fonksiyonları
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``fstat`` fonksiyonu ``stat`` fonksiyonunun parametre olarak yol ifadesini değil dosya betimleyicisini alan biçimidir. 
 Prototipi şöyledir::
@@ -3625,9 +3614,6 @@ parametrik yapısı tamamen ``stat`` fonksiyonu gibidir:
     int lstat(const char *restrict path, struct stat *restrict buf);
 
 İzleyen paragraflarda katı bağların (hard link) ve sembolik bağların (soft link) ne anlama geldiğini açıklayacağız.
-
-stat Kabuk Komutu
-~~~~~~~~~~~~~~~~~
 
 Bir dosyanın ``stat`` bilgileri komut satırından *stat* kabuk komutuyla da elde edilebilmektedir. Örneğin:
 
@@ -3688,8 +3674,8 @@ başvurulan bilgiler zaten önbellekte varsa boşuna disk okumaları yapılmamak
 dizin girişlerinin saklandığı önbellek sistemine *dentry cache*, erişilen inode elemanlarının saklandığı önbellek
 sistemine ise *inode cache* denilmektedir.
 
-Katı Bağlar
------------
+Katı Bağlar ve link Fonksiyonu
+------------------------------
 
 Farklı dizin girişlerinin aynı inode numarasına sahip olması durumuna UNIX/Linux sistemlerinde *katı bağ (hard link)*
 denilmektedir. Örneğin farklı dizinlerde (aynı dizinde de olabilir) aşağıdaki gibi iki giriş olsun:
@@ -3703,9 +3689,6 @@ Burada her iki dizin girişinin de aynı inode elemanına sahip olduğuna dikkat
 metadata bilgileri inode elemanının içerisinde olduğuna göre bu dosyaya ``x.txt`` yol ifadesiyle erişmekle ``y.txt`` yol
 ifadesiyle erişmek arasında hiçbir farklılık yoktur. İşte ``x.txt`` ve ``y.txt`` dizin girişleri *katı bağ (hard link)*
 oluşturmuştur. Tabii katı bağa sahip dizin girişleri ikiden fazla da olabilir. 
-
-link Fonksiyonu
-~~~~~~~~~~~~~~~
 
 Katı bağ oluşturmak için ``link`` isimli POSIX fonksiyonu kullanılmaktadır. Linux sistemlerinde bu POSIX fonksiyonu 
 ``sys_link`` isimli sistem fonksiyonunu çağırmaktadır. ``link`` fonksiyonunun prototipi şöyledir:
@@ -3813,9 +3796,6 @@ izin vermemektedir. Linux'ta dizinler üzerinde katı bağ oluşturulmak istendi
     *If path1 names a directory, link() shall fail unless the process has appropriate privileges and the implementation
     supports using link() on directories.*
 
-Dizinlerdeki . ve .. Girişleri
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isimli iki dizin girişi de yaratılmaktadır. ``.`` girişi bulunulan
 dizini, ``..`` dizini ise üst dizini belirtmektedir. UNIX/Linux sistemlerinde başı ``.`` ile başlayan dosyalar *ls*
 komutunda default durumda görüntülenmemektedir. Bu girişleri görebilmek için *ls* komutunda *-a* seçeneğinin
@@ -3880,9 +3860,6 @@ Buradaki deneyden çıkan sonuçlara dikkat ediniz:
 Linux sistemleri ``.`` ve ``..`` dizinleri için istisna olarak katı bağ oluşturmaktadır ancak kullanıcılara dizinlere
 katı bağ oluşturma olanağını vermemektedir.
 
-Katı Bağların Silinmesi
-~~~~~~~~~~~~~~~~~~~~~~~
-
 Aynı dosyaya referans eden ``x.txt`` ve ``y.txt`` biçiminde iki katı bağ girişi olsun. Biz bunlardan birini silersek ne
 olur? Bu durumda eğer dosyanın kendisi silinirse diğer dizin girişi geçersiz duruma gelir. İşte işletim sistemi inode
 elemanının içerisinde (``stat`` yapısının ``st_nlink`` elemanı) ilgili dosyaya referans eden kaç katı bağın bulunduğu
@@ -3911,8 +3888,8 @@ Artık ``x.txt`` girişi yok edilmiştir. Ancak ``y.txt`` girişi durmaktadır:
 Dosyanın katı bağ sayacının 1'e düştüğüne dikkat ediniz. Artık biz bu ``y.txt`` dosyasını da sildiğimizde katı bağ
 sayacı 0'a düştüğü için dosya da gerçekten silinecektir.
 
-Sembolik Bağlar
----------------
+Sembolik Bağlar: symlink ve readlink Fonksiyonları
+--------------------------------------------------
 
 UNIX/Linux sistemlerinde *sembolik bağ (symbolic link)* ya da *gevşek bağ (soft link)*  denilen bir bağ türü de vardır.
 Sembolik bağlar Windows sistemlerindeki *kısa yol dosyalarına* benzemektedir. UNIX/Linux sistemlerinde sembolik bağlar
@@ -3949,9 +3926,6 @@ silinmektedir. (Eğer dosya silmekte kullanılan ``unlink`` fonksiyonu sembolik 
 izlediği halde ``lstat`` fonksiyonu sembolik bağı izlememektedir. Yani biz ``stat`` fonksiyonuna bir sembolik bağ dosyası
 verdiğimizde ``stat`` fonksiyonu senbolik bağı izleyerek bize onun referans ettiği dosyanın bilgilerini vermektedir. Ancak
 ``lstat`` fonksiyonu sembolik bağı izlememekte, sembolik bağ dosyasının kendisine ilişkin dosya bilgilerini vermektedir.
-
-symlink Fonksiyonu
-~~~~~~~~~~~~~~~~~~
 
 Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadır. Linux sistemlerinde bu fonksiyon
 ``sys_symlink`` isimli sistem fonksiyonunu çağırmaktadır. ``symlink`` fonksiyonunun prototipi şöyledir:
@@ -4049,9 +4023,6 @@ girilmelidir. Örneğin:
     6076082 -rw-r--r-- 1 kaan study 38 Tem  9 11:39 x.txt
     6076114 lrwxrwxrwx 1 kaan study  5 Tem  9 11:48 y.txt -> x.txt
 
-Kopuk Sembolik Bağlar
-~~~~~~~~~~~~~~~~~~~~~
-
 Peki bir sembolik bağ dosyasının referans ettiği dosya silinirse ne olur? Yukarıdaki örneğimizde ``x.txt`` dosyasını
 silelim:
 
@@ -4076,9 +4047,6 @@ değeriyle set edilir.
 
 Sembolik bağ dosyasının referans ettiği dosyanın silinmiş olma durumuna İngilizce *dangling link* denilmektedir.
 Kopmuş bir sembolik bağ dosyasının referans ettiği dosya yeniden yaratılırsa artık kopukluk durumu ortadan kaldırılmış olur.
-
-Sembolik Bağlarda Döngüsel Durum
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bir sembolik bağ dosyasına da sembolik bağ oluşturulabilmektedir. Örneğin aşağıdaki gibi bir durum söz konusu olabilir:
 
@@ -4123,9 +4091,6 @@ Peki bu durumda ``open`` fonksiyonuyla ``y.txt`` ya da ``z.txt`` dosyasını aç
 dosyaları görüntülemek istersek ne olur? İşte ``open`` fonksiyonu belli bir kademe sembolik bağları izlemekte eğer hedef
 dosya hala bulunamadıysa ``errno`` değişkenini ``ELOOP`` (*Too many levels of symbolic links*) değeri ile set edip
 işlemi başarısızlıkla sonlandırmaktadır.
-
-readlink Fonksiyonu
-~~~~~~~~~~~~~~~~~~~
 
 Biz ``lstat`` fonksiyonuyla bir dosyanın bilgilerini elde ettiğimizde o dosyanın bir sembolik bağlantı dosyası olup
 olmadığını anlayabiliyorduk. Ancak o sembolik bağ dosyasının hangi dosyaya referans ettiğini ``lstat`` fonksiyonu 
@@ -4425,8 +4390,8 @@ Denemenin yapıldığı makinede şöyle bir çıktı elde edilmiştir:
         exit(EXIT_FAILURE);
     }
 
-Dosyaların Silinmesi
---------------------
+Dosyaların Silinmesi: remove ve unlink Fonksiyonları
+----------------------------------------------------
 
 Bir dosyanın silinmesi o dosyanın diskteki inode elemanının inode tablosundan silinmesi ve o dosyaya ilişkin data
 bloklarının diskin "data bölümünden" silinmesi anlamına gelmektedir. (Tabii burada "silinme" kavramını aslında "serbest
@@ -4457,9 +4422,6 @@ Anımsayacağınız gibi UNIX/Linux sistemlerinde katı bağlardan dolayı bir d
 ilişkin dosyanın silineceği anlamına gelmemektedir. Daha önce de belirttiğimiz gibi aynı inode elemanını gösteren birden
 fazla dizin girişi söz konusu olabilmektedir. Inode elemanındaki katı bağ sayacı 0'a düştüğünde gerçek dosya silmesi
 yapılmaktadır.
-
-remove ve unlink Fonksiyonları
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UNIX/Linux sistemlerinde bir dosyayı silmek için ``remove`` ve ``unlink`` isimli fonksiyonlar kullanılmaktadır.
 ``remove`` bir standart C fonksiyonudur (her standard C fonksiyonun aynı zamanda bir POSIX fonksiyonu da olduğunu anımsayınız)
@@ -4517,16 +4479,13 @@ Aşağıdaki örnekte komut satırından verilen yol ifadelerine ilişkin dosyal
         return 0;
     }
 
-Dosyaların ve Dizinlerin Erişim Haklarının ve Sahipliklerinin Değiştirilmesi
-----------------------------------------------------------------------------
+Dosyaların ve Dizinlerin Erişim Haklarının ve Değiştirilmesi: chmod ve fchmod Fonksiyonları
+-------------------------------------------------------------------------------------------
 
 Yukarıda da belirttiğimiz gibi dosya bilgileri disk üzerinde inode bloktaki inode elemanının içerisinde tutulmaktadır.
 ``stat`` fonksiyonları erişim bilgilerini buradan almaktadır (*ls* komutu da ``stat`` fonksiyonları kullanılarak
 yazılmıştır). Dosyanın erişim hakları yine anımsayacağınız gibi ``open`` fonksiyonunda dosya yaratılırken
 belirlenmektedir. 
-
-chmod ve fchmod Fonksiyonları
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bir dosyanın erişim haklarını dışarıdan ``chmod`` ve ``fchmod`` isimli POSIX fonksiyonlarıyla değiştirebiliriz. 
 Fonksiyonların prototipleri şöyledir:
@@ -4564,9 +4523,6 @@ kullanılabilir. Açık dosyalar üzerinde bu tür işlemlerin daha hızlı yap�
 
     if (fchmod(fd, mode) == -1)
         exit_sys("fchmod");
-
-Dosyaların ve Dizinlerin set-user-id, set-group-id ve sticky Bitleri
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Biz ``open`` fonksiyonunda dosyanın erişim haklarının ``rwxrwxrwx`` biçiminde üçerli üç gruptan oluştuğunu belirtmiştik.
 Aslında bunlara ek olarak erişim haklarında üçlü bir grup daha vardır. Bu üçlü gruba *set-user-id*, *set-group-id* ve
@@ -4714,9 +4670,6 @@ düzeyinde OR'lanması ile oluşturulmuştur.
         exit(EXIT_FAILURE);
     }
 
-chmod Kabuk Komutu
-~~~~~~~~~~~~~~~~~~
-
 Dosyanın erişim haklarını değiştirmek için *chmod* isimli bir kabuk komutu da bulunmaktadır. Tabii *chmod* kabuk komutu
 ``chmod`` POSIX fonksiyonu kullanılarak yazılmıştır. *chmod* komutunun kullanımının birkaç biçimi vardır. Tipik
 kullanımda yukarıda yazdığımız örnek programda olduğu gibi erişim hakları komutta octal digit'lerle belirtilmektedir.
@@ -4800,8 +4753,8 @@ Pek çok kabuk komutunda olduğu gibi *chmod* komutu da birden fazla dosya üzer
 
 Komutun başka ayrıntıları da vardır. Bunun için ilgili dokümanlara başvurabilirsiniz.
 
-chown, fchown ve lchown Fonksiyonları
--------------------------------------
+Dasyanın Sahiplik Bilgilerinin Değiştirilemsi: chown, fchown ve lchown Fonksiyonları
+------------------------------------------------------------------------------------
 
 Bir dosyanın kullanıcı ID'si ve grup ID'si dosya yaratılırken belirleniyordu. Ancak programcı isterse dosyanın kullanıcı
 ID'sini ve grup ID'sini ``chown``, ``fchown`` ve ``lchown`` isimli POSIX fonksiyonları ile değiştirebilir.
