@@ -2228,8 +2228,8 @@ UNIX/Linux sistemlerinde ``open``, ``close``, ``read``, ``write`` ve ``lseek`` f
 çok yardımcı dosya fonksiyonu da vardır. Bu yardımcı dosya fonksiyonları dosyalar üzerinde bazı önemli işlemleri
 yapmaktadır. Bu bölümde bu fonksiyonların önemli olanlarını tanıtacağız.
 
-Proseslerin umask Değerleri ve umask Fonksiyonu
------------------------------------------------
+Proseslerin umask Değerleri
+---------------------------
 
 Biz ``open`` fonksiyonu ile bir dosya yaratırken yaratacağımız dosyaya verdiğimiz erişim hakları dosyaya tam olarak
 yansıtılmayabilir. Yani örneğin biz gruba *w* hakkı vermek istesek bile bunu sağlayamayabiliriz. Çünkü belirtilen
@@ -2275,6 +2275,9 @@ durumu böyledir.) Bazen programcı umask değerini tamamen sıfırlamak da iste
 
 Burada yüksek anlamlı üç octal digit de 0 kabul edilmektedir. Bu durumda artık çalıştırdığımız programda ``open``
 fonksiyonunun tüm erişim hakları dosyalara yansıtılacaktır.
+
+umask Fonksiyonu
+~~~~~~~~~~~~~~~~
 
 Prosesin umask değerini programlama yoluyla değiştirmek için ``umask`` isimli POSIX fonksiyonu kullanılmaktadır.
 ``umask`` fonksiyonunun prototipi şöyledir:
@@ -2568,8 +2571,8 @@ Inode Tabanlı Dosya Sistemlerinin Disk Organizasyonuna Özet Bir Bakış
 ---------------------------------------------------------------------
 
 UNIX/Linux sistemlerinde ``ext2``, ``ext3``, ``ext4`` gibi inode tabanlı dosya sistemlerinde bir disk bölümü
-formatlandığında kabaca (ayrınları var) disk bölümünde üç mantıksal bölüm oluşturulmaktadır: Süper Blok (Super Block), Inode
-Blok (Inode Block) ve Data Blok (Data Block):
+formatlandığında kabaca (ayrınları var) disk bölümünde üç mantıksal bölüm oluşturulmaktadır: Süper Blok (Super Block), 
+Inode Blok (Inode Block) ve Data Blok (Data Block):
 
 .. figure:: _static/disk-block-layout.png
     :align: center
@@ -2608,8 +2611,8 @@ ediniz.
 Inode elemanındaki dosyaya ilişkin metadata bilgileri izleyen başlıkta açıklayacağımız ``stat``, ``lstat`` ve ``fstat`` 
 fonksiyonlarıyla elde edilmektedir.
 
-stat, lstat ve fstat Fonksiyonları
-----------------------------------
+Dosya ve Dizinlerin Metadata Bilgilerinin Elde Edilmesi
+-------------------------------------------------------
 
 Bir dosyaya metadata bilgilerini elde etmek için ``stat``, ``lstat`` ve ``fstat`` isimli üç fonksiyon
 kullanılmaktadır. Bu fonksiyonlar aslında aynı şeyi yaparlar. Fakat parametrik yapı bakımından ve semantik
@@ -3688,8 +3691,8 @@ başvurulan bilgiler zaten önbellekte varsa boşuna disk okumaları yapılmamak
 dizin girişlerinin saklandığı önbellek sistemine *dentry cache*, erişilen inode elemanlarının saklandığı önbellek
 sistemine ise *inode cache* denilmektedir.
 
-Katı Bağlar ve link Fonksiyonu
-------------------------------
+Katı Bağlar
+-----------
 
 Farklı dizin girişlerinin aynı inode numarasına sahip olması durumuna UNIX/Linux sistemlerinde *katı bağ (hard link)*
 denilmektedir. Örneğin farklı dizinlerde (aynı dizinde de olabilir) aşağıdaki gibi iki giriş olsun:
@@ -3911,8 +3914,8 @@ Artık ``x.txt`` girişi yok edilmiştir. Ancak ``y.txt`` girişi durmaktadır:
 Dosyanın katı bağ sayacının 1'e düştüğüne dikkat ediniz. Artık biz bu ``y.txt`` dosyasını da sildiğimizde katı bağ
 sayacı 0'a düştüğü için dosya da gerçekten silinecektir.
 
-Sembolik Bağlar ve symlink ve readlink Fonksiyonları
-----------------------------------------------------
+Sembolik Bağlar
+---------------
 
 UNIX/Linux sistemlerinde *sembolik bağ (symbolic link)* ya da *gevşek bağ (soft link)*  denilen bir bağ türü de vardır.
 Sembolik bağlar Windows sistemlerindeki *kısa yol dosyalarına* benzemektedir. UNIX/Linux sistemlerinde sembolik bağlar
@@ -4246,8 +4249,8 @@ Aşağıda ``readlink`` fonksiyonunun kullanımına bir örnek veriyoruz:
     }
 
 
-Katı Bağ ile Sembolik Bağ Arasındaki Farklar
---------------------------------------------
+Katı Bağlarla Sembolik Bağlar Arasındaki Farklılıklar
+-----------------------------------------------------
 
 Katı bağlar aynı inode elemanını gösteren dizin girişleridir. Halbuki sembolik bağların kendi inode elemanları vardır. 
 Sembolik bağın inode elemanında o sembolik bağın gösterdiği dosyanın yol ifadesi saklanmaktadır. Sembolik bağlar birden 
@@ -4314,14 +4317,14 @@ kullanabilirsiniz:
 
 Denemenin yapıldığı makinede şöyle bir çıktı elde edilmiştir:
 
-``lstat-test.c``
-
 .. code-block:: text
 
     $ ./lstat-test x.txt y.txt z.txt
     lrwxrwxrwx 1 kaan study 8 Tem 14 10:31 x.txt
     -rw-r--r-- 1 kaan study 15 Tem 14 10:49 y.txt
     lrwxrwxrwx 1 kaan study 5 Tem 14 10:49 z.txt
+
+``lstat-test.c``
 
 .. code-block:: c
 
@@ -4423,55 +4426,32 @@ Denemenin yapıldığı makinede şöyle bir çıktı elde edilmiştir:
         exit(EXIT_FAILURE);
     }
 
-Dosyaların Silinmesi: remove ve unlink Fonksiyonları
-----------------------------------------------------
+Dosyaların Silinmesi
+--------------------
 
 Bir dosyanın silinmesi o dosyanın diskteki inode elemanının inode tablosundan silinmesi ve o dosyaya ilişkin data
-bloklarının diskin Data bölümünden silinmesi anlamına gelmektedir. Tabii burada *silinme* kavramını aslında *serbest
-bırakma* anlamında kullanıyoruz. Yoksa diskten bir bilginin çıkartılması ve yok edilmesi mümkün değildir. Inode tabanlı
-dosya sistemleri diskin inode tablosundaki hangi inode elemanlarının boş olduğunu tutmaktadır. Bir inode elemanı
-silindiğinde o inode elemanı *artık kullanılmıyor biçiminde* işaretlenmektedir. Aynı işlem dosyanın data bloklarında da
-benzer biçimde yürütülür. İşletim sistemi hangi data bloklarının boş olduğunu tutar. Dosya silindiğinde dosyanın data
-blokları *artık kullanılmıyor* biçiminde işaretlenmektedir. Biz yukarıda inode tabanlı dosya sistemlerine ilişkin disk
-organizasyonunu basit bir biçimde şöyle temsil etmiştik:
+bloklarının diskin "data bölümünden" silinmesi anlamına gelmektedir. (Tabii burada "silinme" kavramını aslında "serbest
+bırakma" anlamında kullanıyoruz. Yoksa diskten bir bilginin çıkartılması ve yok edilmesi mümkün değildir.) Inode tabanlı
+dosya sistemleri inode tablosundaki hangi inode elemanlarının boş olduğunu da bir metadata alanında tutmaktadır. 
+Bir inode elemanı silindiğinde o inode elemanı "artık kullanılmıyor" biçiminde işaretlenmektedir. Aynı işlem dosyanın 
+data bloklarında da benzer biçimde yürütülmektedir. Dosya sistemi hangi data bloklarının boş olduğunu da bir metadata alanı 
+içerisinde tutar, dosya silindiğinde dosyanın data bloklarını da "artık kullanılmıyor" biçiminde bu metadata alananında 
+işaretler. Biz yukarıda inode tabanlı dosya sistemlerine ilişkin disk organizasyonunu basit bir biçimde şöyle temsil etmiştik:
 
-.. code-block:: text
-
-    ┌────────────┐
-    │ Süper Blok │
-    ├────────────┤
-    │ Inode Blok │
-    ├────────────┤
-    │            │
-    │ Data Blok  │
-    │            │
-    │            │
-    └────────────┘
+.. figure:: _static/disk-block-layout.png
+    :align: center
+    :class: fig-mapping1
+    :width: 25%
 
 Aslında biraz daha gerçekçi temsil şöyle oluşturulabilir:
 
-.. code-block:: text
+.. figure:: _static/disk-layout-detailed.png
+    :align: center
+    :class: fig-mapping1
+    :width: 25%
 
-    ┌──────────────┐
-    │  Süper Blok  │
-    ├──────────────┤
-    │ Inode Bitmap │
-    ├──────────────┤
-    │ Data Bitmap  │
-    ├──────────────┤
-    │              │
-    │ Inode Blok   │
-    │              │
-    ├──────────────┤
-    │              │
-    │              │
-    │  Data Blok   │
-    │              │
-    │              │
-    └──────────────┘
-
-Burada *Inode Bitmap* alanı Inode Bloktaki boş inode elemanlarının yerlerini, *Data Bitmap* ise Data Bloktaki boş
-blokların yerlerini tutmaktadır. ext dosya sistemlerinin gerçek disk organizasyonlarını kitabımızın son kısımlarına doğru
+Burada *Inode Bitmap* alanı *Inode Blok*taki boş inode elemanlarının yerlerini, *Data Bitmap* ise *Data Blok*taki boş
+blokların yerlerini tutmaktadır. *ext* dosya sistemlerinin gerçek disk organizasyonlarını kitabımızın son kısımlarına doğru
 inceleyeceğiz.
 
 Anımsayacağınız gibi UNIX/Linux sistemlerinde katı bağlardan dolayı bir dizin girişinin silinmesi o dizin girişine
@@ -4479,9 +4459,12 @@ ilişkin dosyanın silineceği anlamına gelmemektedir. Daha önce de belirttiğ
 fazla dizin girişi söz konusu olabilmektedir. Inode elemanındaki katı bağ sayacı 0'a düştüğünde gerçek dosya silmesi
 yapılmaktadır.
 
-UNIX/Linux sistemlerinde bir dosyayı silmek için ``remove`` ve ``unlink`` isimli POSIX fonksiyonları kullanılmaktadır.
-``remove`` bir standart C fonksiyonudur. ``unlink`` ise bir POSIX fonksiyonudur. Bu iki fonksiyon tamamen aynı işlemi
-yapmaktadır. Fonksiyonların prototipleri şöyledir:
+remove ve unlink Fonksiyonlarrı
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+UNIX/Linux sistemlerinde bir dosyayı silmek için ``remove`` ve ``unlink`` isimli fonksiyonlar kullanılmaktadır.
+``remove`` bir standart C fonksiyonudur (her standard C fonksiyonun aynı zamanda bir PSOIX fonksiyonu da olduğunu anımsayınız)
+``unlink`` ise bir POSIX fonksiyonudur. Bu iki fonksiyon tamamen aynı işlemi yapmaktadır. Fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
 
