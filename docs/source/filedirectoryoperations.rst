@@ -3894,7 +3894,7 @@ Artık ``x.txt`` girişi yok edilmiştir. Ancak ``y.txt`` girişi durmaktadır:
 Dosyanın katı bağ sayacının 1'e düştüğüne dikkat ediniz. Artık biz bu ``y.txt`` dosyasını da sildiğimizde katı bağ
 sayacı 0'a düştüğü için dosya da gerçekten silinecektir.
 
-Sembolik Bağlar: symlink ve readlink Fonksiyonları
+Sembolik Bağlar, symlink ve readlink Fonksiyonları
 --------------------------------------------------
 
 UNIX/Linux sistemlerinde *sembolik bağ (symbolic link)* ya da *gevşek bağ (soft link)*  denilen bir bağ türü de vardır.
@@ -4789,18 +4789,18 @@ de söz konusu olabilir.) Bu nedenle bu fonksiyonun kullanımı üzerinde bazı 
 1) Eğer prosesin etkin kullanıcı ID'si dosyanın kullanıcı ID'si ile aynı ise bu durumda ``chown`` fonksiyonu dosyanın
 grup ID'sini kendi grup ID'si olarak ya da ek gruplarının (supplementary groups) birinin ID'si olarak
 değiştirebilmektedir. Ancak dosyanın kullanıcı ID'sinin değiştirilmesi işletim sisteminin iznine bağlıdır. Modern
-sistemler bu izni vermemektedir. Ancak bazı eski sistemler bu izni vermektedir. Bu izin *change own restricted* ismiyle
-ifade edilmektedir. İlgili sistemin bu izni verip vermediği ``<unistd.h>`` dosyası içerisindeki
+sistemler bu izni vermemektedir. Ancak bazı eski sistemler bu izni vermektedir. Bu izin İngilizce *change own restricted* 
+sözcükleriyle ifade edilmektedir. İlgili sistemin bu izni verip vermediği ``<unistd.h>`` dosyası içerisindeki
 ``_POSIX_CHOWN_RESTRICTED`` sembolik sabitiyle derleme aşamasında sorgulanabilir. Eğer bu mevcutsa sistem bu izni
 vermemektedir, mevcut değilse sistem bu izni vermektedir. (Bu durumda sorgulamayı ``#ifdef`` önişlemci komutuyla
 yapmalısınız.) Linux sistemleri de *change own restricted* durumdadır. Yani bu işleme izin vermemektedir.
 
-2) Proses ID'si 0 olan root prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yeteneğine sahip prosesler) her zaman
+2) Proses ID'si 0 olan root prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yetenekliliğine sahip prosesler) her zaman
 dosyanın kullanıcı ve grup ID'sini istedikleri gibi değiştirebilirler. (Yani biz bir dosyanın kullanıcı ve grup ID'sini
 istediğimiz gibi değiştirmek istiyorsak programımızı *sudo* ile çalıştırmalıyız.)
 
-Fonksiyonlar ile yalnızca kullanıcı ID'si ya da grup ID'si değiştirilebilir. Bu durumda değiştirilmeyecek değer için -1
-girilmelidir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+Bu fonksiyonlar ile yalnızca dosyaların ya da dizinlerin kullanıcı ID'si ya da grup ID'si de değiştirilebilir. Bu durumda değiştirilmeyecek değer için -1
+girilmelidir. Fonksiyonlar başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
 *Change own restricted* durumu aşağıdaki gibi ``#ifdef`` komutuyla sorgulanabilir:
 
@@ -4846,12 +4846,6 @@ Aşağıda ``chown`` fonksiyonunun örnek bir kullanımını görüyorsunuz:
         exit(EXIT_FAILURE);
     }
 
-Dosya ve Dizin İşlemleri: chown, truncate, mkdir, rmdir ve Kullanıcı Bilgileri
-==============================================================================
-
-chown Kabuk Komutu (Kullanıcı:Grup Formatı)
--------------------------------------------
-
 Dosyanın kullanıcı ve grup ID'lerini değiştirebilmek için *chown* isimli bir kabuk komutu da bulundurulmuştur. Komut
 aşağıdaki biçimlerde kullanılmaktadır:
 
@@ -4872,20 +4866,20 @@ Burada dosyanın kullanıcı ID'si kaan yapılmıştır. Aynı şeyi ``:`` karak
 
     $ sudo chown kaan: test.txt
 
-Dosyanın yalnızca grup ID'sini değiştirmek için ``:`` karakterinin sol tarafı boş bırakılır. Örneğin:
+Dosyanın ya da dizinin yalnızca grup ID'sini değiştirmek için ``:`` karakterinin sol tarafı boş bırakılır. Örneğin:
 
 .. code-block:: text
 
     $ sudo chown :study test.txt
 
-Pek çok kabuk komutunda olduğu gibi *chown* komutu da birden fazla dosya üzerinde işlem yapabilmektedir. Örneğin:
+Pek çok kabuk komutunda olduğu gibi *chown* komutu da birden fazla dosya ya da dizin üzerinde işlem yapabilmektedir. Örneğin:
 
 .. code-block:: text
 
     $ sudo chown kaan test.txt sample.c
 
-truncate ve ftruncate Fonksiyonları
------------------------------------
+Dosyaların Budanması ve Genişletilmesi: truncate ve ftruncate Fonksiyonları
+---------------------------------------------------------------------------
 
 ``truncate`` isimli POSIX fonksiyonu bir dosyanın boyutunu değiştirmek için kullanılmaktadır. Fonksiyonun prototipi
 şöyledir:
@@ -4903,8 +4897,8 @@ belirtilen uzunluğa getirilir. (*truncate* sözcüğü *budamak* anlamına gelm
 dosyaların küçültüleceği fikriyle *truncate* olarak verilmiştir.) Ancak ``truncate`` fonksiyonu ile aynı zamanda
 dosyalar büyütülebilmektedir de. Bu durumda dosyanın büyütülmüş kısımları 0'larla doldurulur. Eğer dosya sistemi *dosya
 delikleri (file holes)* destekliyorsa; büyütme, delik (hole) oluşturularak yapılmaktadır. Dosya deliklerini ileride ele
-alacağız. Fonksiyon, başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri döner ve ``errno`` değişkeni
-uygun biçimde set edilir. Tabii ``truncate`` yapabilmek için prosesin dosyaya *w* hakkının olması gerekmektedir.
+alacağız. Fonksiyon, başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri döner ve ``errno`` değişkeni
+uygun biçimde set edilir. Tabii ``truncate`` yapabilmek için prosesin dosyaya ``'w'`` hakkının olması gerekmektedir.
 Örneğin:
 
 .. code-block:: c
@@ -4912,7 +4906,7 @@ uygun biçimde set edilir. Tabii ``truncate`` yapabilmek için prosesin dosyaya 
     if (truncate(path, newsize) == -1)
         exit_sys("truncate");
 
-``truncate`` fonksiyonunun yol ifadesini alarak değil, dosya betimleyicisini alarak aynı işlemi yapan ``ftruncate``
+``truncate`` fonksiyonunun yol ifadesini alarak değil de dosya betimleyicisini alarak aynı işlemi yapan ``ftruncate``
 isminde bir benzeri de vardır. ``ftruncate`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
@@ -4922,12 +4916,9 @@ isminde bir benzeri de vardır. ``ftruncate`` fonksiyonunun prototipi şöyledir
     int ftruncate(int fd, off_t length);
 
 Fonksiyonun birinci parametresi dosya betimleyicisini almaktadır. İkinci parametresi dosyanın yeni uzunluğunu belirtir.
-Tabii dosyanın *yazma yapılabilecek modda açılmış olması* gerekir. Fonksiyon başarı durumunda 0 değerine, başarısızlık
-durumunda -1 değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir. Fonksiyonun işlev bakımından
+Tabii dosyanın "yazma yapılabilecek modda açılmış olması" gerekir. Fonksiyon başarı durumunda ``0`` değerine, başarısızlık
+durumunda ``-1`` değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir. Fonksiyonun işlev bakımından
 ``truncate`` fonksiyonundan hiçbir farkı yoktur.
-
-Bir truncate Örneği: mytruncate.c
----------------------------------
 
 Aşağıdaki örnekte komut ``argv[1]`` truncate edilecek dosyanın yol ifadesini, ``argv[2]`` ise onun yeni uzunluğunu
 belirtmektedir. Programı şöyle kullanabilirsiniz:
@@ -4935,6 +4926,8 @@ belirtmektedir. Programı şöyle kullanabilirsiniz:
 .. code-block:: text
 
     $ ./mytruncate test.txt 100
+
+``mytruncate.c```
 
 .. code-block:: c
 
@@ -4967,17 +4960,14 @@ belirtmektedir. Programı şöyle kullanabilirsiniz:
         exit(EXIT_FAILURE);
     }
 
-truncate Kabuk Komutu
----------------------
-
 *truncate* işlemini yapan bir kabuk komutu da bulunmaktadır. Komut ``-s`` seçeneği ile dosyanın yeni uzunluğunu
-almaktadır. Örneğin:
+almaktadır. (Komut seçeneksiz kullanılamamaktadır.) Örneğin:
 
 .. code-block:: text
 
     $ truncate -s 100 test.txt
 
-Dosya uzunluklarında uzunluğun sonuna birim belirten karakterler de eklenebilmektedir. Örneğin:
+Dosya uzunluğuna birim belirten karakterler de eklenebilmektedir. Örneğin:
 
 .. code-block:: text
 
@@ -4985,8 +4975,8 @@ Dosya uzunluklarında uzunluğun sonuna birim belirten karakterler de eklenebilm
 
 Burada dosya 100K uzunluğuna çekilmektedir. Komutun diğer ayrıntıları için man sayfalarına başvurabilirsiniz.
 
-mkdir Fonksiyonu ile Dizin Yaratma
-----------------------------------
+Dizinlerin Yaratılması: mkdir Fonksiyonu
+------------------------------------------
 
 Dizinler dosyalarda olduğu gibi ``open`` fonksiyonuyla yaratılamazlar. Dizin (directory) yaratmak için ``mkdir`` isimli
 POSIX fonksiyonu kullanılmaktadır. ``mkdir`` fonksiyonunun prototipi şöyledir:
@@ -4998,18 +4988,17 @@ POSIX fonksiyonu kullanılmaktadır. ``mkdir`` fonksiyonunun prototipi şöyledi
     int mkdir(const char *path, mode_t mode);
 
 Fonksiyonun birinci parametresi yaratılacak dizinin yol ifadesini, ikinci parametresi ise erişim haklarını
-belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+belirtmektedir. Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
-Dizin yaratırken erişim haklarında *x* hakkını bulundurmayı unutmayınız. Anımsanacağı gibi dizinlerde *x* hakkı *içinden
-geçilebilirlik* anlamına geliyordu. ``mkdir`` fonksiyonu tıpkı ``open`` fonksiyonu gibi prosesin umask değerinden
+Dizin yaratırken erişim haklarında ``'x'`` hakkını bulundurmayı unutmayınız. Anımsanacağı gibi dizinlerde ``'x'`` hakkı 1içinden
+geçilebilirlik1 anlamına geliyordu. ``mkdir`` fonksiyonu tıpkı ``open`` fonksiyonu gibi prosesin *umask* değerinden
 etkilenmektedir. O halde istediğiniz erişim haklarının hepsinin dizine yansıtılmasını istiyorsanız ``umask(0)``
-çağrısıyla prosesinizin umask değerini sıfırlamalısınız.
+çağrısıyla prosesinizin *umask* değerini sıfırlamalısınız.
 
-Bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isminde iki dizin girişi bulunmaktadır. Daha önceden de
-belirttiğimiz gibi ``.`` dizin girişi bulunulan dizine, ``..`` dizin girişi ise üst dizine katı bağ belirtmektedir. Bu
-nedenle bir dizin yaratıldığında kendi dizininin ve üst dizinin katı bağ sayaçlarının artırıldığını anımsayınız.
+Daha önce de belirtmiştik; bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isminde iki dizin girişi de oluşturulmaktadır. 
+``.`` dizin girişinin bulunulan dizine, ``..`` dizin girişinin ise üst dizine katı bağ belirttiğini anımsayınız.
 
-Aşağıda komut satırından verilen isimle bir dizin yaratan örnek verilmiştir.
+Aşağıda dizin yaratan örnek verilmiştir. Yaratılacak dizinin ismi komut satırından alınmaktadır.
 
 .. code-block:: c
 
@@ -5038,12 +5027,9 @@ Aşağıda komut satırından verilen isimle bir dizin yaratan örnek verilmişt
         exit(EXIT_FAILURE);
     }
 
-mkdir Kabuk Komutu
-------------------
-
 Komut satırında dizin yaratmak için *mkdir* isminde bir kabuk komutu da bulunmaktadır. Tabii bu komut ``mkdir`` POSIX
-fonksiyonu kullanılarak yazılmıştır. Komut default durumda umask değerinden etkilenir. Ancak ``-m`` ya da ``--mode``
-seçeneği ile biz erişim haklarını octal basamaklar biçiminde belirtebilmekteyiz. Bu durumda umask etkili olmamaktadır.
+fonksiyonu kullanılarak yazılmıştır. Komut default durumda *umask* değerinden etkilenir. Ancak ``-m`` ya da ``--mode``
+seçeneği ile biz erişim haklarını octal basamaklar biçiminde belirtebilmekteyiz. Bu durumda *umask* etkili olmamaktadır.
 Örneğin:
 
 .. code-block:: text
@@ -5062,11 +5048,11 @@ Burada aslında ``a`` dizininin altındaki ``b`` dizininin altındaki ``c`` dizi
 istenmiştir. Normal olarak bu yaratımın yapılabilmesi için ``a/b/c`` dizininin var olması gerekir. Ancak ``-p`` seçeneği
 tüm bu dizinleri de eğer yoksa yaratarak ilerlemektedir.
 
-rmdir Fonksiyonu ile Dizin Silme
---------------------------------
+Dizinlerin Silimesi: rmdir Fonksiyonu
+---------------------------------------
 
-Bir dizini silmek için ``unlink`` ya da ``remove`` fonksiyonları kullanılamaz. Dizin silmek için ``rmdir`` isimli özel
-bir POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
+Dizinler  ``unlink`` ya da ``remove`` fonksiyonlarıyla silinememektedir. Dizin silmek için ``rmdir`` isimli bir POSIX 
+fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -5074,22 +5060,22 @@ bir POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
 
     int rmdir(const char *path);
 
-Fonksiyon parametre olarak silinecek dizinin yol ifadesini alır. Başarı durumunda 0 değerine, başarısızlık durumunda -1
-değerine geri döner ve ``errno`` uygun biçimde set edilir. Örneğin:
+Fonksiyon parametre olarak silinecek dizinin yol ifadesini alır. Başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1``
+değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir. Örneğin:
 
 .. code-block:: c
 
     if (rmdir(path) == -1)
         exit_sys("rmdir");
 
-``rmdir`` fonksiyonu ile içinde dosya ya da dizin olan dizinler silinememektedir. Bu durum güvenlik amacıyla
-düşünülmüştür. *İçi boş dizin* demek, *içinde yalnızca* ``.`` *ve* ``..`` *girişlerinin bulunduğu dizin* demektir. Zaten
+``rmdir`` fonksiyonu ile içinde dosya ya da dizin bulunan dizinler silinememektedir. Bu durum güvenlik amacıyla
+düşünülmüştür. İçi boş dizin demek, içinde yalnızca ``.`` ve ``..`` girişlerinin bulunduğu dizin demektir. Zaten
 UNIX/Linux, macOS ve Windows sistemlerinde bu iki özel dizin girişi silinememektedir. ``rmdir`` fonksiyonuna bir dizini
-işaret eden sembolik bağlantı dosyası verilirse fonksiyon bağlantıyı izlemez. Bu durumda ``rmdir`` başarısız olur ve
+işaret eden sembolik bağ dosyası verilirse fonksiyon bağı izlemez. Bu durumda ``rmdir`` başarısız olur ve
 ``errno`` değeri ``ENOTDIR`` biçiminde set edilir.
 
-``rmdir`` fonksiyonunun başarılı olabilmesi için prosesin silinecek dizin için *w* hakkına sahip olması gerekmez ancak
-dizinin içinde bulunduğu dizin için *w* hakkına sahip olması gerekir.
+``rmdir`` fonksiyonunun başarılı olabilmesi için prosesin silinecek dizin için ``'w'`` hakkına sahip olması gerekmez ancak
+dizinin içinde bulunduğu dizin için ``'w'`` hakkına sahip olması gerekir.
 
 Aşağıda ``rmdir`` fonksiyonunun kullanımına ilişkin bir örnek verilmiştir.
 
@@ -5120,9 +5106,6 @@ Aşağıda ``rmdir`` fonksiyonunun kullanımına ilişkin bir örnek verilmişti
         exit(EXIT_FAILURE);
     }
 
-rmdir Kabuk Komutu
-------------------
-
 Komut satırından dizin silmek için *rmdir* isimli bir kabuk komutu da bulunmaktadır. Tabii bu komut aslında ``rmdir``
 POSIX fonksiyonu kullanılarak yazılmıştır. *rmdir* komutuyla dizin silmek için yine dizinin boş olması gerekir. Örneğin:
 
@@ -5137,8 +5120,8 @@ POSIX fonksiyonu kullanılarak yazılmıştır. *rmdir* komutuyla dizin silmek i
 
     $ rm -r xxx
 
-Kullanıcı ve Grup Bilgilerinin Elde Edilmesine Giriş
-----------------------------------------------------
+Kullanıcı ve Grup Bilgilerinin Elde Edilmesi
+--------------------------------------------
 
 Bu bölümde kullanıcı ve grup bilgilerinin nasıl elde edileceği üzerinde duracağız.
 
