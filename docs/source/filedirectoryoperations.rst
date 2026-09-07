@@ -3772,7 +3772,7 @@ Aşağıdaki program *ln* komutunun benzer işlevini yerine getirmektedir. Progr
 
     $ ./makelink x.txt y.txt
 
-``makelink.c```
+``makelink.c``
 
 .. code-block:: c
 
@@ -3914,8 +3914,8 @@ Sembolik Bağlar ve symlink Fonksiyonu
 
 UNIX/Linux sistemlerinde *sembolik bağ (symbolic link)* ya da *gevşek bağ (soft link)*  denilen bir bağ türü de vardır.
 Sembolik bağlar Windows sistemlerindeki *kısa yol dosyalarına* benzemektedir. UNIX/Linux sistemlerinde sembolik bağlar
-katı bağlardan daha yaygın kullanılmaktadır. Sembolik bağ *başka bir dosyaya referans eden dosya* anlamına gelmektedir.
-Sembolik bağın hangi dosyaya referans ettiği sembolik dosyanın diskteki inode elemanında tutulmaktadır. Anımsayacağınız
+katı bağlardan daha yaygın kullanılmaktadır. Sembolik bağ "başka bir dosyaya referans eden dosya" anlamına gelmektedir.
+Sembolik bağın hangi dosyaya referans ettiği sembolik bağ dosyasının diskteki inode elemanında tutulmaktadır. Anımsayacağınız
 gibi ``stat`` fonksiyonlarıyla dosya bilgileri elde edildiğinde dosyanın sembolik bağ dosyası olup olmadığı bilgisi
 ``stat`` yapısının ``st_mode`` elemanında kodlanmış olarak bulunuyordu. Biz de dosyanın sembolik bağ dosyası olup
 olmadığını ``S_IFLNK`` makrosuyla anlayabiliyorduk. Örneğin ``y.txt`` dosyası ``x.txt`` dosyasına sembolik bağ yapılmış
@@ -3925,7 +3925,7 @@ olsun. Biz bu durumu şöyle temsil edebiliriz:
 
     y.txt -> x.txt
 
-Bazı POSIX fonksiyonları sembolik bağ dosyasına ilişkin bir yol ifadesi ile karşılaştığında sembolik bağı izleyerek ve
+Bazı POSIX fonksiyonları sembolik bağ dosyasına ilişkin bir yol ifadesi ile karşılaştığında sembolik bağı izleyerek
 sembolik bağın hedefine ilişkin dosyayı tespit edip onun üzerinde işlem yapmaktadır. Yukarıdaki örneğimizde biz
 ``y.txt`` dosyasını ``open`` fonksiyonuyla açmış olalım:
 
@@ -3935,21 +3935,18 @@ sembolik bağın hedefine ilişkin dosyayı tespit edip onun üzerinde işlem ya
 
 Burada işletim sistemi ``y.txt`` dosyasının bir sembolik bağ dosyası olduğunu anlar ve onun referans ettiği dosyayı
 tespit eder ve gerçekte o dosyayı açmaya çalışır. Buna sembolik bağın izlenmesi de denilmektedir. Yukarıda ``open``
-işleminde aslında ``open`` ``y.txt`` sembolik bağ dosyasını değil ``x.txt`` dosyasını açmaya çalışacaktır. Sembolik
-bağların kullanım amacı olarak katı bağlara oldukça benzediğine dikkat ediniz. Yukarıdaki örneğimizde biz ``y.txt``
+işleminde aslında ``open`` fonksiyonu ``y.txt`` sembolik bağ dosyasını değil ``x.txt`` dosyasını açmaya çalışacaktır. 
+Sembolik bağların kullanım amacı olarak katı bağlara oldukça benzediğine dikkat ediniz. Yukarıdaki örneğimizde biz ``y.txt``
 dosyası üzerinde işlem yapmak istediğimizde sistem aslında onun referans ettiği ``x.txt`` dosyası üzerinde işlem
 yapmaktadır.
 
 Her POSIX fonksiyonu sembolik bağları izlememektedir. Örneğin biz bir sembolik bağ dosyasını ``unlink`` fonksiyonuyla ya
 da komut satırında *rm* komutuyla silmek istediğimizde onun referans ettiği dosya değil sembolik bağ dosyasının kendisi
-silinmektedir. Eğer dosya silmekte kullanılan ``unlink`` fonksiyonu sembolik bağı izleseydi yukarıdaki örneğimizde biz
-``y.txt`` dosyasını silmeye çalıştığımızda ``x.txt`` dosyası silinirdi. Örneğin ``stat`` fonksiyonu sembolik bağı
-izlediği halde ``lstat`` fonksiyonu onu izlememektedir. Yani biz ``stat`` fonksiyonuna bir sembolik bağ dosyası
-verdiğimizde ``stat`` fonksiyonu bağı izleyerek bize onun referans ettiği dosyanın bilgilerini vermektedir. Ancak
-``lstat`` fonksiyonu sembolik bağı izlememekte onun kendisine ilişkin dosya bilgilerini elde etmektedir.
-
-symlink Fonksiyonu
-------------------
+silinmektedir. (Eğer dosya silmekte kullanılan ``unlink`` fonksiyonu sembolik bağı izleseydi yukarıdaki örneğimizde biz
+``y.txt`` dosyasını silmeye çalıştığımızda ``x.txt`` dosyası silinirdi.) Örneğin ``stat`` fonksiyonu sembolik bağı
+izlediği halde ``lstat`` fonksiyonu sembolik bağı izlememektedir. Yani biz ``stat`` fonksiyonuna bir sembolik bağ dosyası
+verdiğimizde ``stat`` fonksiyonu senbolik bağı izleyerek bize onun referans ettiği dosyanın bilgilerini vermektedir. Ancak
+``lstat`` fonksiyonu sembolik bağı izlememekte, sembolik bağ dosyasının kendisine ilişkin dosya bilgilerini vermektedir.
 
 Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadır. Linux sistemlerinde bu fonksiyon
 ``sys_symlink`` isimli sistem fonksiyonunu çağırmaktadır. ``symlink`` fonksiyonunun prototipi şöyledir:
@@ -3962,7 +3959,7 @@ Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadı
 
 Fonksiyonun birinci parametresi gerçek dosyanın yol ifadesini, ikinci parametresi ise oluşturulacak sembolik bağlantı
 dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri
-dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı at'li bir biçimi de vardır:
+dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı *at*'li bir biçimi de vardır:
 
 .. code-block:: c
 
@@ -3971,8 +3968,7 @@ dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı at'li bir biçimi de
     int symlinkat(const char *target, int newdirfd, const char *linkpath);
 
 
-Biz POSIX fonksiyonlarının at'li biçimleri hakkında izleyen bölümlerde bilgiler vereceğiz. 
-
+Biz POSIX fonksiyonlarının *at*'li biçimleri hakkında izleyen bölümlerde bilgiler vereceğiz. 
 
 Örneğin:
 
@@ -3992,20 +3988,21 @@ görüntülediğimizde aşağıdakine benzer bir çıktı elde ederiz:
 
 Burada dosyaların inode numaralarının farklı olduğuna dikkat ediniz. Çünkü sembolik bağ dosyaları ayrı bir dosya
 gibidir. Onun ayrı bir inode elemanı vardır. Ancak inode elemanında o sembolik bağ dosyasının gerçekte hangi dosyaya
-referans ettiği bilgisi de tutulmaktadır. *"ls -l"* komutunda sembolik bağlar ok işaretiyle gösterilmektedir. Sembolik
+referans ettiği bilgisi de tutulmaktadır. *"ls -l"* komutunda sembolik bağlar -> işaretiyle gösterilmektedir. Sembolik
 bağ dosyalarının tür belirten karakterinin 'l' olduğuna da dikkat ediniz. Sembolik bağlantı dosyalarının kendi erişim
-hakları her zaman *rwxrwxrwx* biçiminde oluşturulmaktadır.
+hakları her zaman *rwxrwxrwx* biçiminde oluşturulmaktadır. Linux'ta sembolik bağlantı dosyasının kendisine ilişkin 
+erişim hakları herhangi bir biçimde değiştirilememektedir. Ancak örneğin BSD sistemleri buna izin vermektedir POSIX 
+standartları ise bu konuda açık bir belirlemede bulunmamıştır (*unpesicifed*).
 
 ``symlink`` fonksiyonunda kaynak dosyanın var olması gerekmez. Bu durumu izleyen paragraflarda açıklayacağız.
-
-Bir Sembolik Bağ Oluşturma Programı: makesymlink.c
---------------------------------------------------
 
 Aşağıda bir dosyanın sembolik bağlantısını oluşturan bir program örneği verilmiştir. Programı şöyle deneyebilirsiniz:
 
 .. code-block:: text
 
     ./makesymlink x.txt y.txt
+
+``makesymlink.c``
 
 .. code-block:: c
 
@@ -4017,18 +4014,12 @@ Aşağıda bir dosyanın sembolik bağlantısını oluşturan bir program örne�
 
     int main(int argc, char *argv[])
     {
-        /*
         if (argc != 3) {
             fprintf(stderr, "wrong number of arguments!");
             exit(EXIT_FAILURE);
         }
 
-        if (link(argv[1], argv[2]) == -1)
-            exit_sys("link");
-
-        */
-
-        if (symlink("x.txt", "y.txt") == -1)
+        if (symlink(argv[1], argv[2]) == -1)
             exit_sys("symlink");
 
         printf("Ok\n");
@@ -4042,9 +4033,6 @@ Aşağıda bir dosyanın sembolik bağlantısını oluşturan bir program örne�
         exit(EXIT_FAILURE);
     }
 
-ln -s ile Sembolik Bağ Oluşturma ve Dangling Link
--------------------------------------------------
-
 Sembolik bağ dosyası komut satırından yine *ln* komutuyla oluşturulmaktadır. Ancak *ln* komutuna *-s* seçeneği de
 girilmelidir. Örneğin:
 
@@ -4056,7 +4044,8 @@ girilmelidir. Örneğin:
     6076082 -rw-r--r-- 1 kaan study 38 Tem  9 11:39 x.txt
     6076114 lrwxrwxrwx 1 kaan study  5 Tem  9 11:48 y.txt -> x.txt
 
-Sembolik bağ oluştururken kaynak dosyanın var olması gerekmemektedir.
+Dangling Sembolik Bağlar
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Peki bir sembolik bağ dosyasının referans ettiği dosya silinirse ne olur? Yukarıdaki örneğimizde ``x.txt`` dosyasını
 silelim:
