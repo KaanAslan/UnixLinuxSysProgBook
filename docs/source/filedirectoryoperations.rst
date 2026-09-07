@@ -125,8 +125,8 @@ Burada dosya normal bir dosyadır. Dosyanın sahiplik haklarının ``rw-`` oldu�
 ``r--`` biçiminde olduğuna dikkat ediniz. Bu da ``r`` hakkının olduğu ancak ``w`` ve ``x`` haklarının
 olmadığı anlamına gelmektedir.
 
-Dosyalarda Erişim Kontrolleri
-=============================
+Dosyalarda ve Dizinlerde Erişim Kontrolleri
+===========================================
 
 UNIX/Linux sistemlerinde normal dosyalar ``open`` POSIX fonksiyonuyla fonksiyonuyla açılmakta ve yaratılmaktadır. 
 ``open`` POSIX fonksiyonunda (ileride ayrıntılarıyla açıklayacağız) dosyayı açarken hangi niyetle açtığımızı fonksiyonun 
@@ -228,12 +228,88 @@ hakkının belirtilmiş olması gerekmektedir.
 Dosyanın ``x`` hakkı kontrolü, dosyayı yükleyip çalıştıran ``exec`` fonksiyonları tarafından yapılmaktadır.
 ``exec`` fonksiyonları ileride ayrı bir bölümde ele alınacaktır.
 
-Erişim Hataları ve Erişim Haklarının Belirlenmesi
-=================================================
+Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
+"içerisinde dizin girişlerini tutan dosyalar" gibi düşünebiliriz. Her dizin girişi bir isim ve bazı anahtar 
+bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi düşünebilirsiniz:
+
+.. figure:: _static/directory-entries.png
+    :width: 20%
+
+Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
+fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
+
+Bir dizine ``'r'``" hakkının olması, o dizinin içeriğinin ``ls`` gibi bir komutla görüntülenebileceği anlamına
+gelmektedir. (Aslında bu kontrol ``opendir`` POSIX fonksiyonunda yapılmaktadır.) Bir dizin içerisinde bir
+dosyanın ya da dizinin yaratılması için dizine ``'w'`` hakkının olması gerekir. Çünkü dizin içerisinde dosya ya da
+dizin yaratmak aslında dizin dosyasına yeni bir giriş eklemek (bunun bir yazma işlemi olduğuna dikkat ediniz)
+anlamına gelmektedir.
+
+Bir dizin içerisindeki bir dosyayı ya da dizini silmek için tek gereken şey, o dosya ya da dizinin içinde
+bulunduğu dizine ``'w'`` hakkının olmasıdır. Silinecek dosya ya da dizine ``'w'`` hakkının olup olmadığının hiçbir
+önemi yoktur. Ancak bazı kabuk programları, dizine ``'w'`` hakkı varsa ancak silinmek istenen dosya ya da dizine
+``'w'`` hakkı yoksa bir uyarı mesajı da verebilmektedir.
+
+Dizinlerde ``x`` hakkı farklı bir anlama gelmektedir. Daha önce de belirttiğimiz gibi işletim sistemi bir yol 
+ifadesi verildiğinde yol ifadesini çözümleyebilmek için yol bileşenlerini üzerinden tek tek ilerlemektedir. 
+Örneğin:
+
+.. code-block:: text
+
+    "/home/kaan/Study/C/sample.c"
+
+Burada hedeflenen dosya ``sample.c`` dosyasıdır. İşletim sistemi bu dosyanın yerini bulabilmek için yol
+ifadesindeki bileşenlerin üzerinden geçmek ister. İşte yol ifadesinin çözümlenmesi işleminde dizin geçişleriyle
+hedefe ulaşılabilmesi için prosesin, yol ifadesine ilişkin tüm dizinler için ``'x'`` hakkına sahip olması gerekir.
+Yani dizinlerdeki ``'x'`` hakkı "içinden geçilebilirlik" gibi bir anlama gelmektedir. Biz bir dizindeki ``'x'``
+hakkını kaldırırsak, işletim sistemi yol ifadesinin çözümlenmesi işleminde başarısız olur. Yukarıdaki örnekte "yol
+ifadesinin çözümlenmesi" işleminin başarıyla bitirilebilmesi için prosesin ``home`` dizinine, ``kaan`` dizinine,
+``Study`` dizinine ve ``C`` dizinine ``'x'`` hakkının olması gerekir.
+
+``x`` hakkı göreli yol ifadelerinde de aynı biçimde uygulanmaktadır. Örneğin biz ``test.txt`` dosyasını ``open``
+fonksiyonu ile ``test.txt`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için (yani prosesin 
+çalıma dizini için) ``'x'`` hakkına sahip değilsek yine yol ifadesi başarılı bir biçimde çözümlenemeyecektir. Başka 
+bir deyişle ``test.txt`` yol ifadesi sanki ``./test.txt`` gibi ele alınmaktadır. Örneğin ``a/b/c/test.txt`` gibi 
+bir yol ifadesinin başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil olmak üzere ``a``, ``b`` 
+ve ``c`` dizinlerine ``'x'`` hakkının olması gerekir.
+
+``'x'`` hakkı dizin ağacında bir noktaya duvar örmek için kullanılabilmektedir. ``mkdir`` gibi kabuk komutları
+dizin yaratırken zaten ``'x'`` hakkını varsayılan durumda vermektedir. Proses ID'si ``0`` olan *root prosesler*
+her zaman yol ifadesinin çözümlenmesi sırasında dizinlerin içerisinden geçebilirler.
+
+Burada bir noktaya dikkatinizi çekmek istiyoruz. Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``'r'`` 
+hakkının bulunması gerekmemektedir. Örneğin ``a/b/c/test.txt`` gibi bir yol ifadesinde, prosesin ``a`` dizinine,
+``b`` dizinine ve ``c`` dizinine ``'r'`` hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu 
+dosya açılabilir. Yani bir dizinin içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde 
+bulunduğunu biliyorsak, o dosyayı yine de kullanabiliriz.
+
+POSIX'in Uygun Öncelikler Kavramı
+---------------------------------
+
+POSIX standartlarında kaynaklara erişim üzerinde açıklamalar yapılırken "``root`` önceliği" ya da "prosesin etkin
+kullanıcı ID'sinin ``0`` olması" gibi bir anlatım tercih edilmemiştir. Onun yerine POSIX standartlarında
+*uygun öncelikler (appropriate privileges)* terimi kullanılmıştır. Çünkü bir POSIX sistemi "ya hep ya hiç" biçiminde tasarlanmak
+zorunda değildir. Gerçekten de örneğin Linux sistemlerinde *yeteneklilik (capability)* denilen bir özellik bulunmaktadır. Bu
+*yeteneklilik* sayesinde bir prosesin etkin kullanıcı ID'si ``0`` olmamasına karşın o proses, belirlenen bazı
+şeyleri yapabilir duruma getirilebilmektedir. İşte POSIX standartlarındaki *uygun öncelikler (appropriate privileges)* 
+terimi bunu anlatmaktadır. Yani buradaki *uygun öncelikler* terimi "prosesin etkin kullanıcı ID'sinin ``0`` olduğunu ya da
+``0`` olmasa da prosesin bu işlemi yapabilme yeteneğine sahip olduğunu" belirtmektedir. 
+
+Klasik UNIX tasarımında "ya hep ya hiç" sistemi kullanılmıştır. Yani ya bir proses ``root`` olarak her şeyi
+yapabilir ya da yalnızca kendine ilişkin şeyleri yapabilir. Ancak bu "ya hep ya hiç" sistemi bazı UNIX türevi
+sistemler tarafından zaman içerisinde gevşetilmiştir. Örneğin Linux sistemlerinde yukarıda da belirttiğimiz
+*yeteneklilik (capability)* denilen özellik sayesinde prosesler "her şeyi değil bazı şeyleri yapabilir" hale
+getirilebilmektedir. İşte bu nedenle POSIX standartları ``root`` terimi ya da "proses ID'si ``0`` olan prosesler"
+terimi yerine *appropriate privileges* terimini kullanmaktadır.
+
+Erişim Hataları
+---------------
 
 ``open`` fonksiyonu ile dosya açım işlemi sırasında eğer ``open`` fonksiyonu yukarıda açıkladığımız erişim
 hakları testinde başarısız olursa bu durumda ``errno`` değişkeni ``EACCES`` değeriyle set edilmektedir.
 ``EACCES`` ``errno`` değerinin İngilizce mesaj yazısı "*Permission denied*"" biçimindedir.
+
+Erişim Haklarının Belirlenmesi
+------------------------------
 
 Peki yeni yaratılan bir dosyanın ya da dizinin erişim hakları nasıl belirlenmektedir? İşte dosyalar ``open`` POSIX
 fonksiyonuyla, dizinler de  mkdir POSIX fonksiyonuyla yaratılmaktadır. ``open`` ve ``mkdir`` fonksiyonlarında
@@ -246,27 +322,8 @@ dosyanın ya da dizinin ullanıcı ID'si ile aynı olan (yani dosyanın sahibi o
 ID'si ``0`` olan ``root`` prosesleri tarafından değiştirilebilmektedir. ``chmod`` POSIX fonksiyonu ve ``chmod`` kabuk 
 komutu ileride ele alınacaktır.
 
-POSIX'in Uygun Öncelikler Kavramı
-=================================
-
-POSIX standartlarında kaynaklara erişim üzerinde açıklamalar yapılırken "``root`` önceliği" ya da "prosesin etkin
-kullanıcı ID'sinin ``0`` olması" gibi bir anlatım tercih edilmemiştir. Onun yerine POSIX standartlarında
-*uygun öncelikler (appropriate privileges)* terimi kullanılmıştır. Çünkü bir POSIX sistemi "ya hep ya hiç" biçiminde tasarlanmak
-zorunda değildir. Gerçekten de örneğin Linux sistemlerinde *yeteneklilik (capability)* denilen bir özellik bulunmaktadır. Bu
-*yeteneklilik* sayesinde bir prosesin etkin kullanıcı ID'si ``0`` olmamasına karşın o proses, belirlenen bazı
-şeyleri yapabilir duruma getirilebilmektedir. İşte POSIX standartlarındaki *uygun öncelikler (appropriate privileges)* 
-terimi bunu anlatmaktadır. Yani buradaki *uygun öncelikler* terimi "prosesin etkin kullanıcı ID'sinin ``0 ``olduğunu ya da
-``0`` olmasa da prosesin bu işlemi yapabilme yeteneğine sahip olduğunu" belirtmektedir. 
-
-Klasik UNIX tasarımında "ya hep ya hiç" sistemi kullanılmıştır. Yani ya bir proses ``root`` olarak her şeyi
-yapabilir ya da yalnızca kendine ilişkin şeyleri yapabilir. Ancak bu "ya hep ya hiç" sistemi bazı UNIX türevi
-sistemler tarafından zaman içerisinde gevşetilmiştir. Örneğin Linux sistemlerinde yukarıda da belirttiğimiz
-*yeteneklilik (capability)* denilen özellik sayesinde prosesler "her şeyi değil bazı şeyleri yapabilir" hale
-getirilebilmektedir. İşte bu nedenle POSIX standartları ``root`` terimi ya da "proses ID'si ``0`` olan prosesler"
-terimi yerine *appropriate privileges* terimini kullanmaktadır.
-
 sudo ve su Komutları
-====================
+--------------------
 
 Modern UNIX/Linux sistemlerinde bir programın "etkin kullanıcı ID'si ``0`` olacak biçimde çalıştırılmasını sağlayan"
 ``sudo`` isimli bir komut vardır. ``sudo`` komutu uygulandığında sistem ``sudo`` yapan kullanıcının (``sudoer``) 
@@ -789,63 +846,6 @@ işlemini yapmadan önce çeşitli hazırlıkların yapılması gerekir. Prosesi
 (Linux'ta ``task_struct`` yapısı içerisinde) tutulmaktadır. Linux sistemlerinde prosesin kök dizininin değiştirilmesi 
 için "glibc" kütüphanesindeki ``chroot`` isimli fonksiyon bulundurulmuştur. Bu fonksiyon da ``sys_chroot`` isimli sistem 
 fonksiyonunu çağırmaktadır.  ``chroot`` bir POSIX fonksiyonu değildir. 
-
-Dizinlerin Erişim Haklarının Anlamı
------------------------------------
-
-Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
-"içerisinde dizin girişlerini tutan dosyalar" gibi düşünebiliriz. Her dizin girişi bir isim ve bazı anahtar 
-bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi düşünebilirsiniz:
-
-.. figure:: _static/directory-entries.png
-    :width: 20%
-
-Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
-fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
-
-Bir dizine ``'r'``" hakkının olması, o dizinin içeriğinin ``ls`` gibi bir komutla görüntülenebileceği anlamına
-gelmektedir. (Aslında bu kontrol ``opendir`` POSIX fonksiyonunda yapılmaktadır.) Bir dizin içerisinde bir
-dosyanın ya da dizinin yaratılması için dizine ``'w'`` hakkının olması gerekir. Çünkü dizin içerisinde dosya ya da
-dizin yaratmak aslında dizin dosyasına yeni bir giriş eklemek (bunun bir yazma işlemi olduğuna dikkat ediniz)
-anlamına gelmektedir.
-
-Bir dizin içerisindeki bir dosyayı ya da dizini silmek için tek gereken şey, o dosya ya da dizinin içinde
-bulunduğu dizine ``'w'`` hakkının olmasıdır. Silinecek dosya ya da dizine ``'w'`` hakkının olup olmadığının hiçbir
-önemi yoktur. Ancak bazı kabuk programları, dizine ``'w'`` hakkı varsa ancak silinmek istenen dosya ya da dizine
-``'w'`` hakkı yoksa bir uyarı mesajı da verebilmektedir.
-
-Dizinlerde ``x`` hakkı farklı bir anlama gelmektedir. Daha önce de belirttiğimiz gibi işletim sistemi bir yol 
-ifadesi verildiğinde yol ifadesini çözümleyebilmek için yol bileşenlerini üzerinden tek tek ilerlemektedir. 
-Örneğin:
-
-.. code-block:: text
-
-    "/home/kaan/Study/C/sample.c"
-
-Burada hedeflenen dosya ``sample.c`` dosyasıdır. İşletim sistemi bu dosyanın yerini bulabilmek için yol
-ifadesindeki bileşenlerin üzerinden geçmek ister. İşte yol ifadesinin çözümlenmesi işleminde dizin geçişleriyle
-hedefe ulaşılabilmesi için prosesin, yol ifadesine ilişkin tüm dizinler için ``'x'`` hakkına sahip olması gerekir.
-Yani dizinlerdeki ``'x'`` hakkı "içinden geçilebilirlik" gibi bir anlama gelmektedir. Biz bir dizindeki ``'x'``
-hakkını kaldırırsak, işletim sistemi yol ifadesinin çözümlenmesi işleminde başarısız olur. Yukarıdaki örnekte "yol
-ifadesinin çözümlenmesi" işleminin başarıyla bitirilebilmesi için prosesin ``home`` dizinine, ``kaan`` dizinine,
-``Study`` dizinine ve ``C`` dizinine ``'x'`` hakkının olması gerekir.
-
-``x`` hakkı göreli yol ifadelerinde de aynı biçimde uygulanmaktadır. Örneğin biz ``test.txt`` dosyasını ``open``
-fonksiyonu ile ``test.txt`` yol ifadesini vererek açmak isteyelim. Eğer içinde bulunduğumuz dizin için (yani prosesin 
-çalıma dizini için) ``'x'`` hakkına sahip değilsek yine yol ifadesi başarılı bir biçimde çözümlenemeyecektir. Başka 
-bir deyişle ``test.txt`` yol ifadesi sanki ``./test.txt`` gibi ele alınmaktadır. Örneğin ``a/b/c/test.txt`` gibi 
-bir yol ifadesinin başarılı bir biçimde çözülmesi için prosesin çalışma dizini de dahil olmak üzere ``a``, ``b`` 
-ve ``c`` dizinlerine ``'x'`` hakkının olması gerekir.
-
-``'x'`` hakkı dizin ağacında bir noktaya duvar örmek için kullanılabilmektedir. ``mkdir`` gibi kabuk komutları
-dizin yaratırken zaten ``'x'`` hakkını varsayılan durumda vermektedir. Proses ID'si ``0`` olan *root prosesler*
-her zaman yol ifadesinin çözümlenmesi sırasında dizinlerin içerisinden geçebilirler.
-
-Burada bir noktaya dikkatinizi çekmek istiyoruz. Yol ifadesinin çözümlenmesi sırasında prosesin dizinlere ``'r'`` 
-hakkının bulunması gerekmemektedir. Örneğin ``a/b/c/test.txt`` gibi bir yol ifadesinde, prosesin ``a`` dizinine,
-``b`` dizinine ve ``c`` dizinine ``'r'`` hakkı olmasa bile ``test.txt`` dosyasına gerekli erişim izni varsa bu 
-dosya açılabilir. Yani bir dizinin içeriğini görüntüleyemediğimiz halde, eğer bir dosyanın o dizinin içerisinde 
-bulunduğunu biliyorsak, o dosyayı yine de kullanabiliriz.
 
 Dosya Nesneleri
 ---------------
@@ -2599,7 +2599,7 @@ Inode elemanında tutulan önemli dosya bilgileri şunlardır:
 
 - Dosyanın erişim hakları
 - Dosyanın kullanıcı ve grup ID'si
-- Dosyanın hard link sayacı
+- Dosyanın katı bağ sayacı
 - Dosyanın uzunluğu
 - Dosyanın zamansal bilgileri (timestamps)
 - Dosyayı oluşturan bilgilerin Data Blok'taki yerleri
@@ -3581,8 +3581,8 @@ Fonksiyonun bu halini aşağıda veriyoruz.
         exit(EXIT_FAILURE);
     }
 
-fstat Fonksiyonu
-~~~~~~~~~~~~~~~~
+fstat ve lstat Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``fstat`` fonksiyonu ``stat`` fonksiyonunun parametre olarak yol ifadesini değil dosya betimleyicisini alan biçimidir. 
 Prototipi şöyledir::
@@ -3612,9 +3612,6 @@ açılmışsa onun dosya betimleyicisinden hareketle dosya bilgilerine erişilme
 Burada bir noktayı yeniden vurgulamak istiyoruz. Dosyayı ``open`` fonksiyonuyla açıp ``fstat`` kullanmak iyi bir teknik
 değildir. Dosya zaten başka işlemler için açılmak zorundaysa ve açık dosyanın bilgilerini elde etmek istiyorsak
 ``fstat`` kullanmamız uygun olur. 
-
-lstat Fonksiyonu
-~~~~~~~~~~~~~~~~
 
 ``lstat`` fonksiyonunun ``stat`` fonksiyonundan tek farkı sembolik bağ dosyaları söz konusu olduğunda sembolik bağı
 izlememesi, sembolik bağ dosyasının kendisine ilişkin bilgileri vermesidir. Dizinler için sembolik bağlar
@@ -4174,9 +4171,11 @@ Aşağıda ``readlink`` fonksiyonunun kullanımına bir örnek verilmiştir. ``r
 diziye yerleştirmediğine dikkat ediniz. Sonunda ``null`` karakter olmayan ``result`` uzunlukta bir yazının ``printf``
 ile bastırılması şöyle yapılabilir:
 
-``printf("%.*s\n", result, buf);``
+.. code-block:: c
 
-``printf`` ``%.10s`` gibi bir format karakterlerinde yazıyı ``null`` karakter görene kadar değil n karakter 
+    printf("%.*s\n", result, buf);
+
+``printf`` fonksiyonu ``%.10s`` gibi bir format karakterlerinde yazıyı ``null`` karakter görene kadar değil n karakter 
 yazdırmaktadır. (örneğimizde 10). Tabii biz burada istersek ``null`` karakteri dizinin sonuna yerleştirip onu 
 ``%s`` ile de yazdırabiliriz. Ancak bu durumda da dizi uzunluğunun yeterli olduğuna dikkat etmemiz gerekir. örneğin:
 
@@ -4539,7 +4538,7 @@ Fonksiyonların prototipleri şöyledir:
     int chmod(const char *path, mode_t mode);
     int fchmod(int fd, mode_t mode);
 
-Fonksiyonun birinci parametresi dosyanın yol ifadesini, ikinci parametresi erişim haklarını belirtmektedir. Fonksiyonlar
+``chmod`` fonksiyonunun birinci parametresi dosyanın yol ifadesini, ikinci parametresi erişim haklarını belirtmektedir. Fonksiyonlar
 başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir. Anımsayacağınız gibi erişim hakları
 POSIX'in 2008 standartlarına kadar ``S_IXXX`` sembolik sabitleriyle oluşturulmak zorundaydı. Ancak 2008 ve sonrasında
 artık bu ``S_IXXX`` sembolik sabitlerinin sayısal değerleri belirlendiği için programcı doğrudan erişim haklarını octal
@@ -4552,6 +4551,19 @@ Bir dosyanın erişim haklarını ``chmod`` fonksiyonuyla değiştirebilmek içi
 kullanıcı ID'si ile aynı olması ya da prosesin etkin kullanıcı ID'sinin 0 olması (*root* proses) gerekmektedir. Linux
 yeteneklilik (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı ID'si 0 olmasa bile proses
 ``CAP_FSETID`` yeteneğine sahipse herhangi bir dosyanın erişim haklarını değiştirebilmektedir.
+
+Dosya zaten açıksa ve onun dosya betimleyicisi biliniyorsa ``chmod`` fonksiyonu yerine ``fchmod`` fonksiyonu
+kullanılabilir. Açık dosyalar üzerinde bu tür işlemlerin daha hızlı yapılabildiğini söylemiştik. Örneğin:
+
+.. code-block:: c
+
+    if ((fd = open("test.txt", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    /* ... */
+
+    if (fchmod(fd, mode) == -1)
+        exit_sys("fchmod");
 
 Dosyaların ve Dizinlerin set-user-id, set-group-id ve sticky Bitleri
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4588,7 +4600,6 @@ hakları değiştirilecek dosyaların yol ifadelerini komut satırı argümanı 
 .. code-block:: text
 
     $ ./mychmod 666 x.txt y.txt
-
 
 ``mychmod```
 
@@ -4636,10 +4647,7 @@ hakları değiştirilecek dosyaların yol ifadelerini komut satırı argümanı 
         return true;
     }
 
-Sembolik Sabitlerin OR'lanmasıyla mychmod.c
--------------------------------------------
-
-Aşağıdaki örnekte eski POSIX standartları da dikkate alınarak mode bilgisi ``S_IXXX`` sembolik sabitlerinin bit
+Aşağıda aynı örnek eski POSIX standartları da dikkate alınarak mode bilgisi ``S_IXXX`` sembolik sabitlerinin bit
 düzeyinde OR'lanması ile oluşturulmuştur.
 
 .. code-block:: c
@@ -4706,24 +4714,8 @@ düzeyinde OR'lanması ile oluşturulmuştur.
         exit(EXIT_FAILURE);
     }
 
-fchmod Fonksiyonunun Kullanımı
-------------------------------
-
-Dosya zaten açıksa ve onun dosya betimleyicisi biliniyorsa ``chmod`` fonksiyonu yerine ``fchmod`` fonksiyonu
-kullanılabilir. Açık dosyalar üzerinde bu tür işlemlerin daha hızlı yapılabildiğini söylemiştik. Örneğin:
-
-.. code-block:: c
-
-    if ((fd = open("test.txt", O_RDONLY)) == -1)
-        exit_sys("open");
-
-    /* ... */
-
-    if (fchmod(fd, mode) == -1)
-        exit_sys("fchmod");
-
 chmod Kabuk Komutu
-------------------
+~~~~~~~~~~~~~~~~~~
 
 Dosyanın erişim haklarını değiştirmek için *chmod* isimli bir kabuk komutu da bulunmaktadır. Tabii *chmod* kabuk komutu
 ``chmod`` POSIX fonksiyonu kullanılarak yazılmıştır. *chmod* komutunun kullanımının birkaç biçimi vardır. Tipik

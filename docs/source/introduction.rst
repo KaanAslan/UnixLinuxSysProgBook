@@ -496,8 +496,8 @@ sunucu sistemlerinde çizelgeleyici alt sistemde istemci sistemlerine göre fark
 İkincisi ise barındırdıkları yardımcı yazılımlardır. İşletim sistemlerinin sunucu versiyonları hazır bazı
 sunucu programlarını da içerecek biçimde paketlenmektedir.
 
-Bilgisayar Donanımının Tarihsel Gelişimi
-========================================
+Bilgisayar Donanımlarının Tarihsel Gelişimi
+===========================================
 
 Şimdi de biraz bilgisayar donanımlarının tarihsel gelişimi üzerinde duralım. Elektronik düzeyde bugün
 kullandığımız bilgisayarlara benzer ilk aygıtlar 1940'lı yıllarda geliştirilmeye başlanmıştır. Ancak bundan
