@@ -790,8 +790,8 @@ işlemini yapmadan önce çeşitli hazırlıkların yapılması gerekir. Prosesi
 için "glibc" kütüphanesindeki ``chroot`` isimli fonksiyon bulundurulmuştur. Bu fonksiyon da ``sys_chroot`` isimli sistem 
 fonksiyonunu çağırmaktadır.  ``chroot`` bir POSIX fonksiyonu değildir. 
 
-Dizinlerin İçeriği ve Dizinlerin Erişim Haklarının Anlamı
----------------------------------------------------------
+Dizinlerin Erişim Haklarının Anlamı
+-----------------------------------
 
 Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktadır. Gerçekten de dizinleri sanki
 "içerisinde dizin girişlerini tutan dosyalar" gibi düşünebiliriz. Her dizin girişi bir isim ve bazı anahtar 
@@ -799,11 +799,6 @@ bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi dü�
 
 .. figure:: _static/directory-entries.png
     :width: 20%
-
-Örneğin ext dosya sistemlerindeki dizin girişi formatı şöyledir:
-
-.. figure:: _static/ext4-dir-entry.png
-    :width: 65%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
 fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
@@ -3651,38 +3646,35 @@ Bir dosyanın ``stat`` bilgileri komut satırından *stat* kabuk komutuyla da el
 Dizinlerin Organizasyonu ve Dizin Girişleri
 -------------------------------------------
 
-Dizinler de aslında tamamen dosyalar gibi organize edilmektedir. Bir dosyanın içerisinde dosyanın içeriğindeki bilgiler
-vardır. Ancak bir dizinin içerisinde o dizin içerisindeki dosyaların isimleri ve inode numaraları bulunmaktadır.
-Dizinlerin içerisindeki her bir elemana *dizin girişi (directory entry)* denilmektedir. Dizin girişlerinin formatının
-ayrıntıları dosya sisteminden sistemine değişebilmektedir. Ancak temel olarak dizin girişlerinde dosyanın ismi ve inode
-numarası tutulmaktadır. Dosyanın metadata bilgilerinin (yani erişim hakları, uzunluk gibi) inode bloktaki inode
-elemanında tutulduğunu ve ``stat`` fonksiyonlarının bu bilgileri inode elemanından aldığını anımsayınız. Biz ext dosya
-sistemlerini kursumuzun sonlarına doğru ele alacağız. Ancak şimdilik bir dizinin aşağıdaki formatta dizin girişlerine
-sahip olduğunu varsayabiliriz:
+Biz daha önce dizin organizasyonu hakkında kabaca bazı şeyler söylemiştik. Burada dizin organizasyonu hakkında biraz
+daha bilgi vermek istiyoruz. Dizinler de aslında tamamen dosyalar gibi organize edilmektedir. Bir dosyanın
+içerisinde dosyanın bilgileri vardır, ancak bir dizinin içerisinde o dizinin içeriğine ilişkin dizin girişleri
+bulunmaktadır. Dizinlerin içerisindeki her kayda *dizin girişi (directory entry)* denilmektedir. Dizin girişlerinin
+formatları dosya sisteminden dosya sistemine değişebilmektedir. Ancak inode tabanlı dosya sistemlerine ilişkin dizin
+girişlerinde en azından girişin ismi ve inode numarası tutulmaktadır. Dosyanın ya da dizinin metadata bilgilerinin
+(erişim hakları, uzunluk gibi) inode bloktaki inode elemanında tutulduğunu ve ``stat`` fonksiyonlarının bu bilgileri
+inode elemanından ya da çekirdek içerisindeki inode nesnesinden elde ettiğini anımsayınız. Biz inode tabanlı dosya
+sistemlerini kursumuzun sonlarına doğru ayrı bir bölümde ayrıntılarıyla ele alacağız. Ancak şimdilik bir dizinin
+aşağıdaki formatta dizin girişlerine sahip olduğunu varsayabilirsiniz:
 
-.. code-block:: text
-
-    ┌────────────┬──────────┐
-    │ dosya_ismi │ inode_no │
-    ├────────────┼──────────┤
-    │ dosya_ismi │ inode_no │
-    │ dosya_ismi │ inode_no │
-    │    ...     │   ...    │
-    │ dosya_ismi │ inode_no │
-    └────────────┴──────────┘
+.. figure:: _static/directory-entry-format.png
+    :align: center
+    :class: fig-mapping3
+    :width: 35%
 
 Örneğin:
 
-.. code-block:: text
+.. figure:: _static/directory-entry-example.png
+    :align: center
+    :class: fig-mapping3
+    :width: 35%
 
-    ┌────────────┬──────────┐
-    │ Dosya İsmi │ Inode No │
-    ├────────────┼──────────┤
-    │ sample.C   │ 342678   │
-    │ test.txt   │ 422119   │
-    │ sample     │ 214567   │
-    │    ...     │   ...    │
-    └────────────┴──────────┘
+*ext* dosya sistemlerindeki dizin girişleri değişken uzunlukta olabilmektedir. Bu sistemlerdeki dizin girişlerinin
+formatı şöyledir:
+
+.. figure:: _static/ext4-dir-entry.png
+    :align: center
+    :width: 65%
 
 Biz bir POSIX fonksiyonuna yol ifadesi verdiğimizde çekirdek içerisindeki sistem fonksiyonları önce yol ifadesini
 çözümlemektedir (pathname resolution). Yol ifadesi çözümlendiğinde çekirdek dosyaya ilişkin inode numarasını elde etmiş
@@ -3691,47 +3683,29 @@ Ancak bundan sonra dosya üzerinde işlemler yapabilir hale gelmektedir.
 
 Bir yol ifadesi verildiğinde çekirdeğin önce dizin girişine erişip, inode numarasından hareketle inode elemanına
 erişmesi göreli olarak yavaş bir işlemdir. İşletim sistemleri bu işlemlerin daha hızlı yapılmasını sağlamak için daha
-önce erişilen dizin girişlerini ve inode elemanlarını RAM'de oluşturdukları önbelleklerde saklamaktadır. Böylece eğer
+önce erişilen dizin girişlerini ve inode elemanlarını çekirdek alanında oluşturdukları önbelleklerde saklamaktadır. Böylece eğer
 başvurulan bilgiler zaten önbellekte varsa boşuna disk okumaları yapılmamaktadır. Linux işletim sisteminde erişilen
 dizin girişlerinin saklandığı önbellek sistemine *dentry cache*, erişilen inode elemanlarının saklandığı önbellek
 sistemine ise *inode cache* denilmektedir.
 
-
-Katı Bağlar (Hard Link) ve Sembolik Bağlar (Symbolic Link)
-==========================================================
-
-Katı Bağ (Hard Link) Kavramı
-----------------------------
+Katı Bağlar ve link Fonksiyonu
+------------------------------
 
 Farklı dizin girişlerinin aynı inode numarasına sahip olması durumuna UNIX/Linux sistemlerinde *katı bağ (hard link)*
 denilmektedir. Örneğin farklı dizinlerde (aynı dizinde de olabilir) aşağıdaki gibi iki giriş olsun:
 
-.. code-block:: text
-
-    ┌────────────┬──────────┐
-    │ Dosya İsmi │ Inode No │
-    ├────────────┼──────────┤
-    │    ...     │   ...    │
-    │   x.txt    │  34718   │
-    │    ...     │   ...    │
-    └────────────┴──────────┘
-
-.. code-block:: text
-
-    ┌────────────┬──────────┐
-    │ Dosya İsmi │ Inode No │
-    ├────────────┼──────────┤
-    │    ...     │   ...    │
-    │   y.txt    │  34718   │
-    │    ...     │   ...    │
-    └────────────┴──────────┘
+.. figure:: _static/hard-link-entries.png
+    :align: center
+    :class: fig-mapping3
+    :width: 35%
 
 Burada her iki dizin girişinin de aynı inode elemanına sahip olduğuna dikkat ediniz. Dosyaya erişmek için gereken tüm
-bilgiler inode elemanının içerisinde olduğuna göre bu dosyaya ``x.txt`` yol ifadesiyle erişmekle ``y.txt`` yol
+metadata bilgileri inode elemanının içerisinde olduğuna göre bu dosyaya ``x.txt`` yol ifadesiyle erişmekle ``y.txt`` yol
 ifadesiyle erişmek arasında hiçbir farklılık yoktur. İşte ``x.txt`` ve ``y.txt`` dizin girişleri *katı bağ (hard link)*
-oluşturmuştur. Tabii katı bağa sahip dizin girişleri ikiden fazla da olabilir. Katı bağ oluşturmak için ``link`` isimli
-POSIX fonksiyonu kullanılmaktadır. Linux sistemlerinde bu POSIX fonksiyonu ``sys_link`` isimli sistem fonksiyonunu
-çağırmaktadır. ``link`` fonksiyonunun prototipi şöyledir:
+oluşturmuştur. Tabii katı bağa sahip dizin girişleri ikiden fazla da olabilir. 
+
+Katı bağ oluşturmak için ``link`` isimli POSIX fonksiyonu kullanılmaktadır. Linux sistemlerinde bu POSIX fonksiyonu 
+``sys_link`` isimli sistem fonksiyonunu çağırmaktadır. ``link`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -3758,8 +3732,7 @@ geri dönmektedir. Örneğin:
     int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
 
 
-POSIX dosya fonksiyonlarının at'li versiyonlarının nasıl çalıştığı ileride ele alınmamtadır. 
-
+POSIX dosya fonksiyonlarının *at*'li versiyonlarının nasıl çalıştığı ileride ele alınmamtadır. 
 
 Kaynak dosya yoksa ya da hedef dosya varsa fonksiyon başarısız olmaktadır. Yukarıdaki işlemin başarılı olduğunu
 varsayalım. Bu iki dosyanın *"ls -l"* ile bilgilerine baktığımızda aynı şeyleri görürüz:
@@ -3777,10 +3750,11 @@ Katı bağ oluşturma dosya sisteminin disk tarafındaki tasarımına da bağlı
 desteklemek zorunda değildir. Bu durumda ``link`` fonksiyonu başarısızlıkla geri dönecektir. Örneğin Microsoft'un FAT
 dosya sistemleri katı bağları desteklememektedir.
 
-Disk bölümleri arasında da katı bağ oluşturulamamaktadır. Çünkü her disk bölümünün inode tablosu farklıdır. Farklı disk
-bölümlerinde aynı inode numaraları bulunabilmektedir. Yani inode numaraları sistem genelinde değil disk bölümü genelinde
-tektir. Farklı bir disk bölümündeki dosyanın farklı bir disk bölümüne katı bağı oluşturulmak istendiğinde ``link``
-fonksiyonu başarısız olur ve ``errno`` değeri ``EXDEV`` (*Invalid cross-device link*) olarak set edilmektedir.
+Disk bölümleri arasında da katı bağ oluşturulamamaktadır. Çünkü her disk bölümünün (dosya sisteminin) inode tablosu farklıdır. 
+Farklı disk bölümlerinde aynı inode numaraları bulunabilmektedir. Yani inode numaraları sistem genelinde değil disk bölümü 
+genelinde (dosya sistemi genelinde) tektir. Farklı bir disk bölümündeki dosyanın farklı bir disk bölümüne katı bağı 
+oluşturulmak istendiğinde ``link`` fonksiyonu başarısız olur ve ``errno`` değeri ``EXDEV`` (*Invalid cross-device link*) 
+olarak set edilir.
 
 Kabuk üzerinde katı bağlar *ln* isimli kabuk komutuyla oluşturulmaktadır. Bu kabuk komutu *cp* gibi kullanılmaktadır.
 Örneğin:
@@ -3792,14 +3766,13 @@ Kabuk üzerinde katı bağlar *ln* isimli kabuk komutuyla oluşturulmaktadır. B
 Burada ``x.txt`` dosyasına ilişkin inode elemanıyla aynı inode elemanına referans eden yeni bir ``y.txt`` dosyası
 oluşturulmaktadır.
 
-Bir Katı Bağ Oluşturma Programı: makelink.c
--------------------------------------------
-
 Aşağıdaki program *ln* komutunun benzer işlevini yerine getirmektedir. Programı şöyle kullanabilirsiniz:
 
 .. code-block:: text
 
     $ ./makelink x.txt y.txt
+
+``makelink.c```
 
 .. code-block:: c
 
@@ -3828,21 +3801,18 @@ Aşağıdaki program *ln* komutunun benzer işlevini yerine getirmektedir. Progr
         exit(EXIT_FAILURE);
     }
 
-Dizinlerin Katı Bağları
------------------------
-
 Dizinlerin katı bağlarının oluşturulması bazı sorunlara yol açabilmektedir. Yukarıda da belirttiğimiz gibi bu tür
 durumlarda dizin ağacını dolaşan programlar sonsuz döngüye girebilmektedir. Bu nedenle bazı UNIX/Linux sistemlerinde
-dizinlerin katı bağlarının oluşturulması mümkün olmayabilmektedir. Bazı sistemlerde ise dizinlerin katı bağları ancak
+dizinlerin katı bağlarının oluşturulması engellenmiştir. Bazı sistemlerde ise dizinlerin katı bağları ancak
 *root* kullanıcısı tarafından (yani *sudo* ile) oluşturulabilmektedir. Linux dizinler üzerinde katı bağ oluşturulmasına
-izin vermemektedir. Linux'ta dizinler üzerinde katı bağı oluşturulmak istendiğinde ``link`` fonksiyonu başarısız olur ve
+izin vermemektedir. Linux'ta dizinler üzerinde katı bağ oluşturulmak istendiğinde ``link`` fonksiyonu başarısız olur ve
 ``errno`` değeri ``EPERM`` (*Permission denied*) ile set edilir. POSIX standartları bu konuda şunları söylemektedir:
 
     *If path1 names a directory, link() shall fail unless the process has appropriate privileges and the implementation
     supports using link() on directories.*
 
 Dizinlerdeki . ve .. Girişleri
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isimli iki dizin girişi de yaratılmaktadır. ``.`` girişi bulunulan
 dizini, ``..`` dizini ise üst dizini belirtmektedir. UNIX/Linux sistemlerinde başı ``.`` ile başlayan dosyalar *ls*
@@ -3876,12 +3846,12 @@ dizine katı bağ oluşturmaktadır. Bunu şöyle ispatlayabiliriz:
     6335620 drwxr-xr-x 2 kaan study 4096 Tem  9 13:41 xxx
     6335620 drwxr-xr-x 2 kaan study 4096 Tem  9 13:41 xxx/.
 
-Tabii siz şimdi *"hani Linux'ta dizinlere katı bağ oluşturulamıyordu"* diye sorabilirsiniz. İşte işletim sistemi bu
-``.`` ve ``..`` dizinleri için istisnai olarak katı bağ oluşturmaktadır.
+Tabii siz şimdi "hani Linux'ta dizinlere katı bağ oluşturulamıyordu" diye sorabilirsiniz. İşte işletim sistemi bu
+``.`` ve ``..`` dizinleri için istisna olarak katı bağ oluşturmaktadır.
 
 Bir dizinin içerisinde başka bir dizin yarattığımızda yarattığımız dizindeki ``..`` girişi üst dizine katı bağ
 belirttiği için üst dizinin katı bağ sayacı da artırılmaktadır. O halde dizin içerisinde yaratılan her dizin üst dizinin
-katı bağ sayacını 1 artırmaktadır. ``xxx`` dizinini silerek yeniden şu denemeyi yapalım:
+katı bağ sayacını da 1 artırmaktadır. ``xxx`` dizinini silerek yeniden şu denemeyi yapalım:
 
 .. code-block:: text
 
@@ -3908,12 +3878,12 @@ Buradaki deneyden çıkan sonuçlara dikkat ediniz:
 Linux sistemleri ``.`` ve ``..`` dizinleri için istisna olarak katı bağ oluşturmaktadır ancak kullanıcılara dizinlere
 katı bağ oluşturma olanağını vermemektedir.
 
-Katı Bağın Silinmesi
---------------------
+Katı Bağların Silinmesi
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Aynı dosyaya referans eden ``x.txt`` ve ``y.txt`` biçiminde iki katı bağ girişi olsun. Biz bunlardan birini silersek ne
 olur? Bu durumda eğer dosyanın kendisi silinirse diğer dizin girişi geçersiz duruma gelir. İşte işletim sistemi inode
-elemanının içerisinde (``stat`` yapısının ``st_nlink`` elemanı) ilgili dosyaya ilişkin kaç katı bağın bulunduğu
+elemanının içerisinde (``stat`` yapısının ``st_nlink`` elemanı) ilgili dosyaya referans eden kaç katı bağın bulunduğu
 bilgisini tutmaktadır. Bir dosyanın katı bağı silinmek istendiğinde işletim sistemi dizin girişini siler, dosyanın inode
 elemanındaki katı bağ sayacını 1 eksiltir. Katı bağ sayacı 0'a düştüğünde diskten dosyayı gerçekten siler. Örneğin:
 
@@ -3937,16 +3907,16 @@ Artık ``x.txt`` girişi yok edilmiştir. Ancak ``y.txt`` girişi durmaktadır:
     6076082 -rw-r--r-- 1 kaan study 41 Haz 23 13:43 y.txt
 
 Dosyanın katı bağ sayacının 1'e düştüğüne dikkat ediniz. Artık biz bu ``y.txt`` dosyasını da sildiğimizde katı bağ
-sayacı 0'a düştüğü için gerçekten dosya da silinecektir.
+sayacı 0'a düştüğü için dosya da gerçekten silinecektir.
 
-Sembolik Bağ (Soft Link) Kavramı
---------------------------------
+Sembolik Bağlar ve symlink Fonksiyonu
+-------------------------------------
 
-UNIX/Linux sistemlerinde *gevşek bağ (soft link)* ya da *sembolik bağ (symbolic link)* denilen bir bağ biçimi de vardır.
+UNIX/Linux sistemlerinde *sembolik bağ (symbolic link)* ya da *gevşek bağ (soft link)*  denilen bir bağ türü de vardır.
 Sembolik bağlar Windows sistemlerindeki *kısa yol dosyalarına* benzemektedir. UNIX/Linux sistemlerinde sembolik bağlar
 katı bağlardan daha yaygın kullanılmaktadır. Sembolik bağ *başka bir dosyaya referans eden dosya* anlamına gelmektedir.
 Sembolik bağın hangi dosyaya referans ettiği sembolik dosyanın diskteki inode elemanında tutulmaktadır. Anımsayacağınız
-gibi ``stat`` fonksiyonlarıyla dosya bilgileri elde edildiğinde dosyanın sembolik bağlantı dosyası olup olmadığı bilgisi
+gibi ``stat`` fonksiyonlarıyla dosya bilgileri elde edildiğinde dosyanın sembolik bağ dosyası olup olmadığı bilgisi
 ``stat`` yapısının ``st_mode`` elemanında kodlanmış olarak bulunuyordu. Biz de dosyanın sembolik bağ dosyası olup
 olmadığını ``S_IFLNK`` makrosuyla anlayabiliyorduk. Örneğin ``y.txt`` dosyası ``x.txt`` dosyasına sembolik bağ yapılmış
 olsun. Biz bu durumu şöyle temsil edebiliriz:
