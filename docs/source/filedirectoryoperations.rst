@@ -842,8 +842,8 @@ Programın tamamı şöyledir:
     }
 
 
-Proseslerin Kök Dizinlerinin Değiştirilmesi
--------------------------------------------
+Proseslerin Kök Dizinleri
+-------------------------
 
 Aslında proseslerin kök dizinleri de değiştirilebilmektedir. Bir prosesin kök dizininin değiştirilmesine İngilizce
 *change root* işlemi denilmektedir. Ancak *change root* işleminin dikkatli uygulanması gerekir. Çünkü prosesin kök
@@ -5123,23 +5123,21 @@ POSIX fonksiyonu kullanılarak yazılmıştır. *rmdir* komutuyla dizin silmek i
 Kullanıcı ve Grup Bilgilerinin Elde Edilmesi
 --------------------------------------------
 
-Bu bölümde kullanıcı ve grup bilgilerinin nasıl elde edileceği üzerinde duracağız.
+Anımsanacağınız gibi bazı UNIX türevi sistemlerde kullanıcı vee grup bilgileri  ``/etc/passwd`` ve
+``/etc/group`` dosyalarında tutuluyordu. Bu dosyalardaki satırlar ``'':''`` ile ayrılmış olan alanlardan oluşmaktaydı. Kullanıcı
+ve grup bilgilerinin nasıl saklanacağı hakkında POSIX standartlarında bir belirlemede bulunulmamıştır. (Yani UNIX türevi bir 
+sistemde ``/etc/passwd`` ve ``/etc/group`` dosyaları bu isimlerde ve Linux'taki içerikte bulunmak zorunda değildir.) POSIX 
+standartlarında kullanıcı ve grup bilgilerini elde etmekte kullanılan arayüz fonksiyonlar tanımlanmıştır. Kullanıcı bilgilerinin 
+elde edilmesinde kullanılan fonksiyonların prototipleri ve bu fonksiyonlar tarafından kullanılan yapıların tanımlamaları 
+``<pwd.h>`` dosyası içerisinde, grup bilgilerinin elde edilmesinde kullanılan fonksiyonların prototipleri ve bu fonksiyonlar 
+tarafından kullanılan yapıların tanımlamaları da ``<grp.h>`` dosyası içerisinde bulunmaktadır. 
 
-Anımsanacağınız gibi genel olarak pek çok UNIX/Linux sisteminde kullanıcılar hakkında bilgiler ``/etc/passwd`` ve
-``/etc/group`` dosyalarında tutuluyordu. Bu dosyalardaki satırlar ``:`` ile ayrılmış olan alanlardan oluşmaktaydı. Bu
-dosyalar ve bunların formatları POSIX standartlarında belirtilmemiştir. Onun yerine POSIX standartlarında bu dosyalardan
-kullanıcı ve grup bilgilerini elde eden özel fonksiyonlar bulundurulmuştur. Yani aslında bir POSIX sisteminde
-``/etc/passwd`` ve ``/etc/group`` dosyaları bu isimlerde ve Linux'taki içerikte bulunmak zorunda değildir. Kullanıcı ve
-grup bilgilerinin elde edilmesi için taşınabilir POSIX fonksiyonları bulundurulmuştur.
+getpwnam ve getpwuid Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-getpwnam Fonksiyonu ve struct passwd
-------------------------------------
-
-Kullanıcılar hakkında bilgileri veren (yani ``/etc/passwd`` dosyası üzerinde parse işlemleri yapan) fonksiyonların
-prototipleri ``<pwd.h>`` dosyası içerisinde bulundurulmuştur. ``getpwnam`` POSIX fonksiyonu bir kullanıcının ismini
-alarak o kullanıcı hakkındaki bilgileri vermektedir. Bu bilgiler Linux sistemlerinde doğrudan ``/etc/passwd``
-dosyasındaki ilgili satırdan elde edilmektedir. ``/etc/passwd`` dosyasındaki satırların içeriğini yeniden anımsatmak
-istiyoruz:
+``getpwnam`` POSIX fonksiyonu bir kullanıcının ismini alarak o kullanıcı hakkındaki bilgileri vermektedir. Bu bilgiler Linux 
+sistemlerinde doğrudan ``/etc/passwd``dosyasındaki ilgili satırdan elde edilmektedir. ``/etc/passwd`` dosyasındaki satırların 
+içeriğini yeniden anımsatmak istiyoruz:
 
 .. code-block:: text
 
@@ -5153,8 +5151,8 @@ istiyoruz:
 
     struct passwd *getpwnam(const char *name);
 
-Fonksiyon parametre olarak kullanıcı ismini almaktadır. Başarı durumunda o kullanıcıya ilişkin bilgileri barındıran
-statik biçimde tahsis edilmiş olan ``struct passwd`` isimli bir yapı nesnesinin adresine, başarısızlık durumunda ise
+Fonksiyon kullanıcı ismini parametre olarak alır, başarı durumunda kullanıcıya ilişkin bilgileri barındıran statik
+biçimde tahsis edilmiş olan ``struct passwd`` türünden bir yapı nesnesinin adresine, başarısızlık durumunda ise
 ``NULL`` adrese geri dönmektedir. ``struct passwd`` yapısı şöyle tanımlanmıştır:
 
 .. code-block:: c
@@ -5169,9 +5167,12 @@ statik biçimde tahsis edilmiş olan ``struct passwd`` isimli bir yapı nesnesin
         char   *pw_shell;      /* shell program */
     };
 
-Yapının eleman isimlerinin ``pw_`` ile başladığına dikkat ediniz. Yukarıda da belirttiğimiz gibi aslında bu fonksiyon
-Linux sistemlerinde ``/etc/passwd`` dosyasındaki satır bilgisini okuyup onu statik bir nesneye yerleştirip yapının
-adresiyle geri dönmektedir.
+Yapının eleman isimlerinin ``pw_`` ile başladığına dikkat ediniz. Yukarıda da belirttiğimiz gibi bu fonksiyon
+Linux sistemlerinde tipik olarak şu işlemleri yapmaktadır:
+
+1. ``/etc/passwd`` dosyasındaki kullanıcıya ilişkin satırı bulup onu ``':'`` karakterlerinden parse eder.
+2. Parse sonucunda elde edilen alanları ``passwd`` türünden statik bir yapı nesnesine yerleştirir. 
+3. Yapı nesnesinin adresine geri döner.
 
 Yapının ``pw_name`` elemanı kullanıcı ismini, ``pw_passwd`` elemanı parola bilgisini, ``pw_uid`` ve ``pw_gid``
 elemanları kullanıcının gerçek kullanıcı ve group ID değerlerini, ``pw_gecos`` elemanı yorum bilgisini (yani kullanıcıya
@@ -5180,7 +5181,7 @@ dizinini ve ``pw_shell`` elemanı da login olunduğunda çalıştırılacak prog
 
 ``getpwnam`` fonksiyonu iki nedenden dolayı başarısız olabilir. Birincisi belirtilen isme ilişkin kullanıcının kaydının
 bulunmaması nedeniyle. İkincisi de IO hatası nedeniyle (örneğin ``/etc/passwd`` dosyasının silinmiş olması durumunda
-fonksiyon başarısız olacaktır.) Fonksiyonun başarısı aşağıdaki gibi kontrol edilebilir:
+fonksiyon başarısız olacaktır). Fonksiyonun başarısı aşağıdaki gibi kontrol edilebilir:
 
 .. code-block:: c
 
@@ -5190,18 +5191,18 @@ fonksiyon başarısız olacaktır.) Fonksiyonun başarısı aşağıdaki gibi ko
         /* ... */
     }
 
-Ancak *kullanıcı kaydı yok biçiminde* bir ``errno`` değeri bulunmamaktadır. Hata raporlamasının aşağıdaki gibi yapılması
-uygun değildir:
+Ancak "kullanıcı kaydı yok" biçiminde* bir ``errno`` değeri bulunmamaktadır. Bu nedenle hata raporlamasının aşağıdaki gibi 
+yapılması uygun değildir:
 
 .. code-block:: c
 
     if ((pw = getpwnam(name)) == NULL)
         exit_sys("getpwnam");               /* dikkat! hatalı raporlama */
 
-Hata nedeninin tespit edilmesi değişik biçimde yapılmaktadır. ``getpwnam`` fonksiyonu eğer isme ilişkin bir kayıt
-bulamazsa ``errno`` değerini değiştirmemektedir. Diğer hatalı durumlarda ``errno`` değerini uygun biçimde set
-etmektedir. Dolayısıyla programcı fonksiyonu çağırmadan önce ``errno`` değerini 0'a çekmeli, fonksiyon başarısız
-olduğunda ``errno`` değerinin hala 0 olup olmadığına bakmalıdır. Örneğin:
+``getpwnam`` fonksiyonu eğer isme ilişkin bir kayıt bulamazsa ``errno`` değerini değiştirmemektedir. Diğer hatalı durumlarda 
+``errno`` değerini uygun biçimde set etmektedir. Dolayısıyla hata raporlaması için programcı fonksiyonu çağırmadan önce 
+``errno`` değerini ``0``'a çekmeli, fonksiyon başarısız olduğunda ``errno`` değerinin hala ``0`` olup olmadığına bakmalıdır. 
+Örneğin:
 
 .. code-block:: c
 
@@ -5214,15 +5215,14 @@ olduğunda ``errno`` değerinin hala 0 olup olmadığına bakmalıdır. Örneği
         exit_sys("getpwnam");
     }
 
-Bir getpwnam Örneği: uname-info.c
----------------------------------
-
 Aşağıdaki örnekte komut satırından ismi alınan kullanıcının bilgileri ekrana (``stdout`` dosyasına) yazdırılmıştır.
 Programı şöyle çalıştırabilirsiniz:
 
 .. code-block:: text
 
     $ ./uname-info kaan
+
+``uname-info.c``
 
 .. code-block:: c
 
@@ -5254,10 +5254,10 @@ Programı şöyle çalıştırabilirsiniz:
 
         printf("User name: %s\n", pw->pw_name);
         printf("Password: %s\n", pw->pw_passwd);
-        printf("User id: %jd\n", (intmax_t)pw->pw_uid);
-        printf("Group id: %jd\n", (intmax_t)pw->pw_gid);
-        printf("Extra Info: %s\n", pw->pw_gecos);
-        printf("Default Dir: %s\n", pw->pw_dir);
+        printf("User ID %jd\n", (intmax_t)pw->pw_uid);
+        printf("Group ID: %jd\n", (intmax_t)pw->pw_gid);
+        printf("Extra info: %s\n", pw->pw_gecos);
+        printf("Default dir: %s\n", pw->pw_dir);
         printf("Shell: %s\n", pw->pw_shell);
 
         return 0;
@@ -5269,11 +5269,8 @@ Programı şöyle çalıştırabilirsiniz:
         exit(EXIT_FAILURE);
     }
 
-getpwuid Fonksiyonu
--------------------
-
-``getpwuid`` fonksiyonu da ``getpwnam`` fonksiyonu gibidir. Yalnızca kullanıcı ismi ile değil kullanıcı ID'si ile
-kullanıcı bilgilerini elde etmektedir. Fonksiyonun prototipi şöyledir:
+``getpwuid`` fonksiyonu da ``getpwnam`` fonksiyonu gibidir. Ancak ``getpwuid`` fonksiyonu kullanıcı ismi ile değil kullanıcı 
+ID'si ile kullanıcı bilgilerini elde etmektedir. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -5283,28 +5280,27 @@ kullanıcı bilgilerini elde etmektedir. Fonksiyonun prototipi şöyledir:
 
 Fonksiyon yine başarı durumunda statik düzeyde tahsis edilmiş olan ``struct passwd`` türünden yapı nesnesinin adresiyle,
 başarısızlık durumunda ``NULL`` adresle geri dönmektedir. Başarısızlığın nedeni kullanıcı ID'sine ilişkin kullanıcının
-bulunamaması nedeni ile ise bu durumda fonksiyon ``errno`` değerini değiştirmemektedir. Yine kullanımı şöyle olabilir:
+bulunamaması ise fonksiyon ``errno`` değerini değiştirmemektedir. Fonksiyonu aşağıdaki gibi çağırabilirsiniz:
 
 .. code-block:: c
 
     errno = 0;
     if ((pw = getpwuid(userid)) == NULL) {
         if (errno == 0) {
-            fprintf(stderr, "invalid user id!..\n");
+            fprintf(stderr, "invalid user ID!..\n");
             exit(EXIT_FAILURE);
         }
         exit_sys("getpwuid");
     }
 
-Bir getpwuid Örneği: uid-info.c
--------------------------------
-
-Aşağıdaki örnekte komut satırından verilen kullanıcı ID'sine ilişkin kullanıcı bilgileri ekrana (``stdout`` dosyasına)
+Aşağıdaki örnekte bu kez komut satırından verilen kullanıcı ID'sine ilişkin kullanıcı bilgileri ekrana (``stdout`` dosyasına)
 yazdırılmıştır. Programı şöyle çalıştırabilirsiniz:
 
 .. code-block:: text
 
     $ ./uid-info 1000
+
+``uid-info.c``
 
 .. code-block:: c
 
@@ -5339,10 +5335,10 @@ yazdırılmıştır. Programı şöyle çalıştırabilirsiniz:
 
         printf("User name: %s\n", pw->pw_name);
         printf("Password: %s\n", pw->pw_passwd);
-        printf("User id: %jd\n", (intmax_t)pw->pw_uid);
-        printf("Group id: %jd\n", (intmax_t)pw->pw_gid);
-        printf("Extra Info: %s\n", pw->pw_gecos);
-        printf("Default Dir: %s\n", pw->pw_dir);
+        printf("User ID: %jd\n", (intmax_t)pw->pw_uid);
+        printf("Group ID: %jd\n", (intmax_t)pw->pw_gid);
+        printf("Extra info: %s\n", pw->pw_gecos);
+        printf("Default dir: %s\n", pw->pw_dir);
         printf("Shell: %s\n", pw->pw_shell);
 
         return 0;
@@ -5354,8 +5350,8 @@ yazdırılmıştır. Programı şöyle çalıştırabilirsiniz:
         exit(EXIT_FAILURE);
     }
 
-getpwent, setpwent ve endpwent Fonksiyonları
---------------------------------------------
+getpwent, endpwent ve setpwent Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Bazen programcı kullanıcıya ilişkin tüm kayıtları elde etmek isteyebilir. Bunun için ``getpwent``, ``endpwent`` ve
 ``setpwent`` POSIX fonksiyonları bulundurulmuştur. Fonksiyonların prototipleri şöyledir:
@@ -5375,12 +5371,9 @@ listenin sonuna geldiğinden dolayı ``NULL`` adrese geri dönmüşse ``errno`` 
 programcı fonksiyonu çağırmadan önce ``errno`` değerini 0'a set etmeli, fonksiyon ``NULL`` ile geri döndüğünde ``errno``
 değerini kontrol etmelidir.
 
-``setpwent`` fonksiyonu kayıt imlecini ilk kayda çekmektedir. Dolaşım işlemi bittikten sonra ``endpwent`` fonksiyonu
-çağrılmalıdır. Tipik dolaşım şöyle yapılmaktadır:
+Dolaşım işlemi bittikten sonra ``endpwent`` fonksiyonu çağrılmalıdır. Tipik dolaşım şöyle yapılmaktadır:
 
 .. code-block:: c
-
-    setpwent();
 
     while (errno = 0, (pw = getpwent()) != NULL) {
         /* ... */
@@ -5390,6 +5383,7 @@ değerini kontrol etmelidir.
 
     endpwent();
 
+
 ``while`` parantezi içerisindeki ifadeye dikkat ediniz. Burada virgül operatörü kullanılmıştır. Virgül operatörünün önce
 sol tarafındaki ifadenin tam olarak yapılıp bitirildiğini, sonra sağ tarafındaki ifadenin tam olarak yapılıp
 bitirildiğini ve virgül operatöründen elde edilen değerin sağ tarafındaki ifadeden elde edilen değer olduğunu
@@ -5397,7 +5391,7 @@ anımsayınız. ``errno`` değişkenini döngünün başında bir kez 0'a set et
 
 .. code-block:: c
 
-    errno = 0;
+    errno = 0;          /* hatalı kullanım! */
     while ((pw = getpwent()) != NULL) {
         /* ... */
     }
@@ -5407,8 +5401,9 @@ anımsayınız. ``errno`` değişkenini döngünün başında bir kez 0'a set et
 POSIX standartlarına göre bir fonksiyon hataya yol açmasa bile ``errno`` değişkenini set edebilmektedir. Ancak hiçbir
 POSIX fonksiyonu ``errno`` değerini 0'a set etmemektedir.
 
-Tüm Kullanıcıların Listelenmesi: user-info.c
---------------------------------------------
+``setpwent`` fonksiyonu kayıt imlecini ilk kayda çekmektedir. Aslında eğer dolaşım bir kez yaplacaksa ``setpwent`` 
+fonksiyonun çağrılmasına gerek yoktur. Ancak birden fazla kez dolaşım uygulanacaksa kayıt imlecini başa çekmek için 
+``setpwent`` fonksyonun çağrılması gerekir. 
 
 Aşağıdaki programda tüm kullanıcı bilgileri bir döngü içerisinde elde edilip ekrana (``stdout`` dosyasına)
 yazdırılmıştır.
@@ -5427,15 +5422,13 @@ yazdırılmıştır.
     {
         struct passwd *pw;
 
-        setpwent();
-
         while (errno = 0, (pw = getpwent()) != NULL) {
             printf("User name: %s\n", pw->pw_name);
             printf("Password: %s\n", pw->pw_passwd);
-            printf("User id: %jd\n", (intmax_t)pw->pw_uid);
-            printf("Group id: %jd\n", (intmax_t)pw->pw_gid);
-            printf("Extra Info: %s\n", pw->pw_gecos);
-            printf("Default Dir: %s\n", pw->pw_dir);
+            printf("User ID: %jd\n", (intmax_t)pw->pw_uid);
+            printf("Group ID: %jd\n", (intmax_t)pw->pw_gid);
+            printf("Extra info: %s\n", pw->pw_gecos);
+            printf("Default dir: %s\n", pw->pw_dir);
             printf("Shell: %s\n", pw->pw_shell);
             printf("-----------------------------\n");
         }
@@ -5452,9 +5445,6 @@ yazdırılmıştır.
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-Grup Bilgileri, Dizinlerin Açılması ve at'li Fonksiyonlar
-=========================================================
 
 Grup Bilgilerinin Elde Edilmesi: /etc/group ve struct group
 -----------------------------------------------------------
