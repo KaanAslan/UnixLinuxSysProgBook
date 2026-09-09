@@ -646,6 +646,11 @@ Biz de fonksiyonu aşağıdaki gibi çağırmış olalım:
 
 Burada prosesin çalışma dizini ``/home/student/notes`` biçiminde olacaktır.
 
+``chdir`` fonksiyonunun "dizinin yol ifadesini değil dizine ilişkin betimleyiciyi parametre olarak alan" ``fchdir`` isimli bir 
+biçimi de vardır. Bu fonksiyonu ileride başka bir bölümde ele alacağız.
+
+Aşağıda ``getcwd`` ve ``chdir`` fonksiyonlarının kullanımına bir örnek verilmiştir:
+
 .. code-block:: c
 
     #include <stdio.h>
@@ -5555,8 +5560,9 @@ ve ``endgrent`` fonksiyonlarıyla yapılmaktadır. Bu fonksiyonların ptorotiple
     void setgrent(void);
     void endgrent(void);
 
-Tüm Grupların Listelenmesi
---------------------------
+``getgrent`` fonksiyonu sıradaki gruba ilişkin grup bilgilerini verir. İşlem bittikten sonra yine ``endgrent``
+fonksiyonunun çağrılması gerekir. ``setgrent`` fonksiyonu grup imlecini başa çekmektedir. Eğer tek bir dolaşım
+yapılacaksa bu fonksiyonun çağrılmasına gerek yoktur.
 
 Aşağıdaki örnekte tüm gruplara ilişkin grup bilgileri ekrana (``stdout`` dosyasına) yazdırılmıştır.
 
@@ -5574,18 +5580,15 @@ Aşağıdaki örnekte tüm gruplara ilişkin grup bilgileri ekrana (``stdout`` d
     {
         struct group *gr;
 
-        setgrent();
-
         while (errno = 0, (gr = getgrent()) != NULL) {
             printf("Group Name: %s\n", gr->gr_name);
             printf("Group Password: %s\n", gr->gr_passwd);
-            printf("Group Id: %ju\n", (uintmax_t)gr->gr_gid);
+            printf("Group ID: %ju\n", (uintmax_t)gr->gr_gid);
             printf("Group Members: ");
             for (int i = 0; gr->gr_mem[i] != NULL; ++i)
                 printf("%s%s", i != 0 ? ", " : "", gr->gr_mem[i]);
             printf("\n--------------------\n");
         }
-
         if (errno != 0)
             exit_sys("getgrent");
 
@@ -5600,45 +5603,114 @@ Aşağıdaki örnekte tüm gruplara ilişkin grup bilgileri ekrana (``stdout`` d
         exit(EXIT_FAILURE);
     }
 
-Dizinlerin open Fonksiyonuyla Açılması ve O_SEARCH Modu
--------------------------------------------------------
+Dizinlerin open Fonksiyonuyla Açılması
+--------------------------------------
 
-Anımsanacağı gibi dizinler (directories) de aslında tamamen dosyalar gibi organize edilmektedir. Dizinlerin içerisinde
-aşağıdaki gibi dizin girişlerinin bulunduğunu söylemiştik:
+Anımsanacağı gibi dizinler (directories) de aslında tamamen dosyalar gibi organize edilmektedir. Dizinlerin
+içerisinde dizin girişlerinin bulunduğunu söylemiştik. Bir dizini erişim hakları yeterliyse ``open`` fonksiyonuyla
+``O_RDONLY`` ya da ``O_SEARCH`` bayraklarıyla açabiliriz. Ancak POSIX standartlarında dizinler üzerinde ``read`` ya
+da ``pread`` fonksiyonlarıyla okuma yapılıp yapılamayacağı işletim sistemini yazanların isteğine bırakılmıştır.
+Dizinler üzerinde ``lseek`` işlemi hakkında ise herhangi bir şey söylenmemiştir. Linux, BSD, macOS gibi sistemler
+dizinlerden ``read`` ya da ``pread`` fonksiyonlarıyla okuma yapmaya izin vermemektedir. Ancak bu sistemler ``lseek`` 
+fonksiyonuyla dizinlerde konumlandırma yapılmasına izin vermektedir. POSIX standartlarına göre zaten dizinlere yazma 
+yapılamamaktadır.
+
+POSIX standartlarına göre işletim sistemi dizinlerden okuma yapmaya izin vermiyor olsa bile eğer prosesin dizine
+*r* hakkı varsa ``O_RDONLY`` bayrağıyla açılabilmektedir. Şimdi haklı olarak "dizinden okuma yapamadıktan sonra
+dizinin O_RDONLY bayrağıyla açılmasının ne anlamı olabilir ki?" sorusu aklınıza gelebilir. İşte ``O_RDONLY``
+bayrağıyla açılmış dizine ilişkin betimleyiciler ``read`` ve ``pread`` fonksiyonuyla kullanılamıyor olsa da başka
+bazı fonksiyonlarda kullanılabilmektedir.
+
+POSIX standartlarına göre eğer prosesin dizine *x* hakkı varsa (okuma ya da yazma hakkı olmayabilir) bir dizin
+``O_SEARCH`` bayrağıyla da açılabilmektedir. ``O_SEARCH`` bayrağı izleyen paragraflarda açıklayacağımız at'li POSIX
+fonksiyonları için bulundurulmuştur. Ancak güncel Linux sistemleri ``O_SEARCH`` bayrağını desteklememektedir.
+
+Aşağıda dizin üzerinde hangi işlemlerin yapılıp yapılamayacağı POSIX standartları ve Linux bağlamında bir tablo
+biçiminde verilmiştir.
+
+.. list-table::
+   :widths: 34 33 33
+   :header-rows: 1
+
+   * - İşlem
+     - POSIX'teki Durumu
+     - Linux'taki Davranış
+   * - ``open(dir, O_RDONLY)``
+     - Zorunlu; başarılı olmalı (*r* hakkı gerekir)
+     - Başarılı
+   * - ``open(dir, O_RDONLY|O_DIRECTORY)``
+     - Zorunlu; dizin değilse ``ENOTDIR``
+     - Aynı; dizin değilse ``ENOTDIR``
+   * - ``open(dir, O_SEARCH)``
+     - Zorunlu; yalnızca x izni gerekir
+     - Uygulanmamış; karşılığı ``O_PATH`` (musl: ``O_SEARCH == O_PATH``)
+   * - ``open(dir, O_WRONLY / O_RDWR)``
+     - Zorunlu hata: ``EISDIR``
+     - ``EISDIR``
+   * - ``open(dir, O_CREAT)`` (``O_DIRECTORY`` olmadan)
+     - Zorunlu hata: ``EISDIR``
+     - ``EISDIR``
+   * - ``open(dir, O_CREAT|O_DIRECTORY)``
+     - Belirtilmemiş
+     - Tanımsız (sürüme göre ``EINVAL`` ya da dosya yaratır)
+   * - ``read`` / ``pread``
+     - Gerçekleştirime bağlı
+     - Her zaman ``EISDIR``
+   * - ``write`` / ``pwrite``
+     - Fiilen olanaksız (yazma modunda açılamaz)
+     - ``EBADF`` (yazma modu elde edilemez)
+   * - ``ftruncate``
+     - Hata: ``EINVAL``
+     - ``EINVAL``
+   * - ``readdir``
+     - Zorunlu; tek taşınabilir yol
+     - ``getdents64`` sistem çağrısı
+   * - ``fdopendir(fd)``
+     - Zorunlu; fd okuma için açılmamışsa ``EBADF``
+     - glibc: ``O_WRONLY`` ise ``EINVAL``, ``O_PATH`` ise ``readdir``'de ``EBADF``; musl: ``O_PATH`` ise ``EBADF``
+   * - ``fchdir(fd)``
+     - Zorunlu
+     - Başarılı (``O_PATH`` ile de)
+   * - ``openat`` vb. ``*at()`` için ``dirfd``
+     - Zorunlu
+     - Başarılı (``O_PATH`` ile de)
+   * - ``fstat(fd)``
+     - Zorunlu
+     - Başarılı (``O_PATH`` ile de)
+   * - ``lseek(fd, 0, SEEK_SET)``
+     - Belirtilmemiş
+     - Başarılı; başa alır
+   * - ``lseek(fd, n, SEEK_SET/CUR)``
+     - Belirtilmemiş
+     - Başarısız olmaz; ofset dosya sistemine özgü çerezdir (ext4: hash), keyfi değer anlamsız
+   * - ``lseek(fd, 0, SEEK_END)``
+     - Belirtilmemiş
+     - Dosya sistemine özgü özel değer
+   * - ``lseek(fd, ., SEEK_DATA/SEEK_HOLE)``
+     - Standart dışı
+     - ``ENXIO``
+   * - ``telldir`` / ``seekdir``
+     - Zorunlu; opak çerez, yalnızca aynı ``DIR`` akışında geçerli
+     - glibc: ``lseek`` + tampon sıfırlama
+   * - ``rewinddir``
+     - Zorunlu; başa çek ve değişiklikleri yansıt
+     - ``lseek(0)`` + tampon sıfırlama
+   * - ``dirfd`` sonrası doğrudan ``lseek``
+     - Belirtilmemiş
+     - ``DIR`` tamponu ile çekirdek konumu uyumsuz hale gelir; kaçınılmalı
+
+``open`` fonksiyonunda ``O_RDONLY`` ve ``O_SEARCH`` modları birlikte kullanılamamaktadır. ``open`` fonksiyonunda
+aşağıdaki bayrakların yalnızca birinin kullanılmasının zorunlu olduğunu anımsayınız:
 
 .. code-block:: text
 
-    isim    inode_no
-    isim    inode_no
-    isim    inode_no
-    ...
+    O_RDONLY
+    O_WRONLY
+    O_RDWR
+    O_EXEC
+    O_SEARCH
 
-Dizin dosyalarının ext dosya sistemlerindeki gerçek formatları biraz daha ayrıntı içermektedir. Kitabımızın sonlarına
-doğru ext dosya sistemlerinin disk organizasyonu üzerinde duracağız.
-
-Bir dizini erişim hakları yeterliyse ``open`` fonksiyonuyla açabiliriz. Ancak POSIX standartlarında dizin dosyalarından
-okuma, yazma ve konumlandırma işlemlerinin yapılıp yapılamayacağı işletim sistemini yazanların isteğine bırakılmıştır.
-Linux, BSD, macOS gibi sistemler dizin dosyalarından ``read`` ve ``write`` fonksiyonları ile okuma ve yazma yapmaya izin
-vermemektedir. Ancak bu sistemler ``lseek`` fonksiyonuyla dizin dosyalarında konumlandırma yapılmasına izin vermektedir.
-Peki mademki işletim sistemleri dizin dosyalarından okuma yazma yapmaya izin vermeyebiliyorlar, bu durumda ``open``
-fonksiyonuyla dizin dosyalarını hangi modda açabiliriz? İşte dizinlerin açılması için POSIX standartlarında ``O_SEARCH``
-isimli bir mod da bulunmaktadır. Bu mod aslında ileride ele alacağımız at'li POSIX fonksiyonları için düşünülmüştür.
-Eğer ``O_SEARCH`` modunda bir dizin açılırsa bu dizinden okuma/yazma yapılamaz fakat bu at'li fonksiyonlar
-kullanılabilir. Ancak ``O_SEARCH`` modu Linux tarafından desteklenmemektedir. Bu durumda mecburen Linux'ta bir dizini
-açacaksak işletim sistemi ``read`` fonksiyonu ile okuma yapılmasına izin vermiyor olsa da biz açış modu olarak
-``O_RDONLY`` kullanırız. Yani Linux dizinden ``read`` ile okuma yapılmasına izin vermiyor olsa da dizinlerin ``open``
-fonksiyonu ile ``O_RDONLY`` bayrağı kullanılarak açılmasına izin vermektedir.
-
-Peki Linux'ta bir dizini ``O_SEARCH`` modunda açmak ile ``O_RDONLY`` modunda açmak arasında ne fark vardır? ``O_SEARCH``
-modu POSIX standartlarına dizin üzerinde ``read``, ``write`` yapmak için değil başka birtakım işlemler yapmak için
-eklenmiştir. Dolayısıyla bir işletim sistemi örneğin dizin dosyalarından ``read`` fonksiyonu ile okuma yapmaya izin
-veriyorsa bu durumda biz o dizini ``O_SEARCH`` modunda açarsak okuma yapamayız. Ancak ``O_RDONLY`` modunda açarsak okuma
-yapabiliriz. Yukarıda da belirttiğimiz gibi Linux ve macOS sistemleri ``O_SEARCH`` modunu desteklememektedir. Ancak BSD
-türevi sistemler bu modu desteklemektedir.
-
-Aşağıda Linux sistemlerinde bir dizinin ``open`` fonksiyonuyla açılmasına örnek verdik. Örneğimizde Linux açış modu
-olarak ``O_SEARCH`` modunu desteklemediği için ``O_RDONLY`` modunu kullandık. İşletim sistemleri genel olarak dizinlere
-write yapılmasına zaten izin vermemektedir.
+Aşağıda Linux sistemlerinde bir dizinin ``O_RDONLY`` bayrağıyla açılmasına bir örnek veriyoruz:
 
 .. code-block:: c
 
@@ -5776,9 +5848,6 @@ Ancak yol ifadesi göreli olduğu için dosya ``/usr/include`` dizininde aranaca
         exit(EXIT_FAILURE);
     }
 
-Dizin İçeriklerinin Okunması: opendir, readdir ve İlgili Fonksiyonlar
-=====================================================================
-
 Dizin Girişlerini Elde Etmeye Yönelik POSIX Fonksiyonları
 ---------------------------------------------------------
 
@@ -5818,8 +5887,8 @@ yapı türünden (``DIR`` bir typedef ismidir) bir adrestir. Bu ``DIR`` adresi b
 Programcılar ``DIR`` yapısının içeriğini bilmek zorunda değildir. (Örneğin C'nin ``fopen`` fonksiyonu da bize ``FILE``
 yapısı türünden bir nesnenin adresini vermektedir. Ancak bu yapının içeriğinin nasıl olduğu programcıları
 ilgilendirmemektedir.) Fonksiyon başarısızlık durumunda ``NULL`` adrese geri döner ve ``errno`` uygun biçimde değer
-alır. ``opendir`` fonksiyonunun ``fdopendir`` isimli bir versiyonu da vardır. Bu versiyon eğer zaten dizin ``O_SEARCH``
-modunda (Linux'ta ``O_RDONLY`` modunda) açılmışsa o dizine ilişkin betimleyici yoluyla aynı işlemi yapmaktadır.
+alır. ``opendir`` fonksiyonunun ``fdopendir`` isimli bir versiyonu da vardır. fdopendir fonksiyonu eğer dizin ``O_READONLY`` 
+modunda açılmışsa o dizine ilişkin betimleyici yoluyla aynı işlemi yapmaktadır. 
 
 .. code-block:: c
 
