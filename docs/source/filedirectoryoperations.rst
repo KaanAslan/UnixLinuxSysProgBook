@@ -5446,10 +5446,10 @@ yazdırılmıştır.
         exit(EXIT_FAILURE);
     }
 
-Grup Bilgilerinin Elde Edilmesi: /etc/group ve struct group
------------------------------------------------------------
+Grup Bilgilerinin Elde Edilmesi
+-------------------------------
 
-Bilindiği gibi UNIX türevi sistemlerde genellikle grup bilgileri ``/etc/group`` isimli bir dosyada tutulmaktadır.
+UNIX türevi sistemlerde genellikle grup bilgilerinin ``/etc/group`` isimli bir dosyasında tutulduğunu belirtmiştik.
 Aşağıda Linux sistemlerindeki ``/etc/group`` dosyasından birkaç satır görüyorsunuz:
 
 .. code-block:: text
@@ -5462,19 +5462,23 @@ Aşağıda Linux sistemlerindeki ``/etc/group`` dosyasından birkaç satır gör
     test:x:1002
     ...
 
-Linux sistemlerinde ``/etc/group`` dosyasının satırları ``:`` ile ayrılmış 4 kısımdan oluşmaktadır:
+Anımsayacağınız gibi Linux sistemlerinde ``/etc/group`` dosyasının satırları ``:`` ile ayrılmış 4 kısımdan oluşuyordu:
 
 .. code-block:: text
 
     groupname:password:GID:membernames
 
-Grupların da parolaları bulunmaktadır. Ancak grup parolaları pek kullanılan bir kavram değildir. Ek gruplardan daha önce
+Grupların da parolaları bulunmaktadır. Ancak grup parolaları pek kullanılmamaktadır. Ek gruplardan daha önce
 bahsetmiştik. Bir kullanıcının gerçek bir grubu vardı. Ancak kullanıcı ek olarak başka gruplara da üye olabiliyordu.
-Gerçek grupla ek gruplar arasında erişim kontrollerinde bir fark yoktu. Yani prosesin ek grupları da gerçek grubu gibi
-erişim kontrolünde etkili olabiliyordu.
+Gerçek grupla ek gruplar arasında erişim kontrollerinde bir fark yoktu. Yani prosesin ek grupları da gerçek grubu gibi 
+erişim kontrolünde aynı etkiye sahipti. 
 
-Grup bilgilerinin elde edilmesi için de standart POSIX fonksiyonları bulundurulmuştur. Grup bilgilerini elde etmek için
-kullanılan POSIX fonksiyonları şunlardır:
+getgrnam ve gergrgid Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Grup bilgilerinin elde edilmesi için de standart POSIX fonksiyonları bulundurulmuştur. Grup isminden harehetle grup bilgileri
+``getgrnam`` fonksiyonuyla grup ID'lerinden hareketle grup bilgileri de getgrgid fonksiyonuyla elde edilmektedir. Bu 
+fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
 
@@ -5482,11 +5486,9 @@ kullanılan POSIX fonksiyonları şunlardır:
 
     struct group *getgrnam(const char *name);
     struct group *getgrgid(gid_t gid);
-    struct group *getgrent(void);
-    void setgrent(void);
-    void endgrent(void);
+    
 
-Bu fonksiyonlardaki ``struct group`` yapısı ``<grp.h>`` dosyası içerisinde şöyle tanımlanmıştır:
+``struct group`` yapısı ``<grp.h>`` dosyası içerisinde şöyle tanımlanmıştır:
 
 .. code-block:: c
 
@@ -5497,16 +5499,15 @@ Bu fonksiyonlardaki ``struct group`` yapısı ``<grp.h>`` dosyası içerisinde �
         char  **gr_mem;           /* NULL-terminated array of pointers to names of group members */
     };
 
-Yapının ``gr_name`` elemanı grubun ismini, ``gr_passwd`` elemanı grubun parola bilgisini, ``gr_gid`` elemanı grubun
-ID'sini belirtir. Gruba ek olarak dahil olan kullanıcılar yapının ``gr_mem`` elemanından elde edilmektedir. Bu elemanın
-göstericiyi gösteren gösterici olduğuna dikkat ediniz:
+Yapı eleman isimleri ``gr_`` öneki ile başlatılmıştır. Yapının ``gr_name`` elemanı grubun ismini, `
+`gr_passwd`` elemanı grubun parola bilgisini, ``gr_gid`` elemanı grubun ID'sini belirtmektedir. Gruba ek olarak dahil olan 
+kullanıcılar yapının ``gr_mem`` elemanından elde edilmektedir. Bu elemanın göstericiyi gösteren gösterici olduğuna dikkat 
+ediniz:
 
-.. code-block:: text
+.. figure:: _static/gr-mem.png
+    :align: center
 
-    gr_mem -----> Gösterici Dizisi
-                  ------> ekgrup\0
-                  ------> ekgrup\0
-                  NULL
+Gösterici dizisinin ``NULL`` adresle sonlandığına dikkat ediniz.
 
 Örneğin ``/etc/group`` dosyasında aşağıdaki gibi bir satır bulunuyor olsun:
 
@@ -5514,17 +5515,45 @@ göstericiyi gösteren gösterici olduğuna dikkat ediniz:
 
     project:x:1001:ali,veli,selami
 
-Burada grup bilgilerinin sonundaki ali, veli, selami bu project grubuna ek grup olarak dahil edilen kullanıcıları
-belirtmektedir. Örneğin kaan kullanıcısının gerçek grubu study olabilir. Ancak kaan kullanıcısı aynı zamanda *ek grup
-(supplementary group)* olarak project grubuna da dahil olabilir. Bu durumda bir kullanıcının ek gruplarının elde
-edilebilmesi için ``/etc/group`` dosyasının baştan sona gözden geçirilip kullanıcının hangi satırların ``:`` ile
-ayrılmış son bölümünde geçtiğinin belirlenmesi gerekmektedir. İşte ``group`` yapısının ``gr_mem`` elemanının gösterdiği
-gösterici dizisinin ``NULL`` adresle sonlandığına dikkat ediniz.
+Burada grup bilgilerinin sonundaki ali, veli, selami bu *project* grubuna ek grup olarak dahil edilen kullanıcıları
+belirtmektedir:
 
-``getgrnam`` fonksiyonu grubun isminden hareketle grup bilgilerini, ``getgrgid`` fonksiyonu ise grup ID'sinden hareketle
-grup bilgilerini vermektedir. Tıpkı kullanıcı bilgilerinde olduğu gibi grup bilgilerinin de tek tek elde edilmesi benzer
-biçimde ``setgrent``, ``getgrent`` ve ``endgrent`` fonksiyonlarıyla yapılmaktadır. Bu fonksiyonlarda da yine IO hatası
-dışındaki hatalarda ``errno`` set edilmemektedir.
+.. figure:: _static/gr-mem-example.png
+    :align: center
+
+Örneğin *ali* kullanıcısının gerçek grubu *study* olabilir. Ancak *ali* kullanıcısı aynı zamanda *ek grup
+(supplementary group)* olarak *project* grubuna da dahil olabilir. Bu durumda bir kullanıcının ek gruplarının elde
+edilebilmesi için ``/etc/group`` dosyasının baştan sona gözden geçirilip kullanıcının hangi satırların ``:`` ile
+ayrılmış son bölümünde bulunduğunun belirlenmesi gerekir. 
+
+``getgrnam`` fonksiyonu grubun isminden hareketle grup bilgilerini, ``getgrgid`` fonksiyonu ise grubun ID'sinden
+hareketle grup bilgilerini elde etmektedir. Bu fonksiyonlar da ( ``getpwnam`` ve ``getpwuid`` fonksiyonlarıyla 
+benzer biçimde) başarı durumunda ``group`` yapısı türünden statik ömürlü nesnenin adresiyle, başarısızlık durumunda
+``NULL`` adresle geri dönmektedir. Fonksiyonlar grubun bulunamaması nedeniyle başarısız olurlarsa ``errno``
+değerini değiştirmezler. Örneğin:
+
+.. code-block:: c
+
+    struct group *gr;
+    /* ... */
+
+    errno = 0;
+    if ((gr = getgrnam(name)) == NULL) {
+        if (errno == 0) {
+            fprintf(stderr, "invalid group name!..\n");
+            exit(EXIT_FAILURE);
+        }
+        exit_sys("getgrnam");
+    }
+
+Tıpkı kullanıcı bilgilerinde olduğu gibi grup bilgilerinin de tek tek elde edilmesi benzer biçimde ``setgrent``, ``getgrent`` 
+ve ``endgrent`` fonksiyonlarıyla yapılmaktadır. Bu fonksiyonların ptorotipleri şöyledir:
+
+.. code-block:: c
+
+    struct group *getgrent(void);
+    void setgrent(void);
+    void endgrent(void);
 
 Tüm Grupların Listelenmesi
 --------------------------
