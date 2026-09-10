@@ -4416,14 +4416,14 @@ işaretler. Biz yukarıda inode tabanlı dosya sistemlerine ilişkin disk organi
 .. figure:: _static/disk-block-layout.png
     :align: center
     :class: fig-mapping1
-    :width: 25%
+    :width: 20%
 
 Aslında biraz daha gerçekçi temsil şöyle oluşturulabilir:
 
 .. figure:: _static/disk-layout-detailed.png
     :align: center
     :class: fig-mapping1
-    :width: 25%
+    :width: 20%
 
 Burada *Inode Bitmap* alanı *Inode Blok*taki boş inode elemanlarının yerlerini, *Data Bitmap* ise *Data Blok*taki boş
 blokların yerlerini tutmaktadır. *ext* dosya sistemlerinin gerçek disk organizasyonlarını kitabımızın son kısımlarına doğru
@@ -5369,12 +5369,12 @@ Bazen programcı kullanıcıya ilişkin tüm kayıtları elde etmek isteyebilir.
     void setpwent(void);
     void endpwent(void);
 
-``getpwent`` fonksiyonu her çağrıldığında sıradaki bir kullanıcının bilgisini verir. Fonksiyon sona geldiğinde (yani
-artık bilgisi verilecek kullanıcı kalmadığında) ``NULL`` adrese geri döner. Fonksiyon ``NULL`` adresle geri döndüğünde
-bunun IO hatasından dolayı mı yoksa listenin sonuna gelindiğinden dolayı mı oluştuğunu tespit etmek gerekir. Fonksiyon
-listenin sonuna geldiğinden dolayı ``NULL`` adrese geri dönmüşse ``errno`` değerini değiştirmemektedir. Dolayısıyla
-programcı fonksiyonu çağırmadan önce ``errno`` değerini 0'a set etmeli, fonksiyon ``NULL`` ile geri döndüğünde ``errno``
-değerini kontrol etmelidir.
+``getpwent`` fonksiyonu her çağrıldığında sıradaki bir kullanıcının bilgisini verir. Fonksiyon kullanıcı listesinin 
+sonuna ulaşıldığında (yani artık bilgisi verilecek kullanıcı kalmadığında) ``NULL`` adrese geri döner. Fonksiyon ``NULL`` 
+adresle geri döndüğünde bunun IO hatasından dolayı mı yoksa listenin sonuna gelindiğinden dolayı mı oluştuğunu tespit etmek 
+gerekir. Fonksiyon listenin sonuna geldiğinden dolayı ``NULL`` adrese geri dönmüşse ``errno`` değerini değiştirmemektedir. 
+Dolayısıyla programcı fonksiyonu çağırmadan önce ``errno`` değerini 0'a set etmeli, fonksiyon ``NULL`` ile geri döndüğünde 
+``errno`` değerini kontrol etmelidir.
 
 Dolaşım işlemi bittikten sonra ``endpwent`` fonksiyonu çağrılmalıdır. Tipik dolaşım şöyle yapılmaktadır:
 
