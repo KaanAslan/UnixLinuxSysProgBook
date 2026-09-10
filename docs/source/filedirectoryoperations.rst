@@ -1130,8 +1130,8 @@ Burada işletim sistemi prosesin dosyaya ``'w'`` hakkı olup olmadığını kont
 
 Burada işletim sistemi prosesin dosyaya hem ``'r'`` hem de ``'w'`` hakkı olup olmadığını kontrol edecektir.
 
-Zorunlu açış bayraklarından ``O_SEARCH`` bayrağı bazı POSIX fonksiyonlarının *at*'li versiyonları için,
-``O_EXEC`` bayrağı ise ``fexecve`` fonksiyonu için bulundurulmuştur. 
+Zorunlu açış bayraklarından ``O_SEARCH`` bayrağı tipik olarak (ancak tamamen değil) bazı POSIX fonksiyonlarının *at*'li 
+versiyonları için, ``O_EXEC`` bayrağı ise ``fexecve`` fonksiyonu için bulundurulmuştur. 
 
 ``open`` fonksiyonu yalnızca olan bir dosyayı açmak için değil aynı zamanda yeni bir dosya yaratmak için de
 kullanılmaktadır. ``O_CREAT`` bayrağı, dosya varsa etkili olmaz; dosya yoksa dosyanın yaratılmasını sağlar. Yani
@@ -5623,7 +5623,7 @@ dizinin O_RDONLY bayrağıyla açılmasının ne anlamı olabilir ki?" sorusu ak
 bayrağıyla açılmış dizine ilişkin betimleyiciler ``read`` ve ``pread`` fonksiyonuyla kullanılamıyor olsa da başka
 bazı fonksiyonlarda kullanılabilmektedir.
 
-POSIX standartlarına göre eğer prosesin dizine *x* hakkı varsa (okuma ya da yazma hakkı olmayabilir) bir dizin
+POSIX standartlarına göre eğer prosesin dizine ``'x'`` hakkı varsa (okuma ya da yazma hakkı olmayabilir) bir dizin
 ``O_SEARCH`` bayrağıyla da açılabilmektedir. ``O_SEARCH`` bayrağı izleyen paragraflarda açıklayacağımız at'li POSIX
 fonksiyonları için bulundurulmuştur. Ancak güncel Linux sistemleri ``O_SEARCH`` bayrağını desteklememektedir.
 
@@ -5644,7 +5644,7 @@ biçiminde verilmiştir.
      - Zorunlu; dizin değilse ``ENOTDIR``
      - Aynı; dizin değilse ``ENOTDIR``
    * - ``open(dir, O_SEARCH)``
-     - Zorunlu; yalnızca x izni gerekir
+     - Zorunlu; yalnızca ``'x'`` hakkı gerekir
      - Uygulanmamış; karşılığı ``O_PATH`` (musl: ``O_SEARCH == O_PATH``)
    * - ``open(dir, O_WRONLY / O_RDWR)``
      - Zorunlu hata: ``EISDIR``
@@ -5743,6 +5743,71 @@ Aşağıda Linux sistemlerinde bir dizinin ``O_RDONLY`` bayrağıyla açılması
         exit(EXIT_FAILURE);
     }
 
+Biz ``open`` fonksiyonunda ``O_DIRECTORY`` bayrağını listelemiştik. Ama orada semantik bir açıklama yapmamıştık.
+``open`` fonksiyonundaki ``O_DIRECTORY`` bayrağı açılmak istenen girişin bir dizin olmasını garanti etmek için
+bulundurulmuştur. Eğer açış sırasında bu bayrak da açış moduna eklenirse açılmak istenen giriş bir dizin değilse
+``open`` fonksiyonu başarısız olur ve ``errno`` değişkeni ``ENOTDIR`` değeri ile set edilir.
+
+Linux'ta ayrıca POSIX standartlarında bulunmayan ``O_PATH`` isimli bir açış bayrağı da vardır. (Bu bayrağı BSD
+sistemleri de 13 versiyonuyla birlikte desteklemeye başlamıştır.) Bu bayrak ile bir dosya, bir dizin, bir aygıt
+sürücü, bir sembolik bağ girişi açılabilir. ``O_PATH`` hiçbir erişim kontrolü uygulamaz. Ancak ``O_PATH``
+betimleyicisi ile ``read`` / ``write`` gibi IO işlemlerinde kullanılamamaktadır. (Kullanılmaya çalışılırsa
+``EBADF`` ``errno`` değeri ile IO fonksiyonları başarısız olur.) Peki ``O_PATH`` bayrağı ne işe yaramaktadır? Bu
+bayrak bir IO işlemi yapmak için değil yalnızca betimleyici ile yapılabilecek başka işlemler için kullanılmaktadır.
+Aslında ``O_PATH`` bayrağı POSIX'in ``O_SEARCH`` bayrağı ile benzer bir semantiğe sahiptir. Ancak ``O_PATH`` bayrağı
+daha denetimsiz bir kullanım sunmaktadır. Örneğin ``O_SEARCH`` bayrağı yalnızca dizinlerle kullanılırken ``O_PATH``
+bayrağı pek çok dosya benzeri kavramla kullanılabilmektedir. Aşağıdaki tabloda bu iki açış bayrağı arasındaki
+farkları listeliyoruz:
+
+.. list-table::
+   :widths: 26 37 37
+   :header-rows: 1
+
+   * - Özellik
+     - ``O_SEARCH``
+     - ``O_PATH``
+   * - Tür 
+     - Erişim modu (``O_ACCMODE`` değeri)
+     - Bağımsız bayrak; erişim modu alanı ``0`` görünür
+   * - Uygulanabildiği nesne
+     - Yalnızca dizin (değilse ``ENOTDIR``)
+     - Her tür: dizin, dosya, sembolik bağ, FIFO, soket, aygıt
+   * - Hedef üzerindeki izin denetimi
+     - ``'x'`` (arama) hakkı gerekir; yoksa ``EACCES``
+     - Hiçbiri; izni ``000`` olsa da açılır
+   * - Yol bileşenlerinde denetim
+     - ``'x'`` hakkı
+     - ``'x'`` hakkı
+   * - Dosya sistemi/sürücü ``open`` çağrısı
+     - Gerçekleştirime bağlı
+     - Çağrılmaz (sürücü tetiklenmez, FIFO bloke olmaz)
+   * - ``O_NOFOLLOW`` ile sembolik bağ
+     - Hata (``ELOOP``)
+     - Bağın kendisine betimleyici
+   * - Diğer bayraklarla birleşim
+     - Normal biçimde geçerli
+     - Yalnızca ``O_CLOEXEC``, ``O_DIRECTORY``, ``O_NOFOLLOW``; gerisi yok sayılır
+
+``O_PATH`` bayrağı Linux'a ``2.6.39`` çekirdeğiyle birlikte sokulmuştur. Bu bayrakla birlikte yalnızca ``O_CLOEXEC``,
+``O_DIRECTORY`` ve ``O_NOFOLLOW`` bayrakları kullanılabilir. Bu bayrakların dışında kullanılan bayraklar dikkate
+alınmamaktadır.
+
+Prosesin çalışma dizinini değiştiren ``chdir`` POSIX fonksiyonunun ``fchdir`` isminde bir biçiminin de olduğunu
+belirtmiştik. ``fchdir`` fonksiyonu parametre olarak dizine ilişkin yol ifadesini değil dizine ilişkin dosya
+betimleyicisini parametre olarak alıyordu. Fonksiyonun prototipini anımsayınız:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int fchdir(int fildes);
+
+``fchdir`` fonksiyonuna parametre olarak geçilecek dizin betimleyicisi ``O_SEARCH``, ``O_RDONLY`` ya da ``O_PATH``
+bayrağıyla açılmış olabilir. (Linux'un ``O_SEARCH`` bayrağını desteklemediğini, POSIX'in de ``O_PATH`` bayrağını
+desteklemediğini yeniden anımsatmak istiyoruz.) Yani ``fchdir`` bu iki bayrakla açılmış dosya betimleyicilerini de
+kabul etmektedir. ``fchdir`` fonksiyonu başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri
+dönmektedir.
+
 at'li Fonksiyonlar (openat, fchmodat, fchownat, vb.)
 ----------------------------------------------------
 
@@ -5783,9 +5848,9 @@ versiyonları kullanılacaksa bu durumda dizin dosyalarının ``O_SEARCH`` modun
 versiyonlar için dizin dosyalarının okuma modunda açılması gerekmemektedir. Zaten POSIX'te ``O_SEARCH`` modu bu at'li
 fonksiyonlar için bulundurulmuştur. Linux ve macOS sistemleri ``O_SEARCH`` modunu desteklemediğine göre bu sistemlerde
 at'li fonksiyonları kullanırken dizinleri ``O_RDONLY`` modda açmamız gerekir. POSIX standartlarına göre at'li
-fonksiyonlarda eğer dizin ``O_SEARCH`` modunda açılmışsa göreli aramada orijin belirten dizinin *x* hakkına sahiplik
-kontrolü yapılmaz. (Dizin ``O_SEARCH`` modunda açılırken zaten *x* hakkı kontrolü yapılmaktadır.) Eğer dizin
-``O_SEARCH`` yerine diğer modlarla (örneğin ``O_RDONLY``) açılmışsa bu durumda belirtilen dizinde *x* hakkı kontrolü
+fonksiyonlarda eğer dizin ``O_SEARCH`` modunda açılmışsa göreli aramada orijin belirten dizinin ``'x'`` hakkına sahiplik
+kontrolü yapılmaz. (Dizin ``O_SEARCH`` modunda açılırken zaten ``'x'`` hakkı kontrolü yapılmaktadır.) Eğer dizin
+``O_SEARCH`` yerine diğer modlarla (örneğin ``O_RDONLY``) açılmışsa bu durumda belirtilen dizinde ``'x'`` hakkı kontrolü
 yapılmaktadır. Ayrıca fonksiyonların at'li versiyonlarında dizine ilişkin dosya betimleyicisine özel olarak ``AT_FDCWD``
 değeri geçirilirse bu durumda sanki prosesin çalışma dizinine ilişkin dizin betimleyicisi geçirilmiş gibi bir etki
 oluşmaktadır. Tabii bu durumda fonksiyonun at'li versiyonu ile at'siz versiyonu arasında bir fark kalmamaktadır. Ancak
