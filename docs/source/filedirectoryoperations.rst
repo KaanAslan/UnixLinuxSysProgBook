@@ -234,7 +234,7 @@ bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi dü�
 
 .. figure:: _static/directory-entries.png
     :align: center
-    :class: fig-mapping1
+    :class: fig-mapping1f
     :width: 20%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
@@ -3659,14 +3659,14 @@ aşağıdaki formatta dizin girişlerine sahip olduğunu varsayabilirsiniz:
 .. figure:: _static/directory-entry-format.png
     :align: center
     :class: fig-mapping3
-    :width: 35%
+    :width: 30%
 
 Örneğin:
 
 .. figure:: _static/directory-entry-example.png
     :align: center
     :class: fig-mapping3
-    :width: 35%
+    :width: 30%
 
 *ext* dosya sistemlerindeki dizin girişleri değişken uzunlukta olabilmektedir. Bu sistemlerdeki dizin girişlerinin
 formatı şöyledir:
@@ -3696,7 +3696,7 @@ denilmektedir. Örneğin farklı dizinlerde (aynı dizinde de olabilir) aşağı
 .. figure:: _static/hard-link-entries.png
     :align: center
     :class: fig-mapping3
-    :width: 35%
+    :width: 30%
 
 Burada her iki dizin girişinin de aynı inode elemanına sahip olduğuna dikkat ediniz. Dosyaya erişmek için gereken tüm
 metadata bilgileri inode elemanının içerisinde olduğuna göre bu dosyaya ``x.txt`` yol ifadesiyle erişmekle ``y.txt`` yol
