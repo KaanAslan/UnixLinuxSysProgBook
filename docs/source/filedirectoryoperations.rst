@@ -234,7 +234,7 @@ bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi dü�
 
 .. figure:: _static/directory-entries.png
     :align: center
-    :class: fig-mapping2
+    :class: fig-mapping1
     :width: 20%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
