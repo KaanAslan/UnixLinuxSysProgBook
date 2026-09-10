@@ -233,6 +233,8 @@ Dizinler de işletim sistemi tarafından birer dosyaymış gibi ele alınmaktad�
 bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi düşünebilirsiniz:
 
 .. figure:: _static/directory-entries.png
+    :align: center
+    :class: fig-mapping2
     :width: 20%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
@@ -2585,7 +2587,7 @@ Inode Blok (Inode Block) ve Data Blok (Data Block):
 .. figure:: _static/disk-block-layout.png
     :align: center
     :class: fig-mapping1
-    :width: 25%
+    :width: 22%
 
 Aslında inode tabanlı dosya sistemlerinin disk organizasyonu daha ayrıntılıdır. Bu ayrıntıları kitabımızın inode
 tabanlı dosya sistemlerini anlattığımız bölümünde ele alacağız. 
@@ -4416,7 +4418,7 @@ işaretler. Biz yukarıda inode tabanlı dosya sistemlerine ilişkin disk organi
 .. figure:: _static/disk-block-layout.png
     :align: center
     :class: fig-mapping1
-    :width: 20%
+    :width: 22%
 
 Aslında biraz daha gerçekçi temsil şöyle oluşturulabilir:
 
