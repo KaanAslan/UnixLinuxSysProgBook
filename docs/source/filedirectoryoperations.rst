@@ -6052,9 +6052,6 @@ Fonksiyon başarı durumunda 0, başarısızlık durumunda -1 değerine geri dö
 (directory stream) ``fdopendir`` ile dizin betimleyicisini vererek yaratmış olalım. ``closedir`` bu betimleyiciyi
 kendisi ``close`` etmektedir.
 
-Bir Örnek: Dizin İçeriğinin Listelenmesi (İsim ve Inode Numarası)
------------------------------------------------------------------
-
 .. code-block:: c
 
     #include <stdio.h>
@@ -6416,9 +6413,6 @@ ediniz:
         exit(EXIT_FAILURE);
     }
 
-ls -l Stilinin Tam Uygulanması (Hizalama ile)
----------------------------------------------
-
 Aşağıdaki örnekte ``ls -l`` stili tam olarak uygulanmıştır. Burada önce dizin listesi dolaşılarak dinamik bir diziye
 yerleştirilmiş, sonra onların en uzun öğeleri bulunarak hizalama bu en uzun öğelere göre yapılmıştır. Yazdırma öncesinde
 dizin listesi aynı zamanda sıraya da dizilmiştir.
@@ -6426,13 +6420,6 @@ dizin listesi aynı zamanda sıraya da dizilmiştir.
 .. note::
    Kaynak ders notunda bu bölümün kodu eklenmemiş, yerine bir yer tutucu bırakılmıştır
    ("<BURAYA KOD YERLEŞTİRİLECEK>"). Bu nedenle kod burada da boş bırakılmıştır.
-
-
-Dizin Dolaşımı: rewinddir, telldir/seekdir ve Özyinelemeli Dizin Ağacı Dolaşımı
-===============================================================================
-
-rewinddir Fonksiyonu
---------------------
 
 ``opendir`` ile dizin listesi elde edildikten sonra benzer işlemin dizin kapatılmadan yeniden yapılabilmesi için
 ``rewinddir`` isimli POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
@@ -6493,9 +6480,6 @@ Aşağıdaki örnekte dizin girişleri ``rewinddir`` fonksiyonu ile iki kez elde
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-telldir ve seekdir Fonksiyonları
---------------------------------
 
 Dizin girişlerini dolaşırken belli bir noktada dizin dosyasına ilişkin dosya göstericisinin konumunu ``telldir`` POSIX
 fonksiyonuyla alabiliriz ve o konuma ``seekdir`` POSIX fonksiyonu ile yeniden konumlandırma yapabiliriz. Fonksiyonların
@@ -6585,8 +6569,8 @@ konum ``sample.c`` dosyasından sonraki dosyanın konumdur. Aşağıdaki program
         exit(EXIT_FAILURE);
     }
 
-Dizin Ağacının Özyinelemeli Olarak Dolaşılması: walkdir
--------------------------------------------------------
+Dizin Ağacının Özyinelemeli Olarak Dolaşılması
+----------------------------------------------
 
 Şimdi de dizin ağacını dolaşalım. Dizin ağacının dolaşılması özyinelemeli bir algoritmayla yapılmalıdır. Bu işlem
 çeşitli biçimlerde gerçekleştirilebilir. En basit gerçekleştirimi dolaşılacak ağacın kök yol ifadesini alan özyinelemeli
@@ -6734,7 +6718,7 @@ ediniz. Yukarıda da belirttiğimiz gibi bu fonksiyon prosesin çalışma dizini
     }
 
 d_type Elemanı ile lstat Kullanmadan Dizin Türünü Belirleme
------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Biz yukarıda özyinelemeyle dolaşım yaparken elde ettiğimiz dizin girişinin bir dizin belirtip belirtmediğini
 anlayabilmek için ``lstat`` fonksiyonu ile girişe ilişkin dosya bilgilerini elde ettik. Aslında anımsayacağınız gibi
@@ -6824,9 +6808,6 @@ macOS sistemlerinde de bulunmaktadır.
         exit(EXIT_FAILURE);
     }
 
-Dolaşıma Kademe (level) Bilgisi Eklenmesi
------------------------------------------
-
 Özyinelemeli çağırmada hangi kademede bulunulduğunu belirten bir bilginin de özyinelemeli fonksiyona parametre yoluyla
 aktarılmasının faydaları olabilmektedir. Örneğin bu sayede biz ağacı kademeli bir biçimde görüntüleyebiliriz.
 
@@ -6908,9 +6889,6 @@ string eşleşecektir. O halde biz yalnızca satırın başında ``level * 4`` k
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-Bir Sarma Fonksiyonla walkdir'in İyileştirilmesi
-------------------------------------------------
 
 Aslında yukarıda da belirttiğimiz ``walkdir`` fonksiyonu bir sarma fonksiyonla daha iyi hale getirilebilir. Bu sayede
 level parametresi de kullanıcıdan gizlenebilir ve prosesin çalışma dizini alınıp geri set edilebilir.
@@ -7021,8 +6999,8 @@ Burada önce prosesin çalışma dizininin elde edilip sonra geri set edildiğin
     }
 
 
-at'li Fonksiyonlarla chdir Kullanmadan Dizin Ağacı Dolaşımı
------------------------------------------------------------
+at'li Fonksiyonlarla chdir Kullanmadan Dizin Ağacının Dolaşımı
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dizin ağacını dolaşırken her defasında prosesin çalışma dizinini değiştirmek yerine fonksiyonların ``at``'li biçimlerinden
 de faydalanabiliriz. Aşağıdaki örnekte özyinelemeli fonksiyona üst dizinin betimleyicisi (``dirfd``) ve dosyanın ismi
@@ -7158,7 +7136,7 @@ anımsayınız.
     }
 
 Callback Mekanizmasıyla Genelleştirilmiş Dizin Dolaşımı
--------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dizin ağacını dolaşırken genelleştirme sağlamak için fonksiyon göstericilerinden faydalanabiliriz. Yani fonksiyonumuz
 dizin ağacını dolaşırken dosya isimlerini ekrana yazdırmak yerine parametresiyle aldığı bir callback fonksiyonu
@@ -7310,7 +7288,7 @@ oluşturup bunu da callback fonksiyonuna aktarabilirsiniz.
     }
 
 scandir Fonksiyonu
-------------------
+~~~~~~~~~~~~~~~~~~
 
 ``scandir`` bir dizindeki belli koşulları sağlayan girişleri veren, biraz karmaşık parametreye sahip bir POSIX
 fonksiyonudur. Fonksiyonun parametrik yapısı şöyledir:
@@ -7395,13 +7373,6 @@ edilmiştir.
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-
-scandir Kusuru, ftw/nftw, access Fonksiyonları ve Dosya Betimleyici Tablosu
-===========================================================================
-
-scandir Fonksiyonunun Tasarım Kusuru ve Bir Karşılaştırma Fonksiyonu Örneği
----------------------------------------------------------------------------
 
 ``scandir`` fonksiyonunun tasarımında bize göre kusurlar vardır. Fonksiyonun ``dirent`` yapılarını biriktirmesi
 karşılaştırma fonksiyonu yazacak kişiler için yük oluşturmaktadır. Buradaki daha doğru tasarım yeni bir yapı bildirip
@@ -7520,9 +7491,6 @@ betimleyici kullanacağı belirtilmiştir. Bu durumda bu parametre dizin ağacı
 son parametresi özyinelemeli dolaşım sırasında bazı belirlemeler için kullanılmaktadır. Bu parametre çeşitli sembolik
 sabitlerin bit düzeyinde OR'lanması ile oluşturulmaktadır. Bu sembolik sabitler şunlardır:
 
-nftw Bayrakları (FTW_CHDIR, FTW_DEPTH, FTW_MOUNT, FTW_PHYS)
------------------------------------------------------------
-
 ``FTW_CHDIR``: Eğer bu bayrak belirtilirse fonksiyon her dizine geçtiğinde prosesin çalışma dizinini de o dizin olarak
 değiştirmektedir.
 
@@ -7598,9 +7566,6 @@ başladığını belirtmektedir. Örneğin biz ``/home/kaan/Study`` dizinini dol
 olarak ``sample.c`` bulmuş olsun. Fonksiyon bize bu girişi ``/home/kaan/Study/sample.c`` biçiminde verecektir. İşte
 buradaki ``base`` 17 olarak verilecektir.
 
-Bir nftw Örneği
----------------
-
 Aşağıda ``nftw`` fonksiyonunun kullanımına bir örnek verilmiştir.
 
 .. code-block:: c
@@ -7646,8 +7611,8 @@ Aşağıda ``nftw`` fonksiyonunun kullanımına bir örnek verilmiştir.
         return 0;
     }
 
-access Fonksiyonu
------------------
+Dosyaya Erişim Kontrolü: access Fonksiyonu
+------------------------------------------
 
 ``access`` isimli POSIX fonksiyonu bir dosyaya okuma, yazma, çalıştırma gibi erişimlerin mümkün olup olmadığı bilgisini
 bize vermektedir. Fonksiyonun prototipi şöyledir:
@@ -7742,7 +7707,7 @@ Bir access Örneği
     }
 
 GNU Uzantıları: euidaccess ve eaccess
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``access`` fonksiyonunun GNU libc kütüphanesinde prosesin etkin kullanıcı ID'sini ve etkin grup ID'sini kullanarak test
 eden ``euidaccess`` ve ``eaccess`` (ikisi aynı şeyi yapmaktadır) biçimleri de bulunmaktadır. Ancak bu iki fonksiyon
@@ -7762,7 +7727,7 @@ Bu fonksiyonların semantiği etkin kullanıcı ID'sini ve grup ID'sini kullanma
 içermemektedir.
 
 faccessat Fonksiyonu
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 ``access`` fonksiyonunun ``faccessat`` isminde ``at``'li bir versiyonu da vardır. Bu versiyonda aynı zamanda istenirse
 gerçek kullanıcı ve grup ID'leri yerine etkin kullanıcı ve grup ID'leri de işleme sokulabilmektedir. Fonksiyonun
@@ -7831,8 +7796,8 @@ Bir faccessat Örneği
         exit(EXIT_FAILURE);
     }
 
-Dosya Betimleyici Tablosu ve Dosya Nesnesi Kavramı
---------------------------------------------------
+Dosya Betimleyicilerinin Çiftlenmesi
+====================================
 
 Anımsanacağı gibi *dosya betimleyici tablosu (file descriptor table)* proses kontrol bloğu yoluyla erişilebilen dosya
 nesnelerinin adreslerinin tutulduğu bir gösterici dizisi biçimindeydi. İşletim sisteminin çekirdeği ne zaman bir dosya
@@ -7877,8 +7842,6 @@ vardır? İzleyen bölümlerde bunu açıklayacağız.)
 dosyaları kapattığımızda o betimleyicilere ilişkin slot'lar serbest bırakılır. Bu durumda ``open`` ilk boş betimleyiciyi
 bize verir.
 
-Dosya Betimleyicilerinin Çiftlenmesi (Duplicate) ve struct file
----------------------------------------------------------------
 
 Dosya betimleyici tablosunda iki dosya betimleyicisi aynı dosya nesnesini gösteriyorsa bu duruma *dosya
 betimleyicilerinin çiftlenmiş (duplicate) olması* denilmektedir. Örneğin:
@@ -7950,10 +7913,6 @@ güncel çekirdeğindeki dosya nesnesi verilmiştir. Buradaki ``f_ref`` elemanı
         /* --- cacheline 3 boundary (192 bytes) --- */
     } __randomize_layout
     __attribute__((aligned(4)));   /* lest something weird decides that 2 is OK */
-
-
-dup, dup2 ve IO Yönlendirmesi (IO Redirection)
-==============================================
 
 dup Fonksiyonu ile Dosya Betimleyicisi Çiftleme
 -----------------------------------------------
@@ -8123,8 +8082,8 @@ Aşağıda ``dup2`` fonksiyonunun kullanımına bir örnek verilmiştir.
         exit(EXIT_FAILURE);
     }
 
-IO Yönlendirmesi (IO Redirection) Kavramına Giriş
--------------------------------------------------
+IO Yönlendirmesi
+================
 
 Bu bölümde *IO yönlendirmesi (IO redirection)* denilen süreci ele alacağız. IO yönlendirmesi teknik olarak bir dosya
 betimleyicisinin gösterdiği dosya nesnesinin değiştirilmesi işlemidir. Bu sayede bir kişi belli bir dosya üzerinde işlem
@@ -8828,8 +8787,8 @@ yönlendirmelerinin çoğu daha aşağı seviyede gerçekleştirilmektedir.
         return 0;
     }
 
-Aygıt Sürücüler ve /dev Dizini
-------------------------------
+Aygıt Sürücülerin Açılması ve Aygıt Dosyaları
+=============================================
 
 Aygıt sürücülerin bir dosya gibi kullanıldığını belirtmiştik. UNIX/Linux sistemlerinde geleneksel olarak aygıt
 sürücülere erişmekte kullanılan dizin girişleri ``/dev`` dizininde bulundurulmaktadır. Biz bir aygıt sürücüyü kullanmak
@@ -8911,8 +8870,8 @@ sistemlerinde değil Windows gibi pek çok işletim sistemindeki tasarım bu bi�
         exit(EXIT_FAILURE);
     }
 
-stdin, stdout ve stderr Makroları
----------------------------------
+C'nin stdin, stdout ve stderr Makroları
+---------------------------------------
 
 C'deki ``stdin``, ``stdout`` ve ``stderr`` isimli makrolar betimleyici belirtmezler. Bu makrolar ``FILE *`` türündendir.
 Tabii ``stdin`` UNIX/Linux sistemlerinde 0 numaralı betimleyici ile, ``stdout`` 1 numaralı betimleyici ile, ``stderr``
