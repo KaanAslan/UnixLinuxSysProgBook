@@ -13,9 +13,9 @@
    Kurs notlarının kitap haline getirilmesinde önemli katkılarda bulunan **Ahmet CEFAKAR**'a ve **Oğuzhan KARA**'ya teşekkür 
    ederiz.
 
-   Kitabımızın konusu ile ilgili en önemli kaynaklar *Kaynaklar* bölümünde listelenmiştir. W. Stevens'in (sonradan Stephen 
-   Rago'da eklemeler yapımıştır) "Advanced Programming in the UNIX Envirionment" literatürün en önemli kitabıdır ve 
-   güncelliğini halen ettirmektedir. 
+   Kitabımızın konusu ile ilgili en önemli kaynaklar *Kaynaklar* bölümünde listelenmiştir. **W. Stevens**'in (sonradan **Stephen 
+   Rago** da eklemeler yapmıştır) **Advanced Programming in the UNIX Envirionment** literatürün en önemli yabancı kitabıdır ve 
+   güncelliğini halen büyük ölçüde ettirmektedir. 
    
    Kitabımızı diğer yabancı kaynaklardan ayıran en önemli farklılıkları şunlardır:
 

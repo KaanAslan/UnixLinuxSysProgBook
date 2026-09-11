@@ -5936,6 +5936,9 @@ Dizin girişleri üzerinde işlem yapmak için bulundurulmuş POSIX fonksiyonlar
 - ``posix_getdents`` (Linux tarafından desteklenmiyor)
 - ``scandir``
 
+opendir, fdopendir, readdir ve closedir  Fonksiyonları
+------------------------------------------------------
+
 Dizin girişlerini elde etmek için önce dizin ``opendir`` fonksiyonuyla açılmalıdır. Bunun için dizine ``'r'`` hakkının
 bulunuyor olması gerekir. ``opendir`` fonksiyonunun prototipi şöyledir:
 
@@ -6097,10 +6100,8 @@ Aşağıda komut satırı argümanı ile verilen dizinin girişlerini yazdıran 
     }
 
 Biz bir dizini ``opendir`` fonksiyonuyla açıp döngü içerisinde ``readdir`` fonksiyonuyla dizin girişlerini elde
-ettiğimizde yalnızca o dizindeki dosyaların isimlerini ve inode numaralarını elde etmiş oluruz.
-
-Dosyaların diğer bilgilerini elde edebilmemiz için bizim ayrıca ``stat`` ya da ``lstat`` fonksiyonunu uygulamamız
-gerekir. Örneğin:
+ettiğimizde yalnızca o dizindeki dosyaların isimlerini ve inode numaralarını elde etmiş oluruz. Dosyaların diğer 
+bilgilerini elde edebilmemiz için bizim ayrıca ``stat`` ya da ``lstat`` fonksiyonunu uygulamamız gerekir. Örneğin:
 
 .. code-block:: c
 
@@ -6121,7 +6122,7 @@ gerekir. Örneğin:
 
 Bizim ``dirent`` yapısından elde ettiğimiz ``d_name`` ismi yalnızca dosya ismini belirtmektedir. Oysa ``stat`` ve
 ``lstat`` fonksiyonları ilgili dosyanın yol ifadesini istemektedir. İşte biz de ``snprintf`` fonksiyonu ile bu yol
-ifadesini oluşturduk.
+ifadesini oluşturduk. Aşağıda örneği bir bütün olarak veriyoruz:
 
 .. code-block:: c
 
@@ -6172,6 +6173,9 @@ ifadesini oluşturduk.
         exit(EXIT_FAILURE);
     }
 
+fstatat ve dirfd Fonyonları
+---------------------------
+
 Dosya isminden yol ifadesini elde etmek yerine ``stat`` fonksiyonlarının ``at``'li versiyonu olan ``fstatat`` fonksiyonunu
 da kullanabiliriz. ``fstatat`` fonksiyonunun prototipi şöyledir:
 
@@ -6182,12 +6186,12 @@ da kullanabiliriz. ``fstatat`` fonksiyonunun prototipi şöyledir:
     int fstatat(int dirfd, const char *path, struct stat *statbuf, int flags);
 
 Fonksiyonun birinci parametresi açılmış dizine ilişkin betimleyiciyi, ikinci parametresi dosyanın yol ifadesini, üçüncü
-parametresi ``stat`` nesnesinin adresini ve son parametresi de ``at``'li fonksiyonlara özgü flag değerini belirtmektedir.
+parametresi ``stat`` nesnesinin adresini ve son parametresi de ``at``'li fonksiyonlara özgü ``flag`` değerini belirtmektedir.
 Fonksiyon diğer ``at``'li fonksiyonlarda olduğu gibi eğer ikinci parametresinde belirtilen yol ifadesi göreli ise aramayı
-birinci parametresiyle belirtilen dizinde yapmaktadır. Fonksiyonun son parametresi (flags) 0 girilebilir ya da
+birinci parametresiyle belirtilen dizinde yapmaktadır. Fonksiyonun son parametresi (``flags``) ``0`` girilebilir ya da
 ``AT_SYMLINK_NOFOLLOW`` girilebilir. Bu bayrak sembolik bağlantılarda sembolik bağlantının izlenmeyeceğini
-belirtmektedir. Yani bu bayrak fonksiyonun ``lstat`` gibi davranmasını sağlamaktadır. Fonksiyon başarı durumunda 0
-değerine, başarısızlık durumunda -1 değerine geri dönmektedir. Örneğin:
+belirtmektedir. Yani bu bayrak fonksiyonun ``lstat`` gibi davranmasını sağlamaktadır. Fonksiyon başarı durumunda ``0``
+değerine, başarısızlık durumunda ``-1`` değerine geri dönmektedir. Örneğin:
 
 .. code-block:: c
 
@@ -6212,8 +6216,8 @@ değerine, başarısızlık durumunda -1 değerine geri dönmektedir. Örneğin:
 
     closedir(dir);
 
-Burada önce dizini ``open`` fonksiyonuyla açtık. ``opendir`` yerine ``fdopendir`` fonksiyonunun, ``lstat`` yerine de
-``fstatat`` fonksiyonunun kullandığımıza dikkat ediniz. ``fstatat`` fonksiyonunu şöyle çağırdık:
+Burada önce dizini ``open`` fonksiyonuyla açtık. ``opendir`` yerine ``fdopendir`` fonksiyonunu, ``lstat`` yerine de
+``fstatat`` fonksiyonunu kullandığımıza dikkat ediniz. ``fstatat`` fonksiyonunu şöyle çağırdık:
 
 .. code-block:: c
 
@@ -6223,7 +6227,7 @@ Burada önce dizini ``open`` fonksiyonuyla açtık. ``opendir`` yerine ``fdopend
     }
 
 Fonksiyonun birinci parametresine açmış olduğumuz dizinin betimleyicisini geçtik. Artık fonksiyon göreli yol ifadeleri
-için aramayı bu dizinde yapacaktır. Böylece yol ifadelerinin düzenlenmesine gerek kalmamaktadır. ``closedir``
+için aramayı bu dizinde yapacaktır. Böylece ``snprintf`` ile yol ifadelerinin düzenlenmesine gerek kalmamaktadır. ``closedir``
 fonksiyonunun ``fdopendir`` fonksiyonuna verilen dizin betimleyicisini de kapattığını anımsayınız.
 
 ``opendir`` fonksiyonu ile dizini açtıktan sonra dizine ilişkin dosya betimleyicisini ``dirfd`` isimli POSIX
@@ -6235,10 +6239,12 @@ fonksiyonuyla elde edebiliriz. Fonksiyonun prototipi şöyledir:
 
     int dirfd(DIR *dirp);
 
-Fonksiyon ``opendir`` fonksiyonundan elde edilmiş ``DIR`` adresini parametre olarak alıp başarı durumunda dizine ilişkin
-betimleyiciyi geri döndürmektedir. Başarısızlık durumunda diğer POSIX fonksiyonlarında olduğu gibi fonksiyon -1 değerine
+Fonksiyon ``opendir`` fonksiyonundan elde edilmiş ``DIR`` nesnesinin adresini parametre olarak alıp başarı durumunda dizine ilişkin
+betimleyiciyi geri döndürmektedir. Başarısızlık durumunda diğer POSIX fonksiyonlarında olduğu gibi fonksiyon ``-1`` değerine
 geri dönmektedir. Örneğin biz dizini ``opendir`` fonksiyonu ile açıp ``fstatat`` fonksiyonu için gereken dizin
-betimleyicisini ``dirfd`` fonksiyonuyla da elde edebiliriz.
+betimleyicisini ``dirfd`` fonksiyonuyla da elde edebiliriz. 
+
+Aşağıda örneği bütün olarak veriyoruz:
 
 .. code-block:: c
 
@@ -6292,18 +6298,27 @@ betimleyicisini ``dirfd`` fonksiyonuyla da elde edebiliriz.
         exit(EXIT_FAILURE);
     }
 
-ls -l Stilinde Basit Bir Listeleme Örneği
------------------------------------------
+Dizin İçeriğinin ls -l Formatında Görüntülenmesi
+------------------------------------------------
 
-Aşağıdaki örnekte bir dizindeki dosyaların hepsini ``ls -l`` stili ile yazdırıyoruz. Bu örnekte bazı noktalara dikkat
+Aşağıdaki örnekte bir dizindeki dosyaların hepsini ``ls -l`` formatında yazdırıyoruz. Bu örnekte bazı noktalara dikkat
 ediniz:
 
 - Biz burada bir hizalama yapmadık. Halbuki orijinal ``ls -l`` komutu yazısal sütunları karakter sayısına göre
-  hizalayıp sola dayalı olarak, sayısal sütunları ise hizalayıp sağa dayalı olarak yazdırmaktadır. Tabii bunun için
-  sütunun en geniş elemanının bulunması da gerekir. Değişen uzunluğa sahip sütunlar şunlardır: *katı bağ sayacı*,
-  *kullanıcı ismi*, *grup ismi*, *dosya uzunluğu*.
+  hizalayıp sola dayalı olarak, sayısal sütunları ise değerlerine göre hizalayıp sağa dayalı olarak yazdırmaktadır.
+  Tabii bunun için sütunun en geniş elemanının bulunması da gerekir.
+
 - Biz bu örnekte dizin girişlerini doğal sıraya göre görüntüledik. Halbuki ``ls -l`` komutu önce onları isme göre
   sıraya dizip sonra görüntülemektedir.
+
+Yukarıdaki ilk maddede sözü edilen, değişken uzunluğa sahip sütunlar şunlardır:
+
+- katı bağ sayacı
+- kullanıcı ismi
+- grup ismi
+- dosya uzunluğu
+  
+Örneği inceleyinz:
 
 .. code-block:: c
 
@@ -6417,16 +6432,11 @@ ediniz:
         exit(EXIT_FAILURE);
     }
 
-Aşağıdaki örnekte ``ls -l`` stili tam olarak uygulanmıştır. Burada önce dizin listesi dolaşılarak dinamik bir diziye
-yerleştirilmiş, sonra onların en uzun öğeleri bulunarak hizalama bu en uzun öğelere göre yapılmıştır. Yazdırma öncesinde
-dizin listesi aynı zamanda sıraya da dizilmiştir.
+rewindir, telldir ve seekdir Fonksiyonları
+------------------------------------------
 
-.. note::
-   Kaynak ders notunda bu bölümün kodu eklenmemiş, yerine bir yer tutucu bırakılmıştır
-   ("<BURAYA KOD YERLEŞTİRİLECEK>"). Bu nedenle kod burada da boş bırakılmıştır.
-
-``opendir`` ile dizin listesi elde edildikten sonra benzer işlemin dizin kapatılmadan yeniden yapılabilmesi için
-``rewinddir`` isimli POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
+``opendir`` ile dizin açılıp ``readdir`` çağrıları ile dizin listesi elde edildikten sonra benzer işlemin dizin kapatılmadan 
+yeniden yapılabilmesi için ``rewinddir`` isimli POSIX fonksiyonu bulundurulmuştur. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -6499,7 +6509,7 @@ prototipleri şöyledir:
 Tabii biz belli bir konumu okuduktan sonra kaydedersek bu durumda okumadan dolayı dizin dosyasının dosya göstericisi
 ilerletilmiş olacaktır. Aşağıdaki örnekte dizin içerisinde ``sample.c`` dosyası bulunup onun konumu ``telldir``
 fonksiyonu ile saklanmıştır. Sonra ``seekdir`` fonksiyonu ile konuma konumlandırma yapılmıştır. Tabii burada kaydedilen
-konum ``sample.c`` dosyasından sonraki dosyanın konumdur. Aşağıdaki programı bulunulan dizin için çalıştırdığımızda
+konum ``sample.c`` dosyasından sonraki dosyanın konumdur. Aşağıdaki programı çalışma dizini için çalıştırdığımızda
 şöyle bir çıktı elde ettik:
 
 .. code-block:: text
@@ -6518,6 +6528,8 @@ konum ``sample.c`` dosyasından sonraki dosyanın konumdur. Aşağıdaki program
     ..
     .
     sample
+
+Konumlandırmanın ``sample.c`` girişinden sonraki girişe yapıldığına dikkat ediniz.
 
 .. code-block:: c
 
@@ -6573,8 +6585,8 @@ konum ``sample.c`` dosyasından sonraki dosyanın konumdur. Aşağıdaki program
         exit(EXIT_FAILURE);
     }
 
-Dizin Ağacının Özyinelemeli Olarak Dolaşılması
-----------------------------------------------
+Dizin Ağacının Özyinelemeli Biçimde Dolaşılması
+-----------------------------------------------
 
 Şimdi de dizin ağacını dolaşalım. Dizin ağacının dolaşılması özyinelemeli bir algoritmayla yapılmalıdır. Bu işlem
 çeşitli biçimlerde gerçekleştirilebilir. En basit gerçekleştirimi dolaşılacak ağacın kök yol ifadesini alan özyinelemeli
