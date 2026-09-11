@@ -1430,7 +1430,7 @@ hepsini aşağıda bir tablo halinde veriyoruz:
      - Linux'a Özgü
    * - ``O_PATH``
      - Dosya içeriğine değil yalnızca dosya sistemi konumuna referans için fd aç. Okuma/yazma
-       yapılamaz; at'li fonksiyonlar için kullanılır.
+       yapılamaz; ``at``'li fonksiyonlar için kullanılır.
      - Linux'a Özgü
    * - ``O_TMPFILE``
      - İsimsiz geçici bir dosya oluştur; fd kapanınca dosya otomatik silinir. ``linkat`` ile kalıcı
@@ -3722,7 +3722,7 @@ geri dönmektedir. Örneğin:
         exit_sys("link");
 
 
-``link`` fonksiyonun ``linkat`` adlı at'li bir versyionu da vardır:
+``link`` fonksiyonun ``linkat`` adlı ``at``'li bir versyionu da vardır:
 
 .. code-block:: c
 
@@ -5624,7 +5624,7 @@ bayrağıyla açılmış dizine ilişkin betimleyiciler ``read`` ve ``pread`` fo
 bazı fonksiyonlarda kullanılabilmektedir.
 
 POSIX standartlarına göre eğer prosesin dizine ``'x'`` hakkı varsa (okuma ya da yazma hakkı olmayabilir) bir dizin
-``O_SEARCH`` bayrağıyla da açılabilmektedir. ``O_SEARCH`` bayrağı izleyen paragraflarda açıklayacağımız at'li POSIX
+``O_SEARCH`` bayrağıyla da açılabilmektedir. ``O_SEARCH`` bayrağı izleyen paragraflarda açıklayacağımız ``at``'li POSIX
 fonksiyonları için bulundurulmuştur. Ancak güncel Linux sistemleri ``O_SEARCH`` bayrağını desteklememektedir.
 
 Aşağıda dizin üzerinde hangi işlemlerin yapılıp yapılamayacağı POSIX standartları ve Linux bağlamında bir tablo
@@ -5808,19 +5808,17 @@ desteklemediğini yeniden anımsatmak istiyoruz.) Yani ``fchdir`` bu iki bayrakl
 kabul etmektedir. ``fchdir`` fonksiyonu başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri
 dönmektedir.
 
-at'li Fonksiyonlar (openat, fchmodat, fchownat, vb.)
-----------------------------------------------------
+Dizin Betimleyicisiyla Çalışan at'li Fonksiyonlar (openat, fchmodat, fchownat, ...)
+-----------------------------------------------------------------------------------
 
-Peki mademki işletim sistemlerinin çoğu bir dizin üzerinde ``read`` ve ``write`` fonksiyonları ile işlem yapmaya izin
-vermiyorsa bu durumda bir dizini ``open`` fonksiyonu ile açmanın ne anlamı vardır? İşte anımsanacağı gibi yol ifadesi
-alan POSIX dosya fonksiyonlarının başı ``f`` ile başlayan dosya betimleyicisi alan biçimleri de vardı. Örneğin ``stat``
-ve ``lstat`` fonksiyonları yol ifadesi alırken ``fstat`` fonksiyonu dosya betimleyicisi alıyordu. Benzer biçimde
-``chmod`` için ``fchmod``, ``chown`` için ``fchown`` fonksiyonları bulunmaktaydı. İşte bu fonksiyonların bir de at'li
-versiyonları vardır. Örneğin ``fstatat``, ``fchmodat``, ``fchownat`` gibi. Ayrıca başı ``f`` ile başlamayan çeşitli
-dosya fonksiyonlarının da at'li versiyonları bulunmaktadır. Örneğin ``open`` fonksiyonunun da bir at'li versiyonu
-vardır. Aslında bu at'li fonksiyonlar seyrek kullanılan fonksiyonlardır. Ancak biz kitabımızda bunlar hakkında açıklama
-yapmayı da uygun görüyoruz. Peki bu at'li fonksiyonlar ne yapmaktadır? Aşağıda ``openat`` fonksiyonunun prototipini
-görüyorsunuz:
+Anımsanacağı gibi yol ifadesi alan POSIX dosya fonksiyonlarının dosya betimleyicisi alan f'li biçimleri de vardı.
+Örneğin ``stat`` ve ``lstat`` fonksiyonları parametre olarak yol ifadesi alırken ``fstat`` fonksiyonu dosya
+betimleyicisi alıyordu. Benzer biçimde ``chmod`` için ``fchmod``, ``chown`` için ``fchown`` fonksiyonları
+bulunmaktaydı. İşte bu fonksiyonların bir de ``at``'li versiyonları vardır. Örneğin ``fstatat``, ``fchmodat``,
+``fchownat`` gibi. Ayrıca başı f ile başlamayan bazı dosya fonksiyonlarının da ``at``'li versiyonları bulunmaktadır.
+Örneğin ``open`` fonksiyonunun da bir ``at``'li versiyonu vardır. Peki bu ``at``'li fonksiyonlar ne yapmaktadır?
+
+Aşağıda ``openat`` fonksiyonunun prototipini görüyorsunuz:
 
 .. code-block:: c
 
@@ -5834,50 +5832,33 @@ Fonksiyonun prototipini ``open`` fonksiyonu ile karşılaştırınız:
 
     int open(const char *path, int oflag, ...);
 
-Fonksiyonların at'li versiyonları yol ifadesinin yanı sıra bir dosya betimleyicisi de almaktadır. Bu dosya
+Fonksiyonların ``at``'li versiyonları yol ifadesinin yanı sıra bir dosya betimleyicisi de almaktadır. Bu dosya
 betimleyicisinin bir dizine ilişkin olması gerekir. Eğer bu dosya betimleyicisi bir dizine ilişkin değilse fonksiyon
-başarısız olur. at'li versiyonlara bir dizine ilişkin dosya betimleyicisinin yanı sıra bir yol ifadesi de verilmektedir.
-Buradaki yol ifadesi eğer mutlak (absolute) ise bu at'li versiyonların at'siz versiyonlardan (flag parametreleri
-dışında) hiçbir farkı kalmaz. Dolayısıyla bu durumda kullanım geçerli olsa da bu at'li versiyonları kullanmanın anlamı
-kalmamaktadır. (Bazı at'li versiyonlar flag parametresine de sahiptir. Bu parametrenin işlevinden faydalanmak için de
-at'li fonksiyonlar kullanılabilmektedir.) Yani bu durumda fonksiyon bu dizin betimleyicisinden faydalanmamaktadır. Ancak
-yol ifadesi göreli (relative) ise bu durumda dosyanın orijini, prosesin çalışma dizininden itibaren değil, dizin
-betimleyicisinin belirttiği dizinden itibaren belirlenmektedir. Yani biz at'li versiyonlarla göreli yol ifadelerinin
-orijinlerini prosesin çalışma dizininin dışında başka bir dizine kaydırabilmekteyiz. Tabii fonksiyonların at'li
-versiyonları kullanılacaksa bu durumda dizin dosyalarının ``O_SEARCH`` modunda açılması daha uygundur. Çünkü bu at'li
-versiyonlar için dizin dosyalarının okuma modunda açılması gerekmemektedir. Zaten POSIX'te ``O_SEARCH`` modu bu at'li
-fonksiyonlar için bulundurulmuştur. Linux ve macOS sistemleri ``O_SEARCH`` modunu desteklemediğine göre bu sistemlerde
-at'li fonksiyonları kullanırken dizinleri ``O_RDONLY`` modda açmamız gerekir. POSIX standartlarına göre at'li
-fonksiyonlarda eğer dizin ``O_SEARCH`` modunda açılmışsa göreli aramada orijin belirten dizinin ``'x'`` hakkına sahiplik
-kontrolü yapılmaz. (Dizin ``O_SEARCH`` modunda açılırken zaten ``'x'`` hakkı kontrolü yapılmaktadır.) Eğer dizin
-``O_SEARCH`` yerine diğer modlarla (örneğin ``O_RDONLY``) açılmışsa bu durumda belirtilen dizinde ``'x'`` hakkı kontrolü
-yapılmaktadır. Ayrıca fonksiyonların at'li versiyonlarında dizine ilişkin dosya betimleyicisine özel olarak ``AT_FDCWD``
-değeri geçirilirse bu durumda sanki prosesin çalışma dizinine ilişkin dizin betimleyicisi geçirilmiş gibi bir etki
-oluşmaktadır. Tabii bu durumda fonksiyonun at'li versiyonu ile at'siz versiyonu arasında bir fark kalmamaktadır. Ancak
-fonksiyonların at'li versiyonlarının ekstra parametreleri de olabilmektedir (genellikle bu ekstra parametre flag
-parametresi biçimindedir). İşte programcı bu ekstra parametrelerden faydalanabilmek için dosya betimleyici parametresini
-``AT_FDCWD`` biçiminde geçebilmektedir.
+başarısız olur. ``at``'li versiyonlara bir dizine ilişkin dosya betimleyicisinin yanı sıra bir yol ifadesi de verilmektedir.
+Buradaki yol ifadesi eğer mutlak (absolute) ise bu ``at``'li versiyonların at'siz versiyonlardan (flag parametreleri
+dışında) hiçbir farkı kalmaz. Dolayısıyla bu durumda kullanım geçerli olsa da bu ``at``'li versiyonları kullanmanın anlamı
+kalmamaktadır. (Bazı ``at``'li versiyonlar flag parametresine de sahiptir. Bu parametrenin işlevinden faydalanmak için de
+``at``'li fonksiyonlar kullanılabilmektedir.) Yani bu durumda fonksiyon bu dizin betimleyicisinden faydalanmamaktadır. Ancak
+yol ifadesi göreli (relative) ise bu durumda yol ifadesinin çözümlenmesi işlemi prosesin çalışma dizininden itibaren değil, dizin
+betimleyicisinin belirttiği dizinden itibaren yapılmaktadır. Yani biz ``at``'li versiyonlarla göreli yol ifadelerinin
+orijinlerini prosesin çalışma dizininin dışında başka bir dizine kaydırabilmekteyiz. Tabii fonksiyonların ``at``'li
+versiyonları kullanılacaksa bu durumda dizin dosyalarının ``O_SEARCH`` modunda ya da ``O_RDONLY`` bayraklarıyla açılmış 
+olması gerekir. (Linux ve macOS sistemleri ``O_SEARCH`` bayrağını desteklemediğine göre bu sistemlerde ``at``'li fonksiyonları 
+kullanırken dizinleri ``O_RDONLY`` bayrağıyla açmamız gerekir. Bazı fonksiyonlarda Linux'a özgü O_PATH bayrağı ile açım da yeterli 
+olmaktadır.)
 
-Diğer at'li fonksiyonların prototipleri de şöyledir:
-
-.. code-block:: c
-
-    int openat(int dirfd, const char *pathname, int flags, ... /* mode_t mode */);
-    int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
-    int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
-    int fstatat(int dirfd, const char *pathname, struct stat *statbuf, int flags);
-    int mkdirat(int dirfd, const char *pathname, mode_t mode);
-    int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev);
-    int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
-    int symlinkat(const char *target, int newdirfd, const char *linkpath);
-    ssize_t readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
-    int unlinkat(int dirfd, const char *pathname, int flags);
-    int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
-    int utimensat(int dirfd, const char *pathname, const struct timespec times[2], int flags);
-    int faccessat(int dirfd, const char *pathname, int mode, int flags);
-
-Bir openat Örneği
------------------
+POSIX standartlarına göre eğer dizin ``O_SEARCH`` bayrağıyla açılmışsa açış sırasında zaten ``'x'`` hakkı kontrolü
+yapıldığı için ``at``'li fonksiyonlarda dizine ``'x'`` hakkı kontrolü yapılmaz. Ancak dizin ``open`` fonksiyonuyla
+``O_RDONLY`` bayrağıyla açılırken hedef dizine ``'x'`` hakkı kontrolü yapılmayıp *r* hakkı kontrolü yapılmaktadır. Bu
+nedenle ``at``'li fonksiyonlar hedef dizine ``'x'`` hakkı kontrolünü de yaparlar. (Örneğin ``/home/kaan/src`` dizini
+``O_RDONLY`` bayrağıyla açılmak istensin. Bu durumda ``home``, ``kaan`` dizinlerine ``'x'`` hakkı kontrolü yapılmakta
+ancak hedef ``src`` dizinine ``'x'`` hakkı kontrolü yapılmamaktadır.) Linux'a özgü ``O_PATH`` bayrağında hiçbir kontrol
+yapılmadığı için ``at``'li fonksiyonlar ``'x'`` hakkı kontrolünü yapmaktadır. Ayrıca fonksiyonların ``at``'li versiyonlarında
+dizine ilişkin dosya betimleyicisine özel olarak ``AT_FDCWD`` değeri geçirilirse bu durumda sanki prosesin çalışma
+dizinine ilişkin dizin betimleyicisi geçirilmiş gibi bir etki oluşmaktadır. Tabii bu durumda fonksiyonun ``at``'li
+versiyonu ile at'siz versiyonu arasında bir fark kalmamaktadır. Ancak fonksiyonların ``at``'li versiyonlarının ekstra
+parametreleri de olabilmektedir (genellikle bu ekstra parametre flag parametresi biçimindedir). İşte programcı bu
+ekstra parametrelerden faydalanabilmek için dosya betimleyici parametresini ``AT_FDCWD`` biçiminde geçebilmektedir.
 
 Aşağıda ``openat`` fonksiyonunun kullanımına bir örnek verilmiştir. Burada çalışma dizininde ``stdio.h`` dosyası yoktur.
 Ancak yol ifadesi göreli olduğu için dosya ``/usr/include`` dizininde aranacak ve orada bulunacaktır.
@@ -5915,10 +5896,28 @@ Ancak yol ifadesi göreli olduğu için dosya ``/usr/include`` dizininde aranaca
         exit(EXIT_FAILURE);
     }
 
-Dizin Girişlerini Elde Etmeye Yönelik POSIX Fonksiyonları
----------------------------------------------------------
+Aşağıda ``at``'li fonksiyonların prototiplerini veriyoruz:
 
-Dizin dosyalarının dizin girişlerinden (directory entries) oluştuğunu belirtmiştik. Dizin girişlerinin formatı da dosya
+.. code-block:: c
+
+    int openat(int dirfd, const char *pathname, int flags, ... /* mode_t mode */);
+    int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
+    int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags);
+    int fstatat(int dirfd, const char *pathname, struct stat *statbuf, int flags);
+    int mkdirat(int dirfd, const char *pathname, mode_t mode);
+    int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev);
+    int linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
+    int symlinkat(const char *target, int newdirfd, const char *linkpath);
+    ssize_t readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
+    int unlinkat(int dirfd, const char *pathname, int flags);
+    int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
+    int utimensat(int dirfd, const char *pathname, const struct timespec times[2], int flags);
+    int faccessat(int dirfd, const char *pathname, int mode, int flags);
+
+Dizin Girişlerinin Elde Edilmesi
+--------------------------------
+
+Dizinlerin dizin girişlerinden (directory entries) oluştuğunu belirtmiştik. Dizin girişlerinin formatı da dosya
 sistemine göre değişebilmekteydi. Ayrıca pek çok UNIX türevi sistemin dizin dosyalarından okuma yapılmasına izin
 vermediğini de söylemiştik. İşte dizinlerin içerisindeki dizin girişlerinin taşınabilir bir biçimde elde edilebilmesi
 için POSIX fonksiyonları bulundurulmuştur. Linux sistemlerinde bu POSIX fonksiyonları çekirdeğin ``sys_getdents`` sistem
@@ -5936,9 +5935,6 @@ Dizin girişleri üzerinde işlem yapmak için bulundurulmuş POSIX fonksiyonlar
 - ``dirfd``
 - ``posix_getdents`` (Linux tarafından desteklenmiyor)
 - ``scandir``
-
-opendir, fdopendir ve readdir Fonksiyonları
--------------------------------------------
 
 Dizin girişlerini elde etmek için önce dizin ``opendir`` fonksiyonuyla açılmalıdır. Bunun için dizine okuma hakkının
 bulunuyor olması gerekir. ``opendir`` fonksiyonunun prototipi şöyledir:
@@ -5993,9 +5989,6 @@ dolayı başarısız olduğu sonucunu çıkarmalıdır. O halde fonksiyon tipik 
     if (errno != 0)
         exit_sys("readdir");
 
-struct dirent Yapısı ve d_type Değerleri
-----------------------------------------
-
 ``dirent`` yapısı POSIX standartlarına göre en az iki elemana sahip olmak zorundadır. Bu elemanlar ``d_ino`` ve
 ``d_name`` elemanlarıdır. ``d_ino`` elemanı ``ino_t`` türündendir. ``d_name`` elemanı ise char türden bir dizidir. Ancak
 işletim sistemleri genellikle bu ``dirent`` yapısında daha fazla eleman bulundurmaktadır. Örneğin Linux'taki ``dirent``
@@ -6044,9 +6037,6 @@ Son yıllarda POSIX standartlarına ``posix_dent`` yapısı da eklenmiştir. Bu 
 önce dizin girişlerini isme göre sıraya dizmekte, sonra onları göstermektedir. Eğer *ls* komutunda da dizin girişlerini
 doğal sırada görmek istiyorsanız ``-f`` seçeneğini kullanmalısınız. (Linux'ta ``-f``'den sonra ``-l``'yi kullanınız,
 ters sırada çalışmıyor.) Doğal sıranın ne anlam ifade ettiği dosya sistemlerinin anlatıldığı bölümde ele alınacaktır.
-
-closedir Fonksiyonu
--------------------
 
 Dizin girişleri elde edildikten sonra dizin ``closedir`` POSIX fonksiyonuyla kapatılmalıdır:
 
@@ -6187,7 +6177,7 @@ ifadesini oluşturduk.
 fstatat Fonksiyonu ile Yol Oluşturmadan Bilgi Alma
 --------------------------------------------------
 
-Dosya isminden yol ifadesini elde etmek yerine ``stat`` fonksiyonlarının at'li versiyonu olan ``fstatat`` fonksiyonunu
+Dosya isminden yol ifadesini elde etmek yerine ``stat`` fonksiyonlarının ``at``'li versiyonu olan ``fstatat`` fonksiyonunu
 da kullanabiliriz. ``fstatat`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
@@ -6197,8 +6187,8 @@ da kullanabiliriz. ``fstatat`` fonksiyonunun prototipi şöyledir:
     int fstatat(int dirfd, const char *path, struct stat *statbuf, int flags);
 
 Fonksiyonun birinci parametresi açılmış dizine ilişkin betimleyiciyi, ikinci parametresi dosyanın yol ifadesini, üçüncü
-parametresi ``stat`` nesnesinin adresini ve son parametresi de at'li fonksiyonlara özgü flag değerini belirtmektedir.
-Fonksiyon diğer at'li fonksiyonlarda olduğu gibi eğer ikinci parametresinde belirtilen yol ifadesi göreli ise aramayı
+parametresi ``stat`` nesnesinin adresini ve son parametresi de ``at``'li fonksiyonlara özgü flag değerini belirtmektedir.
+Fonksiyon diğer ``at``'li fonksiyonlarda olduğu gibi eğer ikinci parametresinde belirtilen yol ifadesi göreli ise aramayı
 birinci parametresiyle belirtilen dizinde yapmaktadır. Fonksiyonun son parametresi (flags) 0 girilebilir ya da
 ``AT_SYMLINK_NOFOLLOW`` girilebilir. Bu bayrak sembolik bağlantılarda sembolik bağlantının izlenmeyeceğini
 belirtmektedir. Yani bu bayrak fonksiyonun ``lstat`` gibi davranmasını sağlamaktadır. Fonksiyon başarı durumunda 0
@@ -6623,8 +6613,8 @@ olabilmektedir.)
 3) ``readdir`` fonksiyonu dizin girişini okuduğunda bize yalnız girişin ismini vermektedir. Dolayısıyla ``lstat``
 fonksiyonu uygulanırken prosesin çalışma dizininin uygun olması gerekir. Bunu sağlayabilmek için her dizine geçişte
 ``chdir`` fonksiyonu ile prosesin çalışma dizinini değiştirebiliriz. Ya da alternatif olarak mutlak bir yol ifadesini
-sürekli güncelleyebiliriz. Aslında burada seçeneklerden biri de fonksiyonların at'li biçimlerini kullanmak olabilir. Bu
-tür durumlarda fonksiyonların at'li biçimlerinin kullanılması işlemleri kolaylaştırmaktadır.
+sürekli güncelleyebiliriz. Aslında burada seçeneklerden biri de fonksiyonların ``at``'li biçimlerini kullanmak olabilir. Bu
+tür durumlarda fonksiyonların ``at``'li biçimlerinin kullanılması işlemleri kolaylaştırmaktadır.
 
 4) Her özyineleme bittiğinde üst dizine geri dönülmeli ve ``opendir`` ile açılan dizin ``closedir`` ile kapatılmalıdır.
 
@@ -7040,15 +7030,12 @@ Burada önce prosesin çalışma dizininin elde edilip sonra geri set edildiğin
     }
 
 
-at'li Fonksiyonlar, Callback Mekanizması ve scandir
-===================================================
-
 at'li Fonksiyonlarla chdir Kullanmadan Dizin Ağacı Dolaşımı
 -----------------------------------------------------------
 
-Dizin ağacını dolaşırken her defasında prosesin çalışma dizinini değiştirmek yerine fonksiyonların at'li biçimlerinden
+Dizin ağacını dolaşırken her defasında prosesin çalışma dizinini değiştirmek yerine fonksiyonların ``at``'li biçimlerinden
 de faydalanabiliriz. Aşağıdaki örnekte özyinelemeli fonksiyona üst dizinin betimleyicisi (``dirfd``) ve dosyanın ismi
-geçirilmiştir. at'li fonksiyonların eğer yol ifadesi mutlak ise at'siz fonksiyonlar gibi davrandığını anımsayınız. Bunun
+geçirilmiştir. ``at``'li fonksiyonların eğer yol ifadesi mutlak ise at'siz fonksiyonlar gibi davrandığını anımsayınız. Bunun
 için özyinelemeli fonksiyona dizinin yol ifadesini değil betimleyicisini geçiririz:
 
 .. code-block:: c
@@ -7227,7 +7214,7 @@ mesajları yazdırılmaktadır. Genel fonksiyonların yan etki oluşturması ist
 ortadan kaldırmak istiyorsanız hata mesajlarının yazdırıldığı ``perror`` satırlarını silebilirsiniz. Alternatif olarak
 fonksiyonun ilk hatayla karşılaştığında özyinelemeyi sonlandırarak geri dönmesini sağlayabilirsiniz.
 
-Callback fonksiyonunda ele geçirilen dosyanın mutlak yol ifadesine erişilememektedir. Bunu sağlamak için at'li
+Callback fonksiyonunda ele geçirilen dosyanın mutlak yol ifadesine erişilememektedir. Bunu sağlamak için ``at``'li
 fonksiyonlar yerine dizin değiştirme yöntemini tercih edebilirsiniz. Ya da özyinelemeli fonksiyonda mutlak yol ifadesini
 oluşturup bunu da callback fonksiyonuna aktarabilirsiniz.
 
@@ -7573,9 +7560,6 @@ bir değerle geri dönersek, ``nftw`` fonksiyonu özyinelemeyi bırakıp geri ç
 döndürdüğümüz sıfır dışı değerle geri döner. Fonksiyon başarısız olup -1 değeriyle geri döndüğünde ``errno`` değişkeni
 set edilmemektedir.
 
-Callback Fonksiyonunun Parametreleri ve FTW_ Tür Sabitleri
-----------------------------------------------------------
-
 Şimdi de callback fonksiyonunun parametrelerine gelelim:
 
 .. code-block:: c
@@ -7789,7 +7773,7 @@ içermemektedir.
 faccessat Fonksiyonu
 --------------------
 
-``access`` fonksiyonunun ``faccessat`` isminde at'li bir versiyonu da vardır. Bu versiyonda aynı zamanda istenirse
+``access`` fonksiyonunun ``faccessat`` isminde ``at``'li bir versiyonu da vardır. Bu versiyonda aynı zamanda istenirse
 gerçek kullanıcı ve grup ID'leri yerine etkin kullanıcı ve grup ID'leri de işleme sokulabilmektedir. Fonksiyonun
 parametrik yapısı şöyledir:
 
