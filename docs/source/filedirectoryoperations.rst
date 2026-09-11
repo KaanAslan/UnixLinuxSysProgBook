@@ -5915,7 +5915,7 @@ Aşağıda ``at``'li fonksiyonların prototiplerini veriyoruz:
     int faccessat(int dirfd, const char *pathname, int mode, int flags);
 
 Dizin Girişlerinin Elde Edilmesi
---------------------------------
+================================
 
 Dizinlerin dizin girişlerinden (directory entries) oluştuğunu belirtmiştik. Dizin girişlerinin formatı da dosya
 sistemine göre değişebilmekteydi. Ayrıca pek çok UNIX türevi sistemin dizin dosyalarından okuma yapılmasına izin
@@ -5936,7 +5936,7 @@ Dizin girişleri üzerinde işlem yapmak için bulundurulmuş POSIX fonksiyonlar
 - ``posix_getdents`` (Linux tarafından desteklenmiyor)
 - ``scandir``
 
-Dizin girişlerini elde etmek için önce dizin ``opendir`` fonksiyonuyla açılmalıdır. Bunun için dizine okuma hakkının
+Dizin girişlerini elde etmek için önce dizin ``opendir`` fonksiyonuyla açılmalıdır. Bunun için dizine ``'r'`` hakkının
 bulunuyor olması gerekir. ``opendir`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
@@ -5948,10 +5948,12 @@ bulunuyor olması gerekir. ``opendir`` fonksiyonunun prototipi şöyledir:
 Fonksiyon parametre olarak açılacak dizinin yol ifadesini almaktadır. Fonksiyonun geri dönüş değeri ``DIR`` isimli bir
 yapı türünden (``DIR`` bir typedef ismidir) bir adrestir. Bu ``DIR`` adresi bir handle gibi kullanılmaktadır.
 Programcılar ``DIR`` yapısının içeriğini bilmek zorunda değildir. (Örneğin C'nin ``fopen`` fonksiyonu da bize ``FILE``
-yapısı türünden bir nesnenin adresini vermektedir. Ancak bu yapının içeriğinin nasıl olduğu programcıları
-ilgilendirmemektedir.) Fonksiyon başarısızlık durumunda ``NULL`` adrese geri döner ve ``errno`` uygun biçimde değer
-alır. ``opendir`` fonksiyonunun ``fdopendir`` isimli bir versiyonu da vardır. fdopendir fonksiyonu eğer dizin ``O_READONLY`` 
-modunda açılmışsa o dizine ilişkin betimleyici yoluyla aynı işlemi yapmaktadır. 
+yapısı türünden bir nesnenin adresini vermektedir. Ancak işlemlerin yapılması için bu yapının içeriğinin nasıl olduğunun
+bilinmesine gerek yoktur.) ``opendir`` fonksiyonu başarısızlık durumunda ``NULL`` adrese geri döner ve ``errno`` değişkeni 
+uygun biçimde set edilir. 
+
+``opendir`` fonksiyonunun ``fdopendir`` isimli bir benzeri de vardır. ``fdopendir`` fonksiyonu eğer dizin ``O_RDONLY`` 
+bayrağıyla açılmışsa o dizine ilişkin betimleyici yoluyla aynı işlemi yapmaktadır. 
 
 .. code-block:: c
 
@@ -5959,7 +5961,7 @@ modunda açılmışsa o dizine ilişkin betimleyici yoluyla aynı işlemi yapmak
 
     DIR *fdopendir(int fd);
 
-Dizin ``opendir`` ya da ``fdopendir`` fonksiyonuyla açılıp, handle elde edildikten sonra, artık dizin girişleri
+Dizin ``opendir`` ya da ``fdopendir`` fonksiyonuyla açılıp, *handle* elde edildikten sonra, artık dizin girişleri
 ``readdir`` POSIX fonksiyonuyla tek tek bir döngü içerisinde okunabilir. ``readdir`` fonksiyonu her çağrıldığında
 sıradaki dizin girişi elde edilmektedir. Fonksiyonun prototipi şöyledir:
 
@@ -5975,24 +5977,24 @@ verir. Eğer ``readdir`` dizin listesinin sonuna gelirse ``NULL`` adrese geri d�
 hatalarından dolayı da başarısız olabilir. Bu durumda başarısızlığın dizin sonuna gelmekten dolayı mı yoksa IO
 hatalarından dolayı mı olduğunu anlamak gerekebilir. İşte ``readdir`` fonksiyonu eğer dizin sonuna gelindiğinden dolayı
 ``NULL`` adrese geri dönmüşse bu durumda ``errno`` değişkeninin değerini değiştirmemektedir. O halde programcı
-fonksiyonu çağırmadan önce ``errno`` değişkenine 0 atamalı, sonra fonksiyonu çağırmalıdır. Eğer fonksiyon ``NULL``
+fonksiyonu çağırmadan önce ``errno`` değişkenine 0 atamalı, sonra fonksiyonu çağırmalıdır. Fonksiyon ``NULL``
 adrese geri dönmüşse ``errno`` değişkenine bakmalı, eğer ``errno`` hala 0 ise fonksiyonun dizin sonuna gelindiğinden
 dolayı başarısız olduğu sonucunu çıkarmalıdır. O halde fonksiyon tipik olarak şöyle kullanılmalıdır:
 
 .. code-block:: c
 
     struct dirent *de;
-    ...
+    /* ... */
+
     while (errno = 0, (de = readdir(dir)) != NULL) {
         /* ... */
     }
     if (errno != 0)
         exit_sys("readdir");
 
-``dirent`` yapısı POSIX standartlarına göre en az iki elemana sahip olmak zorundadır. Bu elemanlar ``d_ino`` ve
-``d_name`` elemanlarıdır. ``d_ino`` elemanı ``ino_t`` türündendir. ``d_name`` elemanı ise char türden bir dizidir. Ancak
-işletim sistemleri genellikle bu ``dirent`` yapısında daha fazla eleman bulundurmaktadır. Örneğin Linux'taki ``dirent``
-yapısı şöyledir:
+``dirent`` yapısı POSIX standartlarına göre ``d_ino`` ve ``d_name`` isminde en az iki elemana sahip olmak zorundadır. 
+``d_ino`` elemanı ``ino_t`` türündendir, ``d_name`` elemanı ise char türden bir dizidir. Ancak işletim sistemleri 
+genellikle bu ``dirent`` yapısında daha fazla eleman bulundurmaktadır. Örneğin Linux'taki ``dirent`` yapısı şöyledir:
 
 .. code-block:: c
 
@@ -6009,8 +6011,8 @@ Görüldüğü gibi Linux'ta yapının içerisinde ``d_off``, ``d_reclen`` ve ``
 ve ``d_reclen`` elemanları dizin girişlerinin içsel formatıyla ilgilidir. Ancak ``d_type`` elemanı dosyanın ne dosyası
 olduğunu belirtmektedir. Bu eleman sayesinde programcı dosyanın türünü anlamak için ``stat`` fonksiyonlarını çağırmak
 zorunda kalmaz. Gerçekten de inode tabanlı dosya sistemleri dizin girişlerinde dosyanın türünü de zaten tutmaktadır.
-Ancak POSIX standartlarında bu elemanlar zorunlu tutulmadığından taşınabilir programlarda yalnızca yapının ``d_ino`` ve
-``d_name`` elemanları kullanılmalıdır.
+Ancak POSIX standartlarında bu elemanlar zorunlu tutulmadığından taşınabilir programlarda yalnızca yapının ``d_ino`` 
+ve ``d_name`` elemanları kullanılmalıdır.
 
 ``dirent`` yapısının ``d_ino`` elemanı bize dosyanın inode numarasını verir. ``d_name`` elemanı ise dizin girişinin
 ismini vermektedir. Linux sistemlerinde ``d_type`` bit düzeyinde kodlanmamıştır. Aşağıdaki değerlerden birine eşit olmak
@@ -6048,9 +6050,11 @@ Dizin girişleri elde edildikten sonra dizin ``closedir`` POSIX fonksiyonuyla ka
 
 Fonksiyon başarı durumunda 0, başarısızlık durumunda -1 değerine geri dönmektedir.
 
-``closedir`` fonksiyonu kendi içerisinde kullandığı betimleyicileri ``close`` etmektedir. Örneğin biz ``DIR`` nesnesini
+``closedir`` fonksiyonu kendi içerisinde kullandığı betimleyiciyi ``close`` etmektedir. Örneğin biz ``DIR`` nesnesini
 (directory stream) ``fdopendir`` ile dizin betimleyicisini vererek yaratmış olalım. ``closedir`` bu betimleyiciyi
 kendisi ``close`` etmektedir.
+
+Aşağıda komut satırı argümanı ile verilen dizinin girişlerini yazdıran bir örnek veriniz:
 
 .. code-block:: c
 
@@ -8700,10 +8704,6 @@ Tabii hem ``stdout`` dosyasını hem de ``stdin`` dosyasını kabuk üzerinden b
     $ ./sample > out.txt < in.txt
 
 Burada 1 numaralı betimleyici ``out.txt`` dosyasına, 0 numaralı betimleyici ``in.txt`` dosyasına yönlendirilmiştir.
-
-
-freopen, Aygıt Sürücüler, IO Yönlendirmesi ve Boru (Pipe) İşlemi
-================================================================
 
 freopen Fonksiyonu ile Dosya Yönlendirmesi
 ------------------------------------------

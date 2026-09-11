@@ -184,8 +184,8 @@ bulundurulmuştur. ``getopt`` bir POSIX fonksiyonudur. Ancak bu fonksiyon uzun s
 fonksiyonlarının Windows sistemlerinde herhangi bir kütüphanede hazır bir biçimde bulunmadığını da belirtelim. Zaten 
 Windows sistemlerindeki komut satırı argüman stili UNIX/Linux sistemlerindekinden farklıdır.)
 
-``getopt`` Fonksiyonunun Kullanımı
-==================================
+getopt Fonksiyonunun Kullanımı
+==============================
 
 ``getopt`` fonksiyonunun prototipi şöyledir:
 
