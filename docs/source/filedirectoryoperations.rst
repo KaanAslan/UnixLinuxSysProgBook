@@ -6095,9 +6095,6 @@ Bir Örnek: Dizin İçeriğinin Listelenmesi (İsim ve Inode Numarası)
         exit(EXIT_FAILURE);
     }
 
-readdir ile Elde Edilen Girişler Üzerinde lstat Kullanımı
----------------------------------------------------------
-
 Biz bir dizini ``opendir`` fonksiyonuyla açıp döngü içerisinde ``readdir`` fonksiyonuyla dizin girişlerini elde
 ettiğimizde yalnızca o dizindeki dosyaların isimlerini ve inode numaralarını elde etmiş oluruz.
 
@@ -6174,9 +6171,6 @@ ifadesini oluşturduk.
         exit(EXIT_FAILURE);
     }
 
-fstatat Fonksiyonu ile Yol Oluşturmadan Bilgi Alma
---------------------------------------------------
-
 Dosya isminden yol ifadesini elde etmek yerine ``stat`` fonksiyonlarının ``at``'li versiyonu olan ``fstatat`` fonksiyonunu
 da kullanabiliriz. ``fstatat`` fonksiyonunun prototipi şöyledir:
 
@@ -6230,9 +6224,6 @@ Burada önce dizini ``open`` fonksiyonuyla açtık. ``opendir`` yerine ``fdopend
 Fonksiyonun birinci parametresine açmış olduğumuz dizinin betimleyicisini geçtik. Artık fonksiyon göreli yol ifadeleri
 için aramayı bu dizinde yapacaktır. Böylece yol ifadelerinin düzenlenmesine gerek kalmamaktadır. ``closedir``
 fonksiyonunun ``fdopendir`` fonksiyonuna verilen dizin betimleyicisini de kapattığını anımsayınız.
-
-dirfd Fonksiyonu
-----------------
 
 ``opendir`` fonksiyonu ile dizini açtıktan sonra dizine ilişkin dosya betimleyicisini ``dirfd`` isimli POSIX
 fonksiyonuyla elde edebiliriz. Fonksiyonun prototipi şöyledir:
