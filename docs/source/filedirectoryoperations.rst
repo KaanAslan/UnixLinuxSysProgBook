@@ -8085,27 +8085,15 @@ betimleyicisinin gösterdiği dosya nesnesinin değiştirilmesi işlemidir. Bu s
 yaptığını sanırken aslında başka bir dosya üzerinde işlem yapar hale gelmektedir. IO yönlendirmesi en çok ``stdin``,
 ``stdout`` ve ``stderr`` dosyaları üzerinde uygulanmaktadır.
 
-stdin, stdout ve stderr Betimleyicileri ile Aygıt Sürücüleri
-------------------------------------------------------------
+Anımsanacağı gibi bir proses yaratıldığında genellikle işin başında ``0``, ``1`` ve ``2`` numaralı betimleyiciler zaten dolu
+durumdadır. UNIX/Linux dünyasında ``0`` numaralı betimleyiciye ``stdin`` betimleyicisi, ``1`` numaralı betimleyiciye ``stdout``
+betimleyicisi ve ``2`` numaralı betimleyiciye ise ``stderr`` betimleyicisi denildiğini belirtmiştik. Bu betimleyici değerlerinin
+``STDIN_FILENO``, ``STDOUT_FILENO`` ve ``STDERR_FILENO`` sembolik sabitleriyle de isimlendirildiğini anımsayınız. 
+``1``numaralı betimleyici ile ``2`` numaralı betimleyici çiftlenmiştir. Yani bunlar aslında aynı dosya nesnesini göstermektedir:
 
-Anımsanacağı gibi bir proses yaratıldığında genellikle işin başında 0, 1 ve 2 numaralı betimleyiciler zaten dolu
-durumdadır. UNIX/Linux dünyasında 0 numaralı betimleyiciye ``stdin`` betimleyicisi, 1 numaralı betimleyiciye ``stdout``
-betimleyicisi ve 2 numaralı betimleyiciye ise ``stderr`` betimleyicisi denilmektedir. Bu betimleyici değerlerinin
-``STDIN_FILENO``, ``STDOUT_FILENO`` ve ``STDERR_FILENO`` sembolik sabitleriyle de isimlendirildiğini anımsayınız. 1
-numaralı betimleyici ile 2 numaralı betimleyici çiftlenmiştir. Yani bunlar aslında aynı dosya nesnesini göstermektedir:
-
-.. code-block:: text
-
-    Dosya Betimleyici Tablosu
-    ┌───────┐                     ┌──────────────────┐
-    │  fd0  │────────────────────►│  Dosya Nesnesi   │
-    ├───────┤                     │     (stdin)      │
-    │  fd1  │──────────────┐      └──────────────────┘
-    ├───────┤              │
-    │  fd2  │─────────┐    │          ┌──────────────────┐
-    ├───────┤         │    └─────────►│  Dosya Nesnesi   │
-    │  ...  │         └──────────────►│ (stdout, stderr) │
-    └───────┘                         └──────────────────┘
+.. figure:: _static/std-descriptors-indexed.png
+    :align: center
+    :width: 60%
 
 0 numaralı betimleyici *read-only* modda, 1 ve 2 numaralı betimleyiciler ise *read-write* modda açılmış durumdadır.
 
