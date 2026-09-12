@@ -6588,32 +6588,32 @@ Konumlandırmanın ``sample.c`` girişinden sonraki girişe yapıldığına dikk
 Dizin Ağacının Özyinelemeli Biçimde Dolaşılması
 -----------------------------------------------
 
-Şimdi de dizin ağacını dolaşalım. Dizin ağacının dolaşılması özyinelemeli bir algoritmayla yapılmalıdır. Bu işlem
+Şimdi de dizin ağacını dolaşalım. Dizin ağacının dolaşılması özyinelemeli bir algoritmayla yapılmaktadır. Bu işlem
 çeşitli biçimlerde gerçekleştirilebilir. En basit gerçekleştirimi dolaşılacak ağacın kök yol ifadesini alan özyinelemeli
-bir fonksiyon yazmaktır. Bu fonksiyon dizin girişlerini tek tek elde eder. Eğer söz konusu dizin girişi bir dizine
+bir fonksiyon oluşturmaktır. Bu fonksiyon dizin girişlerini tek tek elde eder, eğer söz konusu dizin girişi bir dizine
 ilişkinse o dizinin yol ifadesiyle kendini çağırır. Bu algoritmada dikkat edilmesi gereken birkaç nokta vardır:
 
 1) Dizin girişleri dolaşılırken ``.`` ve ``..`` dizinleri ``continue`` ile geçilmelidir. Aksi takdirde sonsuz döngü
 oluşur.
 
-2) ``stat`` fonksiyonu yerine ``lstat`` fonksiyonu kullanılmalıdır. Çünkü dizin ağacı dolaşılırken sembolik bağlantı bir
-dizine ilişkinse sembolik bağ hedefine gidilmesi özyinelemeyi bozup sonsuz döngülere yol açabilir. (Linux'un dizinler
-için sembolik bağ oluşturmaya izin vermediğini anımsayınız. Ancak başka UNIX türevi sistemlerde bu mümkün
-olabilmektedir.)
+2) ``stat`` fonksiyonu yerine ``lstat`` fonksiyonu kullanılmalıdır. Sembolik bağların izlenmesi zaten özyinelemeli dolaşımda 
+istenen bir şey değildir. Ayrıca dizin ağacı dolaşılırken sembolik bağlantı bir dizine ilişkinse sembolik bağ hedefine 
+gidilmesi özyinelemeyi bozup sonsuz döngülere yol açabilir. Linux'un dizinler için sembolik bağ oluşturmaya izin vermediğini 
+anımsayınız. Ancak başka UNIX türevi sistemlerde bu mümkün olabilmektedir.)
 
 3) ``readdir`` fonksiyonu dizin girişini okuduğunda bize yalnız girişin ismini vermektedir. Dolayısıyla ``lstat``
-fonksiyonu uygulanırken prosesin çalışma dizininin uygun olması gerekir. Bunu sağlayabilmek için her dizine geçişte
+fonksiyonu uygulanırken prosesin çalışma dizininin değiştirilmesi gerekebilir. Bunu sağlayabilmek için her dizine geçişte
 ``chdir`` fonksiyonu ile prosesin çalışma dizinini değiştirebiliriz. Ya da alternatif olarak mutlak bir yol ifadesini
-sürekli güncelleyebiliriz. Aslında burada seçeneklerden biri de fonksiyonların ``at``'li biçimlerini kullanmak olabilir. Bu
-tür durumlarda fonksiyonların ``at``'li biçimlerinin kullanılması işlemleri kolaylaştırmaktadır.
+sürekli güncelleyebiliriz. Aslında burada seçeneklerden biri de fonksiyonların ``at``'li biçimlerini kullanmak olabilir. 
+Bu tür durumlarda fonksiyonların ``at``'li biçimlerinin kullanılması işlemleri kolaylaştırmaktadır.
 
 4) Her özyineleme bittiğinde üst dizine geri dönülmeli ve ``opendir`` ile açılan dizin ``closedir`` ile kapatılmalıdır.
 
-5) Genellikle böylesi fonksiyonlar bir fatal error ile programı sonlandırmamalıdır. Örneğin ``chdir`` fonksiyonu ile
+5) Genellikle böylesi fonksiyonlar bir  hata ile karşılaştığında le programı sonlandırmamalıdır. Örneğin ``chdir`` fonksiyonu ile
 prosesin çalışma dizini değiştirilemeyebilir. Ya da örneğin ``opendir`` ile biz bir dizini açamayabiliriz. Bu tür
-durumlarda hata ``stderr`` dosyasına rapor edilip işlemin devam ettirilmesi uygun olabilir.
+durumlarda hata ``stderr`` dosyasına rapor edilip işlemin devam ettirilmesi daha uygun olabilir.
 
-6) Özyinelemeli dolaşım bittikten sonra prosesin çalışma dizini orijinal halde bırakılmalıdır. Bunun için bir sarma
+6) Özyinelemeli dolaşım bittikten sonra prosesin çalışma dizininin eski halinde bırakılması uygun olur. Bunun için bir sarma
 fonksiyon gerekebilir.
 
 Aşağıda tipik bir özyinelemeli *depth-first* dolaşım örneği verilmiştir. Ancak burada prosesin çalışma dizini özyineleme
@@ -6662,7 +6662,8 @@ sarma fonksiyon kullanılmalıdır. Örneğimizdeki ``walkdir`` fonksiyonu şöy
     }
 
 Burada fonksiyon girişinde prosesin çalışma dizininin değiştirildiğine, çıkışta da yeniden üst dizine geçildiğine dikkat
-ediniz. Yukarıda da belirttiğimiz gibi bu fonksiyon prosesin çalışma dizinini değiştirmektedir.
+ediniz. Yukarıda da belirttiğimiz gibi bu fonksiyon prosesin çalışma dizinini değiştirmektedir. Örneği bütünsel olarak
+aşağıda veriyoruz:
 
 .. code-block:: c
 
@@ -6733,8 +6734,8 @@ ediniz. Yukarıda da belirttiğimiz gibi bu fonksiyon prosesin çalışma dizini
         exit(EXIT_FAILURE);
     }
 
-d_type Elemanı ile lstat Kullanmadan Dizin Türünü Belirleme
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Girişin Dizin Belirtip Belirtmediğinin dirent Nesnesi Yoluyla Tespit Edilmesi
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Biz yukarıda özyinelemeyle dolaşım yaparken elde ettiğimiz dizin girişinin bir dizin belirtip belirtmediğini
 anlayabilmek için ``lstat`` fonksiyonu ile girişe ilişkin dosya bilgilerini elde ettik. Aslında anımsayacağınız gibi
@@ -6757,9 +6758,9 @@ Linux sistemlerinde elde edilen girişe ilişkin dosya türü de ``dirent`` yap�
 
     /* ... */
 
-Ancak ``dirent`` yapısının bu ``d_type`` elemanı POSIX standartlarında tanımlı değildir. Dolayısıyla UNIX türevi
-sistemlerde bu elemanın bulunmasının standart bağlamında bir garantisi yoktur. Fakat bu eleman BSD sistemlerinde ve
-macOS sistemlerinde de bulunmaktadır.
+Ancak anımsayacağınız gibi ``dirent`` yapısının bu ``d_type`` elemanı POSIX standartlarında tanımlı değildir. Dolayısıyla 
+UNIX türevi sistemlerde bu elemanın bulunmasının standart bağlamında bir garantisi yoktur. Fakat bu eleman BSD sistemlerinde 
+ve macOS sistemlerinde de bulunmaktadır.
 
 .. code-block:: c
 
@@ -6826,6 +6827,9 @@ macOS sistemlerinde de bulunmaktadır.
 
 Özyinelemeli çağırmada hangi kademede bulunulduğunu belirten bir bilginin de özyinelemeli fonksiyona parametre yoluyla
 aktarılmasının faydaları olabilmektedir. Örneğin bu sayede biz ağacı kademeli bir biçimde görüntüleyebiliriz.
+
+Özyinelemede Kademe Bilgisinin Oluşturulması
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Aşağıdaki örnekte ``walkdir`` fonksiyonuna bir kademe bilgisi de eklenmiştir. Örneğimizde dizin girişlerinin nasıl
 yazdırıldığına dikkat ediniz:
@@ -6907,7 +6911,7 @@ string eşleşecektir. O halde biz yalnızca satırın başında ``level * 4`` k
     }
 
 Aslında yukarıda da belirttiğimiz ``walkdir`` fonksiyonu bir sarma fonksiyonla daha iyi hale getirilebilir. Bu sayede
-level parametresi de kullanıcıdan gizlenebilir ve prosesin çalışma dizini alınıp geri set edilebilir.
+``level`` parametresi de kullanıcıdan gizlenebilir ve prosesin çalışma dizini alınıp geri set edilebilir.
 
 Aşağıdaki örnekte ``walkdir`` fonksiyonu asıl özyineleme işlemini yapan ``walkdir_recur`` fonksiyonunu çağırmaktadır:
 
@@ -7014,13 +7018,12 @@ Burada önce prosesin çalışma dizininin elde edilip sonra geri set edildiğin
         exit(EXIT_FAILURE);
     }
 
-
-at'li Fonksiyonlarla chdir Kullanmadan Dizin Ağacının Dolaşımı
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+at'li Fonksiyonlarla Prosesin Çalışma Dizinini Değiştirmeden Ağacın Dolaşılması
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dizin ağacını dolaşırken her defasında prosesin çalışma dizinini değiştirmek yerine fonksiyonların ``at``'li biçimlerinden
 de faydalanabiliriz. Aşağıdaki örnekte özyinelemeli fonksiyona üst dizinin betimleyicisi (``dirfd``) ve dosyanın ismi
-geçirilmiştir. ``at``'li fonksiyonların eğer yol ifadesi mutlak ise at'siz fonksiyonlar gibi davrandığını anımsayınız. Bunun
+geçirilmiştir. ``at``'li fonksiyonların eğer yol ifadesi mutlak ise ``at``'siz fonksiyonlar gibi davrandığını anımsayınız. Bunun
 için özyinelemeli fonksiyona dizinin yol ifadesini değil betimleyicisini geçiririz:
 
 .. code-block:: c
@@ -7151,8 +7154,8 @@ anımsayınız.
         exit(EXIT_FAILURE);
     }
 
-Callback Mekanizmasıyla Genelleştirilmiş Dizin Dolaşımı
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Callback Mekanizmasıyla Dolaşımın Genelleştirilmesi
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dizin ağacını dolaşırken genelleştirme sağlamak için fonksiyon göstericilerinden faydalanabiliriz. Yani fonksiyonumuz
 dizin ağacını dolaşırken dosya isimlerini ekrana yazdırmak yerine parametresiyle aldığı bir callback fonksiyonu
@@ -7172,11 +7175,11 @@ adresini almaktadır. Callback fonksiyonunun parametrik yapısı şöyledir:
 
     bool callback(int dirfd, const char *filename, const struct stat *finfo, int level)
 
-Fonksiyonun birinci parametresi o anki dizine ilişkin dosya betimleyicisini belirtmektedir. Bu dosya betimleyicisinden
+Fonksiyonun birinci parametresi o anki dizine ilişkin betimleyiciyi belirtmektedir. Bu dizin betimleyicisinden
 hareketle bulunan dosya ``openat`` fonksiyonuyla açılabilir. Fonksiyonun ikinci parametresi bulunan dosyanın ismini,
 üçüncü parametresi dosya bilgilerinin içinde bulunduğu ``stat`` nesnesinin adresini belirtmektedir. Son parametre iç içe
-girişteki düzeyi belirtmektedir. Callback fonksiyonunun ``bool`` değerine geri döndüğüne dikkat ediniz. Fonksiyon
-kullanıcı tarafından ``true`` değerine geri döndürülürse özyinelemeli dolaşma devam eder, ``false`` değerine geri
+girişteki düzeyi belirtmektedir. Callback fonksiyonunun geri dönüş değerinin ``bool`` türden olduğuna dikkat ediniz. 
+Fonksiyon kullanıcı tarafından ``true`` değerine geri döndürülürse özyinelemeli dolaşma devam eder, ``false`` değerine geri
 döndürülürse özyinelemeli dolaşma sonlandırılır. Örneğin:
 
 .. code-block:: c
@@ -7197,11 +7200,11 @@ sonlandırmaktadır.
 Fonksiyon özyineleme yaparken hatalarla karşılaştığında özyineleme devam etmekte, ancak ``stderr`` dosyasına hata
 mesajları yazdırılmaktadır. Genel fonksiyonların yan etki oluşturması istenen bir durum değildir. Eğer bu yan etkiyi
 ortadan kaldırmak istiyorsanız hata mesajlarının yazdırıldığı ``perror`` satırlarını silebilirsiniz. Alternatif olarak
-fonksiyonun ilk hatayla karşılaştığında özyinelemeyi sonlandırarak geri dönmesini sağlayabilirsiniz.
+fonksiyonun ilk hatayla karşılaştığında özyinelemeyi sonlandırarak geri dönmesini de sağlayabilirsiniz.
 
 Callback fonksiyonunda ele geçirilen dosyanın mutlak yol ifadesine erişilememektedir. Bunu sağlamak için ``at``'li
-fonksiyonlar yerine dizin değiştirme yöntemini tercih edebilirsiniz. Ya da özyinelemeli fonksiyonda mutlak yol ifadesini
-oluşturup bunu da callback fonksiyonuna aktarabilirsiniz.
+fonksiyonlar yerine dizin değiştirme yöntemini tercih edebilirsiniz ya da özyinelemeli fonksiyonda mutlak yol ifadesini
+oluşturup bunu da callback fonksiyonuna aktarabilirsiniz. 
 
 .. code-block:: c
 
@@ -7304,7 +7307,7 @@ oluşturup bunu da callback fonksiyonuna aktarabilirsiniz.
     }
 
 scandir Fonksiyonu
-~~~~~~~~~~~~~~~~~~
+------------------
 
 ``scandir`` bir dizindeki belli koşulları sağlayan girişleri veren, biraz karmaşık parametreye sahip bir POSIX
 fonksiyonudur. Fonksiyonun parametrik yapısı şöyledir:
@@ -7320,7 +7323,7 @@ fonksiyonudur. Fonksiyonun parametrik yapısı şöyledir:
 ``scandir`` fonksiyonunun birinci parametresi dizinin yol ifadesini almaktadır. İkinci parametreye ``struct dirent``
 türünden göstericiyi gösteren bir göstericinin adresi geçirilmelidir. Üçüncü parametre filtre işleminde kullanılacak
 fonksiyonu belirtir. Her dizin girişi bulundukça bu fonksiyon çağrılır. Eğer bu fonksiyon sıfır dışı bir değerle geri
-dönerse dizin girişi biriktirilir, sıfır ile geri dönerse dizin girişi geri döndürülmez. Bu parametreye ``NULL`` adres
+dönerse dizin girişi biriktirilir, sıfır ile geri dönerse dizin girişi biriktirilmez. Bu parametreye ``NULL`` adres
 geçilebilir. Bu durumda dizindeki tüm girişler elde edilir. Son parametre filtrelenen girişlere ilişkin gösterici
 dizisini sort etmek için kullanılacak karşılaştırma fonksiyonunu belirtmektedir. Bu karşılaştırma fonksiyonunun
 prototipi şöyle olmalıdır:
@@ -7334,17 +7337,16 @@ parametresiyle belirtilmiş olan dizin girişinden büyükse pozitif herhangi bi
 değere ve eşitse sıfır değerine geri dönmelidir. Alfabetik sıralamayı sağlamak amacıyla zaten hazır bir ``alphasort``
 isimli fonksiyon da bulundurulmuştur.
 
-``scandir`` fonksiyonu başarı durumunda gösterici dizisine yerleştirilen eleman sayısı ile, başarısızlık durumunda -1
-ile geri döner ve ``errno`` uygun biçimde değer alır.
+``scandir`` fonksiyonu başarı durumunda gösterici dizisine yerleştirilen eleman sayısıyla, başarısızlık durumunda ``-1``
+değeriyle geri döner ve ``errno`` değişkeni uygun biçimde set edilir.
 
 ``scandir`` fonksiyonu tüm tahsisatları ``malloc`` fonksiyonunu kullanarak yapmaktadır. Dolayısıyla programcının tahsis
-edilen bu alanları kendisinin ``free`` hale getirmesi gerekmektedir.
+edilen bu alanları kendisinin ``free`` hale getirmesi gerekmektedir. ``scandir`` kendi içerisinde her biriktirilecek dizin 
+girişi için ``malloc`` fonksiyonu ile bir ``struct dirent`` yapısı tahsis eder, bunların adreslerini de yine tahsis ettiği 
+bir gösterici dizisine yerleştirir. Bu gösterici dizisinin adresini de bizim adresini geçtiğimiz göstericiyi gösteren 
+göstericinin içerisine yerleştirmektedir.
 
-``scandir`` kendi içerisinde her biriktirilecek dizin girişi için ``malloc`` fonksiyonu ile bir ``struct dirent`` yapısı
-tahsis eder, bunların adreslerini de yine tahsis ettiği bir gösterici dizisine yerleştirir. Bu gösterici dizisinin
-adresini de bizim adresini geçtiğimiz göstericiyi gösteren göstericinin içerisine yerleştirmektedir.
-
-Aşağıdaki örnekte komut argümanı olarak girilen bir dizinde başı ``'a'`` ya da ``'A'`` harfi ile başlayan girişler elde
+Aşağıdaki örnekte komut argümanıyla beelirtilen bir dizinde başı ``'a'`` ya da ``'A'`` harfi ile başlayan girişler elde
 edilmiştir.
 
 .. code-block:: c
@@ -7390,12 +7392,7 @@ edilmiştir.
         exit(EXIT_FAILURE);
     }
 
-``scandir`` fonksiyonunun tasarımında bize göre kusurlar vardır. Fonksiyonun ``dirent`` yapılarını biriktirmesi
-karşılaştırma fonksiyonu yazacak kişiler için yük oluşturmaktadır. Buradaki daha doğru tasarım yeni bir yapı bildirip
-yapının içerisinde hem ``dirent`` bilgilerinin hem de ``stat`` bilgilerinin bulunması olabilir. Tabii bu tasarımda da
-yapı nesneleri bellekte toplamda daha fazla yer kaplayacaktır.
-
-Aşağıda bir karşılaştırma fonksiyonu yazımına örnek verilmiştir.
+ Aşağıdaki örnekte dizin girişlerine ilişkin dosyalar uzunlujlarına göre sort edilmiş biçimde elde edilmektedir:
 
 .. code-block:: c
 
@@ -7459,8 +7456,8 @@ Aşağıda bir karşılaştırma fonksiyonu yazımına örnek verilmiştir.
         exit(EXIT_FAILURE);
     }
 
-ftw ve nftw Fonksiyonları
--------------------------
+Özyinelemeli Dolaşım için Hazır Fonksiyonlar: ftw ve nftw
+---------------------------------------------------------
 
 Dizin ağacını özyinelemeli biçimde dolaşan ``ftw`` (file traverse walk) ve ``nftw`` (new file traverse walk) isimli
 POSIX fonksiyonları da bulunmaktadır. Aslında eskiden yalnızca ``ftw`` fonksiyonu vardı. Ancak bu fonksiyona bazı
@@ -7472,10 +7469,10 @@ fonksiyonu işlevsel olarak ``ftw`` fonksiyonunu kapsamaktadır. ``nftw`` fonksi
 
     #include <ftw.h>
 
-    int nftw(const char *path, int (*fn)(const char *, const struct stat *, int, struct FTW *), int fd_limit,
-             int flags);
+    int nftw(const char *path, int (*fn)(const char *, const struct stat *, int, struct FTW *), 
+             int fd_limit, int flags);
 
-Linux altında bu fonksiyonu libc kütüphanesi ile kullanırken *feature test macro* oluşturulmalıdır. Burada başlık
+Linux altında bu fonksiyonu *glibc* kütüphanesi ile kullanırken *feature test macro* oluşturulmalıdır. Burada başlık
 dosyalarının yukarısında aşağıdaki gibi bir sembolik sabitin bulundurulması gerekir:
 
 .. code-block:: c
@@ -7484,10 +7481,10 @@ dosyalarının yukarısında aşağıdaki gibi bir sembolik sabitin bulundurulma
 
 Tabii bu sembolik sabit derleme sırasında ``-D _XOPEN_SOURCE=500`` seçeneği ile de belirtilebilir.
 
-Feature test macro kavramından daha sonra bahsedilecektir. Buradaki sayının 500'e eşit ya da daha büyük olması
+*Feature test macro* kavramından daha sonra bahsedilecektir. Buradaki sayının 500'e eşit ya da daha büyük olması
 gerekmektedir.
 
-Fonksiyonun birinci parametresi özyinelemeli biçimde dolaşılacak dizinin yol ifadesini, ikinci parametre her dizin
+ntw fonksiyonunun birinci parametresi özyinelemeli biçimde dolaşılacak dizinin yol ifadesini, ikinci parametresi her dizin
 girişi bulundukça çağrılacak *callback* fonksiyonunun adresini almaktadır. Buradaki fonksiyonun aşağıdaki parametrik
 yapıya sahip olması gerekir:
 
@@ -7499,7 +7496,7 @@ yapıya sahip olması gerekir:
 derine indikçe o dizini ``opendir`` fonksiyonu ile açtığı için (bizde öyle yapmıştık) dosya betimleyici tablosunda bir
 betimleyici harcamaktadır. Linux'ta default durumda prosesin dosya betimleyici tablosunda 1024 tane betimleyici için yer
 ayrıldığını anımsayınız. Dolayısıyla derine inildikçe bu tabloda betimleyiciler yer kaplayacağından derin ağaçlarda
-betimleyici yememe sorunu oluşabilecektir. İşte fonksiyonun dördüncü parametresi (``fd_limit``) fonksiyonun en fazla kaç
+betimleyici yetmeme sorunu oluşabilecektir. İşte fonksiyonun dördüncü parametresi (``fd_limit``) fonksiyonun en fazla kaç
 betimleyiciyi açık olarak tutacağını belirtmektedir. Programcı bu parametreye ortalama bir değer girebilir. Fonksiyon
 kendi içerisinde burada belirtilen derinlik aşıldığında özyineleme yaparken üst dizinin betimleyicisini kapatıp geri
 dönüşte yeniden açmaktadır. Ayrıca fonksiyonun dokümantasyonunda fonksiyonun her kademe için en fazla bir tane
@@ -7526,13 +7523,13 @@ döngüye yol açabileceğinden bahsetmiştik. İşte bu bayrak belirtilirse art
 ile karşılaştığında bağı izlemez, sembolik bağ dosyasının kendisi hakkında bilgi verir. Biz de yaptığımız örneklerde
 ``lstat`` kullandığımız için sembolik bağları izlememiştik.
 
-Programcı bu dördüncü parametreye hiçbir bayrak girmek istemezse 0 girebilir.
+Programcı bu dördüncü parametreye hiçbir bayrak girmek istemezse ``0`` girebilir.
 
-``nftw`` fonksiyonu başarı durumunda callback fonksiyonunun geri dönüş değeriyle, başarısızlık durumunda -1 değerine
-geri dönmektedir. Biz callback fonksiyonunu 0 ile geri döndürürsek özyinelemeye devam etmek istediğimizi belirtmiş
-oluruz. Bu durumda bir IO hatası da olmazsa ``nftw`` fonksiyonu 0 ile geri döner. Eğer biz bu fonksiyondan sıfır dışı
+``nftw`` fonksiyonu başarı durumunda callback fonksiyonunun geri dönüş değeriyle, başarısızlık durumunda ``-1`` değerine
+geri dönmektedir. Biz callback fonksiyonunu ``0`` ile geri döndürürsek özyinelemeye devam etmek istediğimizi belirtmiş
+oluruz. Bu durumda bir IO hatası da olmazsa ``nftw`` fonksiyonu ``0`` ile geri döner. Eğer biz bu fonksiyondan sıfır dışı
 bir değerle geri dönersek, ``nftw`` fonksiyonu özyinelemeyi bırakıp geri çıkar ve bizim callback fonksiyonundan
-döndürdüğümüz sıfır dışı değerle geri döner. Fonksiyon başarısız olup -1 değeriyle geri döndüğünde ``errno`` değişkeni
+döndürdüğümüz sıfır dışı değerle geri döner. Fonksiyon başarısız olup ``-1`` değeriyle geri döndüğünde ``errno`` değişkeni
 set edilmemektedir.
 
 Şimdi de callback fonksiyonunun parametrelerine gelelim:
@@ -7545,8 +7542,8 @@ Fonksiyonun birinci parametresine bulunan dizin girişinin yol ifadesi yerleşti
 bizim ``nftw`` fonksiyonuna verdiğimiz dizin ifadesinden oluşmaktadır. (Yani biz ``nftw`` fonksiyonuna mutlak bir yol
 ifadesi verirsek buraya mutlak bir yol ifadesi geçirilir, biz ``nftw`` fonksiyonuna göreli bir yol ifadesi verirsek
 buraya göreli bir yol ifadesi geçirilir.) Fonksiyonun ikinci parametresi bulunan dizin girişine ilişkin ``struct stat``
-yapısının adresini belirtmektedir. Fonksiyonun üçüncü parametresi ise bulunan dizin girişinin türünü belirtmektedir. Bu
-tür şunlardan birine tam eşit olmak zorundadır:
+yapısının adresini belirtmektedir. Fonksiyonun üçüncü parametresi ise bulunan dizin girişinin türünü belirtmektedir. 
+Bu tür şunlardan birine tam eşit olmak zorundadır:
 
 ``FTW_D``: Bulunan giriş bir dizin girişidir.
 
@@ -7567,7 +7564,7 @@ geçirilen ``stat`` yapısı da anlamlı değildir.
 ``FTW_SLN``: Bulunan giriş bir sembolik bağ dosyasına ilişkindir. Sembolik bağ dosyasının hedefi mevcut değildir (yani
 *dangling* durumdadır).
 
-callback fonksiyonunun son parametresi ``FTW`` isimli bir yapı türündendir. Bu yapı şöyle bildirilmiştir:
+callback fonksiyonunun son parametresi ``FTW`` isimli bir yapı türündendir. Bu yapı şöyle tanımlanmıştır:
 
 .. code-block:: c
 
@@ -7580,7 +7577,7 @@ Yapının ``level`` elemanı ağaçtaki derinlik düzeyini belirtmektedir. Bu de
 artırılmaktadır. ``base`` elemanı ise dizin girişinin birinci parametrede belirtilen yol ifadesinin kaçıncı indeksinden
 başladığını belirtmektedir. Örneğin biz ``/home/kaan/Study`` dizinini dolaşmak istemiş olalım. Fonksiyon da dizin girişi
 olarak ``sample.c`` bulmuş olsun. Fonksiyon bize bu girişi ``/home/kaan/Study/sample.c`` biçiminde verecektir. İşte
-buradaki ``base`` 17 olarak verilecektir.
+buradaki ``base`` değeri 17 (``/home/kaan/Study/`` karakterlerinin sayısı) olarak verilecektir.
 
 Aşağıda ``nftw`` fonksiyonunun kullanımına bir örnek verilmiştir.
 
@@ -7627,8 +7624,8 @@ Aşağıda ``nftw`` fonksiyonunun kullanımına bir örnek verilmiştir.
         return 0;
     }
 
-Dosyaya Erişim Kontrolü: access Fonksiyonu
-------------------------------------------
+Dosyaya Erişim Kontrolü: access ve faccessat Fonksiyonları
+----------------------------------------------------------
 
 ``access`` isimli POSIX fonksiyonu bir dosyaya okuma, yazma, çalıştırma gibi erişimlerin mümkün olup olmadığı bilgisini
 bize vermektedir. Fonksiyonun prototipi şöyledir:
@@ -7666,16 +7663,15 @@ gerçek kullanıcı ve grup ID'leri çoğu kez etkin kullanıcı ve grup ID'leri
 yapılmak istendiğinde bu işlemin başarılı olması garanti değildir. Çünkü o arada sistemdeki başka bir proses dosyanın
 erişim hakları üzerinde değişiklik yapmış olabilir. Bu durumu programcının dikkate alması gerekir.
 
-``access`` fonksiyonu test olumluysa 0 değerine, olumsuzsa -1 değerine geri dönmektedir. Tabii ``access`` fonksiyonunun
-başarısızlığının başka nedenleri de olabilir. Ancak programcı genellikle öyle ya da böyle istediği işlemi yapıp
+``access`` fonksiyonu test olumluysa ``0`` değerine, olumsuzsa ``-1`` değerine geri dönmektedir. Tabii ``access`` 
+fonksiyonunun başarısızlığının başka nedenleri de olabilir. Ancak programcı genellikle öyle ya da böyle istediği işlemi yapıp
 yapamayacağı ile ilgilenmektedir. Ancak yine de fonksiyon başarısız olduğunda ``errno`` değeri incelenebilir ve
 başarısızlığın ``EACCES`` nedeniyle olduğu doğrulanabilir.
 
 ``access`` fonksiyonu Linux sistemlerinde ``sys_access`` sistem fonksiyonunu çağırmaktadır. Bu fonksiyon çekirdek
 kodlarında testi manuel yöntemlere göre daha hızlı yapabilmektedir.
 
-Bir access Örneği
------------------
+Aşağıda ``access`` fonksiyonunun kullanımına bir örnek veriyoruz:
 
 .. code-block:: c
 
@@ -7722,30 +7718,7 @@ Bir access Örneği
         exit(EXIT_FAILURE);
     }
 
-GNU Uzantıları: euidaccess ve eaccess
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``access`` fonksiyonunun GNU libc kütüphanesinde prosesin etkin kullanıcı ID'sini ve etkin grup ID'sini kullanarak test
-eden ``euidaccess`` ve ``eaccess`` (ikisi aynı şeyi yapmaktadır) biçimleri de bulunmaktadır. Ancak bu iki fonksiyon
-POSIX standartlarında yoktur. Dolayısıyla taşınabilir programlarda bu konuya dikkat edilmesi gerekir. Bu fonksiyonları
-kullanmak için ``_GNU_SOURCE`` test makrosunun programın başında define edilmesi ya da derleme sırasında ``-D
-_GNU_SOURCE`` seçeneğinin kullanılması gerekmektedir.
-
-.. code-block:: c
-
-    #define _GNU_SOURCE            /* See feature_test_macros(7) */
-    #include <unistd.h>
-
-    int euidaccess(const char *pathname, int mode);
-    int eaccess(const char *pathname, int mode);
-
-Bu fonksiyonların semantiği etkin kullanıcı ID'sini ve grup ID'sini kullanmalarının dışında bir farklılık
-içermemektedir.
-
-faccessat Fonksiyonu
-~~~~~~~~~~~~~~~~~~~~
-
-``access`` fonksiyonunun ``faccessat`` isminde ``at``'li bir versiyonu da vardır. Bu versiyonda aynı zamanda istenirse
+``access`` fonksiyonunun ``faccessat`` isminde ``at``'li bir biçimi de vardır. Bu versiyonda aynı zamanda istenirse
 gerçek kullanıcı ve grup ID'leri yerine etkin kullanıcı ve grup ID'leri de işleme sokulabilmektedir. Fonksiyonun
 parametrik yapısı şöyledir:
 
@@ -7759,10 +7732,7 @@ Fonksiyonun birinci parametresi ikinci parametresiyle belirtilen yol ifadesinin 
 yapılacağı dizini belirtmektedir. Son parametre 0 geçilebilir ya da ``AT_EACCESS`` geçilebilir. Bu ``AT_EACCESS`` değeri
 test işleminin etkin kullanıcı ve grup ID'lerine bakılarak yapılacağı anlamına gelmektedir. (Tabii ikinci parametre ile
 belirtilen yol ifadesi mutlak olduğunda birinci parametrede belirtilen dizine ilişkin betimleyici yine dikkate alınmaz.
-Ancak üçüncü parametreyle belirtilen bayrak dikkate alınır.)
-
-Bir faccessat Örneği
---------------------
+Ancak üçüncü parametreyle belirtilen bayrak dikkate alınır.) Aşağıda fonksiyonun kullanımına bir örnek verilmiştir:
 
 .. code-block:: c
 
@@ -7812,6 +7782,26 @@ Bir faccessat Örneği
         exit(EXIT_FAILURE);
     }
 
+euidaccess ve eaccess Fonksiyonları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``access`` fonksiyonunun *glibc* kütüphanesinde prosesin etkin kullanıcı ID'sini ve etkin grup ID'sini kullanarak test
+eden ``euidaccess`` ve ``eaccess`` (ikisi aynı şeyi yapmaktadır) biçimleri de bulunmaktadır. Ancak bu iki fonksiyon
+POSIX standartlarında yoktur. Dolayısıyla taşınabilir programlarda buna dikkat edilmesi gerekir. Bu fonksiyonları
+kullanmak için ``_GNU_SOURCE`` test makrosunun programın başında define edilmesi ya da derleme sırasında ``-D
+_GNU_SOURCE`` seçeneğinin kullanılması gerekmektedir. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #define _GNU_SOURCE            /* See feature_test_macros(7) */
+    #include <unistd.h>
+
+    int euidaccess(const char *pathname, int mode);
+    int eaccess(const char *pathname, int mode);
+
+Bu fonksiyonların semantiği etkin kullanıcı ID'sini ve grup ID'sini kullanmalarının dışında bir farklılık
+içermemektedir.
+
 Dosya Betimleyicilerinin Çiftlenmesi
 ====================================
 
@@ -7819,12 +7809,12 @@ Anımsanacağı gibi *dosya betimleyici tablosu (file descriptor table)* proses 
 nesnelerinin adreslerinin tutulduğu bir gösterici dizisi biçimindeydi. İşletim sisteminin çekirdeği ne zaman bir dosya
 açılsa o dosya için bir dosya nesnesi (Linux'ta ``file`` yapısı) yaratıp dosya betimleyici tablosunda bir slotun o
 nesneyi göstermesini sağlıyordu. Zaten *dosya betimleyicisi (file descriptor)* de dosya betimleyici tablosunda bir
-indeks belirtiyordu. Linux çekirdeklerinde buradaki veri yapıları zamanla biraz değiştirilmiştir. Güncel çekirdekte
-proses kontrol bloktan dosya nesnesine erişim birkaç yapıdan geçilerek yapılmaktadır:
+indeks belirtiyordu. Güncel Linux çekirdeklerinde task_struct yapısından hareketle *dosya betimleyici tablosuna* 
+birkaç geçişten sonra aşağıdaki gibi erildiğini de söylemiştir:
 
-.. code-block:: c
-
-    task_struct (files) ---> files_struct (fdt) ---> fdtable (fd) ---> file * türünden bir dizi ---> file
+.. figure:: _static/access-to-fdtable.png
+    :align: center
+    :width: 75%
 
 Genellikle bir proses çalışmaya başladığında ilk üç betimleyici doludur. Bu betimleyicilere sırasıyla ``stdin``,
 ``stdout`` ve ``stderr`` betimleyicileri denilmektedir. Bu ilk üç betimleyici için ``<unistd.h>`` dosyasında üç sembolik
@@ -7837,19 +7827,19 @@ sabit de bulundurulmuştur:
     #define STDERR_FILENO       2
 
 Daha önce de belirttiğimiz gibi aygıt *sürücüler (device drivers)* dosya gibi açılarak kullanılmaktadır. (Yani bir aygıt
-sürücü de kullanılmadan önce ``open`` fonksiyonuyla açılır, sonra ``read`` fonksiyonuyla ondan okuma yapılıp ``write``
-fonksiyonu ile ona yazma yapılabilir.) Dolayısıyla bir dosya nesnesi bir disk dosyasına ilişkin olabileceği gibi bir
-aygıt sürücüsü dosyasına da ilişkin olabilir. Örneğin biz bir betimleyiciden ``read`` fonksiyonu ile okuma yapmak
-istediğimizde sistem eğer bu betimleyicinin gösterdiği dosya nesnesi bir disk dosyasına ilişkinse bizim dosyadan okuma
-yapmamızı sağlar. Ancak bir aygıt sürücüye ilişkinse bu durumda sistem o aygıt sürücünün ``read`` fonksiyonunu çağırır.
-Yani aygıt sürücülerin içerisinde ``read`` yapıldığında ve ``write`` yapıldığında çağrılacak fonksiyonlar vardır. İşte
-örneğin biz 0 numaralı betimleyiciden okuma yapmak istediğimizde aslında *terminal aygıt sürücüsünün* ``read``
-fonksiyonu çağrılmaktadır. 0 numaralı betimleyici ``O_RDONLY`` modunda açılmıştır. Terminal aygıt sürücüsünün ``read``
-fonksiyonu da bize klavyeden okunanları verir. Program çalışmaya başladığında 1 ve 2 numaralı betimleyicilerin her ikisi
-de aynı dosya nesnesini göstermektedir. Bu dosya da ``O_WRONLY`` modunda açılmış durumdadır. Bu dosya nesneleri de yine
-*terminal aygıt sürücüsüne* ilişkindir. Dolayısıyla biz ``write`` işlemi yaptığımızda aslında terminal aygıt sürücüsünün
-``write`` fonksiyonunu çağırmış oluruz. O da bilgileri imlecin bulunduğu yerden itibaren ekrana yazar. Burada ``stdout``
-ve ``stderr`` betimleyicilerinin aynı dosya nesnesini gösterdiğine dikkat ediniz. Dolayısıyla bu betimleyiciler
+sürücü de kullanılmadan önce ``open`` fonksiyonuyla açılır, sonra ``read`` fonksiyonuyla ondan okuma yapılabilir, ``write``
+fonksiyonuyla da ona yazma yapılabilir.) Dolayısıyla bir dosya nesnesi bir disk dosyasına ilişkin olabileceği gibi bir
+aygıt sürücüye de ilişkin olabilir. Örneğin biz bir betimleyiciden ``read`` fonksiyonu ile okuma yapmak istediğimizde 
+sistem eğer bu betimleyicinin gösterdiği dosya nesnesi bir disk dosyasına ilişkinse bizim disk dosyasından okuma 
+yapmamızı sağlar, ancak betimleyici bir aygıt sürücüye ilişkinse bu durumda sistem o aygıt sürücünün ``read`` 
+fonksiyonunu çağırır. Yani aygıt sürücülerin içerisinde ``read`` yapıldığında ve ``write`` yapıldığında çağrılacak 
+fonksiyonlar vardır. İşte örneğin biz 0 numaralı betimleyiciden okuma yapmak istediğimizde aslında *terminal aygıt sürücüsünün* 
+``read`` fonksiyonu çağrılmaktadır. 0 numaralı betimleyici ``O_RDONLY`` modunda açılmıştır. Terminal aygıt sürücüsünün 
+``read`` fonksiyonu da bize klavyeden okunanları verir. Program çalışmaya başladığında 1 ve 2 numaralı betimleyicilerin 
+her ikisi de aynı dosya nesnesini göstermektedir. Bu dosya da ``O_WRONLY`` modunda açılmış durumdadır. Bu dosya nesneleri 
+de yine *terminal aygıt sürücüsüne* ilişkindir. Dolayısıyla biz ``write`` işlemi yaptığımızda aslında terminal aygıt 
+sürücüsünün ``write`` fonksiyonunu çağırmış oluruz. O da bilgileri imlecin bulunduğu yerden itibaren ekrana yazar. 
+Burada ``stdout`` ve ``stderr`` betimleyicilerinin aynı dosya nesnesini gösterdiğine dikkat ediniz. Dolayısıyla bu betimleyiciler
 kullanıldığında yazdırılmak istenen şeyler ekrana çıkacaktır. (O halde ``stdout`` ile ``stderr`` arasında ne farklılık
 vardır? İzleyen bölümlerde bunu açıklayacağız.)
 
@@ -7858,30 +7848,18 @@ vardır? İzleyen bölümlerde bunu açıklayacağız.)
 dosyaları kapattığımızda o betimleyicilere ilişkin slot'lar serbest bırakılır. Bu durumda ``open`` ilk boş betimleyiciyi
 bize verir.
 
-
 Dosya betimleyici tablosunda iki dosya betimleyicisi aynı dosya nesnesini gösteriyorsa bu duruma *dosya
 betimleyicilerinin çiftlenmiş (duplicate) olması* denilmektedir. Örneğin:
 
-.. code-block:: text
-
-    Dosya Betimleyici Tablosu
-    ┌────────┐
-    │  ...   │
-    ├────────┤                     ┌───────────────┐
-    │  fd1   │────────────────────►│               │
-    ├────────┤                     │ Dosya Nesnesi │
-    │  ...   │              ┌─────►│               │
-    ├────────┤              │      └───────────────┘
-    │  fd2   │──────────────┘
-    ├────────┤
-    │  ...   │
-    └────────┘
+.. figure:: _static/shared-file-object.png
+    :align: center
+    :width: 60%
 
 Burada ``fd1`` betimleyicisi ile ``fd2`` betimleyicisi aynı dosya nesnesini göstermektedir. Dosya işlemlerinin hepsi
 dosya nesnesinden hareketle yapıldığı için bizim bu betimleyicilerden hangisini kullandığımızın bir önemi kalmamaktadır.
 Peki böyle bir durumda bir betimleyiciyi ``close`` fonksiyonuyla kapattığımızda ne olacaktır? İşte dosya nesnelerinin
 içerisinde bir sayaç bulunmaktadır. ``close`` fonksiyonu bu sayacın değerini bir eksiltir. Dosya nesnesinin silinmesi
-sayaç 0'a düştüğünde yapılmaktadır. O halde ``close`` her durumda betimleyici slotunu boşaltır. Ancak dosya nesnesinin
+sayaç 0'a düştüğünde yapılmaktadır. O halde ``close`` fonksiyonu her durumda betimleyici slotunu boşaltır. Ancak dosya nesnesinin
 referans sayacını bir eksilttikten sonra eğer referans sayacı 0'a düşmüşse dosya nesnesini siler. Aşağıda Linux'un
 güncel çekirdeğindeki dosya nesnesi verilmiştir. Buradaki ``f_ref`` elemanı bu sayacı belirtmektedir:
 
@@ -7930,8 +7908,8 @@ güncel çekirdeğindeki dosya nesnesi verilmiştir. Buradaki ``f_ref`` elemanı
     } __randomize_layout
     __attribute__((aligned(4)));   /* lest something weird decides that 2 is OK */
 
-dup Fonksiyonu ile Dosya Betimleyicisi Çiftleme
------------------------------------------------
+dup ve dup2 Fonksiyonlarıyla Dosya Betimleyicisinin Çiftlenmesi
+---------------------------------------------------------------
 
 Bir dosya betimleyicisinin gösterdiği dosya nesnesini gösteren yeni bir dosya betimleyici oluşturulabilir. Bunun için
 ``dup`` ve ``dup2`` isimli POSIX fonksiyonları kullanılmaktadır. Bu POSIX fonksiyonları Linux sistemlerinde doğrudan
@@ -7944,7 +7922,7 @@ Bir dosya betimleyicisinin gösterdiği dosya nesnesini gösteren yeni bir dosya
     int dup(int fildes);
 
 Fonksiyon parametre olarak açık bir dosyanın betimleyicisini almaktadır. Başarı durumunda betimleyicinin gösterdiği
-dosya nesnesini gösteren yeni bir betimleyiciye, başarısızlık durumunda -1 değerine geri dönmektedir. ``dup``
+dosya nesnesini gösteren yeni betimleyiciye, başarısızlık durumunda ``-1`` değerine geri dönmektedir. ``dup``
 fonksiyonunun en düşük boş betimleyici slotunu tahsis etmesi garanti edilmiştir. ``dup`` fonksiyonuyla elde edilen yeni
 dosya betimleyicisinin ``FD_CLOEXEC`` ve ``FD_CLOFORK`` bayrakları reset edilmektedir. Örneğin:
 
@@ -7966,7 +7944,11 @@ dosya betimleyicisinin ``FD_CLOEXEC`` ve ``FD_CLOFORK`` bayrakları reset edilme
 Açık dosyanın tüm bilgileri dosya nesnesinin içerisinde tutulduğuna göre ``dup`` işlemi sonrasında artık dosya işlemi
 için hangi betimleyicinin kullanıldığının bir önemi kalmamaktadır. Dosya göstericisinin de dosya nesnesi içerisinde
 tutulduğunu anımsayınız. Bu durumda örneğin betimleyicilerden biri ile okuma yaptıktan sonra diğer betimleyici ile okuma
-yaparsak okuma kalınan yerden itibaren yapılacaktır.
+yaparsak okuma kalınan yerden itibaren yapılacaktır. 
+
+Aşağıdaki örnekte önce bir dosya açılmış sonra açılan dosyaya ilişkin betimleyici çiftlenmiştir. Bu işlemlerden sonra 
+her iki dosya betimleyicisi ile okuma yapılmıştır. Bu iki betimleyici aynı dosya nesnesini kullandığı için ikinci okuma
+kalınan yerden yapılmaktadır. 
 
 .. code-block:: c
 
@@ -8011,9 +7993,6 @@ yaparsak okuma kalınan yerden itibaren yapılacaktır.
         exit(EXIT_FAILURE);
     }
 
-dup2 Fonksiyonu
----------------
-
 ``dup2`` isimli POSIX fonksiyonu ``dup`` fonksiyonunun biraz daha ayrıntılı biçimidir. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
@@ -8026,11 +8005,11 @@ Bu fonksiyon yine birinci parametresiyle belirtilen betimleyiciyi çiftlemek iç
 ilk boş betimleyici ile değil ikinci parametresiyle belirtilen betimleyici ile geri dönmek ister. Yani biz istersek bu
 fonksiyon sayesinde istediğimiz bir betimleyicinin birinci parametresiyle belirtilen betimleyici ile aynı dosya
 nesnesini göstermesini sağlayabiliriz. Eğer ikinci parametresiyle belirtilen betimleyici zaten açık bir dosyaya
-ilişkinse bu durumda dosya önce kapatılır, sonra o betimleyicinin birinci parametresiyle belirtilen betimleyicinin
+ilişkinse bu durumda bu betimleyici önce kapatılır, sonra o betimleyicinin birinci parametresiyle belirtilen betimleyicinin
 gösterdiği dosya nesnesini göstermesi sağlanır. Fonksiyon başarı durumunda ikinci parametresiyle belirtilen
-betimleyicinin aynısına, başarısızlık durumunda -1 değerine geri dönmektedir. Tabii fonksiyon birinci ve ikinci
+betimleyicinin aynısına, başarısızlık durumunda ``-1`` değerine geri dönmektedir. Tabii fonksiyon birinci ve ikinci
 parametresinin aynı betimleyiciye ilişkin olduğunu da kontrol etmektedir. Fonksiyonun iki argümanı aynı betimleyiciyi
-belirtiyorsa ``dup2`` hiçbir şey yapmaz, argümanlarla belirtilen betimleyiciye geri döner. Örneğin:
+belirtiyorsa fonksiyon hiçbir şey yapmaz, argümanlarla belirtilen betimleyiciye geri döner. Örneğin:
 
 .. code-block:: c
 
@@ -8048,8 +8027,8 @@ belirtiyorsa ``dup2`` hiçbir şey yapmaz, argümanlarla belirtilen betimleyiciy
     close(fd);
 
 Burada 1 numaralı betimleyicinin ``fd`` betimleyicisinin gösterdiği dosya nesnesi ile aynı dosya nesnesini göstermesi
-istenmiştir. Eğer 1 numaralı betimleyici doluysa önce ``close`` edilip boşaltılacaktır. Fonksiyon başarılı olursa
-``fd_new`` betimleyicisi 1 değerinde olacaktır.
+istenmiştir. Eğer ``1`` numaralı betimleyici doluysa önce ``close`` edilip boşaltılacaktır. Fonksiyon başarılı olursa
+``fd_new`` betimleyicisi ``1`` değerinde olacaktır.
 
 Aşağıda ``dup2`` fonksiyonunun kullanımına bir örnek verilmiştir.
 
