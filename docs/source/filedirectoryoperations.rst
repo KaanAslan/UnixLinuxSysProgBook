@@ -8095,33 +8095,31 @@ betimleyicisi ve ``2`` numaralı betimleyiciye ise ``stderr`` betimleyicisi deni
     :align: center
     :width: 60%
 
-0 numaralı betimleyici *read-only* modda, 1 ve 2 numaralı betimleyiciler ise *read-write* modda açılmış durumdadır.
-
-Bir dosya betimleyicisinin gösterdiği dosya nesnesi bir disk dosyasına ilişkin olabileceği gibi bir *aygıt sürücü
-(device driver)* dosyasına ilişkin de olabilmektedir. Gerçekten de 0, 1 ve 2 numaralı betimleyicilerin gösterdiği dosya
-nesneleri *terminal aygıt sürücüsüne* ilişkindir.
-
+0 numaralı betimleyici *read-only* modda, 1 ve 2 numaralı betimleyiciler ise *read-write* modda açıldığını anımsayınız.
+Önceki başlıkta kabaca ele almış olsak da burada yinelemek istiyoruz. Bir dosya betimleyicisinin gösterdiği dosya nesnesi 
+bir disk dosyasına ilişkin olabileceği gibi bir *aygıt sürücü (device driver)* dosyasına ilişkin de olabilmektedir. Gerçekten 
+de ``0``, ``1`` ve ``2`` numaralı betimleyicilerin gösterdiği dosya nesneleri *terminal aygıt sürücüsüne* ilişkindir.
 Bir aygıt sürücü çekirdek modunda çalışan bir modüldür. Bir dosya betimleyicisi bir aygıt sürücüsüne ilişkinse bu
 betimleyici ile ``read`` fonksiyonu çağrıldığında aygıt sürücüsünü yazanların ``read`` olarak tanımladıkları fonksiyon,
 ``write`` fonksiyonu çağrıldığında ise aygıt sürücüsünü yazanların ``write`` diye tanımladıkları fonksiyon
 çağrılmaktadır. Yani aslında ``read(0, ...)`` işlemi terminal aygıt sürücüsünün içerisindeki ``read`` fonksiyonunun
 çağrılmasına, ``write(1, ...)`` ya da ``write(2, ...)`` işlemi de terminal aygıt sürücüsünün ``write`` fonksiyonunun
 çağrılmasına yol açmaktadır. Terminal aygıt sürücüsünün ``read`` fonksiyonu klavyeden okuma yapmakta, terminal aygıt
-sürücüsünün ``write`` fonksiyonu ise ekrana yazma yapmaktadır. Kabaca durum böyledir ancak sürecin başka ayrıntıları da
+sürücüsünün ``write`` fonksiyonu ise ekrana yazma yapmaktadır. Kabaca durum böyledir,  ancak sürecin başka ayrıntıları da
 vardır.
 
 Görüldüğü gibi aygıt sürücüler sanki bir dosyaymış gibi ele alınmaktadır. Bunun önemli faydaları vardır. Örneğin
-programcı bu sayede *sanki klavye ve ekran birer dosyaymış gibi* dosya fonksiyonlarını kullanarak onlarla işlem
-yapabilmektedir.
+programcı bu sayede dosya fonksiyonlarını kullanarak onlarla işlem yapabilmektedir.
 
-Aşağıdaki örnekte 0 numaralı ``stdin`` betimleyicisinden ``read`` fonksiyonuyla okuma yapılmış ve okunanlar 1 numaralı
-``stdout`` betimleyicisine yazılmıştır. Biz ``read`` fonksiyonuyla ``stdin`` dosyasından okuma yapmak istediğimizde
+Aşağıdaki örnekte ``0`` numaralı ``stdin`` betimleyicisinden ``read`` fonksiyonuyla okuma yapılmış ve okunanlar ``1`` 
+numaralı ``stdout`` betimleyicisine yazılmıştır. Biz ``read`` fonksiyonuyla ``stdin`` dosyasından okuma yapmak istediğimizde
 ``read`` fonksiyonu ENTER tuşuna basılana kadarki klavyeden girilenleri bize vermektedir:
 
 .. code-block:: c
 
     char buf[4096 + 1];
     ssize_t result;
+    /* ... */
 
     if ((result = read(0, buf, 4096)) == -1)
         exit_sys("read");
@@ -8129,7 +8127,7 @@ Aşağıdaki örnekte 0 numaralı ``stdin`` betimleyicisinden ``read`` fonksiyon
     if (write(1, buf, result) == -1)
         exit_sys("write");
 
-Bir program çalışmaya başladığında 0, 1 ve 2 numaralı betimleyiciler zaten hazır durumdadır. Bu betimleyicileri
+Bir program çalışmaya başladığında 0, 1 ve 2 numaralı betimleyiciler zaten açık durumdadır. Bu betimleyicileri
 programcı oluşturmamıştır. O halde bu betimleyicilerin kapatılmasını da programcı yapmamalıdır.
 
 .. code-block:: c
@@ -8160,25 +8158,21 @@ programcı oluşturmamıştır. O halde bu betimleyicilerin kapatılmasını da 
         exit(EXIT_FAILURE);
     }
 
-C Kütüphane Fonksiyonlarının read/write Kullanması
---------------------------------------------------
-
 C'nin ``<stdio.h>`` dosyası içerisinde prototipleri bulunan ``stdin`` ve ``stdout`` dosyaları üzerinde işlem yapan
-``scanf``, ``puts``, ``printf`` gibi fonksiyonlar eninde sonunda UNIX/Linux sistemlerinde ``read`` ve ``write``
-fonksiyonlarını 0 ve 1 numaralı betimleyicilerle çağırarak işlemlerini yapmaktadır. Zaten bu sistemlerde ekrana bir şey
+``scanf``, ``puts``, ``printf`` gibi fonksiyonları eninde sonunda UNIX/Linux sistemlerinde ``read`` ve ``write``
+fonksiyonlarını ``0`` ve ``1`` numaralı betimleyicilerle çağırarak işlemlerini yapmaktadır. Zaten bu sistemlerde ekrana bir şey
 yazdırmak için ve klavyeden bir şey okumak için başka bir yol da yoktur. Örneğin biz ``printf`` fonksiyonu ile ekrana
 bir şeyler yazdırmak istediğimiz zaman aslında ``printf`` önce yazdırılacak yazıyı bir tamponda oluşturur, sonra
-``write`` fonksiyonunu 1 numaralı betimleyici ile çağırarak onları ekrana yazar. Diğer programlama dillerindeki bütün
-klavye ve ekran fonksiyonları da yine UNIX/Linux sistemlerinde eninde sonunda 0 ve 1 numaralı betimleyiciler
+``write`` fonksiyonunu ``1`` numaralı betimleyici ile çağırarak onları aygıt sürücüye iletir. Diğer programlama dillerindeki bütün
+klavye ve ekran fonksiyonları da yine UNIX/Linux sistemlerinde eninde sonunda ``0`` ve ``1`` numaralı betimleyiciler
 kullanılarak okuma ve yazma işlemlerini yapmaktadır.
 
-close + open ile IO Yönlendirmesi (Sorunlu Yöntem)
---------------------------------------------------
+IO Yönlendirmesinin close ve open Çağrılarıyla Yapılması
+--------------------------------------------------------
 
-Aşağıdaki örnekte biz önce ``close(1)`` ile 1 numaralı betimleyicinin gösterdiği terminal aygıt sürücüsüne ilişkin
-dosyayı kapattık. Sonra da ``open`` fonksiyonu ile yeni bir dosyayı açtık. ``open`` fonksiyonu en düşük boş
-betimleyiciyi vereceğine göre artık 1 numaralı betimleyici terminal aygıt sürücüsüne ilişkin dosya nesnesini değil bizim
-açtığımız dosya nesnesini gösteriyor durumda olacaktır:
+``close(1)`` ile 1 numaralı betimleyicinin gösterdiği terminal aygıt sürücüsüne ilişkin dosyayı kapatıp ``open`` fonksiyonu 
+ile yeni bir dosya açıldığında ``open`` fonksiyonu en düşük boş betimleyiciyi vereceğine göre artık 1 numaralı betimleyici 
+terminal aygıt sürücüsüne ilişkin dosya nesnesini değil bizim açtığımız dosya nesnesini gösteriyor durumda olacaktır. Örneğin:
 
 .. code-block:: c
 
@@ -8187,8 +8181,8 @@ açtığımız dosya nesnesini gösteriyor durumda olacaktır:
     if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
         exit_sys("open");
 
-Bu örnekte biz ``printf`` fonksiyonu ile ekrana bir şeyler yazdık. ``printf`` eninde sonunda ``write(1, ...)``
-çağrısıyla ekrana bir şeyler yazdırmak isteyeceğine göre artık ``printf`` ekrana değil bizim açtığımız dosyaya yazma
+Artık biz örneğin ``printf`` fonksiyonu ile ekrana bir şeyler yazdırmak istediğimizde ``printf`` eninde sonunda 
+``write(1, ...)`` çağrısını kullanmak isteyeceğine göre artık ``printf`` ekrana değil bizim açtığımız dosyaya yazma
 yapacaktır:
 
 .. code-block:: c
@@ -8199,9 +8193,12 @@ yapacaktır:
 IO yönlendirmesinin temel mekanizması bu biçimdedir. Bu örnekte programcı sayıları ekrana yazdırdığını sanırken aslında
 sayılar ``test.txt`` dosyasına yazılmaktadır.
 
-Örneğimizde açmış olduğumuz dosyayı ``close`` etmedik. Çünkü zaten 0, 1 ve 2 numaralı betimleyicilerin ``close``
+Örneğimizde açmış olduğumuz dosyayı ``close`` etmedik. Çünkü zaten ``0``, ``1`` ve ``2`` numaralı betimleyicilerin ``close``
 edilmesi ``exit`` fonksiyonu tarafından program sonlanırken yapılmaktadır. Aslında örneğimizde açılan dosyaya ilişkin
-betimleyicinin ``fd`` değişkeninde saklanmasına da gerek yoktur. ``fd`` betimleyicisinin 1 olduğu öngörülmektedir.
+betimleyicinin ``fd`` değişkeninde saklanmasına da gerek yoktur. ``fd`` betimleyicisinin ``1`` olduğu öngörülmektedir.
+
+Aşağıdaki programı çalıştırdıktan sonra ``test.txt`` dosyasının içeriğine cat komutuyla bakınız. Ekrana yazdırılmak istenen
+sayıların bu dosyaya yazıldığını göreceksiniz:
 
 .. code-block:: c
 
@@ -8234,9 +8231,6 @@ betimleyicinin ``fd`` değişkeninde saklanmasına da gerek yoktur. ``fd`` betim
         exit(EXIT_FAILURE);
     }
 
-IO Yönlendirmesinin Sorunları ve dup2 ile Doğru Çözüm
------------------------------------------------------
-
 IO yönlendirmesinin yukarıdaki gibi yapılmasının iki önemli problemi vardır:
 
 1) Bu yönlendirme aynı biçimde yüksek numaralı betimleyiciler için yapılmak istenirse o betimleyicilerden önce boş
@@ -8247,6 +8241,9 @@ kapatılmışsa ``open`` fonksiyonu 1 numaralı betimleyiciyi değil 0 numaralı
 
 2) Çok thread'li uygulamalarda ``close`` işleminden sonra henüz ``open`` yapılmadan önce başka bir thread dosyayı açarsa
 bu betimleyiciyi o thread kapabilir. Çünkü ``close`` ile ``open`` işlemleri atomik değildir.
+
+IO Yönlendirmesinin dup2 Fonksiyonuyla Yapılması
+------------------------------------------------
 
 İşte IO yönlendirmesi sağlıklı bir biçimde ancak ``dup2`` fonksiyonuyla yapılabilmektedir. Anımsanacağı gibi ``dup2(fd1,
 fd2)`` işleminde ``fd2`` betimleyicisi ``fd1`` betimleyicisi ile aynı dosya nesnesini gösterir hale getirilmektedir.
