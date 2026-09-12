@@ -8234,10 +8234,10 @@ sayıların bu dosyaya yazıldığını göreceksiniz:
 IO yönlendirmesinin yukarıdaki gibi yapılmasının iki önemli problemi vardır:
 
 1) Bu yönlendirme aynı biçimde yüksek numaralı betimleyiciler için yapılmak istenirse o betimleyicilerden önce boş
-betimleyicilerin bulunuyor olma olasılığı yükselir. Dolayısıyla ``open`` istediğimiz betimleyiciyi değil başka bir
-betimleyiciyi tahsis edebilir. Örneğin biz 100 numaralı betimleyiciyi kapatıp onun başka bir dosya nesnesini
-göstermesini bu yöntemle muhtemelen sağlayamayız. Hatta örneğin yukarıdaki programda 0 numaralı betimleyici de
-kapatılmışsa ``open`` fonksiyonu 1 numaralı betimleyiciyi değil 0 numaralı betimleyiciyi geri döndürecektir.
+betimleyicilerin bulunuyor olma olasılığı yükselir. Dolayısıyla ``open`` fonksiyonuistediğimiz betimleyiciyi değil başka 
+bir betimleyiciyi tahsis edebilir. Örneğin biz ``100`` numaralı betimleyiciyi kapatıp onun başka bir dosya nesnesini
+göstermesini bu yöntemle muhtemelen sağlayamayız. Hatta örneğin yukarıdaki programda ``0`` numaralı betimleyici de
+kapatılmışsa ``open`` fonksiyonu ``1`` numaralı betimleyiciyi değil ``0`` numaralı betimleyiciyi geri döndürecektir.
 
 2) Çok thread'li uygulamalarda ``close`` işleminden sonra henüz ``open`` yapılmadan önce başka bir thread dosyayı açarsa
 bu betimleyiciyi o thread kapabilir. Çünkü ``close`` ile ``open`` işlemleri atomik değildir.
@@ -8245,11 +8245,11 @@ bu betimleyiciyi o thread kapabilir. Çünkü ``close`` ile ``open`` işlemleri 
 IO Yönlendirmesinin dup2 Fonksiyonuyla Yapılması
 ------------------------------------------------
 
-İşte IO yönlendirmesi sağlıklı bir biçimde ancak ``dup2`` fonksiyonuyla yapılabilmektedir. Anımsanacağı gibi ``dup2(fd1,
+IO yönlendirmesi sağlıklı bir biçimde ancak ``dup2`` fonksiyonuyla yapılabilmektedir. Anımsanacağı gibi ``dup2(fd1,
 fd2)`` işleminde ``fd2`` betimleyicisi ``fd1`` betimleyicisi ile aynı dosya nesnesini gösterir hale getirilmektedir.
 ``fd2`` zaten açık bir dosyaya ilişkinse önce atomik bir biçimde ``close`` işlemi uygulanmaktadır. ``dup2``
-fonksiyonunun en düşük betimleyiciyi değil, ikinci parametresiyle belirtilen betimleyiciyi verdiğine dikkat ediniz. O
-halde örneğin 1 numaralı betimleyici şöyle yönlendirilebilir:
+fonksiyonunun en düşük betimleyiciyi değil, ikinci parametresiyle belirtilen betimleyiciyi verdiğine dikkat ediniz. 
+O halde örneğin ``1`` numaralı betimleyici şöyle yönlendirilebilir:
 
 .. code-block:: c
 
@@ -8264,17 +8264,16 @@ halde örneğin 1 numaralı betimleyici şöyle yönlendirilebilir:
 
     close(fd);
 
-Burada ``dup2`` ile birlikte hem 1 numaralı betimleyicinin hem de ``fd`` numaralı betimleyicinin yeni açılan dosyaya
-ilişkin dosya nesnesini gösterdiğine dikkat ediniz. ``fd`` betimleyicisini kapatmak doğru tekniktir. 1 numaralı
+Burada ``dup2`` ile birlikte hem ``1`` numaralı betimleyicinin hem de ``fd`` numaralı betimleyicinin yeni açılan dosyaya
+ilişkin dosya nesnesini gösterdiğine dikkat ediniz. Bu işlemden sonra ``fd`` betimleyicisini kapatmak doğru tekniktir. 1 numaralı
 betimleyici zaten ileride de ele alınacağı gibi proses bittiğinde ``exit`` fonksiyonu tarafından kapatılmaktadır.
 
 Burada gerçekleşmesi pek olası olmayan bir küçük nokta üzerinde de durmak istiyoruz. Bizim ``open`` fonksiyonuyla
-yönlendirilecek dosyayı açtığımız durumda ya ``stdout`` dosyası zaten kapatılmışsa ne olacaktır? İşte bu durumda
-``close`` işlemi bizim için sorun oluşturur. Şöyle ki bu durumda ``open`` fonksiyonu en düşük betimleyici olan 1
-numaralı betimleyiciyi tahsis edecektir. ``dup2(fd, 1)`` çağrısında her iki betimleyici de aynı olduğu için ``dup2`` bir
-şey yapmayacaktır. Ancak bundan sonra ``fd`` betimleyicisinin kapatılması aslında 1 numaralı betimleyicinin kapatılması
-anlamına gelecektir. Yani sakıncalı bir durum oluşacaktır. Bu sakıncalı durum aşağıdaki gibi bir kontrolle elimine
-edilebilir:
+yönlendirilecek dosyayı açtığımız durumda ya ``stdout`` dosyası zaten kapatılmışsa ne olacaktır? Şöyle ki bu durumda 
+``open`` fonksiyonu en düşük betimleyici olan ``1`` numaralı betimleyiciyi tahsis edecektir. ``dup2(fd, 1)`` çağrısında 
+her iki betimleyici de aynı olduğu için ``dup2`` bir şey yapmayacaktır. Ancak bundan sonra ``fd`` betimleyicisinin kapatılması 
+aslında ``1`` numaralı betimleyicinin kapatılması anlamına gelecektir. Yani sakıncalı bir durum oluşacaktır. Bu sakıncalı 
+durum aşağıdaki gibi bir kontrolle elimine edilebilir:
 
 .. code-block:: c
 
@@ -8327,13 +8326,13 @@ betimleyicinin ``stdout`` dosyasını göstermesi normal bir durumdur.
         exit(EXIT_FAILURE);
     }
 
-dup2 ile Yönlendirmeyi Geri Alma
---------------------------------
+Yönlendirmenin Geri Alınması
+----------------------------
 
-Yukarıdaki örnekte biz 1 numaralı betimleyicinin bizim dosyamıza ilişkin dosya nesnesini göstermesini sağladık. Peki
-bundan geri dönebilir miyiz? Yani 1 numaralı betimleyicinin yeniden terminale ilişkin aygıt sürücüsünü göstermesini
-sağlayabilir miyiz? Anımsanacağı gibi 1 ve 2 numaralı betimleyicilerin her ikisi de terminal aygıt sürücüsüne ilişkin
-dosya nesnesini belirtiyordu. İşte biz bu sayede geri dönüşü aşağıdaki gibi yapabiliriz:
+Yukarıdaki örnekte biz ``1`` numaralı betimleyicinin bizim dosyamıza ilişkin dosya nesnesini göstermesini sağladık. Peki
+bundan geri dönebilir miyiz? Yani ``1`` numaralı betimleyicinin yeniden terminale ilişkin aygıt sürücüsünü göstermesini
+sağlayabilir miyiz? Anımsanacağı gibi ``1`` ve ``2`` numaralı betimleyicilerin her ikisi de terminal aygıt sürücüsüne ilişkin
+dosya nesnesini belirtiyordu. İşte biz bu sayede geri dönüş işlemini aşağıdaki gibi yapabiliriz:
 
 .. code-block:: c
 
@@ -8342,9 +8341,12 @@ dosya nesnesini belirtiyordu. İşte biz bu sayede geri dönüşü aşağıdaki 
     if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
         exit_sys("open");
 
-    if (dup2(fd, 1) == -1)
-        exit_sys("dup2");
-    close(fd);
+    
+    if (fd != 1) {
+        if (dup2(fd, 1) == -1)
+            exit_sys("dup2");
+        close(fd);
+    }
 
     /* ... */
 
@@ -8352,7 +8354,7 @@ dosya nesnesini belirtiyordu. İşte biz bu sayede geri dönüşü aşağıdaki 
         exit_sys("dup2");
 
 Aşağıdaki örnekte bu işlem uygulanmıştır. Ancak burada bir ``fflush(stdout)`` çağrısı da yapılmıştır. Bunun nedeni
-izleyen konularda anlaşılabilecektir.
+izleyen konulbölümlerde anlaşılabilecektir.
 
 .. code-block:: c
 
@@ -8371,10 +8373,11 @@ izleyen konularda anlaşılabilecektir.
         if ((fd = open("test.txt", O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
             exit_sys("open");
 
-        if (dup2(fd, 1) == -1)
-            exit_sys("dup2");
-
-        close(fd);
+        if (fd != 1) {
+            if (dup2(fd, 1) == -1)
+                exit_sys("dup2");
+            close(fd);
+        }
 
         for (int i = 0; i < 10; ++i)
             printf("Number: %d\n", i);
@@ -8395,9 +8398,6 @@ izleyen konularda anlaşılabilecektir.
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-dup ile Yedek Betimleyici Oluşturma
------------------------------------
 
 Peki yukarıdaki örnekte 2 numaralı betimleyici bir biçimde yönlendirilmişse ya da ``close`` edilmişse geri dönüş nasıl
 sağlanabilir? Burada artık işleme başlamadan önce ``dup`` işlemi ile 1 numaralı betimleyicinin gösterdiği dosya
@@ -8450,14 +8450,11 @@ nesnesini gösteren başka bir yedek betimleyicinin oluşturulması gerekir. Aş
         exit(EXIT_FAILURE);
     }
 
-0 Numaralı Betimleyicinin (stdin) Yönlendirilmesi
--------------------------------------------------
-
-Biz yukarıdaki örneklerimizde 1 numaralı betimleyiciyi yönlendirdik. Şimdi de klavye üzerinde çalışan 0 numaralı
-betimleyiciyi yönlendirelim. Yukarıda da belirttiğimiz gibi C'deki ``getchar``, ``gets``, ``scanf`` gibi fonksiyonlar
-aslında sürecin bazı ayrıntıları göz ardı edilirse eninde sonunda ``read(0, ...)`` çağrısı yapmaktadır. Biz 0 numaralı
-betimleyicinin kendi açtığımız dosyaya ilişkin dosya nesnesini göstermesini sağlarsak artık bu fonksiyonlar klavyeden
-değil o dosyadan okuma yapar hale gelecektir. Örneğin:
+Biz yukarıdaki örneklerimizde ``1`` numaralı betimleyiciyi yönlendirdik. Şimdi de default durumda klavye üzerinde çalışan 
+``0`` numaralı betimleyiciyi yönlendirelim. Yukarıda da belirttiğimiz gibi C'deki ``getchar``, ``gets``, ``scanf`` gibi 
+fonksiyonlar aslında sürecin bazı ayrıntıları göz ardı edilirse eninde sonunda ``read(0, ...)`` çağrısı yapmaktadır. Biz 
+``0`` numaralı betimleyicinin kendi açtığımız dosyaya ilişkin dosya nesnesini göstermesini sağlarsak artık bu fonksiyonlar 
+klavyeden değil o dosyadan okuma yapar hale gelecektir. Örneğin:
 
 .. code-block:: c
 
@@ -8476,8 +8473,9 @@ değil o dosyadan okuma yapar hale gelecektir. Örneğin:
     while ((ch = getchar()) != EOF)
         putchar(ch);
 
-Burada ``getchar`` artık klavyeden değil ``test.txt`` dosyasından okuma yapacaktır. Aşağıdaki örnek için ``test.txt``
-dosyasının içeriğini şöyle oluşturalım:
+Burada ``getchar`` fonksiyonu artık klavyeden değil ``test.txt`` dosyasından okuma yapacaktır. 
+
+Aşağıdaki örnek için ``test.txt`` dosyasının içeriğini şöyle oluşturalım:
 
 .. code-block:: text
 
@@ -8494,9 +8492,8 @@ Bu örnekte scanf ile okuma şöyle yapılmıştır:
     while (scanf("%d", &val) == 1)
         printf("%d\n", val);
 
-``scanf`` fonksiyonu başarılı biçimde yerleştirdiği parça sayısıyla geri dönmektedir. ``scanf`` dosya sonuna
-gelindiğinden dolayı başarısız olduğunda 0 değerine geri dönecektir. Dolayısıyla yukarıdaki döngüde tüm sayılar tek tek
-okunacaktır.
+``scanf`` fonksiyonu başarılı biçimde yerleştirdiği parça sayısıyla, dosya sonuna gelindiğinde ``0`` değerine geri dönecektir. 
+Dolayısıyla yukarıdaki döngüde tüm sayılar tek tek okunacaktır.
 
 .. code-block:: c
 
@@ -8534,34 +8531,34 @@ okunacaktır.
         exit(EXIT_FAILURE);
     }
 
-Kabuktan IO Yönlendirmesi: >, >>, cat ve tee
---------------------------------------------
+Kabuk Üzerinde IO Yönlendirmesi
+-------------------------------
 
-IO yönlendirmesi kabuk üzerinden de yapılabilmektedir. Kabukta ``>`` sembolü 1 numaralı betimleyicinin yönlendirileceği
-anlamına gelmektedir. Örneğin:
+IO yönlendirmesi kabuk üzerinden de yapılabilmektedir. Kabukta ``>`` operatörü ``1`` numaralı betimleyicinin yönlendirileceği
+anlamına gelir. Örneğin:
 
 .. code-block:: text
 
     $ ./sample > test.txt
 
-Burada kabuk önce ``>`` sembolünün sağındaki dosyayı (örneğimizde ``test.txt`` dosyası) ``O_WRONLY|O_TRUNC`` modunda
-açar. Sonra ``./sample`` programı için yaratılacak prosesin 1 numaralı betimleyicisinin bu dosyaya ilişkin dosya
-nesnesini göstermesini sağlar. Böylece ``sample`` programının ekrana yazdığını sandığı şeyler aslında bu dosyaya
-yazılmış olacaktır. Sürecin ayrıntıları fork ve exec işlemlerinin anlatıldığı bölümde ele alınacaktır.
+Burada kabuk önce ``>`` operatörünün sağındaki dosyayı (örneğimizde ``test.txt`` dosyası) ``O_WRONLY|O_TRUNC`` modunda
+açar. Sonra *sample* programı için yaratılacak prosesin ``1`` numaralı betimleyicisinin bu dosyaya ilişkin dosya
+nesnesini göstermesini sağlar. Böylece *sample* programının ekrana yazdığını sandığı şeyler aslında bu dosyaya
+yazılmış olacaktır. Sürecin ayrıntıları ``fork`` ve ``exec`` işlemlerinin anlatıldığı bölümde ele alınacaktır.
 
-*ls* gibi, *cat* gibi kabuk komutlarının da aslında birer program olduğuna, bunların da 1 numaralı betimleyiciyi
+*ls* gibi, *cat* gibi kabuk komutlarının da aslında birer program olduğuna, bunların da ``1`` numaralı betimleyiciyi
 kullanarak yazdırma yaptığına dikkat ediniz. Örneğin biz kabuk üzerinde şu komutu uygulayalım:
 
 .. code-block:: text
 
     $ ls -l > test.txt
 
-Burada *ls* programı çıktıyı ekrana yazdırmak yerine artık ``test.txt`` dosyasına yazdıracaktır. Bir programın ekrana
+Burada *ls* programının ekrana yazdırdığı şeyler artık ``test.txt`` dosyasına yazdıracaktır. Bir programın ekrana
 yazdıklarını dosyaya kaydetmek için en pratik yöntem komut satırında ``>`` ile yönlendirme yapmaktır.
 
-Eğer kabukta ``>`` yerine ``>>`` sembolü kullanılırsa bu durumda ``>>`` sembolünün sağındaki dosya
-``O_CREAT|O_WRONLY|O_APPEND`` modunda açılmaktadır. Yani dosya varsa bu durumda dosyanın içeriği silinmeden dosyanın
-sonuna ekleme yapılacaktır. Örneğin:
+Eğer kabukta ``>`` yerine ``>>`` operatörü kullanılırsa bu durumda ``>>`` operatörünün sağındaki dosya
+``O_CREAT|O_WRONLY|O_APPEND`` bayraklarıyla açılmaktadır. Yani dosya varsa bu durumda dosyanın içeriği silinmeden dosyanın
+sonuna ekleme yapılmaktadır. Örneğin:
 
 .. code-block:: text
 
@@ -8574,12 +8571,13 @@ pratik yollarından biri şudur:
 
     $ cat > test.txt
 
-*cat* programı eğer argüman almazsa ``stdin`` dosyasından (yani 0 numaralı betimleyiciden) okuduklarını ``stdout``
-dosyasına (yani 1 numaralı betimleyiciye) yazdırmaktadır. O halde yukarıdaki komutla klavyeden girilenler ekrana değil
-``test.txt`` dosyasına yazdırılacaktır. İşlemi bitirmek için ``Ctrl+d`` tuşlarına basmalısınız.
+*cat* programı eğer argüman almazsa ``stdin`` dosyasından (yani ``0`` numaralı betimleyiciden) okuduklarını ``stdout``
+dosyasına (yani ``1`` numaralı betimleyiciye) yazdırmaktadır. O halde yukarıdaki komutla klavyeden girilenler ekrana değil
+``test.txt`` dosyasına yazdırılacaktır. İşlemi bitirmek için ``Ctrl+d`` tuşlarına basmalısınız. ``Ctrl+d`` tuş kombinasyonunun 
+işlevini ileride ele alacağız.
 
 UNIX/Linux sistemlerinde *tee* isimli çok kullanılan bir POSIX komutu da bulunmaktadır. Bu komut her zaman ``stdin``
-dosyasından (0 numaralı betimleyiciden) okuma yapar, ancak okunanları hem ``stdout`` dosyasına (1 numaralı
+dosyasından (``0`` numaralı betimleyiciden) okuma yapar, ancak okunanları hem ``stdout`` dosyasına (``1`` numaralı
 betimleyiciye) hem de argüman olarak verilen dosyaya yazar. Bu dosya zaten varsa içeriği silinmektedir. Örneğin:
 
 .. code-block:: text
@@ -8594,30 +8592,26 @@ yapılmaktadır. Örneğin:
 
     $ tee -a test.txt
 
-Burada ``test.txt`` dosyasının içeriği yazılanlar silinmeyecek, dosyanın sonuna eklenecektir. *tee* komutu argümansız
-olarak da kullanılabilmektedir. (Aslında genellikle komut böyle kullanılır.) Bu durumda *tee* komutu ``stdin``
-dosyasından okunanları yalnızca ``stdout`` dosyasına yazdırmaktadır. Bu durumda aşağıdaki iki komut aynı etkiye yol
-açacaktır:
+Burada ``test.txt`` dosyasının içeriği silinmeyecek, yazılanlar dosyanın sonuna eklenecektir. *tee* komutu argümansız
+olarak da kullanılabilmektedir. Bu durumda *tee* komutu ``stdin`` dosyasından okunanları yalnızca ``stdout`` dosyasına 
+yazdırmaktadır. Bu durumda aşağıdaki iki komut aynı etkiye yol açacaktır:
 
 .. code-block:: text
 
     $ tee
     $ cat
 
-*tee* komutu bazı durumlarda sıkça kullanılmaktadır.
+*tee* sık kullanılan bir komuttur.
 
-Kabuktan Giriş Yönlendirmesi: <
--------------------------------
-
-Kabuk üzerinde ``<`` karakteri de 0 numaralı betimleyiciyi yönlendirmektedir. Örneğin:
+Kabuk üzerinde ``<`` operatörü de ``0`` numaralı betimleyiciyi yönlendirmektedir. Örneğin:
 
 .. code-block:: text
 
     $ ./sample < test.txt
 
-Burada kabuk ``test.txt`` dosyasını ``O_RDONLY`` modunda açar. Sonra ``./sample`` programı ile yaratılacak prosese
-ilişkin dosya betimleyici tablosundaki 0 numaralı betimleyicinin ``test.txt`` dosyasına ilişkin dosya nesnesini
-göstermesini sağlar. Sürecin ayrıntıları ileride ele alınacaktır. Böylece program içerisinde klavyeden okunmak istenen
+Burada kabuk ``test.txt`` dosyasını ``O_RDONLY`` modunda açar. Sonra ``sample`` programının çalıştırılması ile 
+yaratılacak prosese ilişkin dosya betimleyici tablosundaki ``0`` numaralı betimleyicinin ``test.txt`` dosyasına ilişkin 
+dosya nesnesini göstermesini sağlar. Sürecin ayrıntıları ileride ele alınacaktır. Böylece program içerisinde klavyeden okunmak istenen
 her şey aslında ``test.txt`` dosyasından okunacaktır. Örneğin ``sample.c`` programında ``scanf`` fonksiyonu ile şöyle
 okuma yapılmış olsun:
 
@@ -8652,10 +8646,7 @@ içerisine çeşitli sayılar yazarak test edebilirsiniz.
         return 0;
     }
 
-n> ve n< Sembolleri
--------------------
-
-Aslında kabukta genel olarak yönlendirme için ``n>`` ve ``n<`` sembolleri de kullanılabilmektedir. Buradaki ``n``
+Aslında kabukta genel olarak yönlendirme için ``n>`` ve ``n<`` operatörleri de kullanılabilmektedir. Buradaki ``n``
 betimleyicinin numarasını belirtir. Bu sayede biz herhangi bir betimleyiciyi okuma ve yazma amacıyla bir dosyaya
 yönlendirebiliriz. Örneğin:
 
@@ -8663,26 +8654,23 @@ yönlendirebiliriz. Örneğin:
 
     $ ./sample 2> test.txt
 
-Burada ``test.txt`` dosyası açılıp ``./sample`` programının ``stderr`` olarak isimlendirilen 2 numaralı betimleyiciye
+Burada ``test.txt`` dosyası açılıp ``sample`` programının ``stderr`` olarak isimlendirilen ``2`` numaralı betimleyiciye
 yazdıkları ``test.txt`` dosyasına yönlendirilecektir.
 
 Kabuk programları ``>``, ``<``, ``n>``, ``n<`` gibi yönlendirmeleri nasıl yapmaktadır? Bu konu ileride ele alınacaktır.
-Tipik olarak kabuk programları önce bir kez fork işlemi yapar, sonra yönlendirme işlemini gerçekleştirir, sonra da exec
-işlemi ile programı çalıştırır.
+Tipik olarak kabuk programları önce bir kez ``fork`` işlemi yapar, sonra yönlendirme işlemini gerçekleştirir, sonra da 
+``exec`` işlemi ile programı çalıştırır.
 
-stdin ve stdout'un Birlikte Yönlendirilmesi
--------------------------------------------
-
-Tabii hem ``stdout`` dosyasını hem de ``stdin`` dosyasını kabuk üzerinden birlikte de yönlendirebiliriz. Örneğin:
+Tabii hem ``0`` numaralı hem de ``1`` numaralı betimleyiciyi birlikte de yönlendirebiliriz. Örneğin:
 
 .. code-block:: text
 
     $ ./sample > out.txt < in.txt
 
-Burada 1 numaralı betimleyici ``out.txt`` dosyasına, 0 numaralı betimleyici ``in.txt`` dosyasına yönlendirilmiştir.
+Burada ``1`` numaralı betimleyici ``out.txt`` dosyasına, ``0`` numaralı betimleyici ``in.txt`` dosyasına yönlendirilmiştir.
 
-freopen Fonksiyonu ile Dosya Yönlendirmesi
-------------------------------------------
+freopen Stanart C Fonksiyonu ile Dosya Yönlendirmesi
+----------------------------------------------------
 
 Dosya yönlendirmesi kısıtlı olsa da ``freopen`` isimli standart C fonksiyonuyla da yapılabilmektedir. Fonksiyonun
 prototipi şöyledir:
