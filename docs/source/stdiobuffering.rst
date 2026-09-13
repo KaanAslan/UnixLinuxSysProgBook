@@ -367,9 +367,7 @@ Tabii bu durumda ``free`` işlemi ``fclose`` fonksiyonu tarafından yapılacakt�
 
 .. code-block:: c
 
-    ...
     static FILE g_files[FILE_MAX];
-    ...
 
 Örneğin *musl* kütüphanesinde ``FILE`` nesnesi ve onun kullandığı tampon tek hamlede ``malloc`` fonksiyonu
 ile tahsis edilmiştir:
@@ -378,7 +376,7 @@ ile tahsis edilmiştir:
 
     if (!(f=malloc(sizeof *f + UNGET + BUFSIZ))) return 0;
 
-*uclibc (mikro C kütüphanesinde)* de tahsisat ``malloc`` fonksiyonuyla yapılmıştır:
+*uclibc'de (mikro C kütüphanesinde)* tahsisat ``malloc`` fonksiyonuyla yapılmıştır:
 
 .. code-block:: c
 
@@ -405,10 +403,10 @@ fonksiyonunun prototipi şöyledir:
     int fileno(FILE *stream);
 
 Fonksiyonun geri dönüş değeri dosya betimleyicisidir. Peki bu fonksiyon başarısız olabilir mi ya da
-başarısızlığı tespit edebilir mi? POSIX standartlarına göre fonksiyon başarısız olabilir. Bu durumda -1
-değerine geri döner. Ancak fonksiyonun başarısızlığı tespit etmesi yeterli bir biçimde yapılamayabilir.
-Fonksiyon ``FILE`` yapısının içerisindeki dosya betimleyicisini tutan elemana başlangıçta geçersiz bir
-değer atayıp bu değere bakmaktadır. Örneğin:
+bu fonksiyonun başarısızlığı tespit edilebilir mi? POSIX standartlarına göre fonksiyon başarısız olabilir. Bu durumda ``-1``
+değerine geri döner. Ancak fonksiyonun başarısızlığının tespiti yeterli bir biçimde yapılamayabilir. Fonksiyon ``FILE`` 
+yapısının içerisindeki dosya betimleyicisini tutan elemana başlangıçta geçersiz bir değer atayıp bu değere bakmaktadır. 
+Örneğin:
 
 .. code-block:: c
 
@@ -424,11 +422,11 @@ değer atayıp bu değere bakmaktadır. Örneğin:
     if ((fd = fileno(f)) == -1)
         exit_sys("fileno");
 
-Tabii ``fileno`` fonksiyonuyla ``FILE`` yapısı içerisindeki dosya betimleyicisini alıp onunla dosya işlem
+Tabii ``fileno`` fonksiyonuyla ``FILE`` yapısı içerisindeki dosya betimleyicisini alıp onunla dosya işlemleri
 yaptığımızda dosya göstericisinin değeri de değişmiş olacaktır.
 
 ``fileno`` bir standart C fonksiyonu değildir, bir POSIX fonksiyonudur. Microsoft Windows sistemlerinde de
-bu fonksiyonu ``_fileno`` ismiyle bulundurmaktadır.
+bu fonksiyonu ``_fileno`` ismiyle bulunmaktadır.
 
 Aşağıdaki örnekte dosya önce ``fopen`` fonksiyonuyla açılıp ``fileno`` fonksiyonuyla dosya betimleyicisi
 elde edilmiş ve sonra o betimleyici ile okuma yapılmıştır.
@@ -473,9 +471,6 @@ elde edilmiş ve sonra o betimleyici ile okuma yapılmıştır.
         exit(EXIT_FAILURE);
     }
 
-fdopen Fonksiyonu
------------------
-
 ``fileno`` POSIX fonksiyonunun mantıksal olarak tersini yapan ``fdopen`` isimli bir POSIX fonksiyonu da
 vardır. (``fdopen`` da bir standart C fonksiyonu değildir.) Bu fonksiyon ``open`` POSIX fonksiyonuyla açıp
 betimleyicisini elde ettiğimiz dosyaya ilişkin dosya bilgi göstericisini (``FILE *``) bize verir. Yani
@@ -491,7 +486,7 @@ prototipi şöyledir:
 Fonksiyonun birinci parametresi ``open`` fonksiyonu ile elde edilen dosya betimleyicidir. İkinci parametre
 dosyanın ``fopen`` fonksiyonundaki açış modudur. Tabii buradaki açış modunun ``open`` fonksiyonuyla dosya
 açılırkenki mod ile uyuşması gerekir. Fonksiyon başarı durumunda dosya bilgi göstericisine, başarısızlık
-durumunda ``NULL`` adrese geri döner. ``errno`` değeri uygun biçimde set edilir. Örneğin:
+durumunda ``NULL`` adrese geri döner, ``errno`` değişkeni uygun biçimde set edilir. Örneğin:
 
 .. code-block:: c
 
@@ -507,9 +502,9 @@ durumunda ``NULL`` adrese geri döner. ``errno`` değeri uygun biçimde set edil
 
 ``fdopen`` fonksiyonundaki açış modunun betimleyici oluşturulurken belirtilen açış moduyla uyumlu olması
 gerektiğine bir kez daha dikkatinizi çekmek istiyoruz. Yukarıdaki örnekte biz ``fdopen`` fonksiyonunda açış
-modunu *r+* biçiminde verseydik ``fdopen`` başarısız olurdu.
+modunu ``"r+"`` biçiminde verseydik ``fdopen`` başarısız olurdu.
 
-Aşağıdaki örnekte önce ``open`` POSIX fonksiyonu ile dosya açılmış sonra dosya betimleyicisi kullanılarak
+Aşağıdaki örnekte önce ``open`` fonksiyonu ile dosya açılmış, sonra dosya betimleyicisi kullanılarak
 ``fdopen`` fonksiyonu ile dosya bilgi göstericisi elde edilmiştir. İşlemlere standart C fonksiyonlarıyla
 devam edilmiştir. ``fclose`` işlemi zaten bu betimleyiciyi kapatacağı için ayrıca ``close`` fonksiyonu
 çağrılmamıştır.
@@ -556,71 +551,66 @@ devam edilmiştir. ``fclose`` işlemi zaten bu betimleyiciyi kapatacağı için 
 Standart C Dosya Fonksiyonlarında Tamponlama Modları
 ====================================================
 
-Şimdi de C'nin standart dosya fonksiyonlarının uyguladığı tamponlama (buffering) hakkında bilgiler
+Şimdi de C'nin standart dosya fonksiyonlarının uyguladığı *tamponlama (buffering)* modları hakkında bilgiler
 verelim. Standart C'nin ``<stdio.h>`` fonksiyonları tamponlamayı üç moda (ya da stratejiye) göre farklı
 biçimlerde yapmaktadır.
 
-Üç Tamponlama Modu
-------------------
-
 **Tam Tamponlamalı (Full Buffered) Mod:** Burada okuma sırasında tampon tamamen doldurulur. Tamponun
-sonuna gelindiğinde tampon yeniden doldurulur. Yazma sırasında da tampona yazılır. Tamponun sonuna
-gelindiğinde ya da ``fseek`` işlemi yapıldığında tampona yazılmış olanlar flush edilir.
+sonuna gelindiğinde tampon yeniden doldurulur. Yazma işlemleri de tampona yapılır. Tamponun sonuna
+gelindiğinde, ``fflush`` ya da ``fseek`` çağrısı yapıldığında tampona yazılmış olanlar flush edilir.
 
 **Satır Tamponlamalı (Line Buffered) Mod:** Bu modda tampon tamamen doldurulmaz. Yalnızca tek satırlık
-bilgi ('\\n' karakteri dahil olmak üzere) tampona çekilmektedir. Okuma sırasında bu tampondan byte'lar
-verilir. Dosyaya yazılmak istenen byte'lar yine tampona yazılır. flush işlemi '\\n' karakteri tampona
-yazılınca (ya da ``fflush`` ve ``fclose`` fonksiyonları çağrılınca) yapılmaktadır. Satır tamponlamalı mod
+bilgi (``'\n'`` karakteri dahil olmak üzere) tampona çekilmektedir. Okuma sırasında bu tampondan byte'lar
+verilir. Dosyaya yazılmak istenen byte'lar yine tampona yazılır. flush işlemi ``'\n'`` karakteri tampona
+yazılınca (ya da ``fflush``, ``fseek`` ve ``fclose`` fonksiyonları çağrılınca) yapılmaktadır. Satır tamponlamalı mod
 tipik olarak text dosyalar için kullanılmaktadır. Binary dosyalar için bu mod kullanılabilse de
 anlamsızdır.
 
 **Sıfır Tamponlamalı (Unbuffered) Mod:** Burada tampon hiç kullanılmaz. Doğrudan ilgili aşağı seviyeli
-fonksiyonlarla (yani UNIX/Linux sistemlerinde ``read`` ve ``write`` POSIX fonksiyonlarıyla) aktarım
+fonksiyonlarla (yani UNIX/Linux sistemlerinde ``read`` ve ``write`` fonksiyonlarıyla) aktarım
 yapılır.
 
-.. code-block:: text
+C standartları bu üç tamponlama biçimini kabaca betimlemiştir, ayrıntılar konusunda bir açıklama yapmamıştır. 
+C standartlarında tamponlama stratejisi için yalnızca kabaca ""niyet" belirtilmiştir. Tamponlama modlarını aşağıdaki 
+tabloyla özetleyebiriz:
 
-    +------------------------+  +-------------------------+  +---------------------------+
-    |  Tam Tamponlamalı      |  |  Satır Tamponlamalı     |  |  Sıfır Tamponlamalı       |
-    |  (Full Buffered)       |  |  (Line Buffered)        |  |  (Unbuffered)             |
-    |------------------------|  |-------------------------|  |---------------------------|
-    |  Tampon tamamen        |  |  Yalnızca bir satır     |  |  Tampon kullanılmaz,      |
-    |  doldurulunca flush    |  |  ('\n' dahil) tutulur,  |  |  her çağrı doğrudan       |
-    |  edilir.               |  |  '\n' görülünce flush   |  |  read/write ile yapılır.  |
-    |                        |  |  edilir.                |  |                           |
-    +------------------------+  +-------------------------+  +---------------------------+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Tamponlama Türü
+     - Davranış
+   * - Tam Tamponlamalı (Full Buffered)
+     - Tampon tamamen doldurulunca flush edilir.
+   * - Satır Tamponlamalı (Line Buffered)
+     - Yalnızca bir satır (``'\n'`` dahil) tutulur, ``'\n'`` görülünce flush edilir.
+   * - Sıfır Tamponlamalı (Unbuffered)
+     - Tampon kullanılmaz, her çağrı doğrudan ``read`` / ``write`` ile yapılır.
 
 Satır tamponlaması kişilere biraz tuhaf gelebilmektedir. Çünkü satır tamponlaması yapabilmek için standart
-C kütüphanesinin okuma sırasında '\\n' karakterini görmesi gerekir ki bazı durumlarda bunun etkin bir
+C kütüphanesinin okuma sırasında ``'\n'`` karakterini görmesi gerekir ki bazı durumlarda bunun etkin bir
 biçimde yapılabilme olanağı yoktur. Ancak bazı durumlarda zaten aygıt sürücüler bize satırsal bilgi
 vermektedir. Standart C kütüphaneleri disk dosyaları için satır tamponlaması yaparken aslında çoğu kez
-'\\n' karakterine kadar değil tüm tampon kadar okuma yapmaktadır. Satır tamponlamasının en önemli etkisi
-yazma işleminde kendini göstermektedir. Satır tamponlamalı modda '\\n' karakteri tampona yazıldığında flush
-işlemi yapılmaktadır. C standartları bu üç tamponlama biçimini kabaca betimlemiş olsa da ayrıntılar
-konusunda bir açıklama yapmamıştır. Dolayısıyla kütüphaneleri gerçekleştirenler satır tamponlaması ile
-okuma yapılırken '\\n' karakterine kadar değil tüm tamponu da doldurabilmektedir. C standartlarında
-tamponlama stratejisi için yalnızca kabaca *niyet* belirtilmiştir. Yukarıda da belirttiğimiz gibi ayrıntılı
-bir açıklama yapılmamıştır. Standartlar ayrıntıların *derleyicileri yazanların isteğine bırakıldığını
-(implementation-defined)* belirtmektedir.
-
-C Standardının Tamponlama Tanımı
---------------------------------
+``'\n'`` karakterine kadar değil tüm tampon kadar okuma yapmaktadır. Satır tamponlamasının en önemli etkisi
+yazma işleminde kendini göstermektedir. Satır tamponlamalı modda ``'\n'`` karakteri tampona yazıldığında flush
+işlemi yapılmaktadır. Dolayısıyla kütüphaneleri gerçekleştirenler satır tamponlaması ile okuma yapılırken ``'\n'`` 
+karakterine kadar değil tüm tamponu da doldurabilmektedir.  Yukarıda da belirttiğimiz gibi ayrıntılı
+bir açıklama yapılmamıştır. Standartlar ayrıntıların "derleyicileri yazanların isteğine bırakıldığını
+(implementation-defined)"" belirtmektedir.
 
 C standartlarında tamponlamayla ilgili kısım şöyledir:
 
-    When a stream is unbuffered, characters are intended to appear from the source or at the
-    destination as soon as possible. Otherwise characters may be accumulated and
-    transmitted to or from the host environment as a block. When a stream is fully buffered,
-    characters are intended to be transmitted to or from the host environment as a block when
-    a buffer is filled. When a stream is line buffered, characters are intended to be
-    transmitted to or from the host environment as a block when a new-line character is
-    encountered. Furthermore, characters are intended to be transmitted as a block to the host
-    environment when a buffer is filled, when input is requested on an unbuffered stream, or
-    when input is requested on a line buffered stream that requires the transmission of
-    characters from the host environment. Support for these characteristics is
-    implementation-defined, and may be affected via the setbuf and setvbuf functions.
+.. container:: acknowledge
 
-    -- ISO/IEC C Standardı
+    When a stream is unbuffered, characters are intended to appear from the source or at the destination as soon as
+    possible. Otherwise characters may be accumulated and transmitted to or from the host environment as a block.
+    When a stream is fully buffered, characters are intended to be transmitted to or from the host environment as a
+    block when a buffer is filled. When a stream is line buffered, characters are intended to be transmitted to or
+    from the host environment as a block when a new-line character is encountered. Furthermore, characters are
+    intended to be transmitted as a block to the host environment when a buffer is filled, when input is requested
+    on an unbuffered stream, or when input is requested on a line buffered stream that requires the transmission of
+    characters from the host environment. Support for these characteristics is implementation-defined, and may be
+    affected via the ``setbuf`` and ``setvbuf`` functions.
 
 Tamponlama modu ile ilgili iki önemli soru gündeme gelmektedir:
 
@@ -631,17 +621,16 @@ Tamponlama modu ile ilgili iki önemli soru gündeme gelmektedir:
 şey söylenmemiştir. Bu durum *bunun herhangi bir biçimde olabileceği* anlamına gelmektedir. Fakat mevcut
 standart C kütüphanelerinin hepsi disk dosyalarında default durumda *tam tamponlamalı (full buffered)*
 modu esas almaktadır. Ancak C standartlarında ``stdin``, ``stdout`` ve ``stderr`` dosyalarının default
-tamponlama modu için bazı şeyler söylenmiştir. Bir dosyanın tamponlama modu, dosya ``fopen`` fonksiyonuyla
-açıldıktan sonra ancak henüz hiçbir işlem yapmadan ``setbuf`` ve ``setvbuf`` standart C fonksiyonlarıyla
-değiştirilebilmektedir. Dosya üzerinde herhangi bir işlem yaptıktan sonra bu fonksiyonların çağrılması
-*tanımsız davranışa (undefined behavior)* yol açmaktadır. ``setvbuf`` fonksiyonu işlevsel olarak
-``setbuf`` fonksiyonunu zaten kapsamaktadır.
+tamponlama modu için bazı şeyler söylenmiştir. 
 
-Tamponlama Modunun Değiştirilmesi: setbuf
------------------------------------------
+Tamponlama Modunun Değiştirilmesi: setbuf ve setvbuf Fonksiyonları
+------------------------------------------------------------------
 
-``setbuf`` fonksiyonu aslında kullanılan tamponun yerini değiştirmek için tasarlanmıştır. Fonksiyonun
-prototipi şöyledir:
+Bir dosyanın tamponlama modu, dosya ``fopen`` fonksiyonuyla açıldıktan sonra ancak henüz hiçbir işlem yapmadan 
+``setbuf`` ve ``setvbuf`` standart C fonksiyonlarıyla değiştirilebilmektedir. Dosya üzerinde herhangi bir işlem 
+yaptıktan sonra bu fonksiyonların çağrılması *tanımsız davranışa (undefined behavior)* yol açmaktadır. ``setvbuf`` 
+fonksiyonu işlevsel olarak ``setbuf`` fonksiyonunu zaten kapsamaktadır. ``setbuf`` fonksiyonu aslında kullanılan 
+tamponun yerini değiştirmek için tasarlanmıştır. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -666,7 +655,7 @@ edememektedir. Örneğin:
     }
     setbuf(f, mybuf);
 
-Burada artık açılan dosya için ``mybuf`` ile belirtilen tampon kullanılmaktadır. Biz dosyayı sıfır
+Burada artık açılan dosya için ``mybuf`` ile belirtilen tampon kullanılacaktır. Biz dosyayı sıfır
 tamponlamalı moda şöyle geçirebiliriz:
 
 .. code-block:: c
@@ -676,7 +665,7 @@ tamponlamalı moda şöyle geçirebiliriz:
 Aslında tamponun yerini değiştirmenin gerektiği durumlar oldukça seyrektir. Tampona doğrudan erişilmek
 istendiğinde, ya da tamponun heap'te değil de statik bir alanda oluşturulması istendiğinde bu değişiklik
 yapılabilmektedir. Bazı standart C kütüphaneleri (örneğin *musl* ve *uclibc*) dosya tamponunu ``fopen``
-işlemi sırasında tahsis etmektedir. *glibc* gibi bazı kütüphaneler ise tamponu *ilk kez kullanıldığında*
+işlemi sırasında tahsis etmektedir. *glibc* gibi bazı kütüphaneler ise tamponu "ilk kez kullanıldığında"
 tahsis etmektedir.
 
 Aşağıdaki örnekte ``setbuf`` fonksiyonu ile dosya için kullanılacak tamponun yeri değiştirilmiştir.
@@ -719,9 +708,6 @@ Aşağıdaki örnekte ``setbuf`` fonksiyonu ile dosya için kullanılacak tampon
         return 0;
     }
 
-Tamponlama Modunun Değiştirilmesi: setvbuf
-------------------------------------------
-
 ``setvbuf`` fonksiyonu ile hem tamponun yeri, hem büyüklüğü hem de tamponlama modu değiştirilebilmektedir.
 Fonksiyonun prototipi şöyledir:
 
@@ -734,9 +720,18 @@ Fonksiyonun prototipi şöyledir:
 Fonksiyonun birinci parametresi dosya bilgi göstericisini (stream) belirtir. Üçüncü parametre
 değiştirilecek tamponlama modunu belirtmektedir. Bu parametre şu değerlerden birini alabilmektedir:
 
-- ``_IONBF`` (unbuffered)
-- ``_IOLBF`` (line buffered)
-- ``_IOFBF`` (fully buffered)
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Sembolik Sabit
+     - Tamponlama Türü
+   * - ``_IONBF``
+     - Sıfır tamponlamalı (unbuffered)
+   * - ``_IOLBF``
+     - Satır tamponlamalı (line buffered)
+   * - ``_IOFBF``
+     - Tam tamponlamalı (fully buffered)
 
 İkinci parametre tamponun yerini değiştirmek için kullanılmaktadır. Bu parametre ``NULL`` adres geçilirse
 tamponun yeri değiştirilmez. Son parametre ise tamponun yeni uzunluğunu belirtmektedir. Programcı ikinci
@@ -744,7 +739,7 @@ parametreye ``NULL`` adres geçip son parametre yoluyla tamponun büyüklüğün
 tamponu ``setvbuf`` kendisi tahsis edecektir. Eğer tamponlama modu ikinci parametreye ``_IONBF`` geçilerek
 sıfır tamponlamalı mod olarak ayarlanırsa artık ikinci ve dördüncü parametrenin bir önemi kalmamaktadır.
 Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda sıfır dışı bir değere geri dönmektedir.
-POSIX sistemlerinde ``errno`` değeri yine uygun biçimde set edilmektedir. Örneğin:
+POSIX sistemlerinde ``errno`` değişkeni yine uygun biçimde set edilmektedir. Örneğin:
 
 .. code-block:: c
 
@@ -781,11 +776,7 @@ Burada dosya sıfır tamponlamalı moda sokulmuştur. Örneğin:
 
 Burada tamponun yeri ve uzunluğu değiştirilmiştir.
 
-glibc'ye Özgü setbuffer ve setlinebuf Fonksiyonları
----------------------------------------------------
-
-*glibc* kütüphanesinde ``setbuffer`` ve ``setlinebuf`` isimli iki fonksiyon da bulunmaktadır. Bu
-fonksiyonlar C standartlarında ve POSIX standartlarında bulunmamaktadır. *glibc* kütüphanesine özgüdür.
+*glibc* kütüphanesinde POSIX standartlarında olmayan ``setbuffer`` ve ``setlinebuf`` isimli iki fonksiyon da bulunmaktadır. 
 Bu fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
@@ -802,69 +793,19 @@ Bu fonksiyonların prototipleri şöyledir:
 
     setvbuf(stream, NULL, _IOLBF, 0);
 
-Aşağıdaki örnekte bir dosya ``fopen`` fonksiyonuyla açılmış ve *satır tamponlamalı moda* geçirilmiştir.
-Yukarıda da belirttiğimiz gibi C standartları tamponlama modları için mutlak uyulması gereken kuralları
-açıkça belirtmemiştir. Örneğin *glibc* kütüphanesi normal dosyalarda satır tamponlaması sırasında satır
-sonuna kadar değil tamponun tamamını doldurmaktadır. Ancak '\\n' karakteri dosyaya yazıldığında flush
-işlemini yapmaktadır.
+.. note::
 
-.. code-block:: c
+    *glibc* dışındaki çeşitli standart C kütüphanelerinin özellikle stdio fonksiyonlarının gerçekleştirimini
+    inceleyebilirsiniz. İncelemek için alternatifler şunlar olabilir:
 
-    #include <stdio.h>
-    #include <stdlib.h>
+    - `uclibc (Mikro C kütüphanesi) <https://elixir.bootlin.com/uclibc-ng/latest/source>`_
+    - `musl libc kütüphanesi <http://www.musl-libc.org/>`_
+    - `diet libc kütüphanesi <http://www.fefe.de/dietlibc/>`_
+    - Plauger'in *The C Standard Library* kitabında gerçekleştirimini yaptığı kütüphane:
+      `GitHub c-standard-library konusu <https://github.com/topics/c-standard-library>`_
 
-    int main(void)
-    {
-        FILE *f;
-        char mybuf[512];
-        long size;
-        int n;
-        int ch;
-
-        if ((f = fopen("test.txt", "r+")) == NULL) {
-            fprintf(stderr, "cannot open file!...\n");
-            exit(EXIT_FAILURE);
-        }
-
-        fseek(f, 0, SEEK_END);
-        size = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        n = size < 512 ? size : 512;
-
-        if (setvbuf(f, mybuf, _IOLBF, 512) == -1) {
-            fprintf(stderr, "setvbuf failed!..\n");
-            exit(EXIT_FAILURE);
-        }
-
-        ch = fgetc(f);
-        putchar(ch);
-
-        for (int i = 0; i < n; ++i)
-            putchar(mybuf[i]);
-        putchar('\n');
-
-        fclose(f);
-
-        return 0;
-    }
-
-Standart C Kütüphanesi Gerçekleştirimleri İçin Kaynaklar
---------------------------------------------------------
-
-*glibc* dışındaki çeşitli standart C kütüphanelerinin özellikle stdio fonksiyonlarının gerçekleştirimini
-inceleyebilirsiniz. İncelemek için alternatifler şunlar olabilir:
-
-- uclibc (Mikro C kütüphanesi): ``https://elixir.bootlin.com/uclibc-ng/latest/source``
-- musl libc kütüphanesi: ``http://www.musl-libc.org/``
-- diet libc kütüphanesi: ``http://www.fefe.de/dietlibc/``
-- Plauger'in *The C Standard Library* kitabında gerçekleştirimini yaptığı kütüphane:
-  ``https://github.com/topics/c-standard-library``
-
-stdin, stdout, stderr ve Varsayılan Tamponlama
-==============================================
-
-stdin/stdout/stderr Akışlarının Genel Özellikleri
--------------------------------------------------
+stdin, stdout ve stderr Dosyalarının Varsayılan Tamponlama Modları
+------------------------------------------------------------------
 
 Daha önce de belirttiğimiz gibi C'nin ``<stdio.h>`` dosyası içerisinde ``FILE *`` türünden yani *stream*
 belirten üç değişken ismi bulunmaktadır: ``stdin``, ``stdout`` ve ``stderr``. Bu değişkenler ``fopen``
