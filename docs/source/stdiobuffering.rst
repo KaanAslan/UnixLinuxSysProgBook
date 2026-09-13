@@ -45,7 +45,7 @@ C'nin standart dosya fonksiyonlarının en önemli özellikliği bir tamponlama 
 Bu nedenle C'nin dosya fonksiyonlarına *tamponlu (buffered) IO fonksiyonları* da denilmektedir.
 
 Sistem Fonksiyonlarını Çağırmanın Maliyeti
-------------------------------------------
+==========================================
 
 Biz önceki bölümde sistem fonksiyonlrını çağırmanın bir maliyet oluşturduğuğunu söyleemiştik. Şimdi bunu daha 
 somut hale getirelim. Aşağıda iki program verilmiştir. Bu iki program da bir dosyanın bütün karakterlerini ekrana yazdırmaktadır.
@@ -171,16 +171,16 @@ Tamponlama Mekanizmasının Çalışma Biçimi
 için bir tampon kullanmaktadır. Biz örneğin ``fgetc`` fonksiyonu ile bir byte bile okumak istesek ``fgetc``
 bir tamponluk bilgiyi okur ve bize onun içerisinden bir byte'ı verir. Biz daha sonra yeniden ``fgetc``
 fonksiyonunu çağırdığımızda ``fgetc`` zaten tamponda daha önce okunmuş olan bilgi yığını olduğu için
-``read`` fonksiyonu ile okuma yapmaz, bize doğrudan byte'ı tampondan verir. Tabii tampondaki her byte
+``read`` fonksiyonu ile okuma yapmaz, bize doğrudan byte'ı tampondan verir. Tabii tampondaki tüm byte'lar
 okunduktan sonra (yani tamponun sonuna gelindiğinde) ``fgetc`` yeniden ``read`` fonksiyonunu çağıracak ve
 tamponu yeniden dolduracaktır.
 
-``fopen`` fonksiyonunun geri döndürdüğü ``FILE`` türünden yapının içerisinde aslında bu tamponu yönetmek
-için gerekli olan bilgiler de bulunmaktadır. Örneğin tamponun adresi, büyüklüğü, tamponda nerede kalındığı
-gibi bilgiler bu ``FILE`` yapısının içerisinde tutulmaktadır.
+``fopen`` fonksiyonun geri döndürdüğü ``FILE`` türünden yapının içerisinde aslında bu tamponu yönetmek için gerekli 
+olan bilgiler de bulunmaktadır. Örneğin "tamponun adresi", "tamponun büyüklüğü", "tamponda nerede kalındığı", 
+"tamponda değişiklik yapılan yerin tampondaki konumu" gibi bilgiler bu ``FILE`` yappısının içerisinde tutulmaktadır. 
 
-Dosya işlemlerinde tamponlama C'ye özgü bir durum değildir. C++'taki iostream sınıfları, dosya işlemlerini
-yapan Java ve C# sınıfları, Rust'taki yapılar benzer tamponlamayı yapmaktadır.
+Dosya işlemlerinde tamponlama C'ye özgü bir durum değildir. C++'taki ``iostream`` sınıfları, dosya işlemlerini
+yapan Java ve C# sınıfları, Rust'taki ``BufReader``, ``BufWriter`` gibi yapılar benzer tamponlamayı yapmaktadır.
 
 Aşağıda daha önce yapmış olduğumuz okuma zaman ölçümü standart C fonksiyonları kullanılarak
 yapılmıştır.
@@ -196,9 +196,9 @@ yapılmıştır.
 Görüldüğü gibi standart C fonksiyonları da bizim manuel yaptığımız tamponlamayı kendi içlerinde
 yapmaktadır.
 
-.. code-block:: c
+``read3.c```
 
-    /* a.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -233,17 +233,17 @@ yapmaktadır.
         return 0;
     }
 
-BUFSIZ ve Varsayılan Tampon Büyüklüğü
--------------------------------------
+Varsayılan Tampon Büyüklüğü
+---------------------------
 
 C'de dosya tamponları dosya açıldığında o dosyaya ilişkin olacak biçimde oluşturulmaktadır. Yani her
 dosyanın tamponu birbirinden ayrıdır. Standart C fonksiyonlarının kullandıkları default tampon büyüklüğü
-bilgisi ``<stdio.h>`` içerisinde ``BUFSIZ`` sembolik sabitiyle dışarıya verilmektedir. (Tabii bu ``BUFSIZ``
+``<stdio.h>`` içerisinde ``BUFSIZ`` sembolik sabitiyle dışarıya verilmektedir. (Tabii bu ``BUFSIZ``
 değerini değiştirmenin bir anlamı yoktur. Kod çoktan derlenmiştir. Bu sembolik sabit sadece dış dünyaya
 default durum hakkında bilgi vermek için bulundurulmuştur.)
 
 Aşağıdaki programda ``BUFSIZ`` değeri ekrana (``stdout`` dosyasına) yazdırılmıştır. Kursun yapıldığı
-makinede bu değer 8192'dir. Tabii bu 8192 değeri *glibc* kütüphanesi tarafından belirlenmiş değerdir.
+makinede bu değer 8192'dir. Tabii bu 8192 değeri *glibc* kütüphanesi tarafından belirlenmiş bir değerdir.
 
 .. code-block:: c
 
@@ -259,20 +259,20 @@ makinede bu değer 8192'dir. Tabii bu 8192 değeri *glibc* kütüphanesi tarafı
 Okuma/Yazma Tamponları ve flush İşlemi
 --------------------------------------
 
-Standart C fonksiyonlarının kullandığı bu tamponlar read/write tamponlardır. Yani yalnızca okuma sırasında
+C'nin standart dosya fonksiyonlarının kullandığı bu tamponlar *read/write* tamponlardır. Yani yalnızca okuma sırasında
 değil yazma sırasında da kullanılmaktadır. Örneğin biz ``fputc`` fonksiyonu ile bir byte'ı dosyaya yazmak
-istesek bu bir byte aslında bu tampona yazılır. Tamponun içerisindekiler tampon dolduğunda, açıkça
-``fflush`` fonksiyonu çağrıldığında ya da en kötü olasılıkla ``fclose`` işlemi sırasında ``write``
+istesek bu bir byte aslında bu tampona yazılır. Tamponun içerisindekiler tampon dolduğunda, açıkça ``fflush`` fonksiyonu 
+çağrıldığında, ``fseek`` fonksiyonu çağrıldığında ya da en kötü olasılıkla ``fclose`` işlemi sırasında ``write``
 fonksiyonu çağrılarak diske yazılmaktadır. Biz tampondaki bilginin aktarılmasını garanti etmek için
-``fflush`` fonksiyonu kullanabiliriz. Tampondaki bilginin diske yazılması işlemine dosya terminolojisinde
+``fflush`` fonksiyonunu çağırabiliriz. Tampondaki bilginin diske yazılması işlemine dosya terminolojisinde
 *flush işlemi* denilmektedir. ``fflush`` fonksiyonunun kullanılabilmesi için dosyanın yazma modunda
-açılmış olması (yani *"w"*, *"r+"* gibi modlarda) gerekmektedir.
+(yani ``"w"``, ``"r+"`` gibi modlarda) açılmış olması gerekmektedir.
 
 FILE Yapısının İçeriği
 ----------------------
 
 Bildiğiniz gibi C'nin dosya açmakta kullanılan ``fopen`` fonksiyonu bize ``FILE`` türünden bir yapı
-nesnesinin adresini vermektedir. Bu ``FILE`` nesnesine *stream* de denilmektedir. Biz kursumuzda buna
+nesnesinin adresini vermektedir. Bu ``FILE`` nesnesine İngilizce *stream* denilmektedir. Biz kursumuzda buna
 genel olarak *dosya bilgi göstericisi* diyoruz. İşte yukarıda da belirttiğimiz gibi bu ``FILE`` yapısının
 içerisinde tamponu yönetmek için de bilgiler bulunmaktadır. ``FILE`` yapısının içerisinde tipik olarak şu
 bilgiler bulunur:
@@ -281,6 +281,7 @@ bilgiler bulunur:
 - Tamponun başlangıç adresini tutan bir gösterici
 - Tampondaki aktif noktayı tutan bir gösterici
 - Tamponun uzunluğunu tutan bir eleman ya da tamponun sonunu tutan bir gösterici
+- Tamponda yapılan değişikliğin konumunu tutan göstericiler
 - Diğer bilgiler
 
 Örneğin kursun yapıldığı makinedeki *glibc* kütüphanesinde ``FILE`` yapısı önce ``struct _IO_FILE``

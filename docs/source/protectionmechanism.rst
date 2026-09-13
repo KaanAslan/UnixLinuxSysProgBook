@@ -155,8 +155,8 @@ denilmektedir. Bu iki bit prosesin modunu belirtmektedir. (Intel işlemcilerinde
 olduğunu belirtmiştik.) 32 ARM işlemcilerinde bu bilgi *CPSR (Current Program Status Register)* isimli yazmacın, 
 64-bit ARM işlemcilerinde ise *PSTATE isimli yazmacın* bir bitinde tutulmaktadır.
 
-Akışın Kullanıcı Modundan Çekirdek Moduna Geçmesi ve Kullanıcı Moduna Geri Dönmesi
-==================================================================================
+Akışın Kullanıcı Modundan Çekirdek Moduna Geçmesi ve Geri Dönmesi
+=================================================================
 
 Sistem fonksiyonları çekirdeğin içerisinde bulunmaktadır. Dolayısıyla bu fonksiyonlar özel makine
 komutlarını kullanırlar ve bellekte her yere erişebilirler. Aksi takdirde bu fonksiyonların yazılabilmesi
