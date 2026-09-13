@@ -256,9 +256,6 @@ makinede bu değer 8192'dir. Tabii bu 8192 değeri *glibc* kütüphanesi tarafı
         return 0;
     }
 
-Okuma/Yazma Tamponları ve flush İşlemi
---------------------------------------
-
 C'nin standart dosya fonksiyonlarının kullandığı bu tamponlar *read/write* tamponlardır. Yani yalnızca okuma sırasında
 değil yazma sırasında da kullanılmaktadır. Örneğin biz ``fputc`` fonksiyonu ile bir byte'ı dosyaya yazmak
 istesek bu bir byte aslında bu tampona yazılır. Tamponun içerisindekiler tampon dolduğunda, açıkça ``fflush`` fonksiyonu 
@@ -285,7 +282,7 @@ bilgiler bulunur:
 - Diğer bilgiler
 
 Örneğin kursun yapıldığı makinedeki *glibc* kütüphanesinde ``FILE`` yapısı önce ``struct _IO_FILE``
-biçiminde tanımlanıp sonra ``FILE`` olarak typedef edilmiştir:
+biçiminde tanımlanıp sonra ``FILE`` olarak ``typedef`` edilmiştir:
 
 .. code-block:: c
 
@@ -327,7 +324,7 @@ biçiminde tanımlanıp sonra ``FILE`` olarak typedef edilmiştir:
 
     typedef struct _IO_FILE FILE;
 
-*musl* isimli POSIX kütüphanesinde de benzer tanımlamalar kullanılmıştır:
+*musl* isimli standart C ve POSIX kütüphanesinde de benzer tanımlamalar kullanılmıştır:
 
 .. code-block:: c
 
@@ -363,10 +360,10 @@ biçiminde tanımlanıp sonra ``FILE`` olarak typedef edilmiştir:
     typedef struct _IO_FILE FILE;
 
 Peki ``fopen`` tarafından bu ``FILE`` yapısı nasıl tahsis edilmektedir? Standart C kütüphanelerini
-yazanlar birkaç teknik kullanabilmektedir. Birincisi doğrudan tahsisatın ``malloc`` fonksiyonu ile
-yapılmasıdır. Tabii bu durumda ``free`` işlemi ``fclose`` fonksiyonu tarafından yapılacaktır. İkincisi bu
-``FILE`` yapısı zaten işin başında static düzeyde tahsis edilmiş bir ``FILE`` dizisinin içerisinde
-alınabilir. Örneğin:
+yazanlar birkaç teknik kullanabilmektedir. Örneğin tipik olarak tahsisat ``malloc`` fonksiyonuyla yapılabilir.  
+Tabii bu durumda ``free`` işlemi ``fclose`` fonksiyonu tarafından yapılacaktır. Bazı kütüphane gerçekleştirimlerinde 
+``FILE`` yapısı zaten işin başında statik düzeyde tahsis edilmiş bir ``FILE`` dizisinin içerisinden alınmaktadır. 
+Örneğin:
 
 .. code-block:: c
 
@@ -389,15 +386,13 @@ ile tahsis edilmiştir:
         return stream;
     }
 
-C standartlarında ``FILE`` yapısının içeriği hakkında bir bilgi verilmemiştir. Bu durumda bu ``FILE``
+*glibc* kütüphanesi de tahsisatı ``malloc`` fonksiyonuyla yapmaktadır. 
+
+C standartlarında ``FILE`` yapısının içeriği hakkında bilgi verilmemiştir. Bu durumda bu ``FILE``
 yapısının içeriği kütüphaneyi yazanlar tarafından istenildiği gibi oluşturulabilir.
 
-
-fileno ve fdopen Fonksiyonları
-==============================
-
-fileno Fonksiyonu
------------------
+C'nin Standart Dosya Fonksiyonlarıyla Köprü Kuran POSIX Fonksiyonları
+=====================================================================
 
 Biz bir dosyayı ``fopen`` fonksiyonuyla açıp o dosyanın dosya betimleyicisini elde edebiliriz. ``fileno``
 isimli POSIX fonksiyonu ``FILE`` yapısının içerisindeki dosya betimleyicisini bize vermektedir. ``fileno``
