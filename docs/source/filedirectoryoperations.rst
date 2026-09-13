@@ -7833,9 +7833,9 @@ aygıt sürücüye de ilişkin olabilir. Örneğin biz bir betimleyiciden ``read
 sistem eğer bu betimleyicinin gösterdiği dosya nesnesi bir disk dosyasına ilişkinse bizim disk dosyasından okuma 
 yapmamızı sağlar, ancak betimleyici bir aygıt sürücüye ilişkinse bu durumda sistem o aygıt sürücünün ``read`` 
 fonksiyonunu çağırır. Yani aygıt sürücülerin içerisinde ``read`` yapıldığında ve ``write`` yapıldığında çağrılacak 
-fonksiyonlar vardır. İşte örneğin biz 0 numaralı betimleyiciden okuma yapmak istediğimizde aslında *terminal aygıt sürücüsünün* 
-``read`` fonksiyonu çağrılmaktadır. 0 numaralı betimleyici ``O_RDONLY`` modunda açılmıştır. Terminal aygıt sürücüsünün 
-``read`` fonksiyonu da bize klavyeden okunanları verir. Program çalışmaya başladığında 1 ve 2 numaralı betimleyicilerin 
+fonksiyonlar vardır. İşte örneğin biz ``0`` numaralı betimleyiciden okuma yapmak istediğimizde aslında *terminal aygıt sürücüsünün* 
+``read`` fonksiyonu çağrılmaktadır. ``0`` numaralı betimleyici  ``O_RDONLY`` modunda açılmıştır. Terminal aygıt sürücüsünün 
+``read`` fonksiyonu da bize klavyeden okunanları verir. Program çalışmaya başladığında ``1`` ve ``2`` numaralı betimleyicilerin 
 her ikisi de aynı dosya nesnesini göstermektedir. Bu dosya da ``O_WRONLY`` modunda açılmış durumdadır. Bu dosya nesneleri 
 de yine *terminal aygıt sürücüsüne* ilişkindir. Dolayısıyla biz ``write`` işlemi yaptığımızda aslında terminal aygıt 
 sürücüsünün ``write`` fonksiyonunu çağırmış oluruz. O da bilgileri imlecin bulunduğu yerden itibaren ekrana yazar. 
@@ -7843,8 +7843,8 @@ Burada ``stdout`` ve ``stderr`` betimleyicilerinin aynı dosya nesnesini göster
 kullanıldığında yazdırılmak istenen şeyler ekrana çıkacaktır. (O halde ``stdout`` ile ``stderr`` arasında ne farklılık
 vardır? İzleyen bölümlerde bunu açıklayacağız.)
 
-``open`` fonksiyonunun ilk boş betimleyiciyi vereceği garanti edilmiştir. Yani örneğin programımız başladığında 0, 1 ve
-2 numaralı betimleyiciler dolu olduğuna göre ``open`` fonksiyonu bize 3 numaralı betimleyiciyi verecektir. Tabii
+``open`` fonksiyonunun ilk boş betimleyiciyi vereceği garanti edilmiştir. Yani örneğin programımız başladığında ``0``, ``1`` ve
+``2`` numaralı betimleyiciler dolu olduğuna göre ``open`` fonksiyonu bize 3 numaralı betimleyiciyi verecektir. Tabii
 dosyaları kapattığımızda o betimleyicilere ilişkin slot'lar serbest bırakılır. Bu durumda ``open`` ilk boş betimleyiciyi
 bize verir.
 
@@ -7859,8 +7859,8 @@ Burada ``fd1`` betimleyicisi ile ``fd2`` betimleyicisi aynı dosya nesnesini gö
 dosya nesnesinden hareketle yapıldığı için bizim bu betimleyicilerden hangisini kullandığımızın bir önemi kalmamaktadır.
 Peki böyle bir durumda bir betimleyiciyi ``close`` fonksiyonuyla kapattığımızda ne olacaktır? İşte dosya nesnelerinin
 içerisinde bir sayaç bulunmaktadır. ``close`` fonksiyonu bu sayacın değerini bir eksiltir. Dosya nesnesinin silinmesi
-sayaç 0'a düştüğünde yapılmaktadır. O halde ``close`` fonksiyonu her durumda betimleyici slotunu boşaltır. Ancak dosya nesnesinin
-referans sayacını bir eksilttikten sonra eğer referans sayacı 0'a düşmüşse dosya nesnesini siler. Aşağıda Linux'un
+sayaç ``0``'a düştüğünde yapılmaktadır. O halde ``close`` fonksiyonu her durumda betimleyici slotunu boşaltır. Ancak dosya nesnesinin
+referans sayacını bir eksilttikten sonra eğer referans sayacı ``0``'a düşmüşse dosya nesnesini siler. Aşağıda Linux'un
 güncel çekirdeğindeki dosya nesnesi verilmiştir. Buradaki ``f_ref`` elemanı bu sayacı belirtmektedir:
 
 .. code-block:: c
@@ -8400,7 +8400,7 @@ izleyen konulbölümlerde anlaşılabilecektir.
     }
 
 Peki yukarıdaki örnekte 2 numaralı betimleyici bir biçimde yönlendirilmişse ya da ``close`` edilmişse geri dönüş nasıl
-sağlanabilir? Burada artık işleme başlamadan önce ``dup`` işlemi ile 1 numaralı betimleyicinin gösterdiği dosya
+sağlanabilir? Burada artık işleme başlamadan önce ``dup`` işlemi ile ``1`` numaralı betimleyicinin gösterdiği dosya
 nesnesini gösteren başka bir yedek betimleyicinin oluşturulması gerekir. Aşağıda bu duruma örnek verilmiştir.
 
 .. code-block:: c
@@ -8672,22 +8672,22 @@ Burada ``1`` numaralı betimleyici ``out.txt`` dosyasına, ``0`` numaralı betim
 freopen Stanart C Fonksiyonu ile Dosya Yönlendirmesi
 ----------------------------------------------------
 
-Dosya yönlendirmesi kısıtlı olsa da ``freopen`` isimli standart C fonksiyonuyla da yapılabilmektedir. Fonksiyonun
+Dosya yönlendirmesi -kısıtlı olsa da- ``freopen`` isimli standart C fonksiyonuyla da yapılabilmektedir. Fonksiyonun
 prototipi şöyledir:
 
 .. code-block:: c
 
     FILE *freopen(const char *path, const char *mode, FILE *stream);
 
-Fonksiyonun birinci parametresi yönlendirmenin yapılacağı disk dosyasının yol ifadesini, ikinci parametre açış modunu
-belirtmektedir. Eğer bu ikinci parametre *w* içeren bir parametre ise yönlendirme bu dosyaya yazılacak biçimde
-yapılmaktadır. Eğer bu parametre *r* içeren biçimdeyse yönlendirme bu dosyadan okunacak biçimde yapılmaktadır.
+Fonksiyonun birinci parametresi yönlendirmenin yapılacağı dosyanın yol ifadesini, ikinci parametresi açış modunu
+belirtmektedir. Eğer bu ikinci parametre ``"w"`` içeren bir parametre ise yönlendirme bu dosyaya yazılacak biçimde
+yapılmaktadır. Eğer bu parametre ``"r"`` içeren biçimdeyse yönlendirme bu dosyadan okunacak biçimde yapılmaktadır.
 Fonksiyonun son parametresi yönlendirilecek dosyaya ilişkin dosya bilgi göstericisini (``stream``) almaktadır. Fonksiyon
 başarı durumunda dosyaya ilişkin dosya bilgi göstericisine, başarısızlık durumunda ``NULL`` adrese geri dönmektedir.
 Fonksiyonun bize verdiği dosya bilgi göstericisi birinci parametreyle belirttiğimiz dosyaya ilişkin dosya bilgi
 göstericisidir. Bu işlem sonrasında son parametreyle belirtilmiş olan gösterici ile fonksiyonun geri döndürdüğü
 gösterici aynı ``FILE`` nesnesini gösteriyor durumda olur. ``freopen`` fonksiyonu işleme başlamadan önce üçüncü
-parametreyle belirtilen dosyayı flush edip kapatmaktadır. Sonra da yönlendirme işlemini yapmaktadır. Fonksiyonun birinci
+parametreyle belirtilen dosyayı *flush* edip kapatmaktadır. Sonra da yönlendirme işlemini yapmaktadır. Fonksiyonun birinci
 parametresine özel bir durum olarak ``NULL`` adres de geçilebilir. Bu durumda fonksiyon yönlendirme yapmaz. Yalnızca
 açılmış olan dosyanın açış modunu değiştirir. Örneğin:
 
@@ -8728,8 +8728,8 @@ bir disk dosyasına yönlendirdikten sonra onları yeniden ilgili aygıt sürüc
 yapmanın standart bir yolu yoktur.
 
 IO yönlendirmesi çokça karşılaşılan bir uygulama olduğu halde ``freopen`` fonksiyonu çok seyrek kullanılmaktadır. Çünkü
-``freopen`` fonksiyonunda yönlendirilecek dosyanın C'ce açılmış bir dosya olması gerekmektedir. Halbuki IO
-yönlendirmelerinin çoğu daha aşağı seviyede gerçekleştirilmektedir.
+``freopen`` fonksiyonunda yönlendirilecek dosyanın C'de ``fopen`` fonksiyonu ile açılmış bir dosya olması gerekmektedir. 
+Halbuki IO yönlendirmelerinin çoğu daha aşağı seviyede gerçekleştirilmektedir.
 
 .. code-block:: c
 
@@ -8751,126 +8751,30 @@ yönlendirmelerinin çoğu daha aşağı seviyede gerçekleştirilmektedir.
         return 0;
     }
 
-Aygıt Sürücülerin Açılması ve Aygıt Dosyaları
-=============================================
-
-Aygıt sürücülerin bir dosya gibi kullanıldığını belirtmiştik. UNIX/Linux sistemlerinde geleneksel olarak aygıt
-sürücülere erişmekte kullanılan dizin girişleri ``/dev`` dizininde bulundurulmaktadır. Biz bir aygıt sürücüyü kullanmak
-için ona ilişkin dizin girişini ``open`` fonksiyonuyla açarız. Örneğin:
-
-.. code-block:: c
-
-    fd = open("/dev/null", O_WRONLY);
-
-Burada ``/dev/null`` aygıt sürücüsü ``open`` fonksiyonuyla açılmıştır. Aygıt sürücülere ilişkin dizin girişleri
-(örneğimizdeki ``/dev/null`` girişi) gerçek bir dosya belirtmemektedir. Aygıt dosyalarına ilişkin dizin girişleri için
-diskte yalnızca bir inode elemanı bulundurulmaktadır. Bu inode elemanı aslında hangi aygıt sürücüyle ilişki kurulacağını
-belirten anahtarı içermektedir. Linux sistemlerinde uzunca bir süredir artık ``/dev`` dizini gerçek bir disk dizini
-değildir. Bu dizin RAM'de oluşturulmaktadır ve bu dizine ilişkin dosya sistemine ``devtmpfs`` denilmektedir. Ancak aygıt
-sürücüler için dizin girişlerinin ``/dev`` dizininde oluşturulması zorunlu da değildir. Biz kitabımızda Linux aygıt
-sürücülerini ayrı bir bölümde ayrıntılı bir biçimde ele alacağız.
-
-İşletim sistemi aygıt sürücüye ilişkin dizin girişi açılmaya çalışıldığında aslında *bir aygıt sürücü ile işlem yapılmak
-istendiğini* anlamakta ve o aygıt sürücüyle ilişki kurmaktadır. Yani aygıt sürücü bir dosya gibi açılıyor olsa da
-aslında onun bir disk dosyasıyla ilgisi yoktur.
-
-Örneğin biz bir disk dosyasını ``open`` fonksiyonuyla açıp ondan ``read`` fonksiyonuyla okuma yaptığımızda dosyanın
-içindekileri okuruz. Ancak biz bir aygıt dosyasına ilişkin dizin girişini ``open`` ile açıp ``read`` yaptığımızda aygıt
-sürücü içerisindeki ``read`` fonksiyonunun kodu çalıştırılır, o fonksiyonun bize verdiklerini okumuş oluruz. Aynı durum
-``write`` işleminde de geçerlidir. Örneğin biz terminal aygıt sürücüsünü ``open`` fonksiyonuyla açıp ``write``
-fonksiyonuyla ona bir şeyler yazmak istesek terminal aygıt sürücüsünün ``write`` fonksiyonu çalıştırılacak ve o
-fonksiyon da bizden aldığı bilgileri fiziksel ekrana yazdıracaktır. Zaten 0 numaralı betimleyici terminal aygıt
-sürücüsünün ``O_RDONLY`` modunda açılmasıyla, 1 numaralı betimleyici de terminal aygıt sürücüsünün ``O_WRONLY`` modunda
-açılmasıyla elde edilmiştir. Siz de şöyle bir deneme yapabilirsiniz. Önce terminalinizde *tty* komutunu uygulayarak
-terminal sürücünüzü belirleyebilirsiniz:
-
-.. code-block:: text
-
-    $ tty
-    /dev/pts/0
-
-Sonra da bu terminal aygıt sürücüsünü ``open`` fonksiyonuyla açıp ``write`` fonksiyonuyla ona bir şeyler yazabilirsiniz:
-
-.. code-block:: c
-
-    int fd;
-
-    if ((fd = open("/dev/pts/0", O_WRONLY)) == -1)
-        exit_sys("open");
-
-    if (write(fd, "ankara\n", 7) == -1)
-        exit_sys("write");
-
-Yazdığınız şeyler terminalde gözükecektir.
-
-Aygıt sürücülerin sanki birer dosyaymış gibi ele alınmasının pratik pek çok faydası bulunmaktadır. Yalnızca Linux
-sistemlerinde değil Windows gibi pek çok işletim sistemindeki tasarım bu biçimdedir.
-
-.. code-block:: c
-
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <fcntl.h>
-    #include <unistd.h>
-
-    void exit_sys(const char *msg);
-
-    int main(void)
-    {
-        int fd;
-
-        if ((fd = open("/dev/pts/0", O_WRONLY)) == -1)
-            exit_sys("open");
-
-        if (write(fd, "ankara\n", 7) == -1)
-            exit_sys("write");
-
-        return 0;
-    }
-
-    void exit_sys(const char *msg)
-    {
-        perror(msg);
-        exit(EXIT_FAILURE);
-    }
-
 C'nin stdin, stdout ve stderr Makroları
 ---------------------------------------
 
-C'deki ``stdin``, ``stdout`` ve ``stderr`` isimli makrolar betimleyici belirtmezler. Bu makrolar ``FILE *`` türündendir.
-Tabii ``stdin`` UNIX/Linux sistemlerinde 0 numaralı betimleyici ile, ``stdout`` 1 numaralı betimleyici ile, ``stderr``
-de 2 numaralı betimleyici ile ilişkilidir. Biz C'de ``stderr`` dosyasına ``fprintf`` fonksiyonu ile aşağıdaki gibi bir
-şeyler yazabiliriz:
+C'deki ``stdin``, ``stdout`` ve ``stderr`` isimli makrolar betimleyici belirtmezler. Bu makroların açılımları ``FILE *`` 
+türünden ifade belirtirler. Tabii ``stdin`` UNIX/Linux sistemlerinde 0 numaralı betimleyici ile, ``stdout`` 1 numaralı 
+betimleyici ile, ```stderr`` de 2 numaralı betimleyici ile ilişkilidir. Örneğin biz C'de ``stderr`` dosyasına ``fprintf`` 
+fonksiyonu ile aşağıdaki gibi bir şeyler yazabiliriz:
 
 .. code-block:: c
 
-    fprintf(stderr, "stderr\n");
+    fprintf(stderr, "writing stderr...\n");
 
 Tabii aslında bilindiği gibi ``printf`` ile ``fprintf`` arasında, ``scanf`` ile ``fscanf`` arasındaki tek farklılık
 ``printf`` ve ``scanf`` fonksiyonlarının default olarak ``stdout`` ve ``stdin`` dosya bilgi göstericilerini
 kullanmasıdır. Yani örneğin ``printf(...)`` çağrısı tamamen ``fprintf(stdout, ...)`` çağrısı ile eşdeğerdir. Benzer
 biçimde ``scanf(...)`` çağrısı ile de ``fscanf(stdin, ...)`` eşdeğerdir.
 
-stderr Dosyasının Anlamı ve IO Yönlendirmesiyle Ayrıştırma
-----------------------------------------------------------
-
 Peki ``stderr`` dosyası ne anlama gelmektedir? Anımsanacağı gibi ``stderr`` dosyası 2 numaralı betimleyici ile temsil
 edilmektedir. 1 ve 2 numaralı betimleyicilerin ``dup`` yapılmış olduğunu, yani aynı dosya nesnesini gösterdiğini
 anımsayınız:
 
-.. code-block:: text
-
-    Dosya Betimleyici Tablosu
-
-    ┌───────┐               ┌─────────────────────┐
-    │   0   │──────────────►│ stdin dosya nesnesi │
-    ├───────┤               └─────────────────────┘
-    │   1   │─────────┐
-    ├───────┤         │     ┌──────────────────────┐
-    │   2   │─────────┴────►│ stdout dosya nesnesi │
-    ├───────┤               └──────────────────────┘
-    │  ...  │
-    └───────┘
+.. figure:: _static/std-descriptors-indexed.png
+    :align: center
+    :width: 60%
 
 Bu durumda her iki betimleyici ile de ``write`` yapıldığında yazılanlar ekrana yine çıkacaktır. O halde ``stderr``
 dosyasının anlamı nedir? İşte programcı hata mesajlarını ``stderr`` dosyasına yazdırmalıdır. Bu iyi bir tekniktir.
@@ -8887,9 +8791,10 @@ Böylece ileride gerekirse programın normal çıktılarıyla hata mesajları IO
 Tabii biz IO yönlendirmesi yapmadıktan sonra programın normal mesajlarıyla hata mesajlarının her ikisi de ekrana
 çıkacaktır. Aşağıdaki gibi bir program olsun:
 
-.. code-block:: c
 
-    /* sample.c */
+``sample.c``
+
+.. code-block:: c
 
     #include <stdio.h>
 
@@ -8929,22 +8834,65 @@ Dolayısıyla kafamız karışacaktır. Şimdi programı şöyle çalıştıral�
 
     $ find / -name "sample.c" 2> err.txt
 
-Artık hata mesajları ekranda görünmeyecektir. Bu tür durumlar için ``/dev/null`` isimli bir aygıt sürücü
-bulundurulmuştur. Bu aygıt sürücü açılırsa ve ona yazma yapılırsa yazılanlar atılmaktadır. O halde programın yazdığı
-hata mesajları gereksiz yer kaplamasın diye biz yönlendirmeyi ``/dev/null`` aygıt sürücüsüne de yapabiliriz. Örneğin:
+Artık hata mesajları ekranda görünmeyecektir. 
+
+Linux'un mem Aygıt Sürücüsüne İlişkin Aygıtlar
+==============================================
+
+Linux'ta *mem* aygıt sürücüsüne ilişkin faydalı birtakım aygıtlar vardır. Bunların listesini veriyoruz:
+
+.. list-table::
+   :widths: 12 26 62
+   :header-rows: 1
+
+   * - Minor
+     - Aygıt
+     - Açıklama
+   * - ``1``
+     - ``/dev/mem``
+     - Fiziksel bellek
+   * - ``2``
+     - ``/dev/kmem``
+     - Çekirdek sanal belleği (kaldırıldı)
+   * - ``3``
+     - ``/dev/null``
+     - Null device (yutan aygıt)
+   * - ``4``
+     - ``/dev/port``
+     - G/Ç portları
+   * - ``5``
+     - ``/dev/zero``
+     - Zero device (sıfır üreten aygıt)
+   * - ``7``
+     - ``/dev/full``
+     - Full device (her zaman ``ENOSPC``)
+   * - ``8``
+     - ``/dev/random``
+     - Rastgele sayı üreteci
+   * - ``9``
+     - ``/dev/urandom``
+     - Rastgele sayı üreteci
+
+Biz bu bölümde ``/dev/null``, ``/dev/zero``, ``/dev/random``, ``/dev/urandom`` ve ``/dev/full`` aygıtları üzernde duracağız. 
+*mem* aygıt sürücüsünün diğer aygıtlarına başka konuların içerisinde değineceğiz. Aygıt sürücülerin majör ve minör numaralarının 
+ne anlama geldiğini aygıt sürücülerini anlattığımız bölümde ele alacağız.
+
+/dev/null ve /dev/zero ve /dev/full Aygıtları
+---------------------------------------------
+
+``/dev/null`` ve ``/dev/zero`` aygıtları Linux'ta ``mem`` aygıt sürücüsünün farklı minör numaralarına ilişkin parçalarıdır. 
+``/dev/null`` aygıtı açılırsa ve ona yazma yapılırsa yazılanlar atılmaktadır. O halde örneğin bir programın yazdığı hata mesajları 
+gereksiz yer kaplamasın istiyorsak biz ``/dev/null`` aygıtına yönlendirme yapabiliriz. Örneğin:
 
 .. code-block:: text
 
     $ find / -name "sample.c" 2> /dev/null
 
-``/dev/null`` aygıt sürücüsünden okuma yapılmaya çalışılırsa sanki dosya sonuna gelinmiş (yani EOF durumuna gelinmiş)
-gibi bir durum oluşmaktadır.
+``/dev/null`` aygıtından okuma yapılmaya çalışılırsa sanki dosya sonuna gelinmiş (yani ``EOF`` durumuna gelinmiş)
+gibi bir etki oluşmaktadır. 
 
-/dev/zero Aygıt Sürücüsü
-------------------------
-
-``/dev/zero`` aygıt sürücüsü ``/dev/null`` aygıt sürücüsüne çok benzemektedir. ``/dev/zero`` aygıt sürücüsüne yazılanlar
-da atılır. Ancak bu aygıt sürücüden okuma yapıldığında hep sıfır okunmaktadır. Örneğin:
+``/dev/zero`` aygıtı ``/dev/null`` aygıtına çok benzemektedir. ``/dev/zero`` aygıtına yazılanlar da atılır ancak bu 
+aygıttan okuma yapıldığında hep sıfır okunmaktadır. Örneğin:
 
 .. code-block:: c
 
@@ -8960,7 +8908,7 @@ da atılır. Ancak bu aygıt sürücüden okuma yapıldığında hep sıfır oku
     for (int i = 0; i < 10; ++i)
         printf("%02x\n", buf[i]);
 
-Burada sanki ``/dev/zero`` içerisinde 0'lar bulunan bir dosya gibi davranmaktadır. Aşağıdaki örnekte bu aygıt sürücüyü
+Burada sanki ``/dev/zero`` aygıtı içerisinde sıfırlar bulunan bir dosya gibi davranmaktadır. Aşağıdaki örnekte bu aygıtı
 C'nin ``fopen`` fonksiyonuyla açıp kullandık. Burada standart C fonksiyonlarını kullanmanın bizim için bir dezavantajı
 yoktur.
 
@@ -8994,36 +8942,17 @@ yoktur.
         return 0;
     }
 
-dd Komutu
----------
+``/dev/full`` aygıtından okuma yapıldığında ``/dev/zero`` aygıtında olduğu gibi sıfır byte'ları elde edilir. 
+Ancak bu aygıta yazma yapıldığında ``write`` fonksiyonu sanki disk doluymuş gibi başarısız olur ve ``errno`` değişkeni 
+``ENOSPC`` ("No space left on device") değeriyle set edilir. 
 
-UNIX/Linux sistemlerinde *dd* isimli POSIX komutu dosyayı blok blok kopyalamak için kullanılmaktadır. Örneğin:
+/dev/random ve /dev/urandom Aygıtları
+-------------------------------------
 
-.. code-block:: text
-
-    $ dd if=x.txt of=y.txt bs=4096 count=10
-
-Komuttaki ``if`` argümanı girdi dosyasını (input file), ``of`` argümanı çıktı dosyasını (output file) belirtmektedir.
-``bs`` (block size) ``read`` ve ``write`` ile kopyalamanın hangi uzunlukta tampon kullanılarak gerçekleştirileceğini,
-``count`` argümanı ise kaç blokluk kopyalama yapılacağını belirtmektedir. ``bs`` argümanı belirtilmezse default blok
-büyüklüğü 512 byte alınmaktadır. ``count`` argümanı belirtilmezse dosya sonuna kadar kopyalama yapılmaktadır. Komutun
-daha pek çok argümanı vardır. Bunları *man sayfalarından* inceleyebilirsiniz. Örneğin biz *dd* komutu ile içi 0'larla
-dolu bir dosyayı şöyle oluşturabiliriz:
-
-.. code-block:: text
-
-    $ dd if=/dev/zero of=test.dat bs=8192 count=1
-    1+0 kayıt girdi
-    1+0 kayıt çıktı
-    8192 bayt (8,2 kB, 8,0 KiB) kopyalandı, 0,000190202 s, 43,1 MB/s
-    $ ls -l test.dat
-    -rw-r--r-- 1 kaan study 8192 Ağu 20 11:56 test.dat
-
-/dev/random ve /dev/urandom Aygıt Sürücüleri
---------------------------------------------
-
-``/dev/random`` ve ``/dev/urandom`` aygıt sürücüleri her okunduğunda rastgele byte'lar elde edilmektedir. Bu iki aygıt
-sürücü arasında bazı küçük farklılıklar vardır. Ancak burada onun üzerinde durmayacağız. Örneğin:
+`/dev/random`` ve ``/dev/urandom`` aygıtları da ``mem`` aygıt sürücüsünün minör numaraları durumundadır. Bu aygıtlardan 
+her okunduğunda rastgele byte'lar elde edilmektedir. Bu iki aygıt sürücü arasında bazı küçük farklılıklar vardır. 
+``/dev/random`` aygıtından okumalar blokeye yol açabilirken ``/dev/urandom`` aygıtından okumalar blokeye yol açmamaktadır.
+Ancak burada onun üzerinde durmayacağız. Örneğin:
 
 .. code-block:: c
 
@@ -9039,7 +8968,7 @@ sürücü arasında bazı küçük farklılıklar vardır. Ancak burada onun üz
     for (int i = 0; i < 10; ++i)
         printf("%02x\n", buf[i]);
 
-Örneğin rastgele değerlerden oluşan 5121 byte'lık bir dosyayı şöyle oluşturabiliriz:
+Örneğin rastgele değerlerden oluşan 512 byte'lık bir dosyayı şöyle oluşturabiliriz:
 
 .. code-block:: text
 
@@ -9049,6 +8978,13 @@ sürücü arasında bazı küçük farklılıklar vardır. Ancak burada onun üz
     5121 bayt (5,1 kB, 5,0 KiB) kopyalandı, 0,000342703 s, 14,9 MB/s
     $ ls -l test.dat
     -rw-r--r-- 1 kaan study 5121 Ağu 20 11:59 test.dat
+
+Burada *dd* komutu hakkında biraz bilgi vermek istiyoruz. Komuttaki *if* argümanı girdi dosyasını (input file), *of*
+argümanı çıktı dosyasını (*output file*) belirtmektedir. *bs* (block size) ``read`` ve ``write`` ile kopyalamanın hangi
+uzunlukta tampon kullanılarak gerçekleştirileceğini, *count* argümanı ise kaç blokluk kopyalama yapılacağını
+belirtmektedir. *bs* argümanı belirtilmezse default blok büyüklüğü ``512`` byte alınmaktadır. *count* argümanı
+belirtilmezse dosya sonuna kadar kopyalama yapılmaktadır. Komutun daha pek çok argümanı vardır. Bunları *man*
+sayfalarından* inceleyebilirsiniz. 
 
 Aşağıdaki örnekte bu aygıt sürücüden rastgele byte'lar okunup hex sistemde ekrana yazdırılmıştır. Program beklemelere
 yol açarsa şaşırmayınız. Çünkü konunun bazı ayrıntıları vardır.
@@ -9083,22 +9019,22 @@ yol açarsa şaşırmayınız. Çünkü konunun bazı ayrıntıları vardır.
         return 0;
     }
 
-Boru (Pipe) İşlemi
-------------------
+Kabukta Boru İşlemleri
+======================
 
-Komut satırındaki diğer önemli bir işlem de *boru (pipe)* işlemidir. Boru işlemi ``|`` ile temsil edilmektedir. Kabuk
-üzerinden aşağıdaki gibi bir komut uygulamış olalım:
+Komut satırındaki diğer önemli bir işlem de *boru (pipe)* işlemidir. Boru işlemi ``'|''`` operatörü ile temsil edilmektedir. 
+Kabuk üzerinden aşağıdaki gibi bir komut uygulamış olalım:
 
 .. code-block:: text
 
     $ a | b
 
-Burada kabuk bu yazıyı ``|`` karakterinden parse eder. ``|`` karakterinin solundaki ve sağındakileri birer program
-olarak ele alır. Her iki programı da çalıştırır. Yani burada ``a`` programı da ``b`` programı da çalıştırılacaktır.
+Burada kabuk bu yazıyı ``'|''`` karakterinden parse eder. ``'|''`` karakterinin solundaki ve sağındakileri birer program
+dosyası olarak ele alır. Her iki programı da çalıştırır. Yani burada ``a`` programı da ``b`` programı da çalıştırılacaktır.
 ``a`` programının ``stdout`` dosyasına yazdıklarını ``b`` programı ``stdin`` dosyasından okuyacaktır. Başka bir deyişle
-``a`` programının 1 numaralı betimleyiciyle yaptığı ``write`` işlemlerini ``b`` programı 0 numaralı betimleyici ile
-``read`` fonksiyonunu kullanarak okuyabilecektir. Kabuk boru işlemlerini *prosesler arası haberleşme yöntemlerinden biri
-olan boru haberleşmesi ile* gerçekleştirmektedir. Zaten ilerleyen bölümlerde bu konu ele alınacaktır. Bu durumda ``a |
+``a`` programının ``1`` numaralı betimleyiciyle yaptığı ``write`` işlemlerini ``b`` programı ``0`` numaralı betimleyici ile
+``read`` fonksiyonunu kullanarak okuyabilecektir. Kabuk boru işlemlerini "prosesler arası haberleşme yöntemlerinden biri
+olan boru haberleşmesi ile" gerçekleştirmektedir. Zaten ilerleyen bölümlerde bu konu ele alınacaktır. Bu durumda ``a |
 b`` işleminde kabuk şöyle davranmaktadır:
 
 1) Kabuk önce bir boru yaratır.
@@ -9108,7 +9044,7 @@ b`` işleminde kabuk şöyle davranmaktadır:
 3) Bu durumda ``a`` programının ``stdout`` dosyasına yazdıkları boruya gidecek ve ``b`` programının da ``stdin``
    dosyasından okudukları borudan okunacaktır.
 
-Tabii boru işlemi yapılırken programlara komut satırı argümanları da verilebilir. Örneğin:
+Tabii boru işlemi yapılırken programlara komut satırı argümanları da verilebilmektedir. Örneğin:
 
 .. code-block:: text
 
@@ -9126,9 +9062,10 @@ gibi çalıştıralım:
 
 Burada artık ``a``'nın ekrana yazdıklarını sanki ``b`` klavyeden okuyormuş gibi bir etki oluşacaktır.
 
+``a.c```
+
 .. code-block:: c
 
-    /* a.c */
 
     #include <stdio.h>
 
@@ -9140,9 +9077,9 @@ Burada artık ``a``'nın ekrana yazdıklarını sanki ``b`` klavyeden okuyormuş
         return 0;
     }
 
-.. code-block:: c
+``b.c```
 
-    /* b.c */
+.. code-block:: c
 
     #include <stdio.h>
 
@@ -9155,9 +9092,6 @@ Burada artık ``a``'nın ekrana yazdıklarını sanki ``b`` klavyeden okuyormuş
 
         return 0;
     }
-
-cat, wc, more ve grep ile Boru Kullanımı
-----------------------------------------
 
 UNIX/Linux sistemlerindeki dosya yol ifadesi alan POSIX kabuk komutları, eğer dosya yol ifadesi verilmezse genellikle
 ``stdin`` dosyasından okuma yapacak biçimde yazılmışlardır. Örneğin *cat* komutu bir dosyanın içeriğini ``stdout``
@@ -9195,7 +9129,7 @@ Buradan toplam 421 tane prosesin bulunduğunu görmekteyiz. *wc* komutunda yaln�
     423
 
 Örneğin bir çıktıyı sayfa sayfa görüntülemek için *more* isimli bir komut bulunmaktadır. *more* programı normalde bir
-dosyayı argüman olarak alır. Ancak eğer dosya verilmezse bu durumda *more* ``stdin`` dosyasından okunanları sayfa sayfa
+dosyayı argüman olarak alır. Ancak eğer dosya verilmezse bu durumda *more* programı ``stdin`` dosyasından okunanları sayfa sayfa
 görüntüler. Biz de bu sayede aşağıdaki gibi faydalı işlemler yapabiliriz:
 
 .. code-block:: text
@@ -9205,7 +9139,7 @@ görüntüler. Biz de bu sayede aşağıdaki gibi faydalı işlemler yapabiliriz
 Burada ``ps -e`` komutunun ekrana yazdırdıkları sayfa sayfa görüntülenecektir.
 
 Boru işleminin *grep* komutu ile kullanılmasına da sıkça rastlanmaktadır. *grep* komutu bir dosyada belli bir düzenli
-ifade kalıbını (regular expression pattern) arayıp onun bulunduğu satır numaralarını göstermektedir. Örneğin:
+ifade kalıbını (*regular expression pattern*) arayıp onun bulunduğu satır numaralarını göstermektedir. Örneğin:
 
 .. code-block:: text
 

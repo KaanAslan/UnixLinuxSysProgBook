@@ -1,10 +1,7 @@
 
-=============================================================
-Standart C'deki Dosya Fonksiyonlarının Tamponlama Mekanizması
-=============================================================
-
-Standart C Dosya Fonksiyonlarında Tamponlama
-============================================
+=================================================================  
+Standart C Kütüpahnesinin Uyguladığı Dosya Tamponlama Mekanizması
+=================================================================
 
 Bu bölümde standart C'deki dosya fonksiyonlarının tamponlama mekanizması üzerinde duracağız.
 
@@ -12,14 +9,15 @@ C'nin prototipleri ``<stdio.h>`` içerisinde bulunan ve başı "f" ile başlayan
 birer *sarma fonksiyon (wrapper function)* gibidir. Biz bu fonksiyonları kullandığımızda arka planda bu
 fonksiyonlar UNIX/Linux ve macOS sistemlerinde POSIX fonksiyonlarını, Windows sistemlerinde ise Windows
 API fonksiyonlarını çağırmaktadır. Tabii bu fonksiyonlar da aslında ilgili sistemdeki sistem fonksiyonlarını
-çağırarak işlemlerini yapmaktadır. Örneğin biz Linux sistemlerinde ``fopen`` fonksiyonunu kullanmış olalım:
+çağırarak işlemlerini yapmaktadır. Örneğin biz Linux sistemlerinde ``fopen`` fonksiyonunu kullanmış olalım.
+Önceki bölümde de bu çağrının nelere yol açtığını belirtmiştik:
 
-.. code-block:: text
-
-    fopen (kullanıcı modu)  --->  open (kullanıcı modu)  --->  sys_open (çekirdek modu)
+.. figure:: _static/user-kernel-mode-switch.png
+    :align: center
+    :width: 80%
 
 ``fopen`` fonksiyonu bize ``FILE *`` türünden bir *dosya bilgi göstericisi (stream)* vermektedir. Aslında
-``FILE`` bir typedef ismidir ve bir yapıyı belirtmektedir:
+``FILE`` bir ``typedef`` ismidir ve bir yapı belirtmektedir:
 
 .. code-block:: c
 
@@ -41,19 +39,21 @@ fonksiyonundan elde edilen dosya betimleyicisi bulunacaktır:
         /* ... */
     } FILE;
 
-Standart dosya fonksiyonlarının en önemli özellikleri bir *cache sistemi* oluşturmalarıdır. Burada *cache*
-terimi daha uygun olmasına karşın daha çok *tampon (buffer)* terimi kullanılmaktadır. Bu nedenle C'nin
-dosya fonksiyonlarına *tamponlu (buffered) IO fonksiyonları* denilmektedir.
+``FILE`` yapısı içerisinde başka hangi bilgilerin bulunması gerektiğini konular ilerledikçe anlayacaksınız.  
 
-read1.c ve read2.c: Sistem Çağrılarının Maliyeti
-------------------------------------------------
+C'nin standart dosya fonksiyonlarının en önemli özellikliği bir tamponlama mekanizması eşliğinde çalışmadıdır. 
+Bu nedenle C'nin dosya fonksiyonlarına *tamponlu (buffered) IO fonksiyonları* da denilmektedir.
 
-Aşağıda iki program verilmiştir. Bu iki program da bir dosyanın bütün karakterlerini ekrana yazdırmaktadır.
+Sistem Fonksiyonlarını Çağırmanın Maliyeti
+------------------------------------------
+
+Biz önceki bölümde sistem fonksiyonlrını çağırmanın bir maliyet oluşturduğuğunu söyleemiştik. Şimdi bunu daha 
+somut hale getirelim. Aşağıda iki program verilmiştir. Bu iki program da bir dosyanın bütün karakterlerini ekrana yazdırmaktadır.
 ``read1.c`` programı bu işlemi her defasında ``read`` fonksiyonunu çağırarak yaparken ``read2.c`` programı
-bir defasında 512 byte okuma yaparak okunanları bir tampona yerleştirip oradan alıp yazdırmaktadır.
+bir defasında 512 byte okuma yapıp, okunanları bir tampona yerleştirip oradan alıp yazdırmaktadır.
 Dolayısıyla ``read1.c`` programının daha hızlı çalışması beklenir. Çünkü bu program sistem
-fonksiyonlarını daha az çağırmaktadır. Aşağıda kursun yapıldığı sanal makinede ``read1.c`` ve
-``read2.c`` programlarının ``/usr/include/math.h`` gibi bir dosyanın yazdırılması işlemindeki çalışma
+fonksiyonlarını daha az çağırmaktadır. Aşağıda bir Linux sanal makinesinde ``read1.c`` ve 
+``read2.c`` programlarının ``/usr/include/math.h`` gibi bir dosyanın içeriğinin yazdırılması işlemindeki çalışma
 zamanları verilmiştir:
 
 .. code-block:: console
@@ -70,11 +70,11 @@ zamanları verilmiştir:
     user    0m0,001s
     sys     0m0,006s
 
-Görüldüğü gibi küçük bir dosyada bile çalışma zamanı arasında önemli farklılıklar gözlemlenmektedir.
+Görüldüğü gibi küçük bir dosyada bile çalışma zamanı arasında önemli farklılıklar (``4`` kat civarında) gözlemlenmektedir.
+
+``read1.c```
 
 .. code-block:: c
-
-    /* read1.c */
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -116,9 +116,9 @@ Görüldüğü gibi küçük bir dosyada bile çalışma zamanı arasında önem
         exit(EXIT_FAILURE);
     }
 
-.. code-block:: c
+``read2.c```
 
-    /* b.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -164,8 +164,8 @@ Görüldüğü gibi küçük bir dosyada bile çalışma zamanı arasında önem
         exit(EXIT_FAILURE);
     }
 
-Tamponlama Mekanizmasının Çalışma Mantığı
------------------------------------------
+Tamponlama Mekanizmasının Çalışma Biçimi
+========================================
 
 İşte standart C fonksiyonları da yukarıdaki örnekte olduğu gibi sistem fonksiyonlarını daha az çağırmak
 için bir tampon kullanmaktadır. Biz örneğin ``fgetc`` fonksiyonu ile bir byte bile okumak istesek ``fgetc``

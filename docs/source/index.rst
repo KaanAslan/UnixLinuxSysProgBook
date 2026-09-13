@@ -45,5 +45,5 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    commandlinearguments
    basics
    filedirectoryoperations
-   processorsprotectionmechanism
-   bufferingmechanismforfilefunctionsindtandardc
+   protectionmechanism
+   stdiobuffering
