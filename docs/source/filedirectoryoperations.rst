@@ -235,7 +235,7 @@ bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi dü�
 .. figure:: _static/directory-entries.png
     :align: center
     :class: fig-mapping1f
-    :width: 20%
+    :width: 25%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
 fonksiyonuyla okunmaktadır. Örneğin ``ls`` komutu da bu fonksiyonları kullanmaktadır.
@@ -857,7 +857,7 @@ Aslında proseslerin kök dizinleri de değiştirilebilmektedir. Bir prosesin k�
 dizini değiştirildiğinde artık tüm mutlak yol ifadeleri o dizin referans alınarak çözülmeye çalışılır. *Change root*
 işlemini yapmadan önce çeşitli hazırlıkların yapılması gerekir. Prosesin kök dizini de proses kontrol bloğunda 
 (Linux'ta ``task_struct`` yapısı içerisinde) tutulmaktadır. Linux sistemlerinde prosesin kök dizininin değiştirilmesi 
-için "glibc" kütüphanesindeki ``chroot`` isimli fonksiyon bulundurulmuştur. Bu fonksiyon da ``sys_chroot`` isimli sistem 
+için *glibc* kütüphanesindeki ``chroot`` isimli fonksiyon bulundurulmuştur. Bu fonksiyon da ``sys_chroot`` isimli sistem 
 fonksiyonunu çağırmaktadır.  ``chroot`` bir POSIX fonksiyonu değildir. 
 
 Dosya Nesneleri
@@ -962,23 +962,23 @@ byte okursak ``an`` byte'larını okuruz ve dosya göstericisi de 2 byte ilerlet
     :class: fig-mapping1
     :width: 20%
 
-Dosya göstericisinin dosyanın son byte'ından sonraki byte'ı göstermesi durumuna *EOF (End of File) durumu*
-denilmektedir. EOF durumunda dosyadan okuma yapılamaz, çünkü okunacak bir şey yoktur. Ancak EOF durumunda dosyaya yazma
+Dosya göstericisinin dosyanın son byte'ından sonraki byte'ı göstermesi durumuna "``EOF`` (*End of File*) durumu"
+denilmektedir. ``EOF`` durumunda dosyadan okuma yapılamaz, çünkü okunacak bir şey yoktur. Ancak ``EOF`` durumunda dosyaya yazma
 yapılabilir. Bu durumda yazılanlar dosyaya eklenmiş olur. Dosyada araya bir şey eklemek (insert) diye bir
-kavram yoktur. Dosya boyutunu değiştirmek için dosya göstericisini EOF durumuna çekip yazma yapmak gerekir. 
+kavram yoktur. Dosya boyutunu değiştirmek için dosya göstericisini ``EOF`` durumuna çekip yazma yapmak gerekir. 
 Şimdi dosyadan 2 byte daha okuyalım:
 
 .. figure:: _static/file-offset-4.png
     :class: fig-mapping1
     :width: 20%
 
-Burada dosya göstericisi artık EOF konumundadır. Şimdi biz bu dosyaya ``istanbul`` yazısının byte'larını yazacak
+Burada dosya göstericisi artık ``EOF`` konumundadır. Şimdi biz bu dosyaya ``istanbul`` yazısının byte'larını yazacak
 olsak bunlar artık dosyaya eklenecektir:
 
 .. figure:: _static/file-offset-5.png
     :width: 45%
 
-Bir dosya yeni yaratıldığında dosyanın içi boştur, dolayısıyla dosya göstericisi de zaten EOF durumundadır.
+Bir dosya yeni yaratıldığında dosyanın içi boştur, dolayısıyla dosya göstericisi de zaten ``EOF`` durumundadır.
 Örneğin:
 
 .. figure:: _static/file-offset-empty.png
@@ -1061,8 +1061,8 @@ prototipi şöyledir:
     int open(const char *path, int flags, ...);
 
 ``open`` fonksiyonu duruma göre üçüncü bir argüman da alabilmektedir. Eğer fonksiyon üç argümanla çağrılacaksa
-üçüncü argüman ``mode_t`` türünden olmalıdır. Her ne kadar prototipteki ``...`` atomu *istenildiği kadar argüman
-girilebilir* anlamına geliyorsa da ``open`` ya iki argümanla ya da üç argümanla çağrılmalıdır. ``open``
+üçüncü argüman ``mode_t`` türünden olmalıdır. Her ne kadar prototipteki ``...`` atomu "istenildiği kadar argüman
+girilebilir" anlamına geliyorsa da ``open`` ya iki argümanla ya da üç argümanla çağrılmalıdır. ``open``
 fonksiyonunu daha fazla argümanla çağırmak *tanımsız davranışa (undefined behavior)* yol açmaktadır. Biz daha
 açıklayıcı olacak biçimde bu prototipi şöyle de yazabiliriz:
 
@@ -1711,7 +1711,7 @@ yerleştirileceği bellek transfer adresini, üçüncü parametre de okunacak by
 Fonksiyon başarı durumunda okuyabildiği byte sayısıyla geri döner. ``read`` fonksiyonu ile eğer dosya
 göstericisinin gösterdiği yerden itibaren dosya sonuna kadar mevcut olan byte miktarından daha fazla byte
 okunmak istenirse, ``read`` fonksiyonu okuyabildiği kadar byte'ı okur ve okuyabildiği byte sayısına geri döner.
-Dosya göstericisi EOF durumunda ise ``read`` fonksiyonu hiç okuma yapamayacağı için ``0`` ile geri dönmektedir. Ancak
+Dosya göstericisi ``EOF`` durumunda ise ``read`` fonksiyonu hiç okuma yapamayacağı için ``0`` ile geri dönmektedir. Ancak
 argümanların yanlış girilmesinde ya da IO hatalarında ``read`` başarısız olur ve ``-1`` değerine geri döner;
 ``errno`` uygun bir biçimde set edilir. ``ssize_t`` türü ``<unistd.h>`` ve ``<sys/types.h>`` dosyaları
 içerisinde "işaretli bir tamsayı türünü belirtecek biçiminde" ``typedef`` edilmek zorunda olan POSIX'e özgü bir tür
@@ -1757,7 +1757,8 @@ yapar (örneğin dosyanın okuma modunda açılmış olup olmadığını kontrol
 çıkarsa fonksiyon başarısız olur ve ``-1`` değerine geri döner. Eğer bu kontrollerde bir sorun çıkmazsa fonksiyon ``0``
 değerine geri döner ve herhangi bir okuma işlemi yapmaz.
 
-Aşağıda "içerisinde yazıların bulunduğu bir dosyadan" ``10`` byte okuma yapılıp okunanlar ekrana (``stdout`` dosyasına) yazdırılmıştır.
+Aşağıda "içerisinde yazıların bulunduğu bir dosyadan" ``10`` byte okuma yapılıp okunanlar ekrana (``stdout`` dosyasına) 
+yazdırılmıştır.
 
 .. code-block:: c
 
@@ -1877,18 +1878,18 @@ uygun biçimde set edilir. Fonksiyon tipik olarak şöyle kullanılmaktadır:
 
 Disk doluysa ya da yazılmak istenen dosya işletim sisteminin kullandığı dosya sisteminin izin verilen uzunluğunu
 aşıyorsa ``write`` fonksiyonu yazabildiği kadar byte'ı yazar, yazabildiği byte sayısına geri döner (partial write),
-ancak bu nedenlerle ``write`` hiç byte yazamazsa başarısız olup -1 değeri ile geri dönmektedir. Bu durumda ``errno``
+ancak bu nedenlerle ``write`` hiç byte yazamazsa başarısız olup ``-1`` değeri ile geri dönmektedir. Bu durumda ``errno``
 değişkeni ``ENOSPC`` (*No space left on device*) değeri ile set edilmektedir. ``write`` fonksiyonunun boru gibi özel
 dosyalardaki davranışı farklıdır. Bu konu ileride ele alınacaktır. 
 
-Daha önce de belirttiğimiz gibi ``write`` fonksiyonu yazmayı EOF ötesine yapabilir; bu durumda yazılanlar dosyaya 
+Daha önce de belirttiğimiz gibi ``write`` fonksiyonu yazmayı ``EOF`` ötesine yapabilir; bu durumda yazılanlar dosyaya 
 eklenmiş olacaktır. Örneğin yeni yaratılmış bir dosyaya yazma yapılırsa yazılanlar dosyaya eklenmiş olur.
 
 ``write`` fonksiyonu ile dosyaya ``0`` byte yazılmak istendiğinde gerçek bir yazma yapılmaz. ``write``
 fonksiyonu bu durumda yazma için gerekli kontrolleri yapar (örneğin dosyanın yazma modunda açılıp açılmadığı
 gibi), eğer bu kontrollerde başarısızlık oluşursa ``-1`` değeriyle, eğer bu kontrollerde başarısızlık 
 oluşmazsa ``0`` değeriyle geri döner. Ancak yukarıda da belirttiğimiz gibi bu durumda gerçek bir yazma yapılmamaktadır. 
-POSIX standartları normal dosyaların dışında (yani *regular* dosyaların dışında) 0 byte yazma işleminin 
+POSIX standartları normal dosyaların dışında (yani *regular* dosyaların dışında) ``0`` byte yazma işleminin 
 *belirsiz (unspecified)* davranışa yol açacağını belirtmektedir. 
 
 Aşağıdaki programda klavyeden (``stdin`` dosyasından) yazılar okunup ``write`` fonksiyonu ile dosyaya
@@ -2104,29 +2105,29 @@ Fonksiyon başarı durumunda dosyanın başından itibaren konumlandırılan off
 değerine geri dönmektedir.
 
 ``SEEK_SET`` konumlandırmanın dosyanın başından itibaren yapılacağını, ``SEEK_CUR`` o anda dosya göstericisinin
-gösterdiği yerden itibaren yapılacağını, ``SEEK_END`` ise EOF durumundan itibaren yapılacağını belirtmektedir.
+gösterdiği yerden itibaren yapılacağını, ``SEEK_END`` ise ``EOF`` durumundan itibaren yapılacağını belirtmektedir.
 En normal durum ``SEEK_SET`` orijininde ikinci parametrenin ``>= 0``, ``SEEK_END`` orijininde ``<= 0`` biçiminde
 girilmesidir. ``SEEK_CUR`` orijininde ikinci parametre pozitif ya da negatif girilebilir. Pozitif, bulunulan
 yerden ileriye doğru; negatif ise bulunulan yerden geriye doğru anlamına gelmektedir. Örneğin dosya göstericisini
-EOF durumuna şöyle konumlandırabiliriz:
+``EOF`` durumuna şöyle konumlandırabiliriz:
 
 .. code-block:: c
 
     lseek(fd, 0, SEEK_END);
 
 ``lseek`` fonksiyonunun başarısı genellikle programcı tarafından kontrol edilmemektedir.
-Örneğin yukarıdaki çağrıda zaten disk dosyalarında (*regular files*) dosya göstericisinin EOF durumuna
+Örneğin yukarıdaki çağrıda zaten disk dosyalarında (*regular files*) dosya göstericisinin ``EOF`` durumuna
 konumlandırılamaması mümkün değildir. Yukarıdaki çağrının başarısız olmasının tek nedeni geçersiz bir
 betimleyicinin kullanılmış olmasıdır.
 
 Dosya sistemine de bağlı olarak UNIX/Linux sistemleri (Windows sistemlerinde de bu özellik vardır) dosya göstericisini 
-EOF'un ötesine konumlandırmaya izin verebilmektedir. Bu özel bir durumdur. Bu tür durumlarda dosyaya yazma yapıldığında 
+``EOF``'un ötesine konumlandırmaya izin verebilmektedir. Bu özel bir durumdur. Bu tür durumlarda dosyaya yazma yapıldığında 
 *dosya delikleri (file holes)* oluşmaktadır. Dosya delikleri konusu ileride ele alınacaktır.
 
 Aslında dosya açarken kullanılan ``O_APPEND`` bayrağı her ``write`` işleminden önce atomik bir biçimde dosya göstericisini
-EOF durumuna çekmektedir. Bu nedenle her yazılan dosyanın sonuna eklenmektedir.
+``EOF`` durumuna çekmektedir. Bu nedenle her yazılan dosyanın sonuna eklenmektedir.
 
-Aşağıdaki örnekte ``test.txt`` dosyası ``O_WRONLY`` modunda açılmış ve dosya göstericisi EOF durumuna çekilerek
+Aşağıdaki örnekte ``test.txt`` dosyası ``O_WRONLY`` modunda açılmış ve dosya göstericisi ``EOF`` durumuna çekilerek
 dosyaya ekleme yapılmıştır.
 
 .. code-block:: c
@@ -2222,9 +2223,9 @@ Peki Dosya İşlemleri İçin Hangi Fonksiyonlar Kullanılmalı?
 Bir C/C++ programcısı olarak UNIX/Linux sistemlerinde dosya işlemleri yapmak için üç seçenek söz konusu
 olabilir:
 
-1. C'nin ya da C++'ın standart dosya fonksiyonlarını kullanmak.
-2. POSIX dosya fonksiyonlarını kullanmak.
-3. Sistem fonksiyonlarını kullanmak.
+| **1.** C'nin ya da C++'ın standart dosya fonksiyonlarını kullanmak.
+| **2.** POSIX dosya fonksiyonlarını kullanmak.
+| **3.** Sistem fonksiyonlarını kullanmak.
 
 Burada en taşınabilir olan standart C/C++ fonksiyonlarıdır. Bu fonksiyonlar kullanıcı alanında oluşturulan tamponlama 
 mekanizmasını da kullanmaktadır. Dolayısıyla ilk tercih bunlar olmalıdır. Ancak C ve C++'ın standart dosya fonksiyonları 
@@ -3811,7 +3812,7 @@ izin vermemektedir. Linux'ta dizinler üzerinde katı bağ oluşturulmak istendi
 
 Bir dizin yaratıldığında içerisinde ``.`` ve ``..`` isimli iki dizin girişi de yaratılmaktadır. ``.`` girişi bulunulan
 dizini, ``..`` dizini ise üst dizini belirtmektedir. UNIX/Linux sistemlerinde başı ``.`` ile başlayan dosyalar *ls*
-komutunda default durumda görüntülenmemektedir. Bu girişleri görebilmek için *ls* komutunda *-a* seçeneğinin
+komutunda default durumda görüntülenmemektedir. Bu girişleri görebilmek için *ls* komutunda ``-a`` seçeneğinin
 kullanılması gerekir. Örneğin:
 
 .. code-block:: text
@@ -3950,8 +3951,8 @@ Sembolik bağ dosyaları ``symlink`` isimli POSIX fonksiyonuyla yaratılmaktadı
     int symlink(const char *target, const char *linkpath);
 
 Fonksiyonun birinci parametresi gerçek dosyanın yol ifadesini, ikinci parametresi ise oluşturulacak sembolik bağlantı
-dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda ``-1`` değerine geri
-dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı *at*'li bir biçimi de vardır:
+dosyasının yol ifadesini belirtmektedir. Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri
+dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı ``at``'li bir biçimi de vardır:
 
 .. code-block:: c
 
@@ -3960,7 +3961,7 @@ dönmektedir. ``symkink`` fonksiyonunun ``symlinkat`` adlı *at*'li bir biçimi 
     int symlinkat(const char *target, int newdirfd, const char *linkpath);
 
 
-Biz POSIX fonksiyonlarının *at*'li biçimleri hakkında izleyen bölümlerde bilgiler vereceğiz. 
+Biz POSIX fonksiyonlarının ``at``'li biçimleri hakkında izleyen bölümlerde bilgiler vereceğiz. 
 
 Örneğin:
 
@@ -4025,7 +4026,7 @@ Aşağıda bir dosyanın sembolik bağlantısını oluşturan bir program örne�
         exit(EXIT_FAILURE);
     }
 
-Sembolik bağ dosyası komut satırından yine *ln* komutuyla oluşturulmaktadır. Ancak *ln* komutuna *-s* seçeneği de
+Sembolik bağ dosyası komut satırından yine *ln* komutuyla oluşturulmaktadır. Ancak *ln* komutuna ``-s`` seçeneği de
 girilmelidir. Örneğin:
 
 .. code-block:: text
