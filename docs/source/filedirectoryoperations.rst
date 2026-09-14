@@ -7392,7 +7392,7 @@ edilmiştir.
         exit(EXIT_FAILURE);
     }
 
- Aşağıdaki örnekte dizin girişlerine ilişkin dosyalar uzunlujlarına göre sort edilmiş biçimde elde edilmektedir:
+Aşağıdaki örnekte dizin girişlerine ilişkin dosyalar uzunlujlarına göre sort edilmiş biçimde elde edilmektedir:
 
 .. code-block:: c
 
