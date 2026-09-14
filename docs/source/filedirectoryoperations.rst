@@ -2250,19 +2250,19 @@ yansıtılmayabilir. Yani örneğin biz gruba *w* hakkı vermek istesek bile bun
 erişim değerlerini maskeleyen (yani ortadan kaldıran) bir mekanizma vardır. Buna prosesin *umask değeri*
 denilmektedir. Prosesin umask değeri ``mode_t`` türü ile ifade edilir; sahiplik, grupluk ve diğerlerine ilişkin
 maskeleme bilgisini içerir. Örneğin prosesin umask değerinin ``S_IWGRP|S_IWOTH`` olduğunu varsayalım. Bu umask
-değeri *biz open fonksiyonu ile bir dosyayı yaratırken grup için ve diğerleri için w hakkı versek bile bu hak
-dosyaya yansıtılmayacak* anlamına gelmektedir. Eğer prosesin umask değeri 0 ise bu durumda maskeleme yapılmaz,
+değeri "biz ``open`` fonksiyonu ile bir dosyayı yaratırken grup için ve diğerleri için ``w`` hakkı versek bile bu hak
+dosyaya yansıtılmayacak" anlamına gelmektedir. Eğer prosesin umask değeri ``0`` ise bu durumda maskeleme yapılmaz,
 dolayısıyla verilen hakların hepsi dosyaya yansıtılır. Prosesin umask değerinin ``umask`` olduğunu, dosyaya vermek
-istediğimiz erişim haklarının da ``mode`` olduğunu varsayalım. (Yani ``mode`` ``S_IXXX`` gibi tek biti 1 olan
+istediğimiz erişim haklarının da ``mode`` olduğunu varsayalım. (Yani ``mode`` ``S_IXXX`` gibi tek biti ``1`` olan
 değerlerin bit düzeyinde OR'lanması ile oluşturulmuş değer olsun.) Bu durumda dosyaya yansıtılacak erişim hakları
-``mode & ~umask`` olacaktır. Yani prosesin umask değerindeki 1 olan bitlere karşı gelen erişim hakları
+``mode & ~umask`` olacaktır. Yani prosesin umask değerindeki ``1`` olan bitlere karşı gelen erişim hakları
 kaldırılacaktır.
 
 Prosesin başlangıçtaki umask değeri üst prosesten aktarılmaktadır. Örneğin biz kabuktan program çalıştırırken
 çalıştırdığımız programın umask değeri kabuğun (örneğin *bash* prosesinin) umask değeri olarak bizim prosesimize
-geçirilecektir. Kabuğun umask değeri *umask* isimli komutla elde edilebilir. Kabuğun umask değeri genellikle *0022*
-ya da *0002* gibi bir değerde olur. Buradaki basamaklar octal sayı (sekizlik sistemde sayı) belirtmektedir. Bir
-octal digit 3 bitle açılmaktadır. Dolayısıyla bu bitler maskelenecek erişim haklarının durumunu belirtir:
+geçirilecektir. Kabuğun umask değeri *umask* isimli komutla elde edilebilir. Kabuğun umask değeri genellikle ``0022``
+ya da ``0002`` gibi bir değerde olur. Buradaki basamaklar octal sayı (sekizlik sistemde sayı) belirtmektedir. Bir
+octal digit ``3`` bitle açılmaktadır. Dolayısıyla bu bitler maskelenecek erişim haklarının durumunu belirtir:
 
 .. code-block:: text
 
@@ -4693,9 +4693,9 @@ kullanımda yukarıda yazdığımız örnek programda olduğu gibi erişim hakla
 
     $ chmod 664 a.txt b.txt
 
-Burada 664'ün bit karşılığı şöyledir: ``110 110 100``. Bu erişim hakları olarak şu anlama gelmektedir: ``rw-rw-r--``.
+Burada ``664``'ün bit karşılığı şöyledir: ``110 110 100``. Bu erişim hakları olarak şu anlama gelmektedir: ``rw-rw-r--``.
 
-Komutun ikinci kullanımı + ve -'li kullanımıdır. Örneğin:
+Komutun ikinci kullanımı ``+`` ve ``-``'li kullanımıdır. Örneğin:
 
 .. code-block:: text
 
@@ -4753,7 +4753,7 @@ olmaktadır. Örneğin:
 Burada komutta octal sayı belirtilmediği için kabuğun umask değeri etkili olmaktadır. Default umask değerinde genellikle
 *other* için ``w`` hakkı maskelenmektedir. O halde komut işletildiğinde grubun ``w`` hakkı set edilmeyecektir.
 
-Örneğin bir script dosyasına ``x`` eklemek isteyelim. Bunun en pratik yolu şudur:
+Örneğin bir script dosyasına ``x`` hakkı eklemek isteyelim. Bunun en pratik yolu şudur:
 
 .. code-block:: text
 
@@ -4784,7 +4784,7 @@ Fonksiyonların prototipleri şöyledir:
 
 ``chown`` fonksiyonunun birinci parametresi dosyanın yol ifadesini, ikinci parametresi değiştirilecek kullanıcı ID'sini
 ve üçüncü parametresi de değiştirilecek grup ID'sini belirtmektedir. Fonksiyonlar başarı durumunda 0 değerine,
-başarısızlık durumunda -1 değerine geri dönmektedir. ``chown`` fonksiyonu sembolik bağları izlemektedir. Yani bu
+başarısızlık durumunda ``-1`` değerine geri dönmektedir. ``chown`` fonksiyonu sembolik bağları izlemektedir. Yani bu
 fonksiyona biz yol ifadesi olarak sembolik bağ verirsek fonksiyon onun referans ettiği dosyanın sahiplik ve grup
 bilgilerini değiştirmeye çalışır. ``lchown`` fonksiyonu ``chown`` fonksiyonu gibidir. Ancak aralarındaki tek fark
 ``lchown`` fonksiyonunun sembolik bağı izlememesi ve sembolik bağın kendisi üzerinde işlem yapmasıdır. ``fchown``
@@ -6052,7 +6052,7 @@ Dizin girişleri elde edildikten sonra dizin ``closedir`` POSIX fonksiyonuyla ka
 
     int closedir(DIR *dirp);
 
-Fonksiyon başarı durumunda 0, başarısızlık durumunda -1 değerine geri dönmektedir.
+Fonksiyon başarı durumunda ``0``, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
 ``closedir`` fonksiyonu kendi içerisinde kullandığı betimleyiciyi ``close`` etmektedir. Örneğin biz ``DIR`` nesnesini
 (directory stream) ``fdopendir`` ile dizin betimleyicisini vererek yaratmış olalım. ``closedir`` bu betimleyiciyi
