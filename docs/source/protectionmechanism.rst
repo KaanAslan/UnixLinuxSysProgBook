@@ -130,7 +130,7 @@ mode)* terimi de kullanılmaktadır. Eğer bir kod çekirdek modunda çalışıy
 o kod için işletmez. Böylece o kod her şeyi yapabilir. Ancak eğer bir kod kullanıcı modunda çalışıyorsa işlemci 
 o kod için koruma mekanizmasını işletmektedir. Normal programların hepsi kullanıcı modunda (user mode) çalışmaktadır. 
 Ancak çekirdek kodları ve aygıt sürücüler (çekirdek modülleri) çekirdek modunda çalışırlar. Bazı işlemcilerde 
-akşlar için ayrıcalık modları ikiden fazla da olabilmektedir. Örneğin Intel işlemcileri "halka (ring)" adı 
+akşlar için ayrıcalık modları ikiden fazla da olabilmektedir. Örneğin Intel işlemcileri *halka (ring)* adı 
 altında akışlar için dört ayrıcalık modunu desteklemektedir. Ancak Linux, Windows, macOS sistemleri bunlardan 
 yalnızca ikisini kullanmaktadır. İşletim sistemlerinin kullandığı bu iki ayrıcalık modu zaten işlevsel olarak 
 çekirdek moduna ve kullanıcı moduna karşılık gelmektedir. 
@@ -152,7 +152,7 @@ thread'ler arası geçiş yapılırken bu yazmaç bilgileri de saklanıp geri y�
 anda kullanıcı modundayken bazıları çekirdek modunda çalışıyor durumda olabilmektedir. Örneğin Intel
 işlemcilerinde *CS (Code Segment Register)* yazmacının yüksek anlamlı ``2`` bitine *CPL (Current Privilege Level)*
 denilmektedir. Bu iki bit prosesin modunu belirtmektedir. (Intel işlemcilerinde iki değil dört çalışma modu
-olduğunu belirtmiştik.) 32 ARM işlemcilerinde bu bilgi *CPSR (Current Program Status Register)* isimli yazmacın, 
+olduğunu belirtmiştik.) 32 bit ARM işlemcilerinde bu bilgi *CPSR (Current Program Status Register)* isimli yazmacın, 
 64-bit ARM işlemcilerinde ise *PSTATE isimli yazmacın* bir bitinde tutulmaktadır.
 
 Akışın Kullanıcı Modundan Çekirdek Moduna Geçmesi ve Geri Dönmesi
