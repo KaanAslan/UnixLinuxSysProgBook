@@ -1075,3 +1075,581 @@ Maalesef bu işlemin C'de daha pratik bir yolu yoktur. Örneğin:
         return 0;
     }
 
+stdin ve Dosya Sonu (EOF) Kavramı
+=================================
+
+Biz ``stdin`` dosyasından okuma yaptığımızda ``EOF`` ile de karşılaşabiliriz. Çünkü ``stdin`` bir dosyaya
+yönlendirildiğinde dosyanın sonuna gelinmiş de olabilir. Peki ``stdin`` default durumda klavyeden okuma
+yaparken dosya sonu kavramı ne olacaktır? İşte terminal aygıt sürücüsü bazı özel tuş kombinasyonlarında
+yalancı bir ``EOF`` etkisi oluşturmaktadır. Windows sistemlerinde ``Ctrl+z`` tuşu, UNIX/Linux sistemlerinde
+``Ctrl+d`` tuşu bu amaçla kullanılmaktadır. Örneğin:
+
+.. code-block:: c
+
+    ch = getchar();
+
+Burada Windows sistemlerinde ``Ctrl+z`` tuşuna, UNIX/Linux sistemlerinde ``Ctrl+d`` tuşuna basıldığında
+*dosya sonuna gelme etkisi* yaratılacak ve ``getchar`` fonksiyonu ``EOF`` değerine (-1) geri dönecektir.
+Tabii bu tuş kombinasyonlarına basıldığında gerçekte dosya sonuna gelme gibi bir durum oluşmamaktadır. Bu
+yalancı bir etkidir. Yani daha sonra ``stdin`` dosyasından yine okuma yapılabilir. Bu nedenle ``stdin``
+tamponunu boşaltırken kullanıcının ``EOF`` etkisi yaratmak isteyebileceğine de dikkat edilmelidir:
+
+.. code-block:: c
+
+    void clear_stdin(void)
+    {
+        int ch;
+
+        while ((ch = getchar()) != '\n' && ch != EOF)
+            ;
+    }
+
+stdin'den Okuma Yapan Standart Fonksiyonlara Genel Bakış
+========================================================
+
+C'de default olarak ``stdin`` dosyasından okuma yapan standart fonksiyonlar şunlardır:
+
+- ``getchar``
+- ``scanf``
+- ``gets`` (C11'de kaldırıldı)
+- ``gets_s`` (C11 ile birlikte eklendi ancak *isteğe bağlı (optional), VS ve glibc kütüphanelerinde yok*)
+
+Tabii dosya okuma fonksiyonlarında da (``getc``, ``fgets``, ``fscanf``, ``fread`` gibi) dosya bilgi
+göstericisi olarak ``stdin`` girilirse yine ``stdin`` dosyasından okuma yapılabilir.
+
+Bunların hepsi aynı tampondan çalışmaktadır. Şimdi bu fonksiyonlar üzerinde duralım.
+
+getchar Fonksiyonu
+==================
+
+``getchar`` fonksiyonu ``stdin`` dosyasından bir karakter okur. Tabii önce tampona bakar. Tamponda en az
+bir karakter varsa onu verir. Tampon tamamen boşsa klavyeden bir satır okuyarak tamponu doldurur. Ondan
+sonra karakteri verir. Aslında ``gets`` ve ``scanf`` gibi fonksiyonlar ``getchar``, ``getc`` gibi tampondan
+tek bir karakter okuyan fonksiyonlar kullanılarak yazılmaktadır. Yani temel fonksiyon ``getchar`` ya da
+genel hali olan ``getc`` fonksiyonudur. (``getc`` fonksiyonunu izleyen paragraflarda ele alacağız.)
+
+``getchar`` fonksiyonu dosya sonuna gelindiğinde (örneğin ``Ctrl+d`` tuşlarına basıldığında) ya da IO
+hatası olduğunda ``EOF`` değerine geri dönmektedir. ``EOF`` değeri derleyicilerin hemen hepsinde -1
+biçiminde define edilmiştir. ``getchar`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    int getchar(void);
+
+Fonksiyonun geri dönüş değerinin ``unsigned char`` değil de ``int`` türden olması ilk bakışta kişilere
+tuhaf gelmektedir. Ancak eğer fonksiyonun geri dönüş değeri ``char`` olsaydı bu durumda 0xFF gibi bir
+okumayla ``EOF`` değeri birbirinden ayırt edilemezdi. Oysa geri dönüş değerinin ``int`` türden olması
+durumunda dosya sonuna gelindiğinde fonksiyon -1 ile geri dönerken 0xFF karakteri okunduğunda 255 değeri
+ile geri dönmektedir.
+
+gets Fonksiyonu (Kullanımdan Kaldırılmış)
+=========================================
+
+``gets`` fonksiyonu C99'da *deprecated* yapılmış ve C11'de C'den kaldırılmıştır. Ancak hâlâ derleyiciler bu
+fonksiyonu muhafaza etmektedir. Ancak *glibc* kütüphanesinde ``gets`` fonksiyonunun prototipi
+``<stdio.h>`` dosyasından kaldırılmıştır. Ayrıca Linux sistemlerindeki ``ld`` bağlayıcısı ``gets``
+kullanıldığında bir uyarı mesajı da oluşturmaktadır. Bağlayıcı tarafından verilen mesaj şöyledir:
+
+.. code-block:: text
+
+    /usr/bin/ld: /tmp/ccmd8Y6N.o: in function `main':
+    sample.c:(.text+0x4d): uyarı: the `gets' function is dangerous and should not be used.
+
+``gets`` fonksiyonu ``stdin`` dosyasından karakter karakter okuma yapar ve okuduğu karakterleri verilen
+bir diziye yerleştirir. ``gets`` fonksiyonu '\\n' karakterini de okur ancak onun yerine diziye '\\0'
+karakterini yerleştirir. Yani ``gets`` fonksiyonu aslında ``stdin`` tamponunu da tamamen boşaltmaktadır.
+Tabii ``gets`` fonksiyonu çağrıldığında ``stdin`` tamponunda zaten karakterler varsa ``gets`` klavyeden bir
+giriş beklemeden onları okuyup geri dönecektir.
+
+``gets`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    char *gets(char *s);
+
+``gets`` fonksiyonu argüman olarak girilen adresin aynısıyla geri döner. Ancak henüz hiçbir karakter
+okunmadan ``EOF`` ile karşılaşılırsa ya da işlemler sırasında IO hatası oluşursa ``gets`` ``NULL`` adresle
+geri dönmektedir. IO hatası durumunda tampona kısmi yerleştirme yapılmış olabilir.
+
+``gets`` fonksiyonunu ``getchar`` kullanarak şöyle yazabiliriz:
+
+.. code-block:: c
+
+    char *mygets(char *s)
+    {
+        int ch;
+        size_t i;
+
+        for (i = 0; (ch = getchar()) != '\n' && ch != EOF; ++i)
+            s[i] = ch;
+
+        if (i == 0 && ch == EOF || ferror(f))
+            return NULL;
+
+        s[i] = '\0';
+
+        return s;
+    }
+
+Aşağıda yazdığımız fonksiyonun kullanımına bir örnek veriyoruz.
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    char *mygets(char *s)
+    {
+        int ch;
+        size_t i;
+
+        for (i = 0; (ch = getchar()) != '\n' && ch != EOF; ++i)
+            s[i] = ch;
+
+        if (i == 0 && ch == EOF || ferror(f))
+            return NULL;
+
+        s[i] = '\0';
+
+        return s;
+    }
+
+    int main(void)
+    {
+        char buf[64];
+
+        mygets(buf);
+        puts(buf);
+
+        return 0;
+    }
+
+gets_s Fonksiyonu
+=================
+
+``gets`` fonksiyonunun tasarımında baştan beri bir problem vardı. Fonksiyonda argüman olarak geçilen
+alanın uzunluğu belirtilmediği için taşma durumu söz konusu olabilmektedir. Örneğin:
+
+.. code-block:: c
+
+    char s[100];
+
+    gets(s);
+
+Burada kullanıcı 100 karakterden daha fazla karakter girerse dizi taşacaktır. Fonksiyonun dizi uzunluğunu
+da parametre olarak alması gerekirdi. İşte C11 ile birlikte *isteğe bağlı biçimde standartlara eklenmiş*
+olan ``gets_s`` fonksiyonu bunu yapmaktadır. ``gets_s`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    char *gets_s(char *s, rsize_t n);
+
+Buradaki ``rsize_t`` türü yine isteğe bağlı bir biçimde, ancak ``size_t`` türü olarak typedef edilmek
+zorundadır. ``size_t`` ile ``rsize_t`` türü aynı tür olmasına karşın ``rsize_t`` türü için maksimum uzunluk
+``RSIZE_MAX`` olarak belirlenmiştir. Yani kütüphane fonksiyonları bu limitin dışında ``rsize_t`` değeri
+gördüğünde hatayla geri dönebilmektedir. *glibc* kütüphanesinde ``gets_s`` fonksiyonu bulunmamaktadır.
+
+``gets_s`` fonksiyonunun gerçekleştirimi şöyle yapılabilir:
+
+.. code-block:: c
+
+    char *mygets_s(char *s, size_t size)
+    {
+        int ch;
+        size_t i;
+
+        for (i = 0; (ch = getchar()) != '\n' && ch != EOF && i < size - 1; ++i)
+            s[i] = ch;
+
+        if (i == 0 && ch == EOF || ferror(f))
+            return NULL;
+
+        s[i] = '\0';
+
+        return s;
+    }
+
+``for`` ve ``while`` döngülerindeki koşul ifadelerinde çok fazla ``&&`` operatörünü kullanmak
+okunabilirliği bozabilmektedir. Bazı kontrolleri içeride yapabilirsiniz:
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    char *mygets_s(char *s, size_t n)
+    {
+        int ch;
+        size_t i;
+
+        for (i = 0; i < n - 1; ++i) {
+            if ((ch = getchar()) == '\n' || ch == EOF)
+                break;
+            s[i] = ch;
+        }
+
+        s[i] = '\0';
+
+        if (i == 0 && ch == EOF || ferror(f))
+            return NULL;
+
+        return s;
+    }
+
+Aşağıda bir test kodu verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    char *mygets_s(char *s, size_t n)
+    {
+        int ch;
+        size_t i;
+
+        for (i = 0; i < n - 1; ++i) {
+            if ((ch = getchar()) == '\n' || ch == EOF)
+                break;
+            s[i] = ch;
+        }
+
+        s[i] = '\0';
+
+        if (i == 0 && ch == EOF)
+            return NULL;
+
+        return s;
+    }
+
+    int main(void)
+    {
+        char buf[3];
+
+        mygets_s(buf, 3);
+        printf("%s\n", buf);
+
+        return 0;
+    }
+
+fgets Fonksiyonu ile gets_s Alternatifi
+=======================================
+
+Bazı programcılar ``gets_s`` fonksiyonu derleyicilerde bulunmadığı için onun işlevselliğini ``fgets``
+fonksiyonu ile karşılamaya çalışmaktadır. ``fgets`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    char *fgets(char *s, size_t n, FILE *f);
+
+Ancak klavyeden (ya da dosyadan) belirtilen uzunluktan daha kısa bir satır girilmişse ``fgets`` '\\n'
+karakterini de diziye yerleştirmektedir. Bu durumda programcının bu '\\n' karakterini kendisinin aşağıdaki
+gibi silmesi gerekebilmektedir:
+
+.. code-block:: c
+
+    char buf[64];
+    char *str;
+    /* ... */
+
+    fgets(buf, 64, stdin);
+    if ((str = strchr(buf, '\n')) != NULL)
+        *str = '\0';
+
+``fgets`` yine hiç karakter okuyamadan ``EOF`` ile karşılaşırsa ``NULL`` adresle geri dönmektedir.
+
+Biz kursumuzda bir satır yazı okumak amacıyla ``fgets`` fonksiyonunu kullanacağız. Ancak siz '\\n'
+karakterini ortadan kaldırma zahmetine girmek istemiyorsanız kendi ``gets_s`` fonksiyonunuzu yazıp onu
+kullanabilirsiniz.
+
+scanf Fonksiyonu
+================
+
+``scanf`` fonksiyonu işlevsel olarak ``printf`` fonksiyonunun tersi gibidir. Prototipi şöyledir:
+
+.. code-block:: c
+
+    int scanf(const char *format, ...);
+
+Fonksiyon ``stdin`` dosyasından karakterleri tek tek okur. Format karakterlerine uygunsuzluk tespit ettiği
+noktada uygunsuz olan o karakteri tampona geri bırakır ve işlemini sonlandırır. ``scanf`` fonksiyonu
+başarılı bir biçimde yerleştirilen değerin (parçaların) sayısına geri dönmektedir. Tabii ``scanf`` 0'a da
+geri dönebilir. ``scanf`` henüz hiçbir karakter okuyamadan ``EOF`` ile karşılaşırsa ``EOF`` değerine geri
+döner. ``scanf`` her zaman baştaki boşluk karakterlerini (leading space) ve girişler arasındaki boşluk
+karakterlerini atmaktadır. Ancak sonraki boşluk karakterlerini ('\\n' de dahil olmak üzere) atmamaktadır.
+
+scanf'in Tampon Davranışı (Örnekler)
+------------------------------------
+
+Örneğin aşağıdaki ``scanf`` çağrısı yapılmış olsun:
+
+.. code-block:: c
+
+    int a, b;
+    int result;
+    /* ... */
+
+    result = scanf("%d%d", &a, &b);
+
+Burada klavyeden şu girişi yapmış olalım:
+
+.. code-block:: text
+
+    100 200ankara
+
+Burada ``scanf`` ``stdin`` dosyasından karakter karakter okuma yaparken tampon önce bir satırla
+doldurulacaktır:
+
+.. code-block:: text
+
+    tampon: |100 200ankara\n|
+
+``scanf`` 100 değerini başarılı bir biçimde okuyup ``a`` nesnesine yerleştirecektir. 200 karakterlerini
+okuduktan sonra 'a' karakterinin format ile uyumsuz olduğunu tespit edip işlemini sonlandıracaktır.
+``scanf`` bu durumda 2 parça yerleştirme yaptığı için 2 değerine geri dönecektir. ``scanf`` beğenmediği
+'a' karakterini tampona geri bırakacaktır. ``scanf`` sonrasında ``stdin`` tamponunun durumu şöyle
+olacaktır:
+
+.. code-block:: text
+
+    tampon: |ankara\n|
+
+Girişi şöyle yapmış olalım:
+
+.. code-block:: text
+
+    ankara
+
+Bu durumda ``scanf`` hiç yerleştirme yapamayacak ve 0 ile geri dönecektir. Tampon aşağıdaki durumda
+kalacaktır:
+
+.. code-block:: text
+
+    tampon: |ankara\n|
+
+Girişi şöyle yapmış olalım:
+
+.. code-block:: text
+
+    100 200
+
+Burada ``scanf`` iki yerleştirmeyi de başarılı bir biçimde yapmaktadır. Tamponun sonundaki '\\n' karakterini
+beğenmediği için onu yeniden tampona yerleştirmektedir. Tamponun durumu şöyle olacaktır:
+
+.. code-block:: text
+
+    tampon: |\n|
+
+scanf ile Menü Uygulaması Örneği
+--------------------------------
+
+Aşağıdaki örneğe dikkat ediniz:
+
+.. code-block:: c
+
+    int main(void)
+    {
+        int option;
+
+        for (;;) {
+            printf("1) Add record\n");
+            printf("2) Delete record\n");
+            printf("3) List records\n");
+            printf("4) Exit\n");
+
+            printf("\nChoose an item:");
+            fflush(stdout);
+            scanf("%d", &option);
+
+            switch (choice) {
+                case 1:
+                    printf("adding record...\n");
+                    break;
+                case 2:
+                    printf("delete record...\n");
+                    break;
+                case 3:
+                    printf("list records...\n");
+                    break;
+                case 4:
+                    goto EXIT;
+                default:
+                    printf("invalid choice!..\n");
+                    break;
+            }
+        }
+    EXIT:
+        return 0;
+    }
+
+Burada klavyeden bir giriş istenmiş ve giriş ``switch`` deyimi ile ele alınmıştır. Peki kullanıcı
+yanlışlıkla 'a' gibi bir karakteri girip ENTER tuşuna basarsa ne olur? İşte bu durumda ``scanf`` seçilen
+nesneye yerleştirme yapmaz ve 0 ile geri döner. Ancak 'a' karakterini tampona geri bırakır. Muhtemelen
+``switch`` deyimi ``default`` kısımdan sapıp döngü yinelenecektir. Ancak tamponda hâlâ 'a' vardır. ``scanf``
+yine bu 'a' karakterini tampondan alır, yine başarısız olur. Böylece bir sonsuz döngü oluşacaktır. Bunu
+engellemek için ``scanf`` fonksiyonunun geri dönüş değerini kontrol edip gerektiğinde tamponu
+boşaltabiliriz:
+
+.. code-block:: c
+
+    int main(void)
+    {
+        int option;
+
+        for (;;) {
+            printf("1) Add record\n");
+            printf("2) Delete record\n");
+            printf("3) List records\n");
+            printf("4) Exit\n");
+
+            printf("\nChoose an item:");
+            fflush(stdout);
+            if (scanf("%d", &option) == 0) {
+                printf("invalid choice!..\n\n");
+                while (getchar() != '\n')
+                    ;
+                continue;
+            }
+
+            switch (option) {
+                case 1:
+                    printf("adding record...\n");
+                    break;
+                case 2:
+                    printf("delete record...\n");
+                    break;
+                case 3:
+                    printf("list records...\n");
+                    break;
+                case 4:
+                    goto EXIT;
+                default:
+                    printf("invalid choice!..\n");
+                    break;
+
+            }
+        }
+    EXIT:
+
+        return 0;
+    }
+
+Aşağıda bu örneğin biraz daha gelişmiş bir biçimi verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    void clear_stdin(void)
+    {
+        int ch;
+
+        while ((ch = getchar()) != '\n' && ch != EOF)
+            ;
+    }
+
+    int disp_menu(void)
+    {
+        int option;
+        int result;
+
+        do {
+            printf("1) Add record \n");
+            printf("2) Delete record \n");
+            printf("3) List record \n");
+            printf("4) Quit\n");
+
+            printf("\nChoose an item:");
+            if ((result = scanf("%d", &option)) != 1 || option < 0 || option > 4) {
+                printf("Invalid option!...\n");
+                clear_stdin();
+            }
+        } while (result != 1);
+
+        return option;
+    }
+
+    int main(void)
+    {
+        int option;
+
+        for (;;) {
+            option = disp_menu();
+
+            switch (option) {
+                case 1:
+                    printf("add record...\n");
+                    break;
+                case 2:
+                    printf("delete record...\n");
+                    break;
+                case 3:
+                    printf("list record...\n");
+                    break;
+                case 4:
+                    goto EXIT;
+            }
+        }
+
+    EXIT:
+        return 0;
+    }
+
+ungetc Fonksiyonu
+=================
+
+Bir dosyadan okunan karakter beğenilmezse sanki hiç okunmamış gibi bir etki oluşturmak için (yani o
+karakteri tampona geri bırakmak için) ``ungetc`` isimli bir standart C fonksiyonu bulundurulmuştur:
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    int ungetc(int c, FILE *stream);
+
+Fonksiyon başarı durumunda tampona bırakılan karakterin aynısına, başarısızlık durumunda ``EOF`` değerine
+geri dönmektedir.
+
+fgetc ve getc Fonksiyonları
+===========================
+
+Bir dosyayı byte byte okurken ``fgetc`` fonksiyonundan faydalanırız. Örneğin:
+
+.. code-block:: c
+
+    FILE *f;
+    int ch;
+    /* ... */
+
+    if ((f = fopen("test.txt", "r")) == NULL) {
+        pritnf(stderr, "cannot open file!..\n);
+        exit(EXIT_FAILURE);
+    }
+
+    while ((ch = fgetc(f)) != EOF) {
+        /* ... */
+    }
+
+Burada birinci ``fgetc`` çağrısı tamponu dolduracak, diğer çağrılar disk işlemi yapmadan tampondan okuma
+yapacaktır. Ancak fonksiyon çağırmanın da önemli bir maliyeti vardır. (Buna İngilizce *function call
+overhead* de denilmektedir.) İşte C standartlarında ``fgetc`` yerine ``getc`` isimli alternatif bir
+fonksiyon da bulundurulmuştur. C standartlarına göre ``getc`` fonksiyonu makro olarak da
+gerçekleştirilebilmektedir. Yani iki fonksiyon arasındaki tek fark ``getc`` fonksiyonunun bir makro
+biçiminde yazılabilmesidir. ``getc`` fonksiyonunun prototipi de şöyledir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    int getc(FILE *stream);
+
+``getc`` genellikle bir makro biçiminde yazıldığı için fonksiyon çağırmanın maliyetini
+düşürebilmektedir. Örneğin:
+
+.. code-block:: c
+
+    while ((ch = getc(f)) != EOF) {
+        /* ... */
+    }
+
+Artık ``getc`` bir makro biçiminde tanımlandıysa hiç fonksiyon çağrısı yapmadan doğrudan tampondaki
+byte'ı alan kodu açacaktır. Böylece programcı fonksiyon çağırmanın maliyetinden kurtulmuş olur.
