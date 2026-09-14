@@ -63,7 +63,7 @@ sütunda belirtilmektedir. Örneğin:
     -rw-rw-r-- 1 kaan study   110 Haz  9 11:51 sample.c
     -rw-rw-r-- 1 kaan study  1512 May  7 12:39 sample.o
 
-Dosyaların erişim haklarına ilişkin en soldaki sütunun 10 karakterden oluştuğuna dikkat ediniz. Bu 10 karakterin
+Dosyaların erişim haklarına ilişkin en soldaki sütunun ``10`` karakterden oluştuğuna dikkat ediniz. Bu ``10`` karakterin
 en solundaki karakter dosyanın türünü belirtmektedir. Burada ``d`` harfi varsa dosya bir dizin (directory)
 belirtmektedir. Burada ``-`` karakteri varsa dosya sıradan bir dosyadır. Normal sıradan dosyalara UNIX/Linux
 dünyasında İngilizce *regular file* denilmektedir. Erişim haklarının en başındaki karakter şunlardan biri
@@ -1547,8 +1547,8 @@ Aşağıda örnek bir dosya açım kodu verilmiştir:
         exit(EXIT_FAILURE);
     }
 
-Linux sistemlerinde varsayılan olarak proseslerin dosya betimleyici tabloları 1024 slottan oluşmaktadır. 
-Yani varsayılan durumda bu sistemlerde bir proses, kapatmadan en fazla 1024 dosyayı açık olarak tutabilmektedir.
+Linux sistemlerinde varsayılan olarak proseslerin dosya betimleyici tabloları ``1024`` slottan oluşmaktadır. 
+Yani varsayılan durumda bu sistemlerde bir proses, kapatmadan en fazla ``1024`` dosyayı açık olarak tutabilmektedir.
 Yukarıda da belirttiğimiz gibi eğer dosya betimleyici tablosunda boş yer yoksa ``open`` fonksiyonu başarısız
 olur ve ``errno`` değişkenine ``EMFILE`` (*Too many open files*)  set edilir. (Her ne kadar Linux sistemlerinde işin 
 başında dosya betimleyici tablosu `1024`` slottan oluşuyorsa da bu değer çeşitli biçimlerde artırılabilmektedir. 
@@ -2065,7 +2065,7 @@ değiştirmediğine dikkat ediniz. Örneğin:
     if ((result = pread(fd, buf, 10, 5)) == -1)
         exit_sys("pread");
 
-Burada dosyanın 5. offset'inden itibaren 10 byte okunmuştur.
+Burada dosyanın 5. offset'inden itibaren ``10`` byte okunmuştur.
 
 Dosyalara okuma yazma işlemi genellikle ardışıl bir biçimde yapıldığı için bu fonksiyonlar seyrek
 kullanılmaktadır. Ancak örneğin veritabanı işlemlerinde dosyanın farklı offset'lerinden sıkça okuma ve yazmanın
@@ -4154,7 +4154,7 @@ ile bastırılması şöyle yapılabilir:
     printf("%.*s\n", result, buf);
 
 ``printf`` fonksiyonu ``%.10s`` gibi bir format karakterlerinde yazıyı ``null`` karakter görene kadar değil n karakter 
-yazdırmaktadır. (örneğimizde 10). Tabii biz burada istersek ``null`` karakteri dizinin sonuna yerleştirip onu 
+yazdırmaktadır. (örneğimizde ``10``). Tabii biz burada istersek ``null`` karakteri dizinin sonuna yerleştirip onu 
 ``%s`` ile de yazdırabiliriz. Ancak bu durumda da dizi uzunluğunun yeterli olduğuna dikkat etmemiz gerekir. örneğin:
 
 .. code-block:: c
@@ -4692,7 +4692,7 @@ kullanımda yukarıda yazdığımız örnek programda olduğu gibi erişim hakla
 
     $ chmod 664 a.txt b.txt
 
-Burada 664'ün bit karşılığı şöyledir: 110 110 100. Bu erişim hakları olarak şu anlama gelmektedir: ``rw-rw-r--``.
+Burada 664'ün bit karşılığı şöyledir: ``110 110 100``. Bu erişim hakları olarak şu anlama gelmektedir: ``rw-rw-r--``.
 
 Komutun ikinci kullanımı + ve -'li kullanımıdır. Örneğin:
 
@@ -7494,7 +7494,7 @@ yapıya sahip olması gerekir:
 
 ``nftw`` fonksiyonunun üçüncü parametresi kullanılacak maksimum dosya betimleyici sayısını belirtmektedir. Fonksiyon her
 derine indikçe o dizini ``opendir`` fonksiyonu ile açtığı için (bizde öyle yapmıştık) dosya betimleyici tablosunda bir
-betimleyici harcamaktadır. Linux'ta default durumda prosesin dosya betimleyici tablosunda 1024 tane betimleyici için yer
+betimleyici harcamaktadır. Linux'ta default durumda prosesin dosya betimleyici tablosunda ``1024`` tane betimleyici için yer
 ayrıldığını anımsayınız. Dolayısıyla derine inildikçe bu tabloda betimleyiciler yer kaplayacağından derin ağaçlarda
 betimleyici yetmeme sorunu oluşabilecektir. İşte fonksiyonun dördüncü parametresi (``fd_limit``) fonksiyonun en fazla kaç
 betimleyiciyi açık olarak tutacağını belirtmektedir. Programcı bu parametreye ortalama bir değer girebilir. Fonksiyon
@@ -9052,7 +9052,7 @@ Tabii boru işlemi yapılırken programlara komut satırı argümanları da veri
 
 Burada aslında çalıştırılacak programlar ``a`` ve ``b`` programlarıdır. Diğerleri bunların komut satırı argümanlarıdır.
 
-Aşağıdaki örnekte ``a`` programı ekrana (``stdout`` dosyasına) 0'dan 10'a kadar sayıları yazdırmaktadır. ``b`` programı
+Aşağıdaki örnekte ``a`` programı ekrana (``stdout`` dosyasına) ``0``'dan ``10``'a kadar sayıları yazdırmaktadır. ``b`` programı
 ise döngü içerisinde klavyeden (``stdin`` dosyasından) değer okuyup ekrana yazdırmaktadır. Bu iki programı aşağıdaki
 gibi çalıştıralım:
 
