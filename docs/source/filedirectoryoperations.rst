@@ -379,7 +379,7 @@ komut ile aşağıdaki eşdeğerdir:
 
     $ su 
 
-*su* komutunda çalışma dizini gibi bazı unsurlar korunmaktadır. Eğer tam bir *root* girişi simüle edilmek
+*su* komutunda çalışma dizini gibi bazı unsurlar korunmaktadır. Eğer tam bir ``root`` girişi simüle edilmek
 isteniyorsa ``-`` komut satırı argümanının da eklenmesi gerekir. Örneğin:
 
 .. code-block:: text
@@ -1723,11 +1723,12 @@ olarak şöyle kullanmalısınız:
 
     ssize_t result;
     char buf[BUFFER_SIZE];
+    /* ... */
 
     if ((result = read(fd, buf, BUFFER_SIZE)) == -1)
         exit_sys("read");
 
-Talep ettiğiniz kadar bilginin okunup okunmadığını anlamak için ayrıca bir kontrol de apabilirsiniz:
+Talep ettiğiniz kadar bilginin okunup okunmadığını anlamak için ayrıca bir kontrol de yapabilirsiniz:
 
 .. code-block:: c
 
@@ -1745,6 +1746,7 @@ Eğer bir metin dosyasından okuma yapıp okunanı yazdırmak istiyorsanız null
 
     char buf[BUFFER_SIZE + 1];
     ssize_t result;
+    /* ... */
 
     if ((result = read(fd, buf, BUFFER_SIZE)) == -1)
         exit_sys("read");
@@ -7578,7 +7580,7 @@ Yapının ``level`` elemanı ağaçtaki derinlik düzeyini belirtmektedir. Bu de
 artırılmaktadır. ``base`` elemanı ise dizin girişinin birinci parametrede belirtilen yol ifadesinin kaçıncı indeksinden
 başladığını belirtmektedir. Örneğin biz ``/home/kaan/Study`` dizinini dolaşmak istemiş olalım. Fonksiyon da dizin girişi
 olarak ``sample.c`` bulmuş olsun. Fonksiyon bize bu girişi ``/home/kaan/Study/sample.c`` biçiminde verecektir. İşte
-buradaki ``base`` değeri 17 (``/home/kaan/Study/`` karakterlerinin sayısı) olarak verilecektir.
+buradaki ``base`` değeri ``17`` (``/home/kaan/Study/`` karakterlerinin sayısı) olarak verilecektir.
 
 Aşağıda ``nftw`` fonksiyonunun kullanımına bir örnek verilmiştir.
 
@@ -8128,7 +8130,7 @@ numaralı ``stdout`` betimleyicisine yazılmıştır. Biz ``read`` fonksiyonuyla
     if (write(1, buf, result) == -1)
         exit_sys("write");
 
-Bir program çalışmaya başladığında 0, 1 ve 2 numaralı betimleyiciler zaten açık durumdadır. Bu betimleyicileri
+Bir program çalışmaya başladığında ``0``, ``1`` ve ``2`` numaralı betimleyiciler zaten açık durumdadır. Bu betimleyicileri
 programcı oluşturmamıştır. O halde bu betimleyicilerin kapatılmasını da programcı yapmamalıdır.
 
 .. code-block:: c
