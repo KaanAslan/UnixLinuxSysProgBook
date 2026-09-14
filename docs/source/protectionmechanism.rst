@@ -13,15 +13,15 @@ Koruma Mekanizması Nedir?
 Çok prosesli (multiprocessing) işletim sistemlerinin çalıştığı donanımlarda kullanılan mikroişlemcilerin
 *koruma mekanizması (protection mechanism)* denilen bir özelliği vardır. Çok prosesli sistemlerde bütün
 çalışan programlar o anda fiziksel bellekte (yani RAM'de) bir biçimde bulunmaktadır. Tabii işletim sisteminin 
-kendisi de fiziksel RAM'de bulunur. Bir programın göstericiler yoluyla kendi bellek alanının dışına çıkarak başka bir prosesin bellek
-alanına erişmesi mutlaka engellenmesi gereken bir durumdur. Çünkü eğer bu durum engellenmezse bir program
-başka bir programın bellek alanını bozabilir. Bu bozulma da o programın hatalı çalışmasına ya da
-çökmesine yol açabilir. Program başka bir programın bellek alanını bozmasa bile oradaki programlar üzerinde
-casusluk faaliyetleri yürütebilir. Buna ek olarak bazı makine komutları tamamen sistemin çökmesine de yol
-açabilmektedir. Bir programın bu makine komutlarını kullanması tüm sistemi çökertebileceği için bu durumun
-da önüne geçilmesi gerekir. Örneğin Intel işlemcilerindeki 1 byte'lık ``CLI`` makine komutu o anda tüm sistemi
-çökertebilmektedir. İşte işlemcilerin koruma mekanizması bu tür ihlallerin birinci elden işlemci tarafından
-tespit edilip engellenmesini sağlamaktadır.
+kendisi de fiziksel RAM'de bulunur. Bir programın göstericiler yoluyla kendi bellek alanının dışına çıkarak 
+başka bir prosesin bellek alanına erişmesi mutlaka engellenmesi gereken bir durumdur. Çünkü eğer bu durum 
+engellenmezse bir program başka bir programın bellek alanını bozabilir. Bu bozulma da o programın hatalı 
+çalışmasına ya da çökmesine yol açabilir. Program başka bir programın bellek alanını bozmasa bile oradaki 
+programlar üzerinde casusluk faaliyetleri yürütebilir. Buna ek olarak bazı makine komutları tamamen sistemin 
+çökmesine de yol açabilmektedir. Bir programın bu makine komutlarını kullanması tüm sistemi çökertebileceği 
+için bu durumun da önüne geçilmesi gerekir. Örneğin Intel işlemcilerindeki ``1`` byte'lık ``CLI`` makine 
+komutu o anda tüm sistemi çökertebilmektedir. İşte işlemcilerin koruma mekanizması bu tür ihlallerin birinci 
+elden işlemci tarafından tespit edilip engellenmesini sağlamaktadır.
 
 İşlemcilerin koruma mekanizmasının iki yönü vardır:
 
