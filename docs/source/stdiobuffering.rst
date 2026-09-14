@@ -808,8 +808,8 @@ stdin, stdout ve stderr Dosyalarının Varsayılan Tamponlama Modları
 ------------------------------------------------------------------
 
 Daha önce de belirttiğimiz gibi C'nin ``<stdio.h>`` dosyası içerisinde ``FILE *`` türünden yani *stream*
-belirten üç değişken ismi bulunmaktadır: ``stdin``, ``stdout`` ve ``stderr``. Bu değişkenler ``fopen``
-fonksiyonunun geri döndürdüğü ``FILE`` nesnesi türünden adres belirtmektedir. Dolayısıyla C'nin standart
+belirten üç makro bulunmaktadır: ``stdin``, ``stdout`` ve ``stderr``. Bu makrolar ``fopen`` fonksiyonunun 
+geri döndürdüğü ``FILE`` nesnesi türünden adres belirtmektedir. Dolayısıyla C'nin standart
 dosya fonksiyonlarında bunları kullanabiliriz. Örneğin aslında:
 
 .. code-block:: c
@@ -822,27 +822,24 @@ dosya fonksiyonlarında bunları kullanabiliriz. Örneğin aslında:
 
     fprintf(stdout, ...);
 
-Zaten örneğin C standartlarında ``printf`` için ayrıntılı açıklama yapılmamış, bu fonksiyonun *fprintf
-fonksiyonunu stdout dosyasına yazan biçimi olduğu* söylenmiştir. Asıl açıklama ``fprintf`` fonksiyonunda
+Zaten örneğin C standartlarında ``printf`` için ayrıntılı açıklama yapılmamış, bu fonksiyonun "fprintf
+fonksiyonunun stdout dosyasına yazan biçimi olduğu" söylenmiştir. Asıl açıklama ``fprintf`` fonksiyonunda
 yapılmıştır.
 
-``stdin``, ``stdout`` ve ``stderr`` dosya bilgi göstericileri (streams) programcı tarafından açılmamıştır
-ve programcı tarafından kapatılmamalıdır. Programcı bunları doğrudan kullanabilir. Şüphesiz UNIX/Linux
+``stdin``, ``stdout`` ve ``stderr`` dosyaları tarafından açılmamıştır ve programcı tarafından kapatılmamalıdır. 
+Programcı bunları doğrudan kullanabilir. Şüphesiz UNIX/Linux
 sistemlerinde ``stdin`` dosya bilgi göstericisinin gösterdiği ``FILE`` nesnesinin içerisinde 0 numaralı
 betimleyici, ``stdout`` ``FILE`` nesnesinin içerisinde 1 numaralı betimleyici ve ``stderr`` ``FILE``
 nesnesinin içerisinde 2 numaralı betimleyici vardır.
-
-Varsayılan Tamponlama Kuralları
--------------------------------
 
 ``stdin``, ``stdout`` ve ``stderr`` dosyaları için de ``FILE`` nesneleri, dolayısıyla tampon
 oluşturulmaktadır. Yani bu dosyalar da tamponlu bir biçimde işleme sokulmaktadır. C standartları herhangi
 bir dosyanın default tamponlaması hakkında bir şey söylememiş olsa da ``stdin``, ``stdout`` ve ``stderr``
 dosyalarının default tamponlaması hakkında şunları söylemiştir:
 
-- ``stdin`` ve ``stdout`` dosyaları default durumda *eğer interaktif olmayan bir aygıta yönlendirilmişse
-  işin başında tam tamponlamalı* moddadırlar. Ancak bu dosyalar *interaktif olan bir aygıta
-  yönlendirilmişse işin başında tam tamponlamalı olamazlar, satır tamponlamalı ya da sıfır tamponlamalı*
+- ``stdin`` ve ``stdout`` dosyaları default durumda "eğer interaktif olmayan bir aygıta yönlendirilmişse
+  işin başında tam tamponlamalı" moddadırlar. Ancak bu dosyalar "interaktif olan bir aygıta
+  yönlendirilmişse işin başında tam tamponlamalı olamazlar, satır tamponlamalı ya da sıfır tamponlamalı"
   olabilirler. Klavye ve ekran yani terminal *interaktif aygıt* kabul edilmektedir. Ancak disk dosyaları
   interaktif aygıt kabul edilmemektedir.
 
@@ -850,8 +847,16 @@ dosyalarının default tamponlaması hakkında şunları söylemiştir:
   yönlendirilmiş olsun işin başında tam tamponlamalı olamaz. Ancak satır tamponlamalı ya da sıfır
   tamponlamalı olabilir.
 
-Windows ve UNIX/Linux Arasındaki Farklar, flush Garantisi
----------------------------------------------------------
+  Bu konudaki standartlardaki anlatım şöyledir:
+
+.. container:: acknowledge
+
+    At program startup, three text streams are predefined and need not be opened explicitly
+    — standard input (for reading conventional input), standard output (for writing
+    conventional output), and standard error (for writing diagnostic output). As initially
+    opened, the standard error stream is not fully buffered; the standard input and standard
+    output streams are fully buffered if and only if the stream can be determined not to refer
+    to an interactive device.
 
 Örneğin Windows sistemlerindeki C derleyicilerinde default durumda dosyaya yönlendirme yapılmamışsa
 ``stdout`` sıfır tamponlamalı, ``stdin`` satır tamponlamalıdır. Ancak UNIX/Linux sistemlerinde ``stdout``
@@ -872,7 +877,7 @@ ve ``stdin`` dosyaları default durumda satır tamponlamalıdır. Aşağıdaki �
     }
 
 Bu örnekte eğer ``stdout`` default durumda satır tamponlamalı ise "ankara" yazısı önce tampona
-aktarılacak, '\\n' basılana kadar tamponda kalacaktır. Tabii program sonlanırken ``stdin``, ``stdout`` ve
+aktarılacak, ``'\n'`` basılana kadar tamponda kalacaktır. Tabii program sonlanırken ``stdin``, ``stdout`` ve
 ``stderr`` dosyaları zaten derleyiciler tarafından kapatılacağı için her durumda bu flush işlemi
 yapılacaktır. Örneğin aşağıdaki programda programın çalışması bitince her sistemde yazı görünecektir:
 
@@ -889,7 +894,7 @@ yapılacaktır. Örneğin aşağıdaki programda programın çalışması bitinc
 
 Peki ``stdout`` dosyası terminale yönlendirilmişken satır tamponlamalı ya da sıfır tamponlamalı modda
 olabiliyorsa bir yazının ekrana çıkmasını nasıl garanti edebiliriz? Mademki ``stdout`` terminale
-yönlendirildiğinde en kötü olasılıkla satır tamponlamalı olabilir. O zaman yazının sonuna '\\n' karakteri
+yönlendirildiğinde en kötü olasılıkla satır tamponlamalı olabilir. O zaman yazının sonuna ``'\n'`` karakteri
 koyarız. Örneğin:
 
 .. code-block:: c
@@ -943,7 +948,7 @@ yazının ekrana çıkması nasıl garanti edilebilir? Bunun iki yolu vardır. B
     }
 
 C derleyicilerinin çoğunda ``stdin`` dosyasından okuma yapıldığında okuma yapan fonksiyonlar önce
-``stdout`` dosyasını flush etmektedir. Standartlarda bu durum garanti edilmemiştir. Örneğin:
+``stdout`` dosyasını flush etmektedir. Ancak standartlarda bu durum garanti edilmemiştir. Örneğin:
 
 .. code-block:: c
 
@@ -958,16 +963,16 @@ C derleyicilerinin çoğunda ``stdin`` dosyasından okuma yapıldığında okuma
         return 0;
     }
 
-Mademki bu davranış standartlarda garanti edilmemiş, o halde yine en doğru uygulama yazının sonunda '\\n'
+Mademki bu davranış standartlarda garanti edilmemiş, o halde yine en doğru uygulama yazının sonunda ``'\n'``
 yoksa açıkça ``fflush(stdout)`` çağrısını yapmaktır.
 
-stdin Tamponunun Temizlenmesi (clear_stdin)
--------------------------------------------
+stdin Tamponunun Temizlenmesi
+-----------------------------
 
-``stdin`` dosyası hem Windows hem de UNIX/Linux sistemlerinde dosyaya yönlendirilmemişse satır
+``stdin`` dosyası hem Windows hem de UNIX/Linux sistemlerinde disk dosyasına yönlendirilmemişse satır
 tamponlamalı moddadır. Dolayısıyla biz klavyeden bir karakter bile okumak istesek UNIX/Linux
 sistemlerinde ``read`` fonksiyonu 0 numaralı betimleyici ile çağrılıp bir satırlık bilgi okunacak ve bu
-bir satırlık bilgi sonunda '\\n' olacak biçimde tampona yerleştirilecektir. Artık tamponda bilgi olduğu
+bir satırlık bilgi sonunda ``'\n'`` karakteri olacak biçimde tampona yerleştirilecektir. Artık tamponda bilgi olduğu
 sürece okuma fonksiyonları tampondakileri okuyacaktır. Tamponda bir karakter kalmadığında yeniden
 klavyeden bir satırlık okuma yapılıp tampona yerleştirilecektir. Örneğin üst üste iki ``getchar`` çağrısı
 ile iki karakteri ``stdin`` dosyasından okumak isteyelim:
@@ -979,16 +984,16 @@ ile iki karakteri ``stdin`` dosyasından okumak isteyelim:
     ch3 = getchar();
 
 Birinci ``getchar`` çağrısı bizden bir satır alarak onu ``stdin`` dosyasının tamponuna yerleştirir. Tabii
-tamponun sonunda '\\n' karakteri de bulunacaktır. İkinci ``getchar`` çağrısı tampon boş olmadığı için
+tamponun sonunda ``'\n'`` karakteri de bulunacaktır. İkinci ``getchar`` çağrısı tampon boş olmadığı için
 klavyeden giriş istemeyip tampondan girişi karşılayacaktır. Yukarıdaki örnekte biz ilk ``getchar``
-fonksiyonunda klavyeden *a* karakterine basıp ENTER tuşuna basmış olalım. Bu durumda tamponda şu karakter
+fonksiyonunda klavyeden ``a`` karakterine basıp ENTER tuşuna basmış olalım. Bu durumda tamponda şu karakter
 olacaktır:
 
 .. code-block:: text
 
     a\n
 
-İlk ``getchar`` bu 'a' karakterini, ikinci ``getchar`` ise '\\n' karakterini alacaktır. Üçüncü ``getchar``
+İlk ``getchar`` bu ``'a'`` karakterini, ikinci ``getchar`` ise ``'\n'`` karakterini alacaktır. Üçüncü ``getchar``
 çağrısında artık tampon boş olduğu için yeni bir satır istenecektir. Yani ``stdin`` dosyasından okuma
 yapan fonksiyonlar tampon boşsa ``read`` fonksiyonunu çağırarak bizden bir satırlık bilgi istemektedir.
 Aşağıdaki programla test işlemini yapabilirsiniz:
@@ -1020,7 +1025,7 @@ vardır.
 Peki biz gerçekten ikinci ``getchar`` fonksiyonu ile yeni bir klavye girişi yapmak istiyorsak bunu nasıl
 sağlayabiliriz? ``stdin`` dosyasının flush edilmesi geçersiz bir işlemdir. Zira C'de salt okunur (read-only)
 dosyalar flush edilemezler. Bunun için özel bir fonksiyon da bulundurulmamıştır. O zaman tek yapılacak şey
-'\\n' karakterini görene kadar ``stdin`` dosyasından karakter karakter okuma yapmaktır. Bu işlem şöyle bir
+``'\n'`` karakterini görene kadar ``stdin`` dosyasından karakter karakter okuma yapmaktır. Bu işlem şöyle bir
 döngü ile yapılabilir:
 
 .. code-block:: c
