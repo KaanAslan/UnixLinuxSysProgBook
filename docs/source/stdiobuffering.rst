@@ -688,13 +688,12 @@ Aşağıdaki örnekte ``setbuf`` fonksiyonu ile dosya için kullanılacak tampon
             fprintf(stderr, "cannot open file!...\n");
             exit(EXIT_FAILURE);
         }
+        setbuf(f, mybuf);
 
         fseek(f, 0, SEEK_END);
         size = ftell(f);
         fseek(f, 0, SEEK_SET);
         n = size < 512 ? size : 512;
-
-        setbuf(f, mybuf);
 
         ch = fgetc(f);
         putchar(ch);
@@ -717,7 +716,7 @@ Fonksiyonun prototipi şöyledir:
 
     int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 
-Fonksiyonun birinci parametresi dosya bilgi göstericisini (stream) belirtir. Üçüncü parametre
+Fonksiyonun birinci parametresi dosya bilgi göstericisini (*stream*) belirtir. Üçüncü parametre
 değiştirilecek tamponlama modunu belirtmektedir. Bu parametre şu değerlerden birini alabilmektedir:
 
 .. list-table::
@@ -1033,7 +1032,7 @@ döngü ile yapılabilir:
     while (getchar() != '\n')
         ;
 
-Tabii sonraki paragraflarda görüleceği üzere ``EOF`` durumunun da kontrol edilmesi daha uygun olur. Bu
+Tabii sonraki paragraflarda görüleceği üzere ``EOF`` durumunun da kontrol edilmesi uygun olur. Bu
 nedenle aşağıdaki gibi bir fonksiyon bu iş için kullanılabilir:
 
 .. code-block:: c
@@ -1075,9 +1074,6 @@ Maalesef bu işlemin C'de daha pratik bir yolu yoktur. Örneğin:
         return 0;
     }
 
-stdin ve Dosya Sonu (EOF) Kavramı
-=================================
-
 Biz ``stdin`` dosyasından okuma yaptığımızda ``EOF`` ile de karşılaşabiliriz. Çünkü ``stdin`` bir dosyaya
 yönlendirildiğinde dosyanın sonuna gelinmiş de olabilir. Peki ``stdin`` default durumda klavyeden okuma
 yaparken dosya sonu kavramı ne olacaktır? İşte terminal aygıt sürücüsü bazı özel tuş kombinasyonlarında
@@ -1089,7 +1085,7 @@ yalancı bir ``EOF`` etkisi oluşturmaktadır. Windows sistemlerinde ``Ctrl+z`` 
     ch = getchar();
 
 Burada Windows sistemlerinde ``Ctrl+z`` tuşuna, UNIX/Linux sistemlerinde ``Ctrl+d`` tuşuna basıldığında
-*dosya sonuna gelme etkisi* yaratılacak ve ``getchar`` fonksiyonu ``EOF`` değerine (-1) geri dönecektir.
+"dosya sonuna gelme etkisi" yaratılacak ve ``getchar`` fonksiyonu ``EOF`` değerine (-1) geri dönecektir.
 Tabii bu tuş kombinasyonlarına basıldığında gerçekte dosya sonuna gelme gibi bir durum oluşmamaktadır. Bu
 yalancı bir etkidir. Yani daha sonra ``stdin`` dosyasından yine okuma yapılabilir. Bu nedenle ``stdin``
 tamponunu boşaltırken kullanıcının ``EOF`` etkisi yaratmak isteyebileceğine de dikkat edilmelidir:
@@ -1104,15 +1100,15 @@ tamponunu boşaltırken kullanıcının ``EOF`` etkisi yaratmak isteyebileceğin
             ;
     }
 
-stdin'den Okuma Yapan Standart Fonksiyonlara Genel Bakış
-========================================================
+stdin Dosyasından Okuma Yapan Standart Fonksiyonlara Genel Bakış
+================================================================
 
-C'de default olarak ``stdin`` dosyasından okuma yapan standart fonksiyonlar şunlardır:
+``stdin`` dosyasından okuma yapan standart C fonksiyonları şunlardır:
 
 - ``getchar``
 - ``scanf``
 - ``gets`` (C11'de kaldırıldı)
-- ``gets_s`` (C11 ile birlikte eklendi ancak *isteğe bağlı (optional), VS ve glibc kütüphanelerinde yok*)
+- ``gets_s`` (C11 ile birlikte eklendi ancak "isteğe bağlı (optional), MSVC ve glibc kütüphanelerinde yok*)
 
 Tabii dosya okuma fonksiyonlarında da (``getc``, ``fgets``, ``fscanf``, ``fread`` gibi) dosya bilgi
 göstericisi olarak ``stdin`` girilirse yine ``stdin`` dosyasından okuma yapılabilir.
@@ -1120,16 +1116,17 @@ göstericisi olarak ``stdin`` girilirse yine ``stdin`` dosyasından okuma yapıl
 Bunların hepsi aynı tampondan çalışmaktadır. Şimdi bu fonksiyonlar üzerinde duralım.
 
 getchar Fonksiyonu
-==================
+------------------
 
 ``getchar`` fonksiyonu ``stdin`` dosyasından bir karakter okur. Tabii önce tampona bakar. Tamponda en az
 bir karakter varsa onu verir. Tampon tamamen boşsa klavyeden bir satır okuyarak tamponu doldurur. Ondan
-sonra karakteri verir. Aslında ``gets`` ve ``scanf`` gibi fonksiyonlar ``getchar``, ``getc`` gibi tampondan
-tek bir karakter okuyan fonksiyonlar kullanılarak yazılmaktadır. Yani temel fonksiyon ``getchar`` ya da
-genel hali olan ``getc`` fonksiyonudur. (``getc`` fonksiyonunu izleyen paragraflarda ele alacağız.)
+sonra karakteri verir. Aslında ``gets`` ve ``scanf`` gibi fonksiyonlar genellikle ``getchar``, ``getc`` gibi 
+tampondan tek bir karakter okuyan fonksiyonlar kullanılarak yazılmaktadır. Yani temel fonksiyonun ``getchar`` ya da
+onun genel hali olan ``getc`` fonksiyonu olduğunu düşünebilirsiniz. (``getc`` fonksiyonunu izleyen paragraflarda 
+ele alacağız.)
 
 ``getchar`` fonksiyonu dosya sonuna gelindiğinde (örneğin ``Ctrl+d`` tuşlarına basıldığında) ya da IO
-hatası olduğunda ``EOF`` değerine geri dönmektedir. ``EOF`` değeri derleyicilerin hemen hepsinde -1
+hatası olduğunda ``EOF`` değerine geri dönmektedir. ``EOF`` değeri derleyicilerin hemen hepsinde ``-1``
 biçiminde define edilmiştir. ``getchar`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
@@ -1139,16 +1136,16 @@ biçiminde define edilmiştir. ``getchar`` fonksiyonunun prototipi şöyledir:
     int getchar(void);
 
 Fonksiyonun geri dönüş değerinin ``unsigned char`` değil de ``int`` türden olması ilk bakışta kişilere
-tuhaf gelmektedir. Ancak eğer fonksiyonun geri dönüş değeri ``char`` olsaydı bu durumda 0xFF gibi bir
+tuhaf gelmektedir. Ancak eğer fonksiyonun geri dönüş değeri ``char`` olsaydı bu durumda ``0xFF`` gibi bir
 okumayla ``EOF`` değeri birbirinden ayırt edilemezdi. Oysa geri dönüş değerinin ``int`` türden olması
-durumunda dosya sonuna gelindiğinde fonksiyon -1 ile geri dönerken 0xFF karakteri okunduğunda 255 değeri
-ile geri dönmektedir.
+durumunda dosya sonuna gelindiğinde fonksiyon ``-1`` ile geri dönerken ``0xFF`` karakteri okunduğunda ``255`` 
+değeri ile geri dönmektedir.
 
-gets Fonksiyonu (Kullanımdan Kaldırılmış)
-=========================================
+gets Fonksiyonu 
+---------------
 
 ``gets`` fonksiyonu C99'da *deprecated* yapılmış ve C11'de C'den kaldırılmıştır. Ancak hâlâ derleyiciler bu
-fonksiyonu muhafaza etmektedir. Ancak *glibc* kütüphanesinde ``gets`` fonksiyonunun prototipi
+fonksiyonu muhafaza etmektedir. *glibc* kütüphanesinde ``gets`` fonksiyonunun prototipi
 ``<stdio.h>`` dosyasından kaldırılmıştır. Ayrıca Linux sistemlerindeki ``ld`` bağlayıcısı ``gets``
 kullanıldığında bir uyarı mesajı da oluşturmaktadır. Bağlayıcı tarafından verilen mesaj şöyledir:
 
@@ -1157,11 +1154,11 @@ kullanıldığında bir uyarı mesajı da oluşturmaktadır. Bağlayıcı taraf�
     /usr/bin/ld: /tmp/ccmd8Y6N.o: in function `main':
     sample.c:(.text+0x4d): uyarı: the `gets' function is dangerous and should not be used.
 
-``gets`` fonksiyonu ``stdin`` dosyasından karakter karakter okuma yapar ve okuduğu karakterleri verilen
-bir diziye yerleştirir. ``gets`` fonksiyonu '\\n' karakterini de okur ancak onun yerine diziye '\\0'
-karakterini yerleştirir. Yani ``gets`` fonksiyonu aslında ``stdin`` tamponunu da tamamen boşaltmaktadır.
-Tabii ``gets`` fonksiyonu çağrıldığında ``stdin`` tamponunda zaten karakterler varsa ``gets`` klavyeden bir
-giriş beklemeden onları okuyup geri dönecektir.
+``gets`` fonksiyonu ``stdin`` dosyasından karakter karakter okuma yapar ve yapar ve okuduğu karakterleri 
+parametresiyle aldığı adresteki diziye yerleştirir ``gets`` fonksiyonu ``'\n'`` karakterini de okur ancak onun 
+yerine diziye ``'\0'`` karakterini yerleştirir. Yani ``gets`` fonksiyonu aslında ``stdin`` tamponunu da tamamen 
+boşaltmaktadır. Tabii ``gets`` fonksiyonu çağrıldığında ``stdin`` tamponunda zaten karakterler varsa ``gets`` fonksiyonu 
+klavyeden bir giriş beklemeden onları okuyup geri dönecektir.
 
 ``gets`` fonksiyonunun prototipi şöyledir:
 
