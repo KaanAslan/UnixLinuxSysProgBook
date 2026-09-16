@@ -1154,11 +1154,11 @@ kullanıldığında bir uyarı mesajı da oluşturmaktadır. Bağlayıcı taraf�
     /usr/bin/ld: /tmp/ccmd8Y6N.o: in function `main':
     sample.c:(.text+0x4d): uyarı: the `gets' function is dangerous and should not be used.
 
-``gets`` fonksiyonu ``stdin`` dosyasından karakter karakter okuma yapar ve yapar ve okuduğu karakterleri 
-parametresiyle aldığı adresteki diziye yerleştirir ``gets`` fonksiyonu ``'\n'`` karakterini de okur ancak onun 
-yerine diziye ``'\0'`` karakterini yerleştirir. Yani ``gets`` fonksiyonu aslında ``stdin`` tamponunu da tamamen 
-boşaltmaktadır. Tabii ``gets`` fonksiyonu çağrıldığında ``stdin`` tamponunda zaten karakterler varsa ``gets`` fonksiyonu 
-klavyeden bir giriş beklemeden onları okuyup geri dönecektir.
+``gets`` fonksiyonu ``stdin`` dosyasından karakter karakter okuma yapar ve okuduğu karakterleri parametresiyle 
+aldığı adresteki diziye yerleştirir ``gets`` fonksiyonu ``'\n'`` karakterini de okur ancak onun yerine diziye ``'\0'`` 
+karakterini yerleştirir. Yani ``gets`` fonksiyonu aslında ``stdin`` tamponunu da tamamen boşaltmaktadır. Tabii ``gets`` 
+fonksiyonu çağrıldığında ``stdin`` tamponunda zaten karakterler varsa ``gets`` fonksiyonu klavyeden bir giriş beklemeden 
+onları okuyup geri dönecektir.
 
 ``gets`` fonksiyonunun prototipi şöyledir:
 
@@ -1167,8 +1167,8 @@ klavyeden bir giriş beklemeden onları okuyup geri dönecektir.
     char *gets(char *s);
 
 ``gets`` fonksiyonu argüman olarak girilen adresin aynısıyla geri döner. Ancak henüz hiçbir karakter
-okunmadan ``EOF`` ile karşılaşılırsa ya da işlemler sırasında IO hatası oluşursa ``gets`` ``NULL`` adresle
-geri dönmektedir. IO hatası durumunda tampona kısmi yerleştirme yapılmış olabilir.
+okunmadan ``EOF`` ile karşılaşılırsa ya da işlemler sırasında IO hatası oluşursa ``gets`` bu durumda ``NULL`` adresle
+geri dönmektedir. IO hatası durumunda diziye kısmi yerleştirme yapılmış olabilir.
 
 ``gets`` fonksiyonunu ``getchar`` kullanarak şöyle yazabiliriz:
 
@@ -1196,22 +1196,6 @@ Aşağıda yazdığımız fonksiyonun kullanımına bir örnek veriyoruz.
 
     #include <stdio.h>
 
-    char *mygets(char *s)
-    {
-        int ch;
-        size_t i;
-
-        for (i = 0; (ch = getchar()) != '\n' && ch != EOF; ++i)
-            s[i] = ch;
-
-        if (i == 0 && ch == EOF || ferror(f))
-            return NULL;
-
-        s[i] = '\0';
-
-        return s;
-    }
-
     int main(void)
     {
         char buf[64];
@@ -1223,10 +1207,10 @@ Aşağıda yazdığımız fonksiyonun kullanımına bir örnek veriyoruz.
     }
 
 gets_s Fonksiyonu
-=================
+-----------------
 
 ``gets`` fonksiyonunun tasarımında baştan beri bir problem vardı. Fonksiyonda argüman olarak geçilen
-alanın uzunluğu belirtilmediği için taşma durumu söz konusu olabilmektedir. Örneğin:
+alanın uzunluğu belirtilmediği için her zaman taşma durumu söz konusu olabilmektedir. Örneğin:
 
 .. code-block:: c
 
@@ -1234,9 +1218,10 @@ alanın uzunluğu belirtilmediği için taşma durumu söz konusu olabilmektedir
 
     gets(s);
 
-Burada kullanıcı 100 karakterden daha fazla karakter girerse dizi taşacaktır. Fonksiyonun dizi uzunluğunu
-da parametre olarak alması gerekirdi. İşte C11 ile birlikte *isteğe bağlı biçimde standartlara eklenmiş*
-olan ``gets_s`` fonksiyonu bunu yapmaktadır. ``gets_s`` fonksiyonunun prototipi şöyledir:
+Burada kullanıcı klavyeden 100 karakterden daha fazla karakter girerse dizi taşacaktır. (Tabii stdin bir disk dosyasına 
+da yönlendirilmiş olabilir.) Fonksiyonun dizi uzunluğunu da parametre olarak alması gerekirdi. İşte C11 ile birlikte 
+"isteğe bağlı biçimde standartlara eklenmiş" olan ``gets_s`` fonksiyonu bunu yapmaktadır. ``gets_s`` fonksiyonunun 
+prototipi şöyledir:
 
 .. code-block:: c
 
@@ -1284,7 +1269,6 @@ okunabilirliği bozabilmektedir. Bazı kontrolleri içeride yapabilirsiniz:
                 break;
             s[i] = ch;
         }
-
         s[i] = '\0';
 
         if (i == 0 && ch == EOF || ferror(f))
@@ -1328,8 +1312,8 @@ Aşağıda bir test kodu verilmiştir.
         return 0;
     }
 
-fgets Fonksiyonu ile gets_s Alternatifi
-=======================================
+fgets Fonksiyonu
+----------------
 
 Bazı programcılar ``gets_s`` fonksiyonu derleyicilerde bulunmadığı için onun işlevselliğini ``fgets``
 fonksiyonu ile karşılamaya çalışmaktadır. ``fgets`` fonksiyonunun prototipi şöyledir:
@@ -1338,8 +1322,8 @@ fonksiyonu ile karşılamaya çalışmaktadır. ``fgets`` fonksiyonunun prototip
 
     char *fgets(char *s, size_t n, FILE *f);
 
-Ancak klavyeden (ya da dosyadan) belirtilen uzunluktan daha kısa bir satır girilmişse ``fgets`` '\\n'
-karakterini de diziye yerleştirmektedir. Bu durumda programcının bu '\\n' karakterini kendisinin aşağıdaki
+Ancak klavyeden (ya da dosyadan) belirtilen uzunluktan daha kısa bir satır girilmişse ``fgets`` bu durumda ``'\n'``
+karakterini de diziye yerleştirmektedir. Bu durumda programcının bu ``'\n'`` karakterini kendisinin aşağıdaki
 gibi silmesi gerekebilmektedir:
 
 .. code-block:: c
@@ -1359,7 +1343,7 @@ karakterini ortadan kaldırma zahmetine girmek istemiyorsanız kendi ``gets_s`` 
 kullanabilirsiniz.
 
 scanf Fonksiyonu
-================
+----------------
 
 ``scanf`` fonksiyonu işlevsel olarak ``printf`` fonksiyonunun tersi gibidir. Prototipi şöyledir:
 
@@ -1369,15 +1353,12 @@ scanf Fonksiyonu
 
 Fonksiyon ``stdin`` dosyasından karakterleri tek tek okur. Format karakterlerine uygunsuzluk tespit ettiği
 noktada uygunsuz olan o karakteri tampona geri bırakır ve işlemini sonlandırır. ``scanf`` fonksiyonu
-başarılı bir biçimde yerleştirilen değerin (parçaların) sayısına geri dönmektedir. Tabii ``scanf`` 0'a da
+başarılı bir biçimde yerleştirilen değerlerin (parçaların) sayısına geri dönmektedir. Tabii ``scanf`` 0'a da
 geri dönebilir. ``scanf`` henüz hiçbir karakter okuyamadan ``EOF`` ile karşılaşırsa ``EOF`` değerine geri
 döner. ``scanf`` her zaman baştaki boşluk karakterlerini (leading space) ve girişler arasındaki boşluk
 karakterlerini atmaktadır. Ancak sonraki boşluk karakterlerini ('\\n' de dahil olmak üzere) atmamaktadır.
 
-scanf'in Tampon Davranışı (Örnekler)
-------------------------------------
-
-Örneğin aşağıdaki ``scanf`` çağrısı yapılmış olsun:
+Örneğin aşağıdaki ``scanf`` çağrısını yapılmış olsun:
 
 .. code-block:: c
 
