@@ -1320,11 +1320,11 @@ fonksiyonu ile karşılamaya çalışmaktadır. ``fgets`` fonksiyonunun prototip
 
 .. code-block:: c
 
-    char *fgets(char *s, size_t n, FILE *f);
+    char *fgets(char * restrict str, int size, FILE * restrict stream);
 
-Ancak klavyeden (ya da dosyadan) belirtilen uzunluktan daha kısa bir satır girilmişse ``fgets`` bu durumda ``'\n'``
-karakterini de diziye yerleştirmektedir. Bu durumda programcının bu ``'\n'`` karakterini kendisinin aşağıdaki
-gibi silmesi gerekebilmektedir:
+Ancak klavyeden (ya da yönlendirilmişse disk dosyasından) belirtilen uzunluktan daha kısa bir satır girilmişse ``fgets`` 
+bu durumda ``'\n'``karakterini de diziye yerleştirmektedir. Bu durumda programcının bu ``'\n'`` karakterini kendisinin 
+aşağıdaki gibi silmesi gerekebilmektedir:
 
 .. code-block:: c
 
@@ -1336,7 +1336,9 @@ gibi silmesi gerekebilmektedir:
     if ((str = strchr(buf, '\n')) != NULL)
         *str = '\0';
 
-``fgets`` yine hiç karakter okuyamadan ``EOF`` ile karşılaşırsa ``NULL`` adresle geri dönmektedir.
+``fgets`` yine hiç karakter okuyamadan ``EOF`` ile karşılaşırsa ya da IO hatası oluştuğunfa ``NULL`` adresle geri 
+dönmektedir. fgets bazı karakterleri okuduktan sonra da IO hatası oluşabilir. Bu durumda dizinin durumu standartlarda 
+"indeterminate" olarak rapor edilmiştir. 
 
 Biz kursumuzda bir satır yazı okumak amacıyla ``fgets`` fonksiyonunu kullanacağız. Ancak siz '\\n'
 karakterini ortadan kaldırma zahmetine girmek istemiyorsanız kendi ``gets_s`` fonksiyonunuzu yazıp onu
