@@ -1419,9 +1419,6 @@ beğenmediği için onu yeniden tampona yerleştirmektedir. Tamponun durumu şö
 
     tampon: |\n|
 
-scanf ile Menü Uygulaması Örneği
---------------------------------
-
 Aşağıdaki örneğe dikkat ediniz:
 
 .. code-block:: c
