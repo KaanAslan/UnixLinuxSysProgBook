@@ -1340,7 +1340,7 @@ aşağıdaki gibi silmesi gerekebilmektedir:
 dönmektedir. fgets bazı karakterleri okuduktan sonra da IO hatası oluşabilir. Bu durumda dizinin durumu standartlarda 
 "indeterminate" olarak rapor edilmiştir. 
 
-Biz kursumuzda bir satır yazı okumak amacıyla ``fgets`` fonksiyonunu kullanacağız. Ancak siz '\\n'
+Biz kursumuzda bir satır yazı okumak amacıyla ``fgets`` fonksiyonunu kullanacağız. Ancak siz ``'\n'``
 karakterini ortadan kaldırma zahmetine girmek istemiyorsanız kendi ``gets_s`` fonksiyonunuzu yazıp onu
 kullanabilirsiniz.
 
@@ -1356,9 +1356,9 @@ scanf Fonksiyonu
 Fonksiyon ``stdin`` dosyasından karakterleri tek tek okur. Format karakterlerine uygunsuzluk tespit ettiği
 noktada uygunsuz olan o karakteri tampona geri bırakır ve işlemini sonlandırır. ``scanf`` fonksiyonu
 başarılı bir biçimde yerleştirilen değerlerin (parçaların) sayısına geri dönmektedir. Tabii ``scanf`` 0'a da
-geri dönebilir. ``scanf`` henüz hiçbir karakter okuyamadan ``EOF`` ile karşılaşırsa ``EOF`` değerine geri
-döner. ``scanf`` her zaman baştaki boşluk karakterlerini (leading space) ve girişler arasındaki boşluk
-karakterlerini atmaktadır. Ancak sonraki boşluk karakterlerini ('\\n' de dahil olmak üzere) atmamaktadır.
+geri dönebilir. ``scanf`` henüz hiçbir karakter okuyamadan ``EOF`` ya da IO hatasıyla karşılaşırsa ``EOF`` 
+değerine geri döner. ``scanf`` her zaman baştaki boşluk karakterlerini (leading space) ve girişler arasındaki boşluk
+karakterlerini atmaktadır. Ancak sonraki boşluk karakterlerini (``'\n'`` de dahil olmak üzere) atmamaktadır.
 
 Örneğin aşağıdaki ``scanf`` çağrısını yapılmış olsun:
 
@@ -1376,7 +1376,7 @@ Burada klavyeden şu girişi yapmış olalım:
 
     100 200ankara
 
-Burada ``scanf`` ``stdin`` dosyasından karakter karakter okuma yaparken tampon önce bir satırla
+``scanf`` burada ``stdin`` dosyasından karakter karakter okuma yaparken tampon önce bir satırla
 doldurulacaktır:
 
 .. code-block:: text
@@ -1412,7 +1412,7 @@ Girişi şöyle yapmış olalım:
 
     100 200
 
-Burada ``scanf`` iki yerleştirmeyi de başarılı bir biçimde yapmaktadır. Tamponun sonundaki '\\n' karakterini
+Burada ``scanf`` iki yerleştirmeyi de başarılı bir biçimde yapmaktadır. Tamponun sonundaki ``'\n'`` karakterini
 beğenmediği için onu yeniden tampona yerleştirmektedir. Tamponun durumu şöyle olacaktır:
 
 .. code-block:: text
@@ -1461,7 +1461,7 @@ Aşağıdaki örneğe dikkat ediniz:
         return 0;
     }
 
-Burada klavyeden bir giriş istenmiş ve giriş ``switch`` deyimi ile ele alınmıştır. Peki kullanıcı
+Burada klavyeden (stdin dosyasından) bir giriş istenmiş ve giriş ``switch`` deyimi ile ele alınmıştır. Peki kullanıcı
 yanlışlıkla 'a' gibi bir karakteri girip ENTER tuşuna basarsa ne olur? İşte bu durumda ``scanf`` seçilen
 nesneye yerleştirme yapmaz ve 0 ile geri döner. Ancak 'a' karakterini tampona geri bırakır. Muhtemelen
 ``switch`` deyimi ``default`` kısımdan sapıp döngü yinelenecektir. Ancak tamponda hâlâ 'a' vardır. ``scanf``
@@ -1509,7 +1509,6 @@ boşaltabiliriz:
             }
         }
     EXIT:
-
         return 0;
     }
 
@@ -1575,7 +1574,7 @@ Aşağıda bu örneğin biraz daha gelişmiş bir biçimi verilmiştir.
     }
 
 ungetc Fonksiyonu
-=================
+-----------------
 
 Bir dosyadan okunan karakter beğenilmezse sanki hiç okunmamış gibi bir etki oluşturmak için (yani o
 karakteri tampona geri bırakmak için) ``ungetc`` isimli bir standart C fonksiyonu bulundurulmuştur:
@@ -1590,9 +1589,9 @@ Fonksiyon başarı durumunda tampona bırakılan karakterin aynısına, başarı
 geri dönmektedir.
 
 fgetc ve getc Fonksiyonları
-===========================
+---------------------------
 
-Bir dosyayı byte byte okurken ``fgetc`` fonksiyonundan faydalanırız. Örneğin:
+Bir dosyayı byte byte okumak için ``fgetc`` fonksiyonundan faydalanırız. Örneğin:
 
 .. code-block:: c
 
@@ -1601,7 +1600,7 @@ Bir dosyayı byte byte okurken ``fgetc`` fonksiyonundan faydalanırız. Örneği
     /* ... */
 
     if ((f = fopen("test.txt", "r")) == NULL) {
-        pritnf(stderr, "cannot open file!..\n);
+        pritnf(stderr, "cannot open file!..\n");
         exit(EXIT_FAILURE);
     }
 
@@ -1632,4 +1631,4 @@ düşürebilmektedir. Örneğin:
     }
 
 Artık ``getc`` bir makro biçiminde tanımlandıysa hiç fonksiyon çağrısı yapmadan doğrudan tampondaki
-byte'ı alan kodu açacaktır. Böylece programcı fonksiyon çağırmanın maliyetinden kurtulmuş olur.
+byte'ı alan kodu açacaktır. Böylece programcı fonksiyon çağırmanın maliyetinden kurtulmuş olur. 
