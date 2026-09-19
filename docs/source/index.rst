@@ -47,4 +47,3 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    filedirectoryoperations
    protectionmechanism
    stdiobuffering
-   processcreation
