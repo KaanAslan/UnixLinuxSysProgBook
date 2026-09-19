@@ -1100,8 +1100,8 @@ tamponunu boşaltırken kullanıcının ``EOF`` etkisi yaratmak isteyebileceğin
             ;
     }
 
-stdin Dosyasından Okuma Yapan Standart Fonksiyonlara Genel Bakış
-================================================================
+stdin Dosyasından Okuma Yapan Standart C Fonksiyonlarına Genel Bakış
+====================================================================
 
 ``stdin`` dosyasından okuma yapan standart C fonksiyonları şunlardır:
 

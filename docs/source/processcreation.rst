@@ -1,47 +1,43 @@
-===============================================================
-Proses Yönetimine Giriş: PID, getpid/getppid ve fork Fonksiyonu
-===============================================================
+=======================================
+Proseslerin Yaratılması ve Yok Edilmesi
+=======================================
 
-Bu bölümde dikkatimizi UNIX/Linux sistemlerindeki proses yönetimi üzerine çevireceğiz. Anımsanacağı gibi
-işletim sistemlerinde çalışmakta olan programlara *process* denilmektedir. Her proses başka bir proses
-tarafından oluşturulmaktadır. Bu bölümde proseslerin nasıl oluşturulduğu, nasıl yok edildiği gibi temel
-konular üzerinde duracağız.
+Anımsanacağı gibi işletim sistemlerinde çalışmakta olan programlara "proses" denilmektedir. Her proses başka bir proses 
+tarafından yaratılmaktadır. Bu bölümde dikkatimizi prosesler üzerinde üzerine çevireceğiz. 
 
 Proses ID (PID) Kavramı ve pid_t Türü
 =====================================
 
-UNIX/Linux sistemlerinde her prosesin o anda *sistem genelinde tek olan (unique)* bir *proses ID* değeri
-vardır. Proses ID değeri prosesin kontrol bloğuna erişmek için bir anahtar olarak kullanılmaktadır. Yani
-biz işletim sistemine bu proses ID değerini verdiğimizde işletim sistemi hızlı bir biçimde bu ID
-değerinden hareketle prosesin kontrol bloğuna erişebilmektedir.
+UNIX/Linux sistemlerinde her prosesin o anda "sistem genelinde tek olan (*unique*)" bir *proses ID (PID)* değeri
+vardır. PID değeri prosesin kontrol bloğuna erişmek için bir anahtar olarak kullanılmaktadır. Yani biz işletim 
+sistemine bu PID değerini verdiğimizde işletim sistemi hızlı bir biçimde bu PID değerinden hareketle prosesin 
+kontrol bloğuna erişebilmektedir.
 
-Proseslerin ID değerleri ``pid_t`` türüyle temsil edilmiştir. ``pid_t`` türü işaretli bir tamsayı türü
-olmak koşuluyla ``<sys/types.h>`` ve ``<unistd.h>`` dosyalarında typedef edilmiş olmak zorundadır. Bu
-türün hangi işaretli tamsayı türü olarak typedef edildiğinin programcı tarafından bilinmesi
-gerekmemektedir.
+PID değerleri ``pid_t`` türüyle temsil edilmiştir. POSIX standartlarına göre ``pid_t`` türü işaretli 
+bir tamsayı türü olmak koşuluyla ``<sys/types.h>`` ve ``<unistd.h>`` dosyalarında typedef edilmiş olmak zorundadır. 
+Bu türün hangi işaretli tamsayı türü olarak typedef edildiğinin programcı tarafından bilinmesine gerek ypktur. 
 
-Sistem boot edildiğinde boot kodu 0 numaralı ID'ye sahip proses biçimine dönüştürülmektedir. Buna *swapper*
-ya da *pager* da denilebilmektedir. Daha sonra da bu 0 numaralı ID bir daha sistemde kullanılmamaktadır.
-Sistemde ikinci yaratılan proses 1 numaralı ID'ye sahip olan *init* ismiyle temsil edilen prosestir. 0
-numaralı proses yok edildiği için sistemdeki bütün proseslerin atası bu *init* prosesidir. *init* prosesi
-arka planda bir daemon gibi çalışmaktadır. UNIX/Linux dünyasında terminal etkileşimi olmayan arka planda
-çalışan proseslere *daemon* denilmektedir. Bu tür proseslere Windows dünyasında da *servis (service)*
-denilmektedir.
+Sistem boot edildiğinde boot kodu 0 numaralı PID'ye sahip proses biçimine dönüştürülmektedir. Buna *swapper*
+ya da *pager* da denilebilmektedir. Daha sonra da bu 0 numaralı PID bir daha sistemde kullanılmamaktadır.
+(Yani 0 numaralı PID geçerli bir PID değildir.) Sistemde ikinci yaratılan proses 1 numaralı ID'ye sahip 
+olan *init* ismiyle temsil edilen prosestir. 0 numaralı proses yok edildiği için sistemdeki bütün proseslerin 
+atası bu *init* prosesidir. *init* prosesi arka planda bir *daemon* gibi çalışmaktadır. UNIX/Linux dünyasında 
+terminal etkileşimi olmayan arka planda çalışan proseslere *daemon* denilmektedir. (Bu tür proseslere Windows 
+dünyasında da *servis (service)* denilmektedir.)
 
-İşletim sisteminin çekirdeği tipik olarak yeni yaratılan bir proses için proses ID değerini bir sayaç
+İşletim sisteminin çekirdeği tipik olarak yeni yaratılan proses için proses PID değerini bir sayaç
 kullanarak vermektedir. Her proses yaratıldığında bu sayaç değeri bir artırılır. Sayaç sona geldiğinde
-yeniden başa geçilir ve bitmiş proseslerin ID'leri kullanılır. Örneğin sistem açıldığında 1 numaralı ID'ye
-sahip *init* prosesi tarafından yaratılan proseslere artık sistem 2, 3, 4, ... ID'lerini vermektedir.
-Proses ID değerlerinin belli bir anda sistemde tek olduğuna dikkat ediniz. Zaman içerisinde
+yeniden başa geçilir ve bitmiş proseslerin PID'leri kullanılır. Örneğin sistem açıldığında 1 numaralı PID'ye
+sahip *init* prosesi tarafından yaratılan proseslere artık sistem 2, 3, 4, ... PID'lerini vermektedir.
+Proses PID değerlerinin belli bir anda sistemde tek olduğuna dikkat ediniz. Zaman içerisinde
 bilgisayarınız uzun süre açık kalırsa sonlanmış olan eski PID değerleri yeniden kullanılacaktır.
 
-PID Tavan Değeri (PID_MAX)
---------------------------
+PID'ler İçin Tavan Değeri
+-------------------------
 
-UNIX/Linux sistemlerinde genellikle proses ID değerleri için bir tavan değer de belirlenmektedir. Bu tavan
-değere ulaşıldığında yukarıda da belirttiğimiz gibi yeniden başa dönülüp boş olan ID'ler
-kullanılmaktadır.
-Linux sistemlerinde default durumda pid tavan değeri 32768'dir. Bu değer sistem yöneticisi tarafından
+UNIX/Linux sistemlerinde genellikle PID değerleri için bir tavan değer de belirlenmektedir. Bu tavan
+değere ulaşıldığında yukarıda da belirttiğimiz gibi yeniden başa dönülüp boş olan PID'ler kullanılmaktadır. 
+Linux sistemlerinde default durumda PID tavan değeri 32768'dir. Bu değer sistem yöneticisi tarafından
 değiştirilebilmektedir. Ancak yükseltilecek maksimum değer de önceden belirlenmiştir. Aşağıda bu değerleri
 tablo halinde veriyoruz:
 
