@@ -683,7 +683,7 @@ bağımsız bir işletim sistemi haline getirdi. Microsoft bundan sonra sırası
 ve *Windows ME*'yi, 2001 yılında *Windows XP*'yi, 2006 yılında *Windows Vista*'yı, 2012 yılında *Windows 8*'i,
 2015 yılında *Windows 10*'u ve nihayet 2021 yılında da *Windows 11*'i çıkarmıştır.
 
-Linux işletim sistemi 1992 yılında bir dağıtım biçiminde piyasaya çıkmıştır. Linux işletim sisteminin hikâyesi
+Linux işletim sistemi 1992 yılında bir dağıtım biçiminde piyasaya çıkmıştır. Linux işletim sisteminin öyküsü
 daha geniş olarak izleyen paragraflarda ele alınmaktadır.
 
 UNIX Türevi İşletim Sistemlerinin Tarihsel Gelişimi
@@ -887,7 +887,7 @@ Torvalds bu bağlamda Tanenbaum ile yazışmalar da yapmıştır. Linux'un ilk v
 Bu ilk versiyon öğrenci ödevi gibi olan oldukça ilkel bir çekirdekti. Sonraki zamanlarda Linux projesi çeşitli
 topluluklardan destek aldı ve çekirdek gittikçe iyileştirildi. Linux çekirdeğini temel alan fakat GNU projesi
 kapsamında geliştirilmiş olan pek çok araç bir araya getirilerek Linux dağıtımları oluşturuldu. Linux'un
-rekabet edebilecek ölçüde bir işletim sistemi hâline gelmesi 2'li versiyonlarla başladı. 2.2, 2.4 ve
+rekabet edebilecek ölçüde bir işletim sistemi haline gelmesi 2'li versiyonlarla başladı. 2.2, 2.4 ve
 özellikle de 2.6 versiyonuyla Linux pek çok modern özelliklere sahip oldu ve çekirdek de daha etkin
 çalışabilecek biçimde sürekli iyileştirildi. Linux'un 2.6 versiyonundan sonra versiyon numaralandırması
 değiştirildi. Daha hızlı bir numaralandırma sistemine geçildi.
@@ -1016,7 +1016,7 @@ Aşağıda çekirdeğin temel versiyonlarının kullanıma sokulduğu yılları 
 
 Her ne kadar işletim sisteminin ismi Linux olsa da aslında Linux'un geliştirilmesi büyük ölçüde GNU projesinin
 sağladığı araçlarla ve oluşturduğu ortamla yapılmıştır. Aynı zamanda çekirdeğinin çalışabilmesi için pek çok
-GNU aracına gereksinim duyulmaktadır. Zamanla Linux adeta GNU projesinin işletim sistemi hâline gelmiştir.
+GNU aracına gereksinim duyulmaktadır. Zamanla Linux adeta GNU projesinin işletim sistemi haline gelmiştir.
 Pek çok topluluk ve geliştirici Linux'un isminin de aslında *GNU/Linux* biçiminde olması gerektiğini ifade
 etmektedir. Ancak *GNU/Linux* ismi kullanılıyor olsa da geniş bir kesim tarafından benimsenmemiştir.
 

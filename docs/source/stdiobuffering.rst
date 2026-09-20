@@ -269,7 +269,7 @@ FILE Yapısının İçeriği
 ----------------------
 
 Bildiğiniz gibi C'nin dosya açmakta kullanılan ``fopen`` fonksiyonu bize ``FILE`` türünden bir yapı
-nesnesinin adresini vermektedir. Bu ``FILE`` nesnesine İngilizce *stream* denilmektedir. Biz kursumuzda buna
+nesnesinin adresini vermektedir. Bu ``FILE`` nesnesine İngilizce *stream* denilmektedir. Biz Derneğimizde buna
 genel olarak *dosya bilgi göstericisi* diyoruz. İşte yukarıda da belirttiğimiz gibi bu ``FILE`` yapısının
 içerisinde tamponu yönetmek için de bilgiler bulunmaktadır. ``FILE`` yapısının içerisinde tipik olarak şu
 bilgiler bulunur:
@@ -1144,7 +1144,7 @@ değeri ile geri dönmektedir.
 gets Fonksiyonu 
 ---------------
 
-``gets`` fonksiyonu C99'da *deprecated* yapılmış ve C11'de C'den kaldırılmıştır. Ancak hâlâ derleyiciler bu
+``gets`` fonksiyonu C99'da *deprecated* yapılmış ve C11'de C'den kaldırılmıştır. Ancak hala derleyiciler bu
 fonksiyonu muhafaza etmektedir. *glibc* kütüphanesinde ``gets`` fonksiyonunun prototipi
 ``<stdio.h>`` dosyasından kaldırılmıştır. Ayrıca Linux sistemlerindeki ``ld`` bağlayıcısı ``gets``
 kullanıldığında bir uyarı mesajı da oluşturmaktadır. Bağlayıcı tarafından verilen mesaj şöyledir:
@@ -1461,7 +1461,7 @@ Aşağıdaki örneğe dikkat ediniz:
 Burada klavyeden (stdin dosyasından) bir giriş istenmiş ve giriş ``switch`` deyimi ile ele alınmıştır. Peki kullanıcı
 yanlışlıkla 'a' gibi bir karakteri girip ENTER tuşuna basarsa ne olur? İşte bu durumda ``scanf`` seçilen
 nesneye yerleştirme yapmaz ve 0 ile geri döner. Ancak 'a' karakterini tampona geri bırakır. Muhtemelen
-``switch`` deyimi ``default`` kısımdan sapıp döngü yinelenecektir. Ancak tamponda hâlâ 'a' vardır. ``scanf``
+``switch`` deyimi ``default`` kısımdan sapıp döngü yinelenecektir. Ancak tamponda hala 'a' vardır. ``scanf``
 yine bu 'a' karakterini tampondan alır, yine başarısız olur. Böylece bir sonsuz döngü oluşacaktır. Bunu
 engellemek için ``scanf`` fonksiyonunun geri dönüş değerini kontrol edip gerektiğinde tamponu
 boşaltabiliriz:
