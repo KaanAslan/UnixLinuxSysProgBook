@@ -81,10 +81,12 @@ maksimum değer olan 4194304 değerine çekmektedir. Örneğin:
     $ cat /proc/sys/kernel/pid_max
     4194304
 
-getpid Fonksiyonu
-=================
+Proses ID'lerine İlişkin Fonksiyonlar
 
-O anda çalışmakta olan programa ilişkin proses ID değeri ``getpid`` isimli POSIX fonksiyonu ile elde
+getpid ve getppid Fonksiyonları
+===============================
+
+O anda çalışmakta olan programa ilişkin PID değeri ``getpid`` isimli POSIX fonksiyonu ile elde
 edilebilmektedir:
 
 .. code-block:: c
@@ -117,9 +119,6 @@ tamsayı türünü temsil eden ``intmax_t`` türüne dönüştürdük.
 
         return 0;
     }
-
-getppid Fonksiyonu ve Üst Proses Kavramı
-========================================
 
 Her proses başka bir proses tarafından yaratılmaktadır. Bir prosesi yaratan prosese o prosesin *üst
 prosesi (parent process)*, yaratılan prosese de üst prosesin *alt prosesi (child process)* denilmektedir.
@@ -160,11 +159,11 @@ prosesin üst prosesi olarak atamaktadır. Dolayısıyla her zaman prosesin bir 
         return 0;
     }
 
-ps Komutu ile Prosesleri Görüntüleme
-====================================
+ps Komutu ile Proseslerin Görüntülenmesi
+========================================
 
 UNIX/Linux sistemlerinde o anda sistemde bulunan prosesler hakkında bilgiler ``ps`` isimli POSIX komutuyla
-elde edilmektedir. Linux sistemlerinde ``ps`` komutu *proc* dosya sistemini kullanmaktadır. ``ps`` komutu
+elde edilmektedir. Linux sistemlerinde ``ps`` komutu ``proc``dosya sistemini kullanmaktadır. ``ps`` komutu
 oldukça ayrıntılı bir komuttur ve pek çok seçeneğe sahiptir. Komutu seçeneksiz kullanırsak yalnızca çalışan
 terminaldeki prosesler görüntülenmektedir. Örneğin:
 
@@ -224,16 +223,17 @@ Belli bir terminalden çalıştırılmış olan prosesleri ``-t`` seçeneği ile
 
 Biz kursumuzda yeri geldikçe ``ps`` komutunun diğer bazı seçenekleri üzerinde de açıklamalar yapacağız.
 
-Proses ve Thread Sayısı Limitleri
-=================================
+Yaratılacak Proses ve Thread Sayısına İlişkin Limitler 
+======================================================
 
 Sistemlerde prosesler konusunda bazı limitler söz konusu olabilmektedir. Çünkü her proses bir kaynak
 kullanmaktadır. Bu kaynakların da bir limiti vardır. Örneğin Linux sistemlerinde, sistem genelinde aynı
 anda var olabilecek toplam proseslerin sayısı (bunu proses ID'lerinin alabileceği tavan değerle
-karıştırmayınız) ``/proc/sys/kernel/threads-max`` girişinde belirtilmektedir. Burada belirtilen değer
-*toplam proseslerin ve thread'lerin* sayısıdır. (Linux sistemlerinde aslında thread'ler de prosesler gibi
-kaynak kullanmaktadır.) Örneğin kursun yapıldığı sistemdeki aynı anda yaratılabilecek proseslerin ve
-thread'lerin maksimum sayısı şöyledir:
+karıştırmayınız) ``/proc/sys/kernel/threads-max`` dosyasında belirtilmektedir. Burada belirtilen değer
+*toplam proseslerin ve thread'lerin* sayısıdır. (Linux sistemlerinde aslında thread'ler de prosesler gibi 
+kaynak kullanmaktadır. Çekirdek alanında proseslerle thread'ler aynı veri yapısıyla temsil edilmektedir.) 
+Örneğin kursun yapıldığı sistemdeki aynı anda yaratılabilecek proseslerin ve thread'lerin maksimum sayısı 
+şöyledir:
 
 .. code-block:: console
 
@@ -248,16 +248,16 @@ Bu değer ``sysctl`` komutu ile de elde edilebilir:
     kernel.threads-max = 30231
 
 Bu değer çalışmakta olan makinedeki fiziksel bellek miktarına bağlı olarak da değişebilmektedir. Bu değer
-*proc* dosya sistemi yoluyla ya da ``sysctl`` komutu ile değiştirilebilmektedir.
+``proc`` dosya sistemi yoluyla ya da ``sysctl`` komutu ile değiştirilebilmektedir.
 
 Yine UNIX/Linux sistemlerinde belli bir kullanıcının yaratabileceği maksimum proses ve thread sayısı da
 sınırlandırılmaktadır. Eğer böyle bir sınırlandırma yapılmasaydı sıradan bir kullanıcı sistemdeki tüm
 proses ve thread kapasitesini kendi başına kullanıp diğer kullanıcıları zor durumda bırakabilirdi.
 Kullanıcının yaratabileceği maksimum proses ve thread sayısı ``getrlimit`` POSIX fonksiyonuyla ya da
-*"ulimit -u"* kabuk komutuyla elde edilebilir. Tabii root prosesi (proses ID'si 0 olan prosesler ve Linux
-sistemlerinde bu *yetenekliliğe (capability)* sahip olan prosesler) bu sınırlamaya tabi değildir. (Bu konu
-ileride *process kaynak limitleri* anlatıldığı bölümde ayrıntılarıyla ele alınacaktır.) *root* prosesler
-genel olarak kaynakların *hard limitlerini* yükseltebilmektedir. Aşağıda kursun yapıldığı sistemde sıradan
+``ulimit -u`` kabuk komutuyla elde edilebilir. Tabii uygun önceliğe sahip olan prosesler (proses ID'si ``0`` olan prosesler 
+ve Linux sistemlerinde bu *yetenekliliğe (capability)* sahip olan prosesler) bu sınırlamaya tabi değildir. (Bu konu
+ileride "process kaynak limitlerinin" anlatıldığı bölümde ayrıntılarıyla ele alınacaktır.) Uygun önceliğie sahip 
+prosesler genel olarak kaynakların *hard limitlerini* yükseltebilmektedir. Aşağıda kursun yapıldığı sistemde sıradan
 bir kullanıcının limiti gösterilmiştir:
 
 .. code-block:: console
@@ -274,12 +274,12 @@ Kalıcı değişiklikler için sistem boot edilirken başvurulan bazı konfigür
 faydalanılmaktadır. Örneğin ``/etc/sysctl.conf`` dosyasına yeni limitler girilirse sistem bu limitlerle
 açılacaktır.
 
-fork Fonksiyonu ile Proses Yaratma
-==================================
+Prosesleirn Yaratılması: fork Fonksiyonu
+========================================
 
 UNIX/Linux sistemlerinde prosesler ``fork`` isimli POSIX fonksiyonu ile yaratılmaktadır. ``fork``
-fonksiyonu, pek çok UNIX türevi sistemde doğrudan işletim sisteminin bu işi yapan sistem fonksiyonunu
-çağırmaktadır. Linux sistemlerinde ``sys_fork`` isimli sistem fonksiyonu ve bunun daha genel biçimi olan
+fonksiyonu pek çok UNIX türevi sistemde doğrudan işletim sisteminin bu işi yapan sistem fonksiyonunu
+çağırmaktadır. Linux sistemlerinde ``sys_fork`` ve bunun daha genel biçimi olan `
 ``sys_clone`` sistem fonksiyonları bu işi yapmaktadır. ``fork`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
@@ -288,78 +288,74 @@ fonksiyonu, pek çok UNIX türevi sistemde doğrudan işletim sisteminin bu işi
 
     pid_t fork(void);
 
-İngilizce ``fork`` sözcüğü Türkçe *çatal* anlamına gelmektedir. *Akışın çatallanması* gibi bir benzetmeye
-dayanılarak bu isim uydurulmuştur. ``fork`` bir prosesin tamamen özdeş bir kopyasını oluşturur.
+.. note::
 
-fork Fonksiyonunun Çalışma Mantığı (Klonlama Analojisi)
--------------------------------------------------------
+    İngilizce ``fork`` sözcüğü Türkçe *çatal* anlamına gelmektedir. *Akışın çatallanması* gibi bir benzetmeye
+    dayanılarak bu isim uydurulmuştur.
 
-``fork`` fonksiyonunun çalışmasını şöyle bir analoji ile daha iyi anlayabiliriz. Diyelim ki bir klonlama
-makinesi var. Bu makine insandaki tüm atomları bire bir kopyalayarak yeni bir klon oluşturuyor olsun. Bu
-durumda klonlama makinesine bir kişi girdiğinde makineden iki kişi çıkmaktadır. Makineden çıkan iki
-kişinin tüm geçmiş yaşantıları, her şeyi aynı olacaktır. Makineden çıktığında her iki kişi de kendini
-gerçek kopya sanabilir. Çünkü klonlama sırasında tüm atomlar (bellek mekanizması nöral düzeyde işlev
-görmektedir, nöronlar da neticede atomlardan oluşmaktadır) kopyalanmıştır. Makineden çıkan iki kişinin
-her şeyi aynıdır. Ancak makineden çıktıktan sonra artık bunlar farklı olaylarla karşılaşacağı için bellek
-ve deneyim olarak farklılaşacaklardır. Burada her ne kadar makineden çıkan iki kişi de kendisinin
-orijinal kopya olduğunu sanıyorsa da klonlamayı yapan operatör kimin orijinal kopya kimin onun kopya
-olduğunu bilmektedir. İşte ``fork`` fonksiyonunun çalışması bu analojiye çok benzemektedir. ``fork``
-fonksiyonuna giren akış orada yeni ve özdeş bir prosesin yaratılmasına yol açmaktadır. Yeni yaratılan
-prosesin bellek alanı ve proses kontrol bloğu büyük ölçüde üst prosesten kopyalanmaktadır. Yeni yaratılan
-prosesin akışı ``fork`` içerisinden başlatılır. Böylece asıl proses ile yeni yaratılan prosesin her ikisi
-de ``fork`` fonksiyonundan çıkar. Asıl proses ile yeni yaratılan proses aynı bellek alanına (yani kabaca
-*code*, *data*, *stack* ve *heap* alanlarına) sahiptir. ``fork`` çağrısını yapan asıl prosese *üst proses
-(parent process)*, ``fork`` ile yaratılan yeni prosese ise *alt proses (child process)* denilmektedir.
-Tabii üst proses de aslında ``fork`` çağrısı ile başka bir proses tarafından yaratılmıştır.
+``fork`` bir prosesin tamamen özdeş bir kopyasını oluşturmaktadır. ``fork`` fonksiyonunun çalışmasını şöyle 
+bir analoji ile daha iyi anlayabiliriz. Diyelim ki bir klonlama makinesi var. Bu makine insandaki tüm atomları 
+bire bir kopyalayarak yeni bir klon oluşturuyor olsun. Bu durumda klonlama makinesine bir kişi girdiğinde makineden 
+iki kişi çıkmaktadır. Makineden çıkan iki kişinin tüm geçmiş yaşantıları, her şeyi aynı olacaktır. Makineden 
+çıktığında her iki kişi de kendini gerçek kopya sanabilir. Çünkü klonlama sırasında tüm atomlar (bellek 
+mekanizması nöral düzeyde işlev görmektedir, nöronlar da neticede atomlardan oluşmaktadır) kopyalanmıştır. 
+Makineden çıkan iki kişinin her şeyi aynıdır. Ancak makineden çıktıktan sonra artık bunlar farklı olaylarla 
+karşılaşacağı için bellek ve deneyim olarak farklılaşacaklardır. Burada her ne kadar makineden çıkan iki 
+kişi de kendisinin orijinal kopya olduğunu sanıyorsa da klonlamayı yapan operatör kimin orijinal kopya kimin 
+onun kopyası olduğunu bilmektedir. 
 
-fork Fonksiyonunun Adımları
----------------------------
+İşte ``fork`` fonksiyonunun çalışması yukarıdaki analojiye çok benzemektedir. ``fork`` fonksiyonuna giren akış 
+orada yeni ve özdeş bir prosesin yaratılmasına yol açmaktadır. Yeni yaratılan prosesin bellek alanı ve proses 
+kontrol bloğu büyük ölçüde üst prosesten kopyalanmaktadır. Yeni yaratılan prosesin akışı ``fork`` içerisinden 
+başlatılmaktadır. Böylece asıl proses ile yeni yaratılan prosesin her ikisi de ``fork`` fonksiyonundan çıkar. 
+Asıl proses ile yeni yaratılan proses aynı bellek alanına (yani kabaca aynı *code*, *data*, *stack* ve *heap* 
+alanlarına) sahiptir. ``fork`` çağrısını yapan asıl prosese *üst proses (parent process)*, ``fork`` ile 
+yaratılan yeni prosese ise *alt proses (child process)* denilmektedir. Tabii üst proses de aslında ``fork`` 
+çağrısı ile başka bir proses tarafından yaratılmıştır.
 
 ``fork`` fonksiyonunda kabaca şunlar yapılmaktadır:
 
-1. Alt proses için yeni bir proses kontrol bloğu yaratılır. ``fork`` işlemini yapan prosesin (üst proses)
+| **1.** Alt proses için yeni bir proses kontrol bloğu yaratılır. ``fork`` işlemini yapan prosesin (üst proses)
    proses kontrol bloğunun içeriği yeni yaratılan prosesin (alt proses) proses kontrol bloğuna kopyalanır.
    Böylece üst proses ile yeni yaratılan alt proses tamamen aynı özelliklere sahip olmaktadır. Örneğin bu
-   iki prosesin *etkin ve gerçek kullanıcı ve grup ID'leri*, *çalışma dizinleri (current working
-   directories)*, *açmış olduğu dosyalara ilişkin bilgiler* aynı olur.
+   iki prosesin "etkin ve gerçek kullanıcı ve grup ID'leri", "çalışma dizinleri (current working
+   directories)", "açmış olduğu dosyalara ilişkin bilgiler" aynı olur.
 
-2. Çekirdek alt proses için üst prosesin bellek alanının özdeş kopyasını oluşturur. Böylece her iki proses
-   de içerik olarak aynı koda, aynı data alanına, aynı stack alanına ve aynı heap alanına sahip olacaktır.
+| **2.** Çekirdek alt proses için üst prosesin bellek alanının özdeş kopyasını oluşturur. Böylece her iki proses
+   de içerik olarak aynı *kod* alanına, aynı *data* alanına, aynı *stack* alanına ve aynı *heap* alanına sahip olacaktır.
    Ancak bunlar birbirlerinden ayrıdır.
 
-3. Yeni yaratılan alt proses çalışmaya ``fork`` fonksiyonunun içinden başlar. Her iki akış da (yani
-   ``fork`` uygulayan prosesin akışı ve yeni yaratılan alt prosesin akışı) ``fork`` içerisinden çıkar. Üst
-   proses ``fork`` fonksiyonundan alt prosesin proses ID'si ile çıkarken alt proses 0 ile çıkmaktadır.
+| **3.** Yeni yaratılan alt proses çalışmaya ``fork`` fonksiyonunun içinden başlar. Her iki akış da (yani
+   ``fork`` uygulayan prosesin akışı ve yeni yaratılan alt prosesin akışı da) ``fork`` içerisinden çıkar. Üst
+   proses ``fork`` fonksiyonundan alt prosesin proses ID'si ile çıkarken alt proses ``0`` ile çıkmaktadır.
 
 Yukarıdaki işlemler ``fork`` fonksiyonunun içinde yapılmaktadır. ``fork`` fonksiyonundan hem bu fonksiyonu
 çağıran proses hem de yeni yaratılan proses çıkmaktadır. Ancak bunların bellek alanları ayrı olduğu için
 artık birinin yapacağı değişikliği diğeri görmeyecektir. ``fork`` fonksiyonu, bir klonlama yapmaktadır.
 Yeni bir prosesi, kendi çağıran prosesle aynı özelliklerle ve aynı bellek alanı ile yaratmaktadır. ``fork``
 sırasında prosesin kontrol bloğu yeni yaratılan prosese kopyalandığı için üst proses ile alt proses aynı
-gerçek ve etkin kullanıcı ve grup ID'sine sahip olur. (Bir kişi klonlama makinesine girip klonu
-çıkartıldığında makineden iki kişi çıkacaktır. Bu iki kişinin de anıları aynı olacaktır. Ancak artık
-bunların yaşamları farklıdır. Birisinin başına gelen şeyler makineden çıktıktan sonra artık yalnızca ona
-ilişkin olacaktır.)
+gerçek ve etkin kullanıcı ve grup ID'sine sahip olur. 
 
 ``fork`` işlemini yapan proses üst proses (parent process) durumundadır. Yeni yaratılan proses ise alt
 proses (child process) durumundadır. Tabii alt proses yeni bir proses ID'ye sahip olacaktır. Alt prosesin
-üst prosesi, ``fork`` fonksiyonu uygulayan proses olacaktır. ``fork`` fonksiyonu başarısız olabilir.
-(Örneğin kaynak yetersizliği durumunda, kullanıcının proses yaratma limiti aşıldığı durumda ``fork``
-başarısız olabilir.) ``fork`` başarısızlık durumunda -1 değerine geri dönmektedir.
+üst prosesi, ``fork`` fonksiyonu uygulayan proses olacaktır. 
+
+``fork`` fonksiyonu başarısız olabilir. (Örneğin kaynak yetersizliği durumunda, kullanıcının proses yaratma 
+limiti aşıldığı durumda ``fork`` başarısız olabilir.) ``fork`` başarısızlık durumunda ``-1`` değerine geri dönmektedir.
 
 Peki yeni proses hangi noktada yaratılmaktadır? Tabii ``fork`` fonksiyonu içerisinde. Yukarıda da
-belirttiğimiz gibi yeni yaratılan prosesin (alt prosesin) akışı da ``fork`` fonksiyonu içerisinden
+belirttiğimiz gibi yeni yaratılan prosesin (alt prosesin) akışı da ``fork`` fonksiyonun içerisinden
 başlatılacaktır. Bu durumda her iki proses de ``fork`` fonksiyonunun içerisinden çıkacaktır. İşte üst
 proses (yani ``fork`` işlemini yapan proses) *alt prosesin ID* değeri ile, alt proses ise *0 değeri ile*
 ``fork`` fonksiyonundan çıkar. Böylece programcı ``fork`` çıkışında üst proses ile alt prosese farklı
-işlemler yaptırabilmektedir. Alt prosesin ``fork`` içerisinden 0 ile çıkması alt prosesin proses ID'sinin
-0 olduğu anlamına gelmemektedir. Alt prosesin proses ID'si alt proses içerisinden ``getpid`` fonksiyonuyla
-elde edilebilmektedir.
+işlemler yaptırabilmektedir. (Alt prosesin ``fork`` içerisinden ``0`` ile çıkması alt prosesin proses ID'sinin
+``0`` olduğu anlamına gelmemektedir. Alt prosesin proses ID'si alt proses içerisinden ``getpid`` fonksiyonuyla
+elde edilebilmektedir.)
 
-fork Kullanım Kalıbı ve Örnek Program
--------------------------------------
+fork Kullanımına İlişkin Tipik Kalıp
+------------------------------------
 
-``fork`` işleminin tipik kalıbı şöyledir:
+``fork`` kullanımına ilişkin tipik kalıbı şöyledir:
 
 .. code-block:: c
 
@@ -433,18 +429,13 @@ ID'si olacaktır.
         exit(EXIT_FAILURE);
     }
 
-
-==========================================================================
-fork Fonksiyonunun Ayrıntıları ve Proses Sonlandırma
-==========================================================================
-
 fork Sonrası Bellek Ayrışması ve Ortak Kod
-==========================================
+------------------------------------------
 
 ``fork`` işleminde en fazla kafa karıştıran noktalardan biri ``fork`` fonksiyonundan iki akışın da çıkması
 durumudur. Burada genellikle yeni öğrenenlerin gözden kaçırdığı birkaç nokta vardır:
 
-1. ``fork`` sırasında ``fork`` işlemini yapan prosesin (yani üst prosesin) tüm bellek alanının, yani onun
+| **1.** ``fork`` sırasında ``fork`` işlemini yapan prosesin (yani üst prosesin) tüm bellek alanının, yani onun
    kod, data, stack ve heap alanlarının özdeş bir kopyası oluşturulmaktadır. Yani ``fork`` işlemini yapan
    prosesin kod, data, stack ve heap alanlarının hepsi alt proseste de bulunmaktadır. Örneğin:
 
@@ -460,12 +451,12 @@ durumudur. Burada genellikle yeni öğrenenlerin gözden kaçırdığı birkaç 
            /* ... */
        }
 
-   Programcının yazdığı bu kod hem üst proses hem de alt proses tarafından çalıştırılmaktadır. Yani bu
-   kod hem üst proseste hem de alt proseste bulunacaktır. Bizim buradaki temel amacımız ``fork`` çıkışında
-   kodu aynı olan iki farklı prosese farklı şeyleri yaptırmaktır. İşte bunu ``fork`` fonksiyonunun geri
-   dönüş değerini kontrol ederek sağlayabilmekteyiz.
+Programcının yazdığı bu kod hem üst proses hem de alt proses tarafından çalıştırılmaktadır. Yani bu
+kod hem üst proseste hem de alt proseste bulunacaktır. Bizim buradaki temel amacımız ``fork`` çıkışında
+kodu aynı olan iki farklı prosese farklı şeyleri yaptırmaktır. İşte bunu ``fork`` fonksiyonunun geri
+dönüş değerini kontrol ederek sağlayabilmekteyiz.
 
-2. Yeni öğrenen kişilere iki prosesin de ``fork`` fonksiyonundan çıkması tuhaf gelebilmektedir. Aslında
+| **2.** Yeni öğrenen kişilere iki prosesin de ``fork`` fonksiyonundan çıkması tuhaf gelebilmektedir. Aslında
    burada bir tuhaflık yoktur. Şöyle ki: Prosesin yaratılması ve bellek alanlarının kopyalanması zaten
    ``fork`` içerisinde yapılmaktadır. ``fork`` fonksiyonunu çağıran proses (üst proses) ``fork``'tan
    çıkacaktır. Kopyası çıkartılan alt prosesin çalışması da ``fork`` içerisinden başlatılmaktadır. Bu
@@ -474,15 +465,11 @@ durumudur. Burada genellikle yeni öğrenenlerin gözden kaçırdığı birkaç 
 
 Tabii ``fork`` fonksiyonundan çıkınca artık üst proses ile alt prosesin yaşamları farklı olabilmektedir.
 Örneğin üst proses bir global değişkenin değerini değiştirse alt proses bunu değişmiş olarak görmez. Çünkü
-o global değişkenin üst proseste ve alt proseste farklı kopyaları vardır. Üst proses kendi global
+o global değişkenin üst proseste ve alt proseste artık farklı kopyaları vardır. Üst proses kendi global
 değişkenini değiştirmektedir. Yani ``fork`` işleminden çıkıldığında üst ve alt prosesin her şeyi aynı olsa
-da artık bunlar kendi yollarına gideceklerdir. (Bu durumu klon makinesinden çıkan iki kişinin durumuna
-benzetebiliriz. Klon makinesinden çıkar çıkmaz bu iki kişinin her şeyi aynıdır. Ancak bundan sonra bu
-kişiler bağımsız kişiler oldukları için başlarına farklı olaylar gelecektir. Birisinin maruz kaldığı bir
-duruma diğeri maruz kalmayacaktır.)
-
-Global Değişken Örneği
-----------------------
+da artık bunlar kendi yollarına gideceklerdir. (Klon makinesinden çıkar çıkmaz iki kişinin her şeyi aynıdır. 
+Ancak bundan sonra bu kişiler bağımsız kişiler oldukları için başlarına farklı olaylar gelecektir. Birisinin 
+maruz kaldığı bir duruma diğeri maruz kalmayacaktır.)
 
 Aşağıdaki örnekte ``fork`` işlemi sonrasında üst proses ``g_x`` global değişkenine yeni bir değer
 atamıştır. Sonra alt proseste bu global değişkenin değeri yazdırılmıştır. Tabii alt proses üst prosesin
@@ -527,24 +514,24 @@ içerisinde klonlama yöntemiyle ayrıştırılmıştır.
         exit(EXIT_FAILURE);
     }
 
-Akışların fork İçerisinden Çıkması
-----------------------------------
-
 ``fork`` işleminde yeni proses yaratıldığında hangi proses akışının ``fork`` fonksiyonundan önce
 çıkacağının bir garantisi yoktur. Bu, işletim sisteminin çizelgeleme algoritmalarına bağlı olarak
 değişebilmektedir.
 
-Çoklu fork Çağrıları ile Proses Çoğalması
-=========================================
+Aşağıdaki örnekte *Common Code* yazısı ``8`` defa ekranda görünecektir:
 
-Üç Kez fork Çağırma Örneği (8 Proses)
--------------------------------------
+.. code-block:: c
 
-Aşağıdaki örnekte *Common Code* yazısı 8 defa ekranda görünecektir. Çünkü ilk ``fork`` işleminden sonra
-ikinci ``fork`` işlemini 2 proses yapacaktır. Böylece ikinci ``fork`` işleminden sonra aynı koda sahip 4
-proses oluşacaktır. Sonra bu 4 proses de üçüncü ``fork`` işlemini yapacaktır. O halde üçüncü ``fork``
-işleminden toplam 8 proses çıkacaktır. Buradaki ``sleep`` fonksiyonunu neden çağırdığımıza takılmayınız.
-Amacımız tüm yazma işlemleri bittikten sonra kabuğun prompt'una düşülmesini sağlamaktır. Kod karmaşık
+    fork();
+    fork();
+    fork();
+
+    printf("Common code...\n");
+
+Çünkü ilk ``fork`` işleminden sonra ikinci ``fork`` işlemini ``2`` proses yapacaktır. Böylece ikinci ``fork`` 
+işleminden sonra aynı koda sahip ``4`` proses oluşacaktır. Sonra bu ``4`` proses de üçüncü ``fork`` işlemini yapacaktır. 
+O halde üçüncü ``fork`` işleminden toplam ``8`` proses çıkacaktır. Buradaki ``sleep`` fonksiyonunu neden çağırdığımıza 
+takılmayınız. Amacımız tüm yazma işlemleri bittikten sonra kabuğun prompt'una düşülmesini sağlamaktır. Kod karmaşık
 olmasın diye ``fork`` çağrılarının geri dönüş değerlerini kontrol etmedik. Ancak uygulamada kontrol
 etmelisiniz. Programı çalıştırdığımızda şöyle bir çıktı elde edeceğiz:
 

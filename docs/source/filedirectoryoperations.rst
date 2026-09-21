@@ -4805,7 +4805,7 @@ sözcükleriyle ifade edilmektedir. İlgili sistemin bu izni verip vermediği ``
 vermemektedir, mevcut değilse sistem bu izni vermektedir. (Bu durumda sorgulamayı ``#ifdef`` önişlemci komutuyla
 yapmalısınız.) Linux sistemleri de *change own restricted* durumdadır. Yani bu işleme izin vermemektedir.
 
-2) Proses ID'si 0 olan root prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yetenekliliğine sahip prosesler) her zaman
+2) Proses ID'si 0 olan *root* prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yetenekliliğine sahip prosesler) her zaman
 dosyanın kullanıcı ve grup ID'sini istedikleri gibi değiştirebilirler. (Yani biz bir dosyanın kullanıcı ve grup ID'sini
 istediğimiz gibi değiştirmek istiyorsak programımızı *sudo* ile çalıştırmalıyız.)
 

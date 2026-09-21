@@ -548,8 +548,8 @@ devam edilmiştir. ``fclose`` işlemi zaten bu betimleyiciyi kapatacağı için 
         exit(EXIT_FAILURE);
     }
 
-Standart C Dosya Fonksiyonlarında Tamponlama Modları
-====================================================
+Standart C Kütüphanesinde Tamponlama Modları
+============================================
 
 Şimdi de C'nin standart dosya fonksiyonlarının uyguladığı *tamponlama (buffering)* modları hakkında bilgiler
 verelim. Standart C'nin ``<stdio.h>`` fonksiyonları tamponlamayı üç moda (ya da stratejiye) göre farklı
