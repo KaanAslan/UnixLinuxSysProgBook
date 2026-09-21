@@ -163,7 +163,7 @@ ps Komutu ile Proseslerin Görüntülenmesi
 ========================================
 
 UNIX/Linux sistemlerinde o anda sistemde bulunan prosesler hakkında bilgiler ``ps`` isimli POSIX komutuyla
-elde edilmektedir. Linux sistemlerinde ``ps`` komutu ``proc``dosya sistemini kullanmaktadır. ``ps`` komutu
+elde edilmektedir. Linux sistemlerinde ``ps`` komutu ``proc`` dosya sistemini kullanmaktadır. ``ps`` komutu
 oldukça ayrıntılı bir komuttur ve pek çok seçeneğe sahiptir. Komutu seçeneksiz kullanırsak yalnızca çalışan
 terminaldeki prosesler görüntülenmektedir. Örneğin:
 
@@ -194,8 +194,8 @@ seçeneğinin yanına kullanıcı ismi de getirilebilmektedir. Örneğin:
     0 S  1000   10094    9793  0  80   0 -  3536 do_wai pts/1    00:00:00 bash
     4 R  1000   10139   10094  0  80   0 -  4142 -      pts/1    00:00:00 ps
 
-Görüldüğü gibi ``-l`` seçeneği ile prosesin *etkin kullanıcı ID'si*, *etkin grup ID'si*, *üst proses
-ID'si*, *bağlantılı olduğu terminal* bilgileri de verilmektedir.
+Görüldüğü gibi ``-l`` seçeneği ile prosesin "etkin kullanıcı ID'si", "etkin grup ID'si", "üst proses
+ID'si", "bağlantılı olduğu terminal" bilgileri de verilmektedir.
 
 Sistemdeki tüm prosesleri ``-e`` seçeneğiyle görüntüleyebiliriz. Örneğin:
 
