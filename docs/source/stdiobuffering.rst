@@ -50,7 +50,7 @@ Sistem Fonksiyonlarını Çağırmanın Maliyeti
 Biz önceki bölümde sistem fonksiyonlrını çağırmanın bir maliyet oluşturduğuğunu söyleemiştik. Şimdi bunu daha 
 somut hale getirelim. Aşağıda iki program verilmiştir. Bu iki program da bir dosyanın bütün karakterlerini ekrana yazdırmaktadır.
 ``read1.c`` programı bu işlemi her defasında ``read`` fonksiyonunu çağırarak yaparken ``read2.c`` programı
-bir defasında 512 byte okuma yapıp, okunanları bir tampona yerleştirip oradan alıp yazdırmaktadır.
+bir defasında ``512`` byte okuma yapıp, okunanları bir tampona yerleştirip oradan alıp yazdırmaktadır.
 Dolayısıyla ``read1.c`` programının daha hızlı çalışması beklenir. Çünkü bu program sistem
 fonksiyonlarını daha az çağırmaktadır. Aşağıda bir Linux sanal makinesinde ``read1.c`` ve 
 ``read2.c`` programlarının ``/usr/include/math.h`` gibi bir dosyanın içeriğinin yazdırılması işlemindeki çalışma
@@ -737,7 +737,7 @@ tamponun yeri değiştirilmez. Son parametre ise tamponun yeni uzunluğunu belir
 parametreye ``NULL`` adres geçip son parametre yoluyla tamponun büyüklüğünü de değiştirebilir. Bu durumda
 tamponu ``setvbuf`` kendisi tahsis edecektir. Eğer tamponlama modu ikinci parametreye ``_IONBF`` geçilerek
 sıfır tamponlamalı mod olarak ayarlanırsa artık ikinci ve dördüncü parametrenin bir önemi kalmamaktadır.
-Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda sıfır dışı bir değere geri dönmektedir.
+Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda sıfır dışı bir değere geri dönmektedir.
 POSIX sistemlerinde ``errno`` değişkeni yine uygun biçimde set edilmektedir. Örneğin:
 
 .. code-block:: c
@@ -828,7 +828,7 @@ yapılmıştır.
 ``stdin``, ``stdout`` ve ``stderr`` dosyaları tarafından açılmamıştır ve programcı tarafından kapatılmamalıdır. 
 Programcı bunları doğrudan kullanabilir. Şüphesiz UNIX/Linux
 sistemlerinde ``stdin`` dosya bilgi göstericisinin gösterdiği ``FILE`` nesnesinin içerisinde 0 numaralı
-betimleyici, ``stdout`` ``FILE`` nesnesinin içerisinde 1 numaralı betimleyici ve ``stderr`` ``FILE``
+betimleyici, ``stdout`` ``FILE`` nesnesinin içerisinde ``1`` numaralı betimleyici ve ``stderr`` ``FILE``
 nesnesinin içerisinde 2 numaralı betimleyici vardır.
 
 ``stdin``, ``stdout`` ve ``stderr`` dosyaları için de ``FILE`` nesneleri, dolayısıyla tampon
@@ -1085,7 +1085,7 @@ yalancı bir ``EOF`` etkisi oluşturmaktadır. Windows sistemlerinde ``Ctrl+z`` 
     ch = getchar();
 
 Burada Windows sistemlerinde ``Ctrl+z`` tuşuna, UNIX/Linux sistemlerinde ``Ctrl+d`` tuşuna basıldığında
-"dosya sonuna gelme etkisi" yaratılacak ve ``getchar`` fonksiyonu ``EOF`` değerine (-1) geri dönecektir.
+"dosya sonuna gelme etkisi" yaratılacak ve ``getchar`` fonksiyonu ``EOF`` değerine (``-1``) geri dönecektir.
 Tabii bu tuş kombinasyonlarına basıldığında gerçekte dosya sonuna gelme gibi bir durum oluşmamaktadır. Bu
 yalancı bir etkidir. Yani daha sonra ``stdin`` dosyasından yine okuma yapılabilir. Bu nedenle ``stdin``
 tamponunu boşaltırken kullanıcının ``EOF`` etkisi yaratmak isteyebileceğine de dikkat edilmelidir:
@@ -1323,7 +1323,7 @@ fonksiyonu ile karşılamaya çalışmaktadır. ``fgets`` fonksiyonunun prototip
     char *fgets(char * restrict str, int size, FILE * restrict stream);
 
 Ancak klavyeden (ya da yönlendirilmişse disk dosyasından) belirtilen uzunluktan daha kısa bir satır girilmişse ``fgets`` 
-bu durumda ``'\n'``karakterini de diziye yerleştirmektedir. Bu durumda programcının bu ``'\n'`` karakterini kendisinin 
+bu durumda ``'\n'`` karakterini de diziye yerleştirmektedir. Bu durumda programcının bu ``'\n'`` karakterini kendisinin 
 aşağıdaki gibi silmesi gerekebilmektedir:
 
 .. code-block:: c
@@ -1355,7 +1355,7 @@ scanf Fonksiyonu
 
 Fonksiyon ``stdin`` dosyasından karakterleri tek tek okur. Format karakterlerine uygunsuzluk tespit ettiği
 noktada uygunsuz olan o karakteri tampona geri bırakır ve işlemini sonlandırır. ``scanf`` fonksiyonu
-başarılı bir biçimde yerleştirilen değerlerin (parçaların) sayısına geri dönmektedir. Tabii ``scanf`` 0'a da
+başarılı bir biçimde yerleştirilen değerlerin (parçaların) sayısına geri dönmektedir. Tabii ``scanf`` ``0``'a da
 geri dönebilir. ``scanf`` henüz hiçbir karakter okuyamadan ``EOF`` ya da IO hatasıyla karşılaşırsa ``EOF`` 
 değerine geri döner. ``scanf`` her zaman baştaki boşluk karakterlerini (leading space) ve girişler arasındaki boşluk
 karakterlerini atmaktadır. Ancak sonraki boşluk karakterlerini (``'\n'`` de dahil olmak üzere) atmamaktadır.
@@ -1383,9 +1383,9 @@ doldurulacaktır:
 
     tampon: |100 200ankara\n|
 
-``scanf`` 100 değerini başarılı bir biçimde okuyup ``a`` nesnesine yerleştirecektir. 200 karakterlerini
-okuduktan sonra 'a' karakterinin format ile uyumsuz olduğunu tespit edip işlemini sonlandıracaktır.
-``scanf`` bu durumda 2 parça yerleştirme yaptığı için 2 değerine geri dönecektir. ``scanf`` beğenmediği
+``scanf`` ``100`` değerini başarılı bir biçimde okuyup ``a`` nesnesine yerleştirecektir. ``200`` karakterlerini
+okuduktan sonra ``'a'`` karakterinin format ile uyumsuz olduğunu tespit edip işlemini sonlandıracaktır.
+``scanf`` bu durumda ``2`` parça yerleştirme yaptığı için ``2`` değerine geri dönecektir. ``scanf`` beğenmediği
 'a' karakterini tampona geri bırakacaktır. ``scanf`` sonrasında ``stdin`` tamponunun durumu şöyle
 olacaktır:
 
@@ -1399,7 +1399,7 @@ Girişi şöyle yapmış olalım:
 
     ankara
 
-Bu durumda ``scanf`` hiç yerleştirme yapamayacak ve 0 ile geri dönecektir. Tampon aşağıdaki durumda
+Bu durumda ``scanf`` hiç yerleştirme yapamayacak ve ``0`` ile geri dönecektir. Tampon aşağıdaki durumda
 kalacaktır:
 
 .. code-block:: text
@@ -1459,10 +1459,10 @@ Aşağıdaki örneğe dikkat ediniz:
     }
 
 Burada klavyeden (stdin dosyasından) bir giriş istenmiş ve giriş ``switch`` deyimi ile ele alınmıştır. Peki kullanıcı
-yanlışlıkla 'a' gibi bir karakteri girip ENTER tuşuna basarsa ne olur? İşte bu durumda ``scanf`` seçilen
-nesneye yerleştirme yapmaz ve 0 ile geri döner. Ancak 'a' karakterini tampona geri bırakır. Muhtemelen
-``switch`` deyimi ``default`` kısımdan sapıp döngü yinelenecektir. Ancak tamponda hala 'a' vardır. ``scanf``
-yine bu 'a' karakterini tampondan alır, yine başarısız olur. Böylece bir sonsuz döngü oluşacaktır. Bunu
+yanlışlıkla ``'a'`` gibi bir karakteri girip ENTER tuşuna basarsa ne olur? İşte bu durumda ``scanf`` seçilen
+nesneye yerleştirme yapmaz ve ``0`` ile geri döner. Ancak ``'a'`` karakterini tampona geri bırakır. Muhtemelen
+``switch`` deyimi ``default`` kısımdan sapıp döngü yinelenecektir. Ancak tamponda hala ``'a'`` vardır. ``scanf``
+yine bu ``'a'`` karakterini tampondan alır, yine başarısız olur. Böylece bir sonsuz döngü oluşacaktır. Bunu
 engellemek için ``scanf`` fonksiyonunun geri dönüş değerini kontrol edip gerektiğinde tamponu
 boşaltabiliriz:
 

@@ -223,8 +223,8 @@ Belli bir terminalden çalıştırılmış olan prosesleri ``-t`` seçeneği ile
 
 Biz kursumuzda yeri geldikçe ``ps`` komutunun diğer bazı seçenekleri üzerinde de açıklamalar yapacağız.
 
-Yaratılacak Proses ve Thread Sayısına İlişkin Limitler 
-======================================================
+Yaratılabilecek Proses ve Thread Sayısına İlişkin Limitler 
+==========================================================
 
 Sistemlerde prosesler konusunda bazı limitler söz konusu olabilmektedir. Çünkü her proses bir kaynak
 kullanmaktadır. Bu kaynakların da bir limiti vardır. Örneğin Linux sistemlerinde, sistem genelinde aynı
@@ -582,7 +582,7 @@ Benzer biçimde yine aşağıdaki kodda ekrana 8 tane 3 sayısı basılacaktır:
     printf("%d\n", a);
 
 Burada prosesler aynı ``a`` değişkenini artırmamaktadır. ``fork`` işlemi ile proseslerin bellek alanları
-kopyalandığı için her alt prosesin kendi ``a`` değişkeni vardır.
+kopyalandığı için her alt prosesin kendi ``a`` değişkeni vardır. Örneği bütün olarak aşağıda veriyoruz:
 
 .. code-block:: c
 
@@ -606,13 +606,13 @@ kopyalandığı için her alt prosesin kendi ``a`` değişkeni vardır.
         return 0;
     }
 
-fork ve Dosya Betimleyici Tablosu (Sığ Kopyalama)
-=================================================
+fork İşleminde Dosya Betimleyici Tablosunun Durumu
+--------------------------------------------------
 
 ``fork`` işlemi sırasında üst prosesin (``fork`` işlemini yapan prosesin) proses kontrol bloğunun yeni
-yaratılan alt prosesin proses kontrol bloğuna kopyalandığını belirttik. Bu nedenle alt prosesin *kullanıcı
-ID'si, grup ID'si, çalışma dizini* ve daha pek çok özellikleri üst prosesle aynı olacaktır. Peki alt
-proseste dosya betimleyici tablosunun durumu ne olacaktır? Örneğin biz bir dosya açmış olsak sonra ``fork``
+yaratılan alt prosesin proses kontrol bloğuna kopyalandığını belirttik. Bu nedenle alt prosesin kullanıcı
+ID'si, grup ID'si, çalışma dizini ve daha pek çok özellikleri üst prosesle aynı olacaktır. Peki alt
+proseste dosya betimleyici tablosunun durumu ne olacaktır? Örneğin biz bir dosya açtıktan sonra ``fork``
 yapmış olsak alt proseste bu dosyanın durumu ne olacaktır?
 
 ``fork`` işlemi sırasında işletim sistemi üst prosesin dosya betimleyici tablosu içerisindeki dosya
@@ -622,36 +622,21 @@ betimleyici tablosunun slotları ile alt prosesin dosya betimleyici tablosunun s
 nesnesini gösteriyor durumda olur. Bu tür kopyalamalara *sığ kopyalama (shallow copy)* denildiğini
 anımsayınız:
 
-.. code-block:: text
+.. figure:: _static/fork-fd-tables.png
+    :align: center
+    :width: 75%
 
-           Üst Prosesin                                        Alt Prosesin
-     Dosya Betimleyici Tablosu                           Dosya Betimleyici Tablosu
-         ┌───────┐          ┌─────────────────────┐              ┌───────┐
-         │   0   │─────────►│ stdin dosya nesnesi │◄─────────────│   0   │
-         ├───────┤          └─────────────────────┘              ├───────┤
-         │   1   │─────┐    ┌──────────────────────┐      ┌──────│   1   │
-         ├───────┤     ├───►│ stdout dosya nesnesi │◄─────┤      ├───────┤
-         │   2   │─────┘    └──────────────────────┘      └──────│   2   │
-         ├───────┤          ┌───────────────┐                    ├───────┤
-         │   3   │─────────►│ dosya nesnesi │◄───────────────────│   3   │
-         ├───────┤          └───────────────┘                    ├───────┤
-         │  ...  │                                               │  ...  │
-         └───────┘                                               └───────┘
-
-Mademki açık dosyaya ilişkin tüm bilgiler dosya nesnesinde tutulmaktadır, o halde ``fork`` işleminden
+Mademki açık dosyaya ilişkin tüm bilgiler dosya nesnesinde tutulmaktadır, o halde örneğin ``fork`` işleminden
 sonra örneğin proseslerden biri bir dosyanın dosya göstericisinin konumunu değiştirirse diğer proses de
 bunu değişmiş olarak görecektir. Tabii ``fork`` işlemi sırasında dosya nesnelerinin referans sayaçları da
-bir artırılmaktadır. Benzer biçimde aslında işin başında açık olan 0, 1 ve 2 numaralı betimleyiciler login
-işlemi öncesinde yaratılmış durumdadır. Her ``fork`` işleminde bu betimleyicilere ilişkin dosya
-nesnelerinin kopyaları çıkartılmamaktadır. Prosesler aslında özel bir durum olmadıktan sonra 0, 1 ve 2
-numaralı dosya nesnelerini göstermektedir.
+bir artırılmaktadır. Benzer biçimde aslında işin başında açık olan ``0``, ``1`` ve ``2`` numaralı betimleyiciler 
+login işlemi öncesinde yaratılmış durumdadır. Her ``fork`` işleminde bu betimleyicilere ilişkin dosya
+nesnelerinin kopyaları çıkartılmamaktadır. Prosesler aslında özel bir durum olmadıktan sonra hep aynı ``0``, ``1`` ve ``2``
+numaralı dosya nesnelerini kullanmaktadır.
 
-Dosya Göstericisi Paylaşımı Örneği
-----------------------------------
-
-Aşağıdaki örnekte önce bir dosya açılmış sonra üst proses dosya göstericisini 50'nci offset'e
+Aşağıdaki örnekte önce bir dosya açılmış sonra üst proses dosya göstericisini ``50``'nci offset'e
 konumlandırmıştır. Üst prosesle alt proses aynı dosya nesnelerini gördüğü için bu durumdan alt proses
-etkilenecektir. Alt proseste yapılan okuma 50'nci offset'ten itibaren yapılacaktır. Bu örnekte önce
+etkilenecektir. Alt proseste yapılan okuma ``50``'nci offset'ten itibaren yapılacaktır. Bu örnekte önce
 ``open`` fonksiyonuyla ``test.txt`` dosyası açılmıştır:
 
 .. code-block:: c
@@ -667,11 +652,12 @@ Sonra ``fork`` işlemi uygulanmıştır:
         exit_sys("fork");
 
 ``fork`` işleminden sonra üst proseste dosya göstericisi konumlandırılmış ve alt proseste ``read``
-fonksiyonu ile okuma yapılmıştır. Alt proses 50'nci offset'ten itibaren okumayı yapacaktır. Örneği
-denerken ``test.txt`` dosyasının en az 60 karakter uzunluğunda bir text dosya olmasını sağlamalısınız.
+fonksiyonu ile okuma yapılmıştır. Alt proses ``50``'nci offset'ten itibaren okumayı yapacaktır. Örneği
+denerken ``test.txt`` dosyasının en az ``60`` karakter uzunluğunda bir text dosya olmasını sağlamalısınız.
 
 Örneğimizde ``close`` işleminin hem üst proseste hem de alt proseste yapıldığına dikkat ediniz.
-Dolayısıyla üst ve alt prosesler dosyayı kapattığında dosya nesnesinin referans sayacı azaltılacaktır.
+Dolayısıyla üst ve alt prosesler dosyayı kapattığında dosya nesnesinin referans sayacı azaltılacak, referans 
+sayacı ``0``'a düştüğünde dosya nesnesi de silinecektir. 
 
 .. code-block:: c
 
