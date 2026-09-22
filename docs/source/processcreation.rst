@@ -705,24 +705,21 @@ sayacı ``0``'a düştüğünde dosya nesnesi de silinecektir.
         exit(EXIT_FAILURE);
     }
 
-fork ve Standart C Tamponlama Etkileşimi
-========================================
+fork İşleminde Standart C'nin Oluşturduğu Tamponların Durumu
+------------------------------------------------------------
 
 C'nin standart dosya fonksiyonlarının tamponlama mekanizmasıyla çalıştığını görmüştük. Bu durumda
 ``fopen`` fonksiyonu ile açtığımız bir dosyaya bir şeyler yazıp henüz tampon flush edilmeden ``fork``
 yaparsak üst prosesin tüm bellek alanının kopyası çıkartılacağı için bu tamponun da flush edilmemiş bir
 kopyası oluşacaktır.
 
-fopen Tamponunun Kopyalanması Örneği
-------------------------------------
-
-Örneğin ``fopen`` fonksiyonuyla bir dosyayı ``r+`` modunda açıp içerisinden okuma yapmış olalım. Tampon
+Örneğin ``fopen`` fonksiyonuyla bir dosyayı ``"r+"`` modunda açıp içerisinden okuma yapmış olalım. Tampon
 okuma işlemi ile doldurulacaktır. Bu işlemden sonra ``fork`` yapmış olalım. Artık bu tamponun içeriği hem
 üst proseste hem alt proseste bulunacaktır. Üst prosesin dosyanın tampondaki kısmına yeni yazmalar yapıp
 dosyayı kapattığını düşünelim. Alt proses de daha sonra hiçbir işlem yapmadan dosyayı kapatmış olsun
-(``exit`` işlemiyle zaten stdio dosyaları otomatik kapatılmaktadır.) Şimdi alt prosesin tamponu flush
+(``exit`` işlemiyle zaten ``stdio`` dosyaları otomatik kapatılmaktadır.) Şimdi alt prosesin tamponu flush
 edileceğinden üst prosesin yazdıkları ezilecektir. Eğer böyle bir durum programınızda oluşuyorsa ``fork``
-işleminden önce dosyayı flush edebilirsiniz. Bu, yukarıdaki sorunu engelleyecektir. Örneğin:
+işleminden önce dosyayı flush edebilirsiniz. Bu yukarıdaki sorunu engelleyecektir. Örneğin:
 
 .. code-block:: c
 
@@ -732,7 +729,7 @@ işleminden önce dosyayı flush edebilirsiniz. Bu, yukarıdaki sorunu engelleye
 
     pid = fork();
     if (pid != 0) {
-        fprinf(f, "test\n);
+        fprinf(f, "test\n");
         /* ... */
     }
     else {
@@ -742,11 +739,8 @@ işleminden önce dosyayı flush edebilirsiniz. Bu, yukarıdaki sorunu engelleye
 
 Bu temsili kodda kontrolleri yapmadık. Burada üst proses tampona yazmış olsa da alt prosesteki tampon
 temiz durumda olduğu için alt proseste dosya kapatıldığında flush işlemi yapılmayacaktır. Dolayısıyla
-yukarıdaki anomali oluşmayacaktır. C standartlarına göre yalnızca tampona yazılan kısım (unwritten data)
+yukarıdaki anomali oluşmayacaktır. C standartlarına göre yalnızca tampona yazılan kısım (*unwritten data*)
 flush işlemi sırasında asıl hedefe aktarılmaktadır.
-
-stdout Tamponunun Kopyalanması Örneği ("Ok" Örneği)
----------------------------------------------------
 
 Aşağıdaki örnekte ``printf`` fonksiyonu Linux sistemlerinde default durumda *satır tamponlamalı* olan
 ``stdout`` dosyasının tamponuna bilgileri yazmıştır. Ancak ``\n`` karakteri tampona yazılmadığı için flush
@@ -764,9 +758,9 @@ ekranda iki tane *Ok* yazısı görünecektir:
 
     printf("\n");
 
-Burada tampondaki *Ok* yazısı henüz flush edilmemiştir. ``fork`` işlemi sonrasında '\\n' dolayısıyla flush
-yapıldığında hem üst prosesin hem de alt prosesin stdio tamponu flush edilecektir. Dolayısıyla ekrana iki
-kez *Ok* yazısı basılacaktır.
+Burada tampondaki *Ok* yazısı henüz flush edilmemiştir. ``fork`` işlemi sonrasında ``'\n'`` dolayısıyla flush
+yapıldığında hem üst prosesin hem de alt prosesin ``stdio`` tamponu flush edilecektir. Dolayısıyla ekrana iki
+kez *Ok* yazısı basılacaktır. Örneği bir bütün olarak aşağıda veriyoruz:
 
 .. code-block:: c
 
@@ -796,14 +790,11 @@ kez *Ok* yazısı basılacaktır.
         exit(EXIT_FAILURE);
     }
 
-Proses Sonlandırma: _exit ve exit
-=================================
-
-_exit POSIX Fonksiyonu
-----------------------
+Proseslerin Sonlandırılması: _exit, exit ve abort Fonksiyonları
+===============================================================
 
 Şimdi de proseslerin nasıl sonlandırıldığını görelim. UNIX/Linux sistemlerinde prosesi sonlandırmak için
-``_exit`` isimli POSIX fonksiyonu kullanılmaktadır. Bu fonksiyon C'nin standart ``exit`` fonksiyonuna
+``_exit`` isimli POSIX fonksiyonu kullanılmaktadır. Bu fonksiyonun kullanımı C'nin standart ``exit`` fonksiyonuna
 benzemektedir.
 
 .. code-block:: c
@@ -812,7 +803,7 @@ benzemektedir.
 
     void _exit(int status);
 
-Fonksiyon, parametre olarak prosesin *çıkış (exit) kodunu* almaktadır. Tabii bir proses sonlanmadan önce
+Fonksiyon, parametre olarak prosesin *çıkış kodunu (exit code)* almaktadır. Tabii bir proses sonlanmadan önce
 prosesin sistem genelinde tahsis etmiş olduğu kaynaklar boşaltılmaktadır. Yani örneğin biz ``open``
 fonksiyonu ile birtakım dosyalar açmışsak ``_exit`` işlemi sırasında bütün bu dosyalar kapatılacaktır, bu
 dosyaların tuttuğu kaynaklar duruma göre serbest bırakılacaktır. Tabii ``_exit`` fonksiyonu yalnızca açık
@@ -841,9 +832,9 @@ C'nin standart ``exit`` fonksiyonunun da prototipi şöyledir:
 C'nin ``exit`` fonksiyonu prosesin sonlandırılması için UNIX/Linux sistemlerinde aslında ``_exit`` POSIX
 fonksiyonunu çağırmaktadır:
 
-.. code-block:: text
-
-    exit  --->  _exit  --->  sys_exit_group / sys_exit (Linux)
+.. figure:: _static/exit-call-chain.png
+    :align: center
+    :width: 65%
 
 ``exit`` standart C fonksiyonu, standart C kütüphanesi için yapılan bazı işlemleri de geri almaktadır.
 Örneğin ``exit`` fonksiyonu önce ``atexit`` fonksiyonu ile kaydettirilmiş olan fonksiyonları ters sırada
@@ -863,20 +854,16 @@ fonksiyonunu bitirdiğinde ``main`` fonksiyonunun geri dönüş değeri ile ``ex
 Yani C'de ``main`` fonksiyonu derleyici tarafından adeta ``exit(main())`` gibi çağrılmaktadır.
 Derleyicinin ürettiği kodu şöyle temsil edebiliriz:
 
-.. code-block:: text
-
-    prosesin gerçek başlangıç noktası  --->  ...
-                                              ...    Başlangıç kodu (start-up code)
-                                              ...
-                                              call main
-                                              call exit
-                                              ...
+.. figure:: _static/startup-code.png
+    :align: center
+    :width: 60%
 
 Yani C'de aslında tüm program sonlandırmaları her zaman ``exit`` (ya da ``abort``) fonksiyonu ile
 yapılmaktadır. ``exit`` fonksiyonu yukarıda da belirttiğimiz gibi kütüphaneye ilişkin bazı son işlemleri
-yaptıktan sonra UNIX/Linux sistemlerinde ``_exit`` POSIX fonksiyonunu çağırmaktadır. C standartlarına göre
-``main`` fonksiyonunun sonunda ``return`` deyimi bulundurulmamışsa ``return 0`` yapılmış gibi işlem
-uygulanmaktadır. Örneğin:
+yaptıktan sonra UNIX/Linux sistemlerinde ``_exit`` POSIX fonksiyonunu çağırmaktadır. 
+
+C standartlarına göre ``main`` fonksiyonunun sonunda ``return`` deyimi bulundurulmamışsa ``return 0`` yapılmış 
+gibi işlem uygulanmaktadır. Örneğin:
 
 .. code-block:: c
 
@@ -886,9 +873,8 @@ uygulanmaktadır. Örneğin:
     }
 
 Burada ``main`` fonksiyonunun sonunda ``return`` uygulanmamıştır. Yani akış eğer buraya ulaşırsa ``main``
-fonksiyonu sonlanacaktır. İşte ``main`` fonksiyonuna özgü olmak üzere bu durumda ``main`` fonksiyonunun 0
-ile geri döndürüldüğü kabul edilmektedir. ``main`` dışındaki herhangi bir fonksiyonda ``return``
-uygulanmazsa geri dönüş değeri çöp değer olarak elde edilmektedir.
+fonksiyonu ``0`` geri dönüş değeri ile sonlanacaktır. ile geri döndürüldüğü kabul edilmektedir. ``main`` dışındaki herhangi 
+bir fonksiyonda ``return`` uygulanmazsa geri dönüş değeri çöp değer olarak elde edilmektedir.
 
 Derleyicilerin başlangıç kodları genellikle açık olmayan derleyicilerde bile kaynak kod olarak
 verilmektedir. Başlangıç kodları ayrı bir ya da birden fazla amaç dosya biçiminde derlenmiştir ve bağlama
@@ -901,9 +887,6 @@ aşamasında bu amaç dosyalar da bağlama işlemine sokulmaktadır. Örneğin:
 Burada aslında ``gcc`` ``sample.c`` dosyasını derleyip ``sample.o`` dosyasını elde ettikten sonra ``ld``
 bağlayıcısını yalnızca bu dosyayla değil bir grup başlangıç amaç dosyasıyla birlikte çağırmaktadır.
 
-abort Fonksiyonu
-----------------
-
 C'nin ``abort`` fonksiyonu ise *normal olmayan (abnormal)* sonlandırmalar için kullanılmaktadır.
 UNIX/Linux sistemlerinde ``abort`` standart C fonksiyonu ``SIGABRT`` sinyali oluşturarak programı
 sonlandırmaktadır. Programın sonlanması bu sinyal dolayısıyla gerçekleşmektedir. Sinyaller konusu ileride
@@ -914,8 +897,9 @@ Yukarıda da belirttiğimiz gibi C'de programlar, standart ``exit`` fonksiyonu i
 ``_exit`` POSIX fonksiyonu ile sonlandırılması da gerekebilmektedir. Bu gerekliliğe ilişkin örneklerle
 sonraki konularımızda karşılaşacağız.
 
-_exit Kullanım Örneği (atexit Fonksiyonlarının Çağrılmaması)
-------------------------------------------------------------
+UNIX/Linux sistemlerinde prosesler ``_exit``, ``exit`` ve ``abort`` çağrılarının dışında sinyaller (signals) yoluyla da 
+sonlanmaktadır. Örneğin abort aslında sonlandırmayı böyle yapmaktadır. Sinyaller konusu kitabımızda 
+ayrı bir bölümde ele alınmaktadır. 
 
 Aşağıdaki örnekte program ``exit`` fonksiyonu ile değil ``_exit`` fonksiyonu ile sonlandırılmıştır. Bu
 nedenle ``atexit`` ile kaydedilen ``foo`` ve ``bar`` fonksiyonları program sonlanırken çağrılmayacaktır.
