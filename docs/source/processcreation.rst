@@ -818,9 +818,6 @@ sistemi tarafından onun tuttuğu kaynaklar yine boşaltılmaktadır. Yani çök
 algıladığı bir durumdur. İşletim sistemi çöken programlarda yine devreye girip gereken boşaltmaları
 yapmaktadır.
 
-exit Standart C Fonksiyonu ve _exit ile Farkları
-------------------------------------------------
-
 C'nin standart ``exit`` fonksiyonunun da prototipi şöyledir:
 
 .. code-block:: c
@@ -980,10 +977,11 @@ dışı herhangi bir değere, normal bir biçimde sonlanmamışsa sıfır değer
 prosesin anormal bir biçimde bir sinyal dolayısıyla sonlanıp sonlanmadığını da ``WIFSIGNALED`` makrosuyla
 tespit edebiliriz. Proses ``SIGSTOP`` sinyali ile geçici süre durdurulmuş da olabilir. Bu durum da
 ``WIFSTOPPED`` makrosu ile tespit edilebilmektedir. Prosesin çıkış kodu ise ``WEXITSTATUS`` makrosuyla
-elde edilmektedir. Yine bu makroya ``wait`` fonksiyonuna geçirilen ``int`` nesne argüman olarak
+elde edilmektedir. Yine bu makroya ``wait`` fonksiyonuna adresi geçirilen ``int`` nesne argüman olarak
 verilmektedir. Güncel POSIX standartlarında artık ``wait`` fonksiyonunda iletilen durum (status)
 bilgisinin en düşük anlamlı 1 byte'ının çıkış kodunu içerdiği açıkça belirtilmektedir. (Her ne kadar
 ``exit`` standart C fonksiyonunun çıkış kodunu belirten parametresi ``int`` türden olsa da POSIX
 standartlarında çıkış kodu için belirtilen değer [0, 255] arasında olmak zorundadır.) Programcı ``wait``
 fonksiyonuna argüman olarak ``NULL`` adres de geçebilir. Bu durumda fonksiyon çıkış koduyla ilgili bir
 yerleştirme yapmaz. Ancak yine ilk alt prosesin bitmesini bekler.
+
