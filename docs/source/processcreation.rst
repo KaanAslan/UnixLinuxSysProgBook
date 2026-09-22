@@ -705,8 +705,8 @@ sayacı ``0``'a düştüğünde dosya nesnesi de silinecektir.
         exit(EXIT_FAILURE);
     }
 
-fork İşleminde Standart C'nin Oluşturduğu Tamponların Durumu
-------------------------------------------------------------
+fork İşleminde Dosya Tamponların Durumu
+---------------------------------------
 
 C'nin standart dosya fonksiyonlarının tamponlama mekanizmasıyla çalıştığını görmüştük. Bu durumda
 ``fopen`` fonksiyonu ile açtığımız bir dosyaya bir şeyler yazıp henüz tampon flush edilmeden ``fork``
@@ -908,11 +908,6 @@ istenen ancak satır tamponlaması nedeniyle henüz yazılamayan *ok* yazısı d
 Burada ``_exit`` çağrısını kaldırırsanız, akış ``main`` fonksiyonunu bitirince ``exit`` standart C
 fonksiyonu çağrılacağı için bir sorun kalmayacaktır.
 
-Linux'ta aslında ``_exit`` fonksiyonu işletim sisteminin ``sys_exit`` sistem fonksiyonunu değil
-``sys_exit_group`` sistem fonksiyonunu çağırmaktadır. Linux'ta ``sys_exit`` sistem fonksiyonu yalnızca
-fonksiyonu çağıran thread'i, ``sys_exit_group`` fonksiyonu ise tüm thread'leri, dolayısıyla da prosesi
-sonlandırmaktadır.
-
 .. code-block:: c
 
     #include <stdio.h>
@@ -941,17 +936,17 @@ sonlandırmaktadır.
         return 0;
     }
 
-Çıkış Kodu (Exit Status)
-========================
+Linux'ta aslında ``_exit`` fonksiyonu işletim sisteminin ``sys_exit`` sistem fonksiyonunu değil
+``sys_exit_group`` sistem fonksiyonunu çağırmaktadır. Linux'ta ``sys_exit`` sistem fonksiyonu yalnızca
+fonksiyonu çağıran thread'i, ``sys_exit_group`` fonksiyonu ise tüm thread'leri, dolayısıyla da prosesi
+sonlandırmaktadır.
 
-``_exit`` fonksiyonunun parametresi olan çıkış kodunun hangi değerde olduğu işletim sistemini
-ilgilendirmemektedir. Yani işletim sistemi bu değeri aslında kullanmamaktadır. İşletim sistemi çıkış
-kodunu alır ve saklar. Bunu prosesi yaratan üst proses isterse ona verir. Ancak prosesin hangi çıkış
-koduyla sonlandığıyla işletim sistemi ilgilenmez. Çıkış kodunun değeri üst prosesle alt prosesin
-arasındaki bir anlaşma ile anlam kazanmaktadır.
+wait Fonksiyonları
+==================
 
-wait ve waitpid Fonksiyonları
-=============================
+``exit`` ve ``_exit`` fonksiyonunun parametresi olan prosesin çıkış kodu işletim sistemi tarafından kullanılmamaktadır.
+ilgilendirmemektedir. Bunu prosesi yaratan üst proses isterse ona verir.  prosesin hangi çıkış koduyla sonlandığıyla 
+işletim sistemi ilgilenmez. Çıkış kodunun değeri üst prosesle alt prosesin arasındaki bir anlaşma ile anlam kazanmaktadır.
 
 Üst proses ``fork`` fonksiyonu ile alt prosesi yarattıktan sonra onun sonlanmasını bekleyebilir ve alt
 proses sonlandığında onun çıkış kodunu alabilir. Bunun için ``wait`` ve ``waitpid`` isimli POSIX
@@ -967,17 +962,14 @@ fonksiyonu tasarlandı.)
 
     pid_t wait(int *status);
 
-``wait`` fonksiyonu herhangi bir alt proses sonlanana kadar *blokede* fonksiyonu çağıran thread'i
+``wait`` fonksiyonu herhangi bir alt proses sonlanana kadar kendisini çağıran thread'i blokede 
 bekletir. Burada blokede bekleme terimi CPU zamanı harcamadan uykuda kalmayı belirtmektedir. Tabii
-``wait`` fonksiyonu çağrıldığında alt proseslerden biri sonlanmış da olabilir. Bu durumda ``wait``
+``wait`` fonksiyonu çağrıldığında alt proseslerden biri zaten sonlanmış da olabilir. Bu durumda ``wait``
 fonksiyonu blokeye (yani beklemeye) yol açmaz. ``wait`` fonksiyonu başarı durumunda çıkış kodunu aldığı
-prosesin ID değeri ile geri dönmektedir. Böylece programcı çok sayıda alt prosesin söz konusu olduğu
-durumda hangi alt prosesin çıkış kodunu aldığını buradan hareketle anlayabilmektedir. Fonksiyon
+prosesin ID değeri ile geri döner. Böylece programcı çok sayıda alt prosesin söz konusu olduğu
+durumda hangi alt prosesin çıkış kodunu aldığını geri dönüş değerinden hareketle anlayabilmektedir. Fonksiyon
 parametresiyle aldığı ``int`` nesnesinin içerisine sonlanan prosesin çıkış kodunu ve sonlanma nedenine
 ilişkin bazı bilgileri yerleştirmektedir.
-
-WIFEXITED, WIFSIGNALED, WIFSTOPPED, WEXITSTATUS Makroları
----------------------------------------------------------
 
 Normal biçimde sonlanmamış (yani bir sinyal ile sonlanmış) proseslerde çıkış kodu oluşmamaktadır. O halde
 programcının prosesin çıkış kodunu alabilmesi için onun normal bir biçimde sonlanmış olduğunu belirlemesi
