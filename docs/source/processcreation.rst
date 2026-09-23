@@ -1367,26 +1367,23 @@ ya da ``waitpid`` fonksiyonunu kullanabilir" diye sisteme iade edilmemektedir. Y
 olan prosesin proses kontrol bloğunun yer kaplamasına hem de bitmiş olan prosesin ID değerinin yeniden kullanılamamasına 
 yol açmaktadır.
 
-Alt/Üst Proses Sonlanma Senaryoları
------------------------------------
-
 Alt ve üst proseslerin sonlanması şu biçimlerde olabilmektedir:
 
-1. Üst proses alt prosesten önce sonlanmış olabilir. Bu durumda alt proses *öksüz (orphan)* duruma düşer.
-   Sistem de 1 numaralı ID'ye sahip olan *init* prosesini öksüz prosesin üst prosesi olarak atar. Daha
-   sonra alt proses sonlandığında *init* prosesi alt prosesin exit kodunu alarak onun zombie duruma
+| **1.** Üst proses alt prosesten önce sonlanmış olabilir. Bu durumda alt proses *öksüz (orphan)* duruma düşer.
+   Sistem de ``1`` numaralı ID'ye sahip olan *init* prosesini öksüz prosesin üst prosesi olarak atar. Daha
+   sonra alt proses sonlandığında *init* prosesi alt prosesin çıkış kodunu alarak onun hortlak duruma
    düşmesini engeller.
 
-2. Alt proses üst prosesten daha önce sonlanmıştır. İşte bu durumda eğer üst proses ``wait``
-   fonksiyonlarını henüz uygulamamışsa alt proses zombie durumda kalır. Tabii üst proses ``wait``
-   fonksiyonlarını uyguladığı anda alt proses zombie olmaktan kurtulur.
+| **2.** Alt proses üst prosesten daha önce sonlanmıştır. İşte bu durumda eğer üst proses ``wait``
+   fonksiyonlarını henüz uygulamamışsa alt proses hortlak durumda kalır. Tabii üst proses ``wait``
+   fonksiyonlarını uyguladığı anda alt proses hortlaklıktan kurtulur.
 
-3. Alt proses üst prosesten önce sonlanmıştır. Ancak üst proses de ``wait`` fonksiyonlarını uygulamadan
+| **3.** Alt proses üst prosesten önce sonlanmıştır. Ancak üst proses de ``wait`` fonksiyonlarını uygulamadan
    sonlanmıştır. Bu durumda yine işletim sistemi artık çıkış kodunu alacak bir üst proses kalmadığı için
    alt prosesi zombie olmaktan çıkartır. Yani onun proses kontrol bloğunu ve ID değerini serbest bırakır.
 
-O halde zombie proses yalnızca şu süreçte ortaya çıkmaktadır: *Alt proses sonlanmıştır ancak üst proses
-wait fonksiyonlarını uygulamadan çalışmasına devam etmektedir.*
+O halde hortlak proses yalnızca şu süreçte ortaya çıkmaktadır: "Alt proses sonlanmıştır ancak üst proses
+wait fonksiyonlarını uygulamadan çalışmasına devam etmektedir."
 
 Zombie Proses Oluşturma Örneği
 ------------------------------
