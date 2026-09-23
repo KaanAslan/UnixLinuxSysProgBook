@@ -37,7 +37,7 @@ PID'ler İçin Tavan Değeri
 
 UNIX/Linux sistemlerinde genellikle PID değerleri için bir tavan değer de belirlenmektedir. Bu tavan
 değere ulaşıldığında yukarıda da belirttiğimiz gibi yeniden başa dönülüp boş olan PID'ler kullanılmaktadır. 
-Linux sistemlerinde default durumda PID tavan değeri 32768'dir. Bu değer sistem yöneticisi tarafından
+Linux sistemlerinde default durumda PID tavan değeri ``32768``'dir. Bu değer sistem yöneticisi tarafından
 değiştirilebilmektedir. Ancak yükseltilecek maksimum değer de önceden belirlenmiştir. Aşağıda bu değerleri
 tablo halinde veriyoruz:
 
@@ -563,7 +563,7 @@ etmelisiniz. Programı çalıştırdığımızda şöyle bir çıktı elde edece
         return 0;
     }
 
-Benzer biçimde yine aşağıdaki kodda ekrana 8 tane 3 sayısı basılacaktır:
+Benzer biçimde yine aşağıdaki kodda ekrana ``8`` tane ``3`` sayısı basılacaktır:
 
 .. code-block:: c
 
@@ -740,7 +740,7 @@ yukarıdaki anomali oluşmayacaktır. C standartlarına göre yalnızca tampona 
 flush işlemi sırasında asıl hedefe aktarılmaktadır.
 
 Aşağıdaki örnekte ``printf`` fonksiyonu Linux sistemlerinde default durumda *satır tamponlamalı* olan
-``stdout`` dosyasının tamponuna bilgileri yazmıştır. Ancak ``\n`` karakteri tampona yazılmadığı için flush
+``stdout`` dosyasının tamponuna bilgileri yazmıştır. Ancak ``''\n'`` karakteri tampona yazılmadığı için flush
 işlemi de yapılmamıştır. ``fork`` işlemi ile birlikte bu tamponun da kopyası çıkarılacağından dolayı
 ekranda iki tane *Ok* yazısı görünecektir:
 
@@ -807,7 +807,7 @@ dosyaların tuttuğu kaynaklar duruma göre serbest bırakılacaktır. Tabii ``_
 dosyaları kapatmakla kalmaz, henüz görmediğimiz tahsis edilmiş olan başka kaynakları da boşaltmaktadır.
 Linux sistemlerinde ``_exit`` fonksiyonu doğrudan işletim sisteminin ``sys_exit_group`` ya da ``sys_exit``
 isimli sistem fonksiyonunu çağırmaktadır. Tabii asıl prosesin sonlandırılması bu sistem fonksiyonu
-tarafından yapılmaktadır. Yine geleneksel olarak başarılı sonlanmalar için 0 değeri, başarısız sonlanmalar
+tarafından yapılmaktadır. Yine geleneksel olarak başarılı sonlanmalar için ``0`` değeri, başarısız sonlanmalar
 için sıfır dışı değerler kullanılmaktadır. Peki bir program çökerek sonlandığında ne olmaktadır? Aslında
 programın çökerek sonlanması kontrolsüz bir biçimde sonlanması anlamına gelmemektedir. UNIX/Linux
 sistemlerinde çökme tabir edilen durumlar aslında bir sinyal oluşturmaktadır. Program çökse de işletim
@@ -948,6 +948,9 @@ fonksiyonları kullanılmaktadır. ``waitpid`` fonksiyonu ``wait`` fonksiyonunu 
 kapsamaktadır. (Zaten önce ``wait`` fonksiyonu vardı, onun yetersizlikleri görülünce ``waitpid``
 fonksiyonu tasarlandı.)
 
+wait Fonksiyonu
+---------------
+
 ``wait`` fonksiyonunun prototipi şöyledir:
 
 .. code-block:: c
@@ -978,10 +981,9 @@ elde edilmektedir. Yine bu makroya ``wait`` fonksiyonuna adresi geçirilen ``int
 verilmektedir. Güncel POSIX standartlarında artık ``wait`` fonksiyonunda iletilen durum (status)
 bilgisinin en düşük anlamlı 1 byte'ının çıkış kodunu içerdiği açıkça belirtilmektedir. (Her ne kadar
 ``exit`` standart C fonksiyonunun çıkış kodunu belirten parametresi ``int`` türden olsa da POSIX
-standartlarında çıkış kodu için belirtilen değer [0, 255] arasında olmak zorundadır.) Programcı ``wait``
+standartlarında çıkış kodu için belirtilen değer ``[0, 255]`` arasında olmak zorundadır.) Programcı ``wait``
 fonksiyonuna argüman olarak ``NULL`` adres de geçebilir. Bu durumda fonksiyon çıkış koduyla ilgili bir
 yerleştirme yapmaz. Ancak yine ilk alt prosesin bitmesini bekler.
-
 
 Eğer ``wait`` fonksiyonu çağrıldığında zaten üst prosesin yarattığı herhangi bir alt proses yoksa ya da 
 fonksiyona geçersiz bir adres geçilmişse fonksiyon başarısız olacaktır. 
@@ -989,12 +991,12 @@ fonksiyona geçersiz bir adres geçilmişse fonksiyon başarısız olacaktır.
 ``wait`` fonksiyonunun tasarımında şu problemler vardır:
 
 - ``wait`` fonksiyonu ile biz belli bir alt prosesi bekleyememekteyiz. ``wait`` fonksiyonu çağrıldığında 
-henüz hiçbir alt proses sonlanmamışsa ``wait`` ilk sonlanan alt prosesin çıkış kodunu alır.
+    henüz hiçbir alt proses sonlanmamışsa ``wait`` ilk sonlanan alt prosesin çıkış kodunu alır.
 
 - ``wait`` fonksiyonu çağrıldığında eğer zaten birden fazla alt proses sonlanmış durumdaysa POSIX 
-standartları hangi alt prosesin ``exit`` kodunun elde edileceği konusunda bir garanti vermemektedir. 
-Yani bu durumda ``wait`` fonksiyonunun ilk sonlanan alt prosesin çıkış kodunu alması garanti 
-edilmemiştir.
+    standartları hangi alt prosesin ``exit`` kodunun elde edileceği konusunda bir garanti vermemektedir. 
+    Yani bu durumda ``wait`` fonksiyonunun ilk sonlanan alt prosesin çıkış kodunu alması garanti 
+    edilmemiştir.
 
 Aşağıdaki örnekte üst proses ``fork`` fonksiyonu ile alt prosesi yaratmıştır ve ``wait`` fonksiyonu 
 ile onu beklemiştir. Alt proses normal bir biçimde sonlanmışsa onun çıkış kodunu alıp ekrana 
@@ -1050,13 +1052,6 @@ yazdırmıştır.
     }
 
 
-===============================================
-waitpid, Zombie Prosesler ve Çevre Değişkenleri
-===============================================
-
-wait Fonksiyonu ile Bekleme Yapmadan Örnek
-==========================================
-
 Aşağıdaki örnekte ise üst proses ``wait`` fonksiyonu çağırmadan alt proses sonlanmıştır. Tabii bu durumda
 üst proses hiç beklemeden alt prosesin çıkış kodunu alıp yoluna devam edecektir.
 
@@ -1108,9 +1103,6 @@ Aşağıdaki örnekte ise üst proses ``wait`` fonksiyonu çağırmadan alt pros
         perror(msg);
         exit(EXIT_FAILURE);
     }
-
-Çoklu Alt Proseslerin wait ile Beklenmesi
-=========================================
 
 Tabii üst proses ne kadar ``fork`` yapmışsa o kadar sayıda ``wait`` yapmalıdır. Çünkü her ``wait``
 fonksiyonu yalnızca tek bir alt prosesin sonlanma bilgilerini alacaktır.
@@ -1170,7 +1162,7 @@ fonksiyonu yalnızca tek bir alt prosesin sonlanma bilgilerini alacaktır.
     }
 
 waitpid Fonksiyonu
-==================
+------------------
 
 ``waitpid`` fonksiyonu ``wait`` fonksiyonunun daha gelişmiş bir biçimidir. Fonksiyonun prototipi şöyledir:
 
@@ -1183,16 +1175,13 @@ waitpid Fonksiyonu
 Fonksiyonun birinci parametresi beklenecek alt prosesin proses ID değerini belirtir. Bu sayede programcı
 belli bir alt prosesi bekleyebilmektedir. Bu birinci parametre aslında birkaç biçimde geçilebilmektedir.
 Eğer bu parametreye programcı pozitif değerde bir proses ID geçerse fonksiyon proses id'si geçirilen
-değer olan o alt prosesi bekleyecektir. (Tabii bu parametreye geçirilen proses ID, o prosesin bir alt
-prosesi değilse fonksiyon hemen başarısız olmaktadır.) Eğer bu parametre negatif bir proses ID değeri
+değer olan o alt prosesi bekler. (Tabii bu parametreye geçirilen proses ID, o prosesin bir alt
+prosesi değilse fonksiyon hemen başarısız olacaktır.) Eğer bu parametreye negatif bir proses ID değeri
 geçilirse bu durumda fonksiyon proses grup ID'si bu değerin pozitifi olan herhangi bir alt prosesi
-beklemektedir. Eğer bu parametre -1 olarak geçilirse bu durumda fonksiyon tamamen ``wait``
-fonksiyonundaki gibi davranmaktadır. Yani herhangi bir alt prosesi beklemektedir. Eğer bu parametreye 0
+beklemektedir. Eğer bu parametre ``-1`` olarak geçilirse bu durumda fonksiyon tamamen ``wait``
+fonksiyonundaki gibi davranmaktadır. Yani herhangi bir alt prosesi beklemektedir. Eğer bu parametreye ``0``
 değeri geçilirse fonksiyon, proses grup ID'si kendisini çağıran prosesin ID'si ile aynı olan herhangi bir
 alt prosesi beklemektedir.
-
-pid Parametresinin Anlamı
--------------------------
 
 Bu parametrenin alabileceği değerleri aşağıda bir tablo biçiminde de veriyoruz:
 
@@ -1201,23 +1190,20 @@ Bu parametrenin alabileceği değerleri aşağıda bir tablo biçiminde de veriy
 
    * - pid Değeri
      - Beklenen Alt Proses
-   * - pid > 0
+   * - ``pid > 0``
      - Proses ID'si pid olan alt proses
-   * - pid == 0
+   * - ``pid == 0``
      - Proses grup ID'si çağıranla aynı olan herhangi bir alt proses
-   * - pid == -1
+   * - ``pid == -1``
      - Herhangi bir alt proses (wait ile eşdeğer)
-   * - pid < -1
+   * - ``pid < -1``
      - Proses grup ID'si \|pid\| olan herhangi bir alt proses
 
-options Parametresi
--------------------
-
 Fonksiyonun ikinci parametresi sonlanma nedeninin ve çıkış kodunun yerleştirileceği ``int`` türden
-nesnenin adresini almaktadır. Üçüncü parametre bazı özel değerlerin bit düzeyinde OR'lanmasıyla
+nesnenin adresini almaktadır. Üçüncü parametre bazı özel değerlerin bit düzeyinde ``OR``'lanmasıyla
 oluşturulabilmektedir:
 
-- ``WNOHANG``: Bu durumda ``waitpid`` eğer alt proses henüz sonlanmamışsa bekleme yapmaz, fonksiyon 0 ile
+- ``WNOHANG``: Bu durumda ``waitpid`` eğer alt proses henüz sonlanmamışsa bekleme yapmaz, fonksiyon ``0`` ile
   geri döner.
 - ``WUNTRACED``, ``WCONTINUED``: Prosesin durdurulması ve devam ettirilmesi ile ilgili bilginin elde
   edilmesinde kullanılmaktadır.
@@ -1230,7 +1216,7 @@ Aşağıdaki tabloda son parametre için kullanılabilecek bayrakların listesin
    * - Seçenek
      - Anlamı
      - Standart
-   * - 0
+   * - ``0``
      - Bir alt proses sonlanana kadar bloke olunur
      - POSIX
    * - ``WNOHANG``
@@ -1252,7 +1238,7 @@ Aşağıdaki tabloda son parametre için kullanılabilecek bayrakların listesin
      - Aynı thread grubundaki diğer thread'lerin yarattığı alt prosesler beklenmez
      - Linux
 
-Tabii bu üçüncü parametre genellikle 0 geçilmektedir. 0 geçilmesi bu bayraklardan hiçbirinin
+Tabii bu üçüncü parametre genellikle ``0`` geçilmektedir. ``0`` geçilmesi bu bayraklardan hiçbirinin
 kullanılmadığı anlamına gelmektedir. O halde aslında ``wait(&status)`` çağrısı ile
 ``waitpid(-1, &status, 0)`` çağrısı eşdeğerdir. Gördüğünüz gibi ``waitpid`` fonksiyonu tamamen ``wait``
 fonksiyonunu işlevsel olarak kapsamaktadır.
@@ -1261,10 +1247,7 @@ fonksiyonunu işlevsel olarak kapsamaktadır.
 ama çıkış bilgileri elde edilmez.
 
 ``waitpid`` fonksiyonu da tıpkı ``wait`` fonksiyonunda olduğu gibi başarı durumunda beklenen proses ID
-değeri ile, başarısızlık durumunda -1 değeriyle geri dönmektedir.
-
-waitpid Kullanım Örnekleri
---------------------------
+değeri ile, başarısızlık durumunda ``-1`` değeriyle geri dönmektedir.
 
 Örneğin:
 
@@ -1289,9 +1272,9 @@ Burada ``waitpid`` fonksiyonu ile alt prosesin PID değeri belirtilerek bekleme 
         printf("no child exited...\n");
 
 Burada ``WNOHANG`` bayrağının kullanıldığına dikkat ediniz. Bu bayrak, ``waitpid`` fonksiyonu ile beklenen
-alt proses henüz sonlanmamışsa fonksiyonun 0 ile geri dönmesine yol açmaktadır.
+alt proses henüz sonlanmamışsa fonksiyonun ``0`` ile geri dönmesine yol açmaktadır.
 
-Aşağıdaki örnekte 5 tane alt proses yaratılmış, ancak bunlar herhangi bir sırada değil yaratım sırasına
+Aşağıdaki örnekte ``5`` tane alt proses yaratılmış, ancak bunlar herhangi bir sırada değil yaratım sırasına
 göre ``waitpid`` fonksiyonu ile beklenmiştir. Bu örneği ``waitpid`` yerine ``wait`` fonksiyonunu
 kullanarak da çalıştırıp iki çıktı arasındaki farka bakabilirsiniz.
 
