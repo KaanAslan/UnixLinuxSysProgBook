@@ -1334,8 +1334,8 @@ Programcının ``fork`` fonksiyonu ile her yarattığı alt prosesi ``wait`` fon
 bir tekniktir. Aksi halde sonraki paragrafta ele alacağımız gibi *hortlak (zombie)* proses problemi
 oluşabilmektedir.
 
-Kabuğun Çıkış Kodu ($?)
-=======================
+Kabuk Üzerinden Son Çalıştırılan Programın Çıkış Kodunun Elde Edilmesi 
+----------------------------------------------------------------------
 
 Biz kabuk üzerinden program çalıştırdığımızda ``fork`` işlemini kabuk uygulamaktadır. Dolayısıyla
 çalıştırılan programın çıkış kodunu da üst proses olan kabuk almaktadır. İşte biz ``$?`` ile kabuk
@@ -1347,24 +1347,25 @@ Biz kabuk üzerinden program çalıştırdığımızda ``fork`` işlemini kabuk 
     $ echo $?
     100
 
-Zombie (Hortlak) Proses Kavramı
+Hortlak (Zombie) Proses Kavramı
 ===============================
 
-UNIX/Linux sistemlerinde prosesler konusunda çokça karşılaşılan *zombie (hortlak)* proses biçiminde bir
-kavram vardır. Zombie sözcük anlamı olarak *tam ölememiş ya da öldükten sonra dirilmiş olan canlılar* için
-kullanılmaktadır. (Tabii gerçek dünyada böyle bir durumla karşılaşılmamıştır.) Bir alt proses
-sonlandığında işletim sistemi onun kaynaklarını boşaltmaktadır. Örneğin prosesin bellek alanı tamamen
-sisteme iade edilmektedir. Prosesin açmış olduğu dosyalar kapatılmaktadır. Ancak işletim sistemi, alt
-prosesin çıkış kodunu üst prosese iletebilmek için proses kontrol bloğunu proses bittiğinde hemen serbest
-bırakmamaktadır. Prosesin çıkış kodu proses kontrol bloğunda saklanmaktadır. İşletim sistemi *üst proses
-bu çıkış kodunu herhangi bir zaman isteyebilir* diye sonlanmış olan prosesin proses kontrol bloğunu
-(Linux'taki ``task_struct`` yapısı) sisteme iade etmez. Böylece bir alt proses bittiğinde eğer üst proses
-``wait`` fonksiyonlarıyla alt prosesin exit kodunu henüz almamışsa *kendisi bitmiş ama proses kontrol
-bloğu sisteme iade edilmemiş* durumu oluşmaktadır. İşte bu duruma UNIX/Linux dünyasında *zombie process*
-denilmektedir. Zombie proseslerde prosesin ID değeri de *üst proses wait ya da waitpid fonksiyonunu
-kullanabilir* diye sisteme iade edilmemektedir. Yani zombie proses oluşması, bitmiş olan prosesin proses
-kontrol bloğunun yer kaplamasına hem de bitmiş olan prosesin ID değerinin yeniden kullanılamamasına yol
-açmaktadır.
+UNIX/Linux sistemlerinde prosesler konusunda çokça karşılaşılan *hortlak (zombie) proses* denilen bir
+kavram vardır. Hortlak sözcük anlamı olarak "tam ölememiş ya da öldükten sonra dirilmiş olan canlılar" için
+kullanılmaktadır. (Tabii gerçek dünyada böyle bir durumla karşılaşılmamıştır. Ancak öldü sanılarak defnedilmeye 
+çalışılırken tabuttan çıkan kişiler bulunmaktadır.) 
+
+Bir alt proses sonlandığında işletim sistemi onun kaynaklarını boşaltmaktadır. Örneğin prosesin bellek alanı tamamen 
+sisteme iade edilmektedir. Prosesin açmış olduğu dosyalar kapatılmaktadır. Ancak işletim sistemi, alt prosesin çıkış 
+kodunu üst prosese iletebilmek için proses kontrol bloğunu proses bittiğinde hemen serbest bırakmamaktadır. (Prosesin 
+çıkış kodu proses kontrol bloğunda saklanmaktadır.) İşletim sistemi "üst proses bu çıkış kodunu herhangi bir zaman 
+isteyebilir" diye sonlanmış olan prosesin proses kontrol bloğunu (Linux'taki ``task_struct`` yapısı) sisteme iade etmez. 
+Böylece bir alt proses bittiğinde eğer üst proses ``wait`` fonksiyonlarıyla alt prosesin çıkış kodunu henüz almamışsa 
+"kendisi bitmiş ama proses kontrol bloğu sisteme iade edilmemiş proses" durumu oluşmaktadır. İşte bu duruma UNIX/Linux 
+dünyasında *hortlak (zombie) proses* denilmektedir. Zombie proseslerde prosesin ID değeri de "üst proses ``wait`` 
+ya da ``waitpid`` fonksiyonunu kullanabilir" diye sisteme iade edilmemektedir. Yani hortlak proses oluşması, bitmiş 
+olan prosesin proses kontrol bloğunun yer kaplamasına hem de bitmiş olan prosesin ID değerinin yeniden kullanılamamasına 
+yol açmaktadır.
 
 Alt/Üst Proses Sonlanma Senaryoları
 -----------------------------------
