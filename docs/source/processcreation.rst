@@ -563,9 +563,6 @@ etmelisiniz. Programı çalıştırdığımızda şöyle bir çıktı elde edece
         return 0;
     }
 
-Yerel Değişkenlerin Ayrışması Örneği
-------------------------------------
-
 Benzer biçimde yine aşağıdaki kodda ekrana 8 tane 3 sayısı basılacaktır:
 
 .. code-block:: c
