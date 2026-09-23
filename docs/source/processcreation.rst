@@ -17,18 +17,18 @@ PID değerleri ``pid_t`` türüyle temsil edilmiştir. POSIX standartlarına gö
 bir tamsayı türü olmak koşuluyla ``<sys/types.h>`` ve ``<unistd.h>`` dosyalarında typedef edilmiş olmak zorundadır. 
 Bu türün hangi işaretli tamsayı türü olarak typedef edildiğinin programcı tarafından bilinmesine gerek ypktur. 
 
-Sistem boot edildiğinde boot kodu 0 numaralı PID'ye sahip proses biçimine dönüştürülmektedir. Buna *swapper*
-ya da *pager* da denilebilmektedir. Daha sonra da bu 0 numaralı PID bir daha sistemde kullanılmamaktadır.
-(Yani 0 numaralı PID geçerli bir PID değildir.) Sistemde ikinci yaratılan proses 1 numaralı ID'ye sahip 
-olan *init* ismiyle temsil edilen prosestir. 0 numaralı proses yok edildiği için sistemdeki bütün proseslerin 
+Sistem boot edildiğinde boot kodu ``0`` numaralı PID'ye sahip proses biçimine dönüştürülmektedir. Buna *swapper*
+ya da *pager* da denilebilmektedir. Daha sonra da bu ``0`` numaralı PID bir daha sistemde kullanılmamaktadır.
+(Yani ``0`` numaralı PID geçerli bir PID değildir.) Sistemde ikinci yaratılan proses ``1`` numaralı ID'ye sahip 
+olan *init* ismiyle temsil edilen prosestir. ``0`` numaralı proses yok edildiği için sistemdeki bütün proseslerin 
 atası bu *init* prosesidir. *init* prosesi arka planda bir *daemon* gibi çalışmaktadır. UNIX/Linux dünyasında 
 terminal etkileşimi olmayan arka planda çalışan proseslere *daemon* denilmektedir. (Bu tür proseslere Windows 
 dünyasında da *servis (service)* denilmektedir.)
 
 İşletim sisteminin çekirdeği tipik olarak yeni yaratılan proses için proses PID değerini bir sayaç
 kullanarak vermektedir. Her proses yaratıldığında bu sayaç değeri bir artırılır. Sayaç sona geldiğinde
-yeniden başa geçilir ve bitmiş proseslerin PID'leri kullanılır. Örneğin sistem açıldığında 1 numaralı PID'ye
-sahip *init* prosesi tarafından yaratılan proseslere artık sistem 2, 3, 4, ... PID'lerini vermektedir.
+yeniden başa geçilir ve bitmiş proseslerin PID'leri kullanılır. Örneğin sistem açıldığında ``1`` numaralı PID'ye
+sahip *init* prosesi tarafından yaratılan proseslere artık sistem ``2``, ``3``, ``4``, ... PID'lerini vermektedir.
 Proses PID değerlerinin belli bir anda sistemde tek olduğuna dikkat ediniz. Zaman içerisinde
 bilgisayarınız uzun süre açık kalırsa sonlanmış olan eski PID değerleri yeniden kullanılacaktır.
 
@@ -73,8 +73,8 @@ Bunun için ``sysctl`` komutunu da kullanabilirsiniz:
      - ``sysctl -w kernel.pid_max=N``
      - Root yetkisi gerekir
 
-Her ne kadar çekirdekteki default değer 32768 olsa da *systemd* init sistemi açılış sırasında bu değeri
-maksimum değer olan 4194304 değerine çekmektedir. Örneğin:
+Her ne kadar çekirdekteki default değer ``32768`` olsa da *systemd* init sistemi açılış sırasında bu değeri
+maksimum değer olan ``4194304`` değerine çekmektedir. Örneğin:
 
 .. code-block:: console
 
@@ -137,7 +137,7 @@ Biz programı kabuk üzerinden çalıştırdığımızda çalıştırdığımız
 (muhtemelen bash) olacaktır.
 
 Bir prosesin üst prosesi sonlanırsa bu tür proseslere *öksüz (orphan) prosesler* denilmektedir. Sistem
-böyle bir durumda 1 numaralı ID'ye sahip olan *init* ismiyle temsil ettiğimiz prosesi öksüz duruma düşmüş
+böyle bir durumda ``1`` numaralı ID'ye sahip olan *init* ismiyle temsil ettiğimiz prosesi öksüz duruma düşmüş
 prosesin üst prosesi olarak atamaktadır. Dolayısıyla her zaman prosesin bir üst prosesi bulunmaktadır.
 
 .. code-block:: c

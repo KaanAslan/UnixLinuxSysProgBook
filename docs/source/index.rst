@@ -14,8 +14,8 @@
    ederiz.
 
    Kitabımızın konusu ile ilgili en önemli kaynaklar *Kaynaklar* bölümünde listelenmiştir. **W. Stevens**'in (sonradan **Stephen 
-   Rago** da eklemeler yapmıştır) **Advanced Programming in the UNIX Envirionment** literatürün en önemli yabancı kitabıdır ve 
-   güncelliğini halen büyük ölçüde ettirmektedir. 
+   Rago** da eklemeler yapmıştır) **Advanced Programming in the UNIX Envirionment** literatürün en önemli yabancı kitabı
+   durumundadır ve güncelliğini halen büyük ölçüde devam ettirmektedir. 
    
    Kitabımızı diğer yabancı kaynaklardan ayıran en önemli farklılıkları şunlardır:
 

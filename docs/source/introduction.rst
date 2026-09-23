@@ -13,7 +13,7 @@ denilmektedir. Sistem programlama etkinlikleri aşağı seviyeli olma eğilimind
 ölçüde teorik bilgiye ve uygulama becerisine gereksinim duyulmaktadır. Sistem programlama
 *programlamanın yükte hafif pahada ağır* bir alanını oluşturmaktadır. Bu yönüyle adeta yazılımın ağır sanayisi
 niteliğindedir. Bilişim sektöründeki Microsoft, Apple, Oracle, Google gibi pek çok büyük kurum geliştirdikleri sistem
-yazılımları sayesinde bu hale gelmişlerdir. Tipik sistem programlama uygulamalarından bazıları (ama hepsi değil= şunlardır:
+yazılımları sayesinde bu hale gelmişlerdir. Tipik sistem programlama uygulamalarından bazıları (ama hepsi değil) şunlardır:
 
 - İşletim Sistemleri
 - Derleyiciler ve Yorumlayıcılar
