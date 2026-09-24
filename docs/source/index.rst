@@ -48,3 +48,4 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    protectionmechanism
    stdiobuffering
    processcreation
+ 
