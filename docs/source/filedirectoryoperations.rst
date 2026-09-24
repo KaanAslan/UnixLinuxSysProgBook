@@ -1110,7 +1110,8 @@ Buradaki ``O_RDONLY`` "yalnızca okuma yapma amacıyla", ``O_WRONLY`` "yalnızca
 prosesin etkin kullanıcı ID'sine ve etkin grup ID'sine ve dosyanın kullanıcı ve grup ID'sine bakarak prosesin
 dosyaya ``'r'``, ``'w'`` hakkının olup olmadığını kontrol eder. Eğer proses bu hakka sahip değilse ``open``
 fonksiyonu başarısız olur. (Erişim erişim kontrollerinin dosyadan okuma yapılırken ya da dosyaya yazma yapılırken 
-değil ``open`` fonksiyonu ile dosya açılırken yapıldığına dikkat ediniz.) Örneğin biz dosyayı şöyle açmak isteyelim:
+değil ``open`` fonksiyonu ile dosya açılırken yapıldığına dikkat ediniz. Dosya açıldıktan sonra erişim hakları 
+değiştirilse bile bundan açılmış dosya etkilenmemektedir.) Örneğin biz dosyayı şöyle açmak isteyelim:
 
 .. code-block:: c
 
@@ -1400,6 +1401,10 @@ hepsini aşağıda bir tablo halinde veriyoruz:
    * - ``O_CLOEXEC``
      - Dosya betimleyicisine ``FD_CLOEXEC`` bayrağı atar; ``exec`` sonrası betimleyici otomatik
        kapanır. ``fork`` + ``exec`` yarış koşulunu önler.
+     - POSIX
+   * - ``O_CLOFORK``
+     - Dosya betimleyicisine ``FD_CLOFORK`` bayrağı atar; fork sonrası betimleyici otomatik kapanır. 
+       POSIX 2024 ile eklenmiştir. 
      - POSIX
    * - ``O_DSYNC``
      - Her ``write``, yalnızca veriyi diske flush edene kadar bloke et; meta veri (erişim zamanı vs)

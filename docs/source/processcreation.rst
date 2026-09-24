@@ -702,6 +702,31 @@ sayacı ``0``'a düştüğünde dosya nesnesi de silinecektir.
         exit(EXIT_FAILURE);
     }
 
+POSIX'in 2024 versiyonunda (henüz çok yeni) dosya açış bayraklarına ``O_CLOFORK`` isimli bir bayrak da eklenmiştir.
+Bu bayrak kullanıldığında ``fork`` işlemi sırasında alt proseste betimleyici otomatik olarak kapatılmaktadır.
+Örneğin:
+
+.. code-block:: c
+
+    if ((fd = open("test.c", O_RDONLY|O_CLOFORK)) == -1)
+        exit_sys("open");
+
+Bu bayrak ileride göreceğimiz gibi daha sonra ``fcntl`` fonksiyonu ile de set edilebilmektedir:
+
+.. code-block:: c
+
+    if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD)|FD_CLOFORK) == -1)
+        exit_sys("fcntl");
+
+Benzer biçimde bu bayrak şöyle de reset edilebilir:
+
+.. code-block:: c
+
+    if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) & ~FD_CLOFORK) == -1)
+        exit_sys("fcntl");
+
+Bu bayrak Linux çekirdeği tarafından desteklenmemektedir.
+
 fork İşleminde Dosya Tamponların Durumu
 ---------------------------------------
 
@@ -1462,9 +1487,6 @@ Alt ve üst proseslerin sonlanması şu biçimlerde olabilmektedir:
 
 O halde zombie proses yalnızca şu süreçte ortaya çıkmaktadır: "Alt proses sonlanmıştır ancak üst proses
 wait fonksiyonlarını uygulamadan çalışmasına devam etmektedir."
-
-Zombie Proses Oluşturma Örneği
-------------------------------
 
 Şimdi bir zombie proses durumu oluşturalım. Yapacağımız şey alt prosesi sonlandırıp üst prosesin
 ``wait`` fonksiyonlarını uygulamadan yoluna devam etmesini sağlamaktır. Zombie prosesler *"ps -l"*

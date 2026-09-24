@@ -177,11 +177,6 @@ yazı (boş string) yerleştirmektedir. Örneğin:
     $ echo -$XXX-
     --
 
-
-=================================================================
-Çevre Değişkenlerini Değiştirme: setenv, putenv, environ ve Kabuk
-=================================================================
-
 setenv Fonksiyonu
 =================
 
