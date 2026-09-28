@@ -109,8 +109,24 @@ Kabuğun Çevre Değişkenleri
 Kabuğun (yani kabuk prosesinin) çevre değişken listesi ``env`` kabuk komutuyla her satırda *anahtar=değer* biçiminde
 görüntülenebilmektedir. Örneğin:
 
+.. code-block:: text
 
-
+    $ env
+    SHELL=/bin/bash
+    QT_ACCESSIBILITY=1
+    COLORTERM=truecolor
+    XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
+    XDG_MENU_PREFIX=gnome-
+    GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+    QT_IM_MODULES=wayland;ibus
+    PTYXIS_PROFILE=d5e3a7ee9ab5d8c4a45d92946aba6698
+    SSH_AUTH_SOCK=/run/user/1000/gcr/ssh
+    MEMORY_PRESSURE_WRITE=c29tZSAyMDAwMDAgMjAwMDAwMAA=
+    XMODIFIERS=@im=ibus
+    DESKTOP_SESSION=ubuntu
+    GTK_MODULES=gail:atk-bridge
+    DBUS_STARTER_BUS_TYPE=session
+    ...
 
 Peki kabuk programındaki çevre değişkenleri nasıl oluşturulmuştur? İşte prosesler birbirlerini yaratırken kabuk 
 prosesine gelene kadar bazı prosesler çevre değişkenlerine eklemeler yapmaktadır. Örneğin kabuk programını çalıştıran 
@@ -167,7 +183,7 @@ yazdırabiliriz:
 Eğer ``$`` karakterinin yanındaki çevre değişkeni mevcut değilse bu durumda kabuk onun yerine boş bir
 yazı (boş string) yerleştirmektedir. 
 
-setenv ve puteenv Fonksiyonları
+setenv ve putenv Fonksiyonları
 ===============================
 
 Prosesin çevre değişken listesine yeni bir anahtar-değer çifti eklemek için ``setenv`` ve ``putenv``
@@ -197,11 +213,11 @@ Girişin aşağıdaki gibi yapılması gerekir:
 
     $ ./setenv ali=100 veli=200 selami=300
 
-Program ``=`` karakterini ``strchr`` fonksiyonu ile aramış, eğer onu bulursa ``=`` karakteri yerine
-``\0`` karakterini yerleştirmektedir. Programda beelirtilen çevre değişkenleri oluşturulduktan sonra ayrıca 
-onlar ``getenv``fonksiyonuyla da elde edilip yazdırılmıştır. 
+Program ``'='`` karakterini ``strchr`` fonksiyonu ile aramakta, eğer onu bulursa ``'='`` karakteri yerine
+``'\0'`` karakterini yerleştirmektedir. Programda beelirtilen çevre değişkenleri oluşturulduktan sonra ayrıca 
+onlar ``getenv`` fonksiyonuyla da elde edilip yazdırılmıştır. 
 
-``setenv.c```
+``setenv.c``
 
 .. code-block:: c
 
@@ -370,13 +386,9 @@ adres bulunmaktadır. Bu gösterici dizisinin başlangıç adresi ``environ`` is
 gösteren göstericiyle tutulmaktadır. Yani prosesin çevre değişken listesi aşağıdaki gibi bir veri
 yapısıyla oluşturulmuştur:
 
-.. code-block:: text
-
-    environ ---->  adres  ---> ali=100\0
-                    adres  ---> veli=200\0
-                    adres  ---> selami=300\0
-                    ...
-                    NULL
+.. figure:: _static/environ.png
+    :align: center
+    :width: 65%
 
 ``environ`` göstericisinin gösterdiği yerdeki gösterici dizisinin sonunda ``NULL`` adres bulundurulduğuna
 dikkat ediniz.
