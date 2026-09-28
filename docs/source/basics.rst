@@ -1,6 +1,6 @@
-============================================================
+================================
 **Temel Kavramlar ve Hazırlık**
-============================================================
+================================
 
 Bu bölümde UNIX/Linux sistemleri hakkında temel bilgileri ve programlama için bazı hazırlık işlemleri üzerinde duracağız.
 

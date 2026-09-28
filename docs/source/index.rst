@@ -49,4 +49,5 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    stdiobuffering
    processcreation
    environment
+   exec
    

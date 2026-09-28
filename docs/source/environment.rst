@@ -1,6 +1,6 @@
-==============================
-Proseslerin Çevre Değişkenleri
-==============================
+==================================
+**Proseslerin Çevre Değişkenleri**
+==================================
 
 Modern işletim sistemlerinin büyük çoğunluğunda, prosese özgü, ismine *çevre değişkenleri (environment
 variables)* denilen bir veri yapısı bulundurulmaktadır. Çevre değişkenleri anahtar-değer çiftlerini
@@ -588,9 +588,6 @@ programının çevre değişken listesine nasıl ekleme yapabiliriz? İşte bu i
     $ city=eskisehir
     $ export city
 
-Kabuk Değişkeni ile Çevre Değişkeni Farkı ve export Komutu
-----------------------------------------------------------
-
 Komut satırında ``anahtar=değer`` biçiminde bir yazı yazıp ENTER tuşuna basarsak biz kabuk dili için bir
 kabuk değişkeni yaratmış oluruz. Bu kabuk değişkeninin aynı zamanda kabuğun çevre değişkeni yapılması için
 ``export`` komutu kullanılmaktadır. Tabii bu iki komut tek hamlede de verilebilmektedir:
@@ -616,9 +613,6 @@ işlemi yapılmasına gerek olmaz. Örneğin:
     $ city=izmir
     $ env | grep city
 
-$ ile Değişken Genişletme ve Küme Parantezleri
-----------------------------------------------
-
 Anımsanacağı gibi bir çevre değişkeninin (aslında genel olarak kabuk değişkeninin) değerini elde etmek
 için kabuk üzerinde ismin önüne ``$`` karakteri getirilmektedir. Örneğin:
 
@@ -627,7 +621,7 @@ için kabuk üzerinde ismin önüne ``$`` karakteri getirilmektedir. Örneğin:
     $ echo $city
 
 Burada biz ``city`` çevre değişkeninin değerini ekrana yazdırmış olduk. ``$`` karakterinden sonra çevre
-değişkeni küme parantezlerine de alınabilir. Örneğin:
+değişkeni küme parantezlerine de alınabilmektedir. Örneğin:
 
 .. code-block:: console
 
@@ -648,8 +642,8 @@ istediğimizi sanacaktır. Bu durumda mecburen küme parantezleri kullanılmalı
 
     $ export OTHER=${city}center
 
-Yalnızca Çalıştırılan Programa Özgü Çevre Değişkenleri
-------------------------------------------------------
+Programlara Çevre Değişkenlerinin Komut Satırı Üzerinden Aktarılması
+====================================================================
 
 Aslında pek çok kabuk programında hiç kabuk programının çevre değişkenlerini set etmeden, doğrudan
 çalıştırılacak program için çevre değişkenleri belirlenebilmektedir. Bunun için önce ``değişken=değer``
@@ -659,21 +653,18 @@ Aslında pek çok kabuk programında hiç kabuk programının çevre değişkenl
 
     $ XX=10 YY=20 ./sample
 
-Burada ``XX`` ve ``YY`` kabuğun çevre değişken listesine eklenmemektedir. Doğrudan ``sample`` prosesinin
-çevre değişkeni yapılmaktadır. Kabuk bu durumda ``fork`` işleminden sonra alt proseste bu çevre
-değişkenlerini ekleyip ``exec`` yapmaktadır.
+Burada ``XX`` ve ``YY`` kabuğun çevre değişken listesine eklenmemektedir, doğrudan ``sample`` prosesinin
+çevre değişkenine eklenmektedir. (Yani kabuk bu durumda ``fork`` işleminden sonra alt proseste bu çevre
+değişkenlerini ekleyip ``exec`` yapmaktadır.)
 
-Kabukların Startup (Başlangıç) Dosyaları
-========================================
+Kabukların Startup Dosyaları
+============================
 
 Kabuk üzerinde yukarıdaki gibi çevre değişkeni oluşturduğumuzda bunun kalıcılığı olmaz. Yani bu çevre
 değişkeni o kabuk programının (o kabuk prosesinin) çevre değişkeni olur. Biz başka terminal açtığımızda
 orada başka bir kabuk prosesi çalışacağı için bu çevre değişkeni orada bulunmayacaktır. Peki kabuk
 üzerindeki çevre değişkenlerinin kalıcılığını nasıl sağlayabiliriz? İşte bunu sağlamak için kabukların
 *startup* dosyaları kullanılmaktadır.
-
-Kabuk Çalıştırma Biçimleri (login / non-login / non-interactive)
-----------------------------------------------------------------
 
 Kabukların startup dosyaları kabuğun nasıl çalıştırıldığına bağlı olarak değişmektedir. Kabuk programları
 üç biçimde çalıştırılabilmektedir:
@@ -683,19 +674,19 @@ Kabukların startup dosyaları kabuğun nasıl çalıştırıldığına bağlı 
 3. Non-interactive shell
 
 *Interactive shell* demek *komut satırına düşen kullanıcının komut vererek çalıştırdığı shell* demektir.
-*login shell* demek bize *user name* ve *password* soran shell demektir. *Non-interactive shell* demek
-ise tek bir komutu çalıştırıp işlemini sonlandıran shell demektir. Değişik kabuk programlarının startup
-dosyaları farklıdır. Biz burada ``bash`` kabuğu üzerinde duracağız. ``bash`` kabuğunun *user manual*
+*Login shell* demek bize *user name* ve *password* soran shell demektir. *Non-interactive shell* demek
+ise tek bir komutu çalıştırıp işlemini sonlandıran shell demektir. 
+
+Farklı kabukların startup dosyaları da farklıdır. Biz burada ``bash`` kabuğu üzerinde duracağız. ``bash`` kabuğunun *user manual*
 dokümanındaki ilgili bölüm aşağıdaki bağlantıdan incelenebilir:
 
 ``https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html``
 
-bash Startup Dosyaları
-----------------------
+bash Kabuğunun Startup Dosyaları
+--------------------------------
 
 Eğer ``bash`` *interactive login shell* biçiminde çalıştırılmışsa shell önce ``/etc/profile`` dosyasını
-çalıştırır, sonra sırasıyla aşağıdaki dosyalardan hangisini ilk bulursa yalnız onun içerisindeki
-komutları çalıştırır:
+çalıştırır, sonra sırasıyla aşağıdaki dosyalardan hangisini ilk bulursa yalnız onu çalıştır:
 
 .. code-block:: text
 
@@ -704,7 +695,7 @@ komutları çalıştırır:
     ~/.profile
 
 Eğer ``bash`` *interactive non-login shell* olarak çalıştırılırsa (örneğin masaüstünden) bu durumda
-``bash`` ``~/.bashrc`` dosyasındaki komutları çalıştırmaktadır. Yani örneğin biz ``~/.bashrc`` dosyasına
+``bash`` ``~/.bashrc`` dosyasını çalıştırmaktadır. Yani örneğin biz ``~/.bashrc`` dosyasına
 ``export`` ile çevre değişkeni eklersek masaüstünden terminali açtığımızda o çevre değişkeni kabuk
 üzerinde ekli olarak görünecektir. Tabii programcı hem *interactive login shell* hem de *interactive
 non-login shell* için aynı komutların çalıştırılmasını isteyebilir. Bunu sağlamanın pratik bir yolu
@@ -716,25 +707,21 @@ sağlamaktır. Bu işlem şöyle yapılabilir:
     if [ -f ~/.bashrc ]; then . ~/.bashrc; fi
 
 Eğer ``bash`` interactive olmayan bir biçimde (``-c`` seçeneği ile) çalıştırılırsa bu durumda
-``BASH_ENV`` isimli bir çevre değişkenini araştırır. Eğer bulursa onun değerinin belirttiği script
+``bash`` ``BASH_ENV`` isimli bir çevre değişkenini araştırır. Eğer bulursa onun değerinin belirttiği script
 dosyasını çalıştırır.
 
-Çevre Değişkenlerinin Kullanım Amaçları
-=======================================
+Çevre Değişkenlerine Neden Gereksinim Duyulmaktadır?
+====================================================
 
-Peki çevre değişkenlerine neden gereksinim duyulmaktadır? Çevre değişkenleri birtakım aşağı seviyeli
-işlemlerin parametrik hale getirilmesi için kullanılabilmektedir. Yani çevre değişkenleri aşağı seviyeli
-bazı işlemlerin basit bir biçimde dışarıdan değiştirilmesine olanak sağlamaktadır. Bazı çevre değişkenleri
-bazı POSIX fonksiyonları tarafından kullanılmaktadır. Örneğin ``exec`` fonksiyonlarının p'li biçimleri
-prosesin ``PATH`` çevre değişkenine başvurmaktadır. Ya da örneğin dinamik bir kütüphane yüklenirken
-dinamik yükleyici prosesin ``LD_LIBRARY_PATH`` çevre değişkenine başvurmaktadır. Bazen çevre değişkenleri
-uygulama programcıları tarafından da kullanılmaktadır.
+Çevre değişkenleri birtakım aşağı seviyeli işlemlerin parametrik hale getirilmesi için kullanılabilmektedir. 
+Yani çevre değişkenleri aşağı seviyeli bazı işlemlerin basit bir biçimde dışarıdan değiştirilmesine olanak sağlamaktadır. 
+Bazı çevre değişkenleri bazı POSIX fonksiyonları tarafından da kullanılmaktadır. Örneğin ``exec`` fonksiyonlarının ``p``'li 
+biçimleri prosesin ``PATH`` çevre değişkenine başvurmaktadır. Ya da örneğin dinamik bir kütüphane yüklenirken
+dinamik yükleyici prosesin ``LD_LIBRARY_PATH`` çevre değişkenine başvurmaktadır. 
 
-Programlarda Çevre Değişkeni ile Parametrik Ayar Örneği
--------------------------------------------------------
-
-Örneğin biz programımız içerisinde bir dosyanın yerini belirlemek isteyelim. Ancak kullanıcı bu dosyayı
-farklı bir yere yerleştirebiliyor olsun. Bunu bir çevre değişkeni ile ayarlanabilir hale getirebiliriz:
+Bazen çevre değişkenleri uygulama programcıları tarafından da kullanılmaktadır. Örneğin biz programımız içerisinde 
+bir dosyanın yerini belirlemek isteyelim. Ancak kullanıcı bu dosyayı farklı bir yere yerleştirebiliyor olsun. 
+Bunu bir çevre değişkeni ile ayarlanabilir hale getirebiliriz:
 
 .. code-block:: c
 
@@ -749,15 +736,12 @@ farklı bir yere yerleştirebiliyor olsun. Bunu bir çevre değişkeni ile ayarl
         fprintf(stderr, "cannot open file!...\n");
         exit(EXIT_FAILURE);
     }
-    ...
+    /* ... */
 
-Derleyicilerde Çevre Değişkeni Kullanımı (C_INCLUDE_PATH)
----------------------------------------------------------
-
-Örneğin ``gcc`` derleyicisi ``<...>`` biçiminde include edilmiş dosyaların yerlerini aynı zamanda
-``C_INCLUDE_PATH`` isimli bir çevre değişkeninde de aramaktadır. Yani derleyici standart include
+Örneğin ``gcc`` derleyicisi ``<...>`` biçiminde *include* edilmiş dosyaların yerlerini aynı zamanda
+``C_INCLUDE_PATH`` isimli bir çevre değişkeninde de aramaktadır. Yani derleyici standart *include*
 dosyalarının bulunduğu yerin dışında bu çevre değişkeni ile belirtilen dizinlere de bakmaktadır. Tabii
-birden fazla dizin belirtilebilir, bu durumda ``:`` ile onları ayırmak gerekir. Örneğin:
+birden fazla dizin belirtilebilir, bu durumda ``:`` karakterleri ile onları ayırmak gerekir. Örneğin:
 
 .. code-block:: console
 
