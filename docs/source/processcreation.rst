@@ -1542,15 +1542,15 @@ Zombie Proseslerin Yarattığı Sorunlar
 
 Yukarıda da belirttiğimiz gibi zombie proses oluşmasının yarattığı sorunlar şunlardır:
 
-1. Üst prosesin ömrü fazla değilse genellikle üst prosesin zombie proses oluşturması ciddi bir soruna
+| **1.** Üst prosesin ömrü fazla değilse genellikle üst prosesin zombie proses oluşturması ciddi bir soruna
    yol açmaz. Ancak üst proses uzun süre çalışıyorsa (günlerce, aylarca) zombie prosesler sistem
    kaynağının boşa harcanmasına yol açabilmektedir.
 
-2. Zombie proseslere ilişkin proses ID değerleri o proses zombie'likten kurtulana kadar sistem tarafından
+| **2.** Zombie proseslere ilişkin proses ID değerleri o proses zombie'likten kurtulana kadar sistem tarafından
    kullanılamamaktadır. Sürekli zombie proses üreten bir program proses ID'lerinin tükenmesine bile yol
    açabilmektedir.
 
-3. Daha önce bir kullanıcının yaratabileceği maksimum proses sayısının sınırlandırıldığını belirtmiştik.
+| **3.** Daha önce bir kullanıcının yaratabileceği maksimum proses sayısının sınırlandırıldığını belirtmiştik.
    İşletim sistemi bunun için proses yaratıldıkça bir sayacı artırır, proses sonlandığında bu sayacı
    eksiltir. İşte zombie prosesler henüz tam sonlanmadığı için bu sayacı eksiltememektedir.
 
@@ -1562,10 +1562,10 @@ Peki zombie proses oluşmasının engellenmesinin tek yolu ``wait`` fonksiyonlar
 bazı uygulamalarda üst prosesin yoluna devam etmesi ve bloke olmaması istenir. İşte zombie oluşmasının
 otomatik engellenmesi için iki yöntem kullanılmaktadır:
 
-1. Alt proses bittiğinde ``SIGCHLD`` sinyaline üst proses ``wait`` fonksiyonlarını uygularsa üst proses
+| **1.** Alt proses bittiğinde ``SIGCHLD`` sinyaline üst proses ``wait`` fonksiyonlarını uygularsa üst proses
    blokede kalmadan zombie durumunu engelleyebilir.
 
-2. Biz alt prosesin çıkış kodunu almak istemediğimizi işletim sistemine söylersek işletim sistemi alt
+| **2.** Biz alt prosesin çıkış kodunu almak istemediğimizi işletim sistemine söylersek işletim sistemi alt
    proses bittiğinde onu zombie duruma sokmadan onun kaynaklarını boşaltabilmektedir.
 
 Bu iki zombie engelleme yöntemi de *sinyaller (signals)* konusuyla ilgilidir. Bu konu ileride ele

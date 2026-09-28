@@ -17,27 +17,30 @@ olabilir, onun değeri de *06* yazısı olabilir. Anahtar *eskisehir* yazısı o
 yazısı olabilir.
 
 Çevre değişkenleri ve değerleri pek çok işletim sisteminde prosesin bellek alanı içerisinde
-tutulmaktadır. Örneğin Windows sistemleri, UNIX/Linux sistemleri tipik olarak çevre değişkenlerini proses
-bellek alanı içerisinde özel bir alanda tutmaktadır.
+tutulmaktadır. Örneğin Windows sistemleri, UNIX/Linux sistemleri tipik olarak çevre değişkenlerini prosesin
+bellek alanı içerisinde tutmaktadır.
 
-UNIX/Linux sistemlerinde prosesin çevre değişkenlerinin (yani anahtarların) büyük harf-küçük harf
-duyarlılığı vardır. Ancak Windows sistemlerinde çevre değişkenlerinin büyük harf-küçük harf duyarlılığı
-yoktur. Genel olarak çevre değişkenleri (yani anahtarlar) boşluk karakterleri içermemektedir.
+UNIX/Linux sistemlerinde prosesin çevre değişkenlerinin (yani anahtarların) *büyük harf-küçük harf
+duyarlılığı* vardır. Ancak Windows sistemlerinde çevre değişkenlerinin büyük harf-küçük harf duyarlılığı
+yoktur. Genel olarak çevre değişkenleri (yani anahtarlar) boşluk karakterleri içeremezler.
 
 Çevre değişkenleri yukarıda da belirttiğimiz gibi prosese özgüdür. ``fork`` işlemi sırasında alt prosese
-aktarılmaktadır. Örneğin biz kabuk üzerinden bir program çalıştırdığımızda kabuk prosesinin çevre
-değişkenleri bizim çalıştırdığımız programa ilişkin prosese aktarılmaktadır. Bir proses başka bir
-prosesin çevre değişkenlerine herhangi bir biçimde müdahale edememektedir.
+aktarılmaktadır. Zaten çevre değişkenleri prosesin bellek alanında saklandığından ve ``fork``
+işlemi de prosesin bellek alanının kopyasını oluşturduğundan bu aktarım ``fork`` işleminde doğal olarak
+yapılmaktadır. Örneğin biz kabuk üzerinden bir program çalıştırdığımızda kabuğun çevre değişkenleri bizim
+programımıza aktarılacaktır. Örneğin biz kabuk üzerinden bir program çalıştırdığımızda kabuk prosesinin çevre
+değişkenleri bizim çalıştırdığımız programa ilişkin prosese aktarılmaktadır. Prosesler birbirlerinin çevre 
+değişkenlerine herhangi bir biçimde müdahale edememektedir.
 
 Peki çevre değişkenlerine neden gereksinim duyulmaktadır? İşte bazı POSIX fonksiyonları ve sistem
 fonksiyonları prosesin belli çevre değişkenlerine başvurabilmektedir. Çevre değişkenleri programcılar
 tarafından da çeşitli amaçlarla kullanılabilmektedir.
 
-Çevre değişkenleri ile ilgili programcının şu işlemleri yapabilmesi gerekmektedir:
+Çevre değişkenleri ile ilgili programcıların şu işlemleri yapabilmesi gerekir:
 
-- Bir çevre değişkeni (yani anahtar) verildiğinde onun değerini elde etmek.
-- Prosesin çevre değişken listesine yeni bir anahtar-değer çifti eklemek.
-- Prosesin tüm çevre değişken listesini elde etmek.
+- Bir çevre değişkeni (yani anahtar) verildiğinde onun değerini elde eedebilmesi.
+- Prosesin çevre değişken listesine yeni bir anahtar-değer çifti ekleyebilmesi.
+- Prosesin tüm çevre değişken listesini elde edebilmesi
 
 getenv Fonksiyonu
 =================
@@ -53,8 +56,8 @@ C fonksiyonu kullanılmaktadır. Fonksiyonun prototipi şöyledir:
 
 Fonksiyon parametre olarak çevre değişkeninin ismini (yani anahtarı) alır, geri dönüş değeri olarak onun
 değerinin bulunduğu bellek adresini verir. Fonksiyonun geri döndürdüğü adres prosesin adres alanı
-içerisindeki statik düzeyde tahsis edilmiş bir alanın adresidir. Tabii bu adresteki yazının sonunda null
-karakter bulunmaktadır. Fonksiyon eğer ilgili çevre değişkeni yoksa ``NULL`` adrese geri dönmektedir.
+içerisindeki statik düzeyde tahsis edilmiş bir alanın adresidir. Tabii bu adresteki yazının sonunda *null
+karakter* bulunmaktadır. Fonksiyon eğer ilgili çevre değişkeni yoksa ``NULL`` adrese geri dönmektedir.
 Fonksiyonun geri dönüş değeri ``const`` olmayan bir gösterici olsa da programcı geri döndürülen bu
 adresteki yazıyı değiştirmeye çalışmamalıdır. C standartlarında bu değiştirme durumu işletim sisteminin
 isteğine bırakılmış olsa da UNIX/Linux sistemlerinde bu durum tanımsız davranışa yol açmaktadır.
@@ -100,31 +103,23 @@ Aşağıdaki örnekte komut satırından alınan çevre değişkeninin değeri `
         return 0;
     }
 
-Çevre Değişkenlerinin fork ile Aktarımı
-=======================================
+Kabuğun Çevre Değişkenleri
+==========================
 
-Yukarıda da belirttiğimiz gibi prosesin çevre değişkenleri, ``fork`` işlemi sırasında üst prosesten alt
-prosese aktarılmaktadır. Zaten çevre değişkenleri prosesin bellek alanında saklandığından ve ``fork``
-işlemi de prosesin bellek alanının kopyasını oluşturduğundan bu aktarım ``fork`` işleminde doğal olarak
-yapılmaktadır. Örneğin biz kabuk üzerinden bir program çalıştırdığımızda kabuğun çevre değişkenleri bizim
-programımıza aktarılacaktır.
+Kabuğun (yani kabuk prosesinin) çevre değişken listesi ``env`` kabuk komutuyla her satırda *anahtar=değer* biçiminde
+görüntülenebilmektedir. Örneğin:
 
-Kabuktaki Çevre Değişkenleri (env, cd, PWD)
-===========================================
 
-Kabuğun çevre değişken listesi ``env`` kabuk komutuyla her satırda *anahtar=değer* biçiminde
-görüntülenebilmektedir. Peki kabuk programındaki çevre değişkenleri nasıl oluşturulmuştur? İşte
-prosesler birbirlerini yaratırken kabuk prosesine gelene kadar bazı prosesler çevre değişkenlerine
-eklemeler yapmaktadır. Örneğin kabuk programını çalıştıran login programı ``HOME``, ``USER``, ``SHELL``
-gibi çevre değişkenlerini prosesin çevre değişken listesine eklemektedir. Benzer biçimde kabuk da pek çok
-çevre değişkenini çevre değişken listesine eklemiş durumdadır. Yani biz programımızı kabuk üzerinden
-çalıştırırken kümülatif olarak çeşitli prosesler çevre değişken listesine çeşitli çevre değişkenlerini
+
+
+Peki kabuk programındaki çevre değişkenleri nasıl oluşturulmuştur? İşte prosesler birbirlerini yaratırken kabuk 
+prosesine gelene kadar bazı prosesler çevre değişkenlerine eklemeler yapmaktadır. Örneğin kabuk programını çalıştıran 
+``login`` programı ``HOME``, ``USER``, ``SHELL`` gibi çevre değişkenlerini prosesin çevre değişken listesine eklemektedir. 
+Benzer biçimde kabuk da pek çok çevre değişkenini çevre değişken listesine eklemiş durumdadır. Yani biz programımızı 
+kabuk üzerinden çalıştırırken kümülatif olarak çeşitli prosesler çevre değişken listesine çeşitli çevre değişkenlerini
 zaten eklemiş durumdadır. Örneğin biz kabuk üzerinde ``cd`` komutunu kullandığımızda kabuk ``PWD`` isimli
 çevre değişkeninin değerini o anda geçilen dizinin yol ifadesini belirtecek biçimde değiştirmektedir.
 (Bunu ``chdir`` POSIX fonksiyonu yapmaz, zaten yapamaz. Kabuktaki ``cd`` komutu bunu yapmaktadır.)
-
-Kabukta echo ve Çevre Değişkeni Genişletmesi ($VAR)
-===================================================
 
 Bilindiği gibi ``echo`` isimli kabuk komutu yanındaki yazıyı ``stdout`` dosyasına yazdırmaktadır. Örneğin:
 
@@ -170,15 +165,10 @@ yazdırabiliriz:
     /home/kaan/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 
 Eğer ``$`` karakterinin yanındaki çevre değişkeni mevcut değilse bu durumda kabuk onun yerine boş bir
-yazı (boş string) yerleştirmektedir. Örneğin:
+yazı (boş string) yerleştirmektedir. 
 
-.. code-block:: console
-
-    $ echo -$XXX-
-    --
-
-setenv Fonksiyonu
-=================
+setenv ve puteenv Fonksiyonları
+===============================
 
 Prosesin çevre değişken listesine yeni bir anahtar-değer çifti eklemek için ``setenv`` ve ``putenv``
 isimli POSIX fonksiyonları kullanılmaktadır. Bu fonksiyonlar standart C fonksiyonları değildir. C'de
@@ -193,14 +183,11 @@ prosesin çevre değişken listesine ekleme yapan standart bir fonksiyon yoktur.
     int setenv(const char *name, const char *value, int overwrite);
 
 Fonksiyonun birinci parametresi çevre değişkeninin ismini, ikinci parametresi onun değerini alır. Üçüncü
-parametre eğer o çevre değişkeni zaten varsa onun değerinin değiştirilip değiştirilmeyeceğini belirtir. Bu
-parametre sıfır dışı bir değer olarak geçilirse çevre değişkeninin değeri değiştirilir. Sıfır geçilirse
-değiştirilmez ve fonksiyon yine başarıyla geri döner. Fonksiyon başarı durumunda 0 değerine, başarısızlık
-durumunda -1 değerine geri dönmektedir. Başarısızlık durumunda ``errno`` değeri uygun biçimde set
+parametre eğer o çevre değişkeni zaten varsa onun değerinin değiştirilip değiştirilmeyeceğini belirlemek için
+kullanılmaktadır. Bu parametre sıfır dışı bir değer olarak geçilirse çevre değişkeninin değeri değiştirilir. 
+Sıfır geçilirse değiştirilmez ve fonksiyon yine başarıyla geri döner. Fonksiyon başarı durumunda ``0`` değerine, 
+başarısızlık durumunda ``-1`` değerine geri dönmektedir. Başarısızlık durumunda ``errno`` değeri uygun biçimde set
 edilmektedir.
-
-setenv Kullanım Örneği
-----------------------
 
 Aşağıdaki örnekte komut satırı argümanı ile verilen çevre değişkenleri ``setenv`` fonksiyonu ile prosesin
 çevre değişken listesine eklenmiş ve sonra ``getenv`` fonksiyonu ile onların değerleri elde edilmiştir.
@@ -211,11 +198,13 @@ Girişin aşağıdaki gibi yapılması gerekir:
     $ ./setenv ali=100 veli=200 selami=300
 
 Program ``=`` karakterini ``strchr`` fonksiyonu ile aramış, eğer onu bulursa ``=`` karakteri yerine
-``\0`` karakterini yerleştirmiştir.
+``\0`` karakterini yerleştirmektedir. Programda beelirtilen çevre değişkenleri oluşturulduktan sonra ayrıca 
+onlar ``getenv``fonksiyonuyla da elde edilip yazdırılmıştır. 
+
+``setenv.c```
 
 .. code-block:: c
 
-    /* setenv.c */
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -252,9 +241,6 @@ Program ``=`` karakterini ``strchr`` fonksiyonu ile aramış, eğer onu bulursa 
         return 0;
     }
 
-putenv Fonksiyonu
-=================
-
 ``putenv`` fonksiyonu da yine prosesin çevre değişken listesine ekleme yapmak için kullanılmaktadır.
 Fonksiyonun prototipi şöyledir:
 
@@ -266,8 +252,8 @@ Fonksiyonun prototipi şöyledir:
 
 Fonksiyon parametre olarak ``anahtar=değer`` biçiminde bir yazı almaktadır. Fonksiyon ilgili çevre
 değişkeni zaten varsa her zaman onun değerini değiştirmektedir. Eğer yazıda ``=`` karakteri
-kullanılmazsa, değeri boş olan (yani elde edildiğinde yalnızca null karakter veren) bir çevre değişkeni
-oluşturulmaktadır. Fonksiyon yine başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri
+kullanılmazsa, değeri boş olan (yani elde edildiğinde yalnızca *null karakter* veren) bir çevre değişkeni
+oluşturulmaktadır. Fonksiyon yine başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri
 döner ve ``errno`` değişkeni uygun biçimde set edilir. ``putenv`` fonksiyonunda verilen adres doğrudan
 prosesin çevre değişken listesinde kullanmaktadır. Verilen adresteki bilginin program çalıştığı sürece
 kalıcı olmasına dikkat ediniz. Örneğin:
@@ -278,22 +264,19 @@ kalıcı olmasına dikkat ediniz. Örneğin:
         exit_sys("putenv");
 
 UNIX türevi sistemlerde prosesin çevre değişken listesi, izleyen paragraflarda da görüleceği gibi,
-prosesin sanal bellek alanında ``environ`` isimli bir gösterici dizisinde tutulmaktadır. ``environ``
+prosesin bellek alanında ``environ`` isimli bir gösterici dizisinde tutulmaktadır. ``environ``
 gösterici dizisini daha önce görmüştük. İşte ``putenv`` fonksiyonu bu gösterici dizisindeki yeni bir
 elemana parametresiyle verilen ``anahtar=değer`` yazısının adresini yerleştirmektedir.
 
-putenv Kullanım Örneği (Komut Satırı Argümanları)
--------------------------------------------------
-
-Aşağıdaki örnekte yine program aşağıdakine benzer çalıştırılmalıdır:
+Aşağıdaki örnekte program aşağıdakine benzer biçimde çalıştırılmalıdır:
 
 .. code-block:: console
 
     $ ./putenv ali=100 veli=200
 
-.. code-block:: c
+``putenv.c``
 
-    /* putenv.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -331,9 +314,6 @@ Aşağıdaki örnekte yine program aşağıdakine benzer çalıştırılmalıdı
 
         return 0;
     }
-
-putenv ile Program İçi Değişiklik Örneği
-----------------------------------------
 
 Aşağıdaki örnekte ``putenv`` fonksiyonu ile prosesin çevre değişken listesine bir ekleme yapılmıştır.
 Sonra buradaki anahtar-değer çifti program içerisinde değiştirilmiştir. Prosesin çevre değişken
@@ -380,8 +360,8 @@ listesinin nasıl organize edildiği izleyen paragrafta ele alınmaktadır.
         exit(EXIT_FAILURE);
     }
 
-Çevre Değişkenlerinin Bellekte Organizasyonu (environ Dizisi)
-=============================================================
+Çevre Değişkenlerinin Bellekteki Tipik Organizasyonu
+====================================================
 
 UNIX/Linux sistemlerinde genel olarak çevre değişkenleri bir gösterici dizisi yoluyla tutulmaktadır. Her
 çevre değişkeni aslında ``anahtar=değer\0`` biçiminde bir yazı olarak oluşturulmakta ve bu yazıların
