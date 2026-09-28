@@ -128,6 +128,15 @@ görüntülenebilmektedir. Örneğin:
     DBUS_STARTER_BUS_TYPE=session
     ...
 
+İstediğimiz bir ismin bulunduğu satırları elde etmek için ``grep`` komutu ile boru işlemi yapabiliriz.
+Örneğin:
+
+.. code-block:: console
+
+    $ env | grep PWD
+    PWD=/home/kaan/Study/UnixLinux-SysProg/09-EnvironmentVariables
+    OLDPWD=/home/kaan/Study/UnixLinux-SysProg
+
 Peki kabuk programındaki çevre değişkenleri nasıl oluşturulmuştur? İşte prosesler birbirlerini yaratırken kabuk 
 prosesine gelene kadar bazı prosesler çevre değişkenlerine eklemeler yapmaktadır. Örneğin kabuk programını çalıştıran 
 ``login`` programı ``HOME``, ``USER``, ``SHELL`` gibi çevre değişkenlerini prosesin çevre değişken listesine eklemektedir. 
@@ -388,7 +397,7 @@ yapısıyla oluşturulmuştur:
 
 .. figure:: _static/environ.png
     :align: center
-    :width: 65%
+    :width: 60%
 
 ``environ`` göstericisinin gösterdiği yerdeki gösterici dizisinin sonunda ``NULL`` adres bulundurulduğuna
 dikkat ediniz.
@@ -404,14 +413,9 @@ eklemeyi oraya yapmaktadır. Örneğin:
 
     putenv(s);
 
-.. code-block:: text
-
-    environ (yeri değişmiş olabilir) ----> adres              ---> ali=100\0
-                                            adres              ---> veli=200\0
-                                            adres              ---> selami=300\0
-                                            ...
-                                            s dizisinin adresi ---> ayse=500\0
-                                            NULL
+.. figure:: _static/environ-putenv.png
+    :align: center
+    :width: 65%
 
 Maalesef bu ``environ`` global değişkeninin ``extern`` bildirimi herhangi bir başlık dosyasında
 bulundurulmamıştır. Prosesin çevre değişken listesine erişmek isteyen programcıların bu ``extern``
@@ -427,9 +431,6 @@ O halde prosesin bütün çevre değişkenlerinin listesini almak oldukça kolay
 
     for (int i = 0; environ[i] != NULL; ++i)
         puts(environ[i]);
-
-Tüm Çevre Değişkenlerini Listeleme (environ ile)
-------------------------------------------------
 
 Aşağıdaki örnekte prosesin tüm çevre değişkenlerinin listesi elde edilerek ekrana (``stdout`` dosyasına)
 yazdırılmıştır.
@@ -448,39 +449,14 @@ yazdırılmıştır.
         return 0;
     }
 
-env Kabuk Komutu
-----------------
+Burada bir kez daha vurgulamak istiyoruz. Prosesin çevre değişkenlerine ilişkin gösterici dizisi ve onların gösterdikleri 
+yerler prosesin bellek alanı içerisindedir. ``fork`` işlemi sırasında üst prosesin tüm bellek alanının bir kopyası
+oluşturulduğuna göre alt prosesin çevre değişken listesi üst prosesinkinin aynısı olacaktır. Ancak ``fork`` işleminden 
+sonra üst proses kendi çevre değişken listesinde bir değişiklik yaparsa artık yalnızca o değişiklik o prosese özgü hale 
+gelecektir. Çünkü ``fork`` işlemi sırasında bellek alanları kopyalandıktan sonra artık üst prosesle alt prosesin bellek 
+alanları birbirinden tamamen ayrılmış olur.
 
-Kabuk üzerinde ``env`` komutu yukarıdaki programda olduğu gibi kabuğun tüm çevre değişken listesini
-ekrana (``stdout`` dosyasına) yazdırmaktadır. Örneğin:
-
-.. code-block:: console
-
-    $ env
-    SHELL=/bin/bash
-    SESSION_MANAGER=local/kaan-virtual-machine:@/tmp/.ICE-unix/1361,unix/kaan-virtual-machine:/tmp/.ICE-unix/1361
-    QT_ACCESSIBILITY=1
-    COLORTERM=truecolor
-    XDG_CONFIG_DIRS=/etc/xdg/xdg-cinnamon:/etc/xdg
-    XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0
-    GNOME_DESKTOP_SESSION_ID=this-is-deprecated
-    GTK_IM_MODULE=ibus
-    QT_IM_MODULES=wayland;ibus
-    ...
-
-İstediğimiz bir ismin bulunduğu satırları elde etmek için ``grep`` komutu ile boru işlemi yapabiliriz.
-Örneğin:
-
-.. code-block:: console
-
-    $ env | grep PWD
-    PWD=/home/kaan/Study/UnixLinux-SysProg/09-EnvironmentVariables
-    OLDPWD=/home/kaan/Study/UnixLinux-SysProg
-
-getenv Fonksiyonunun Basit Bir Gerçekleştirimi
-----------------------------------------------
-
-``getenv`` fonksiyonu aşağıdaki gibi basit bir biçimde gerçekleştirilebilir.
+``getenv`` fonksiyonu aşağıdaki gibi basit bir biçimde gerçekleştirilebilir:
 
 .. code-block:: c
 
@@ -529,16 +505,6 @@ getenv Fonksiyonunun Basit Bir Gerçekleştirimi
         return 0;
     }
 
-fork ile Çevre Değişkenlerinin Aktarımı
----------------------------------------
-
-Prosesin çevre değişkenlerine ilişkin gösterici dizisi ve onların gösterdikleri yerler prosesin bellek
-alanı içerisindedir. ``fork`` işlemi sırasında üst prosesin tüm bellek alanının bir kopyası
-oluşturulduğuna göre alt prosesin çevre değişken listesi üst prosesinkinin aynısı olacaktır. Ancak
-``fork`` işleminden sonra üst proses kendi çevre değişken listesinde bir değişiklik yaparsa artık
-yalnızca o değişiklik o prosese özgü hale gelecektir. Çünkü ``fork`` işlemi sırasında bellek alanları
-kopyalandıktan sonra artık üst prosesle alt prosesin bellek alanları birbirinden tamamen ayrılmış olur.
-
 unsetenv Fonksiyonu
 ===================
 
@@ -551,8 +517,8 @@ silinebilmektedir. Fonksiyonun prototipi şöyledir:
 
     int unsetenv(const char *name);
 
-Fonksiyon çevre değişkenin ismini almaktadır. Başarı durumunda 0 değerine, başarısızlık durumunda -1
-değerine geri döner ve ``errno`` uygun biçimde set edilir. Eğer ilgili çevre değişkeni zaten yoksa
+Fonksiyon çevre değişkenin ismini almaktadır. Başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1``
+değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir. Eğer ilgili çevre değişkeni yoksa
 fonksiyon bir şey yapmaz, ancak başarılı bir biçimde geri dönmektedir. Örneğin:
 
 .. code-block:: c
@@ -608,10 +574,10 @@ değişkeni silinmiş, sonra da o çevre değişkeninin yeniden değeri elde edi
         exit(EXIT_FAILURE);
     }
 
-Kabuk Üzerinde Çevre Değişkeni Tanımlama (export, unset)
-========================================================
+Kabuk Üzerinde Çevre Değişkenlerinin Oluşturulması
+==================================================
 
-Peki biz programımızı çalıştırdığımızda belli bir çevre değişkeninin zaten var olmasını nasıl
+Peki biz programımızı çalıştırdığımızda belli bir çevre değişkeninin var olmasını nasıl
 sağlayabiliriz? Çevre değişkenleri ``fork`` işlemi sırasında alt prosese aktarıldığına göre biz eğer
 kabuk programının (bash) çevre değişken listesine bir ekleme yaparsak kabuk bizim programımızı
 çalıştırırken ``fork`` yapacak ve onun çevre değişkenleri bizim programımıza aktarılacaktır. Peki kabuk
