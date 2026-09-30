@@ -2,10 +2,7 @@
 **exec İşlemleri**
 ==================
 
-exec Fonksiyonları
-===================
-
-Bir program dosyasını yükleyip çalıştırmak için ismine *exec fonksiyonları* denilen bir grup POSIX fonksiyonu
+Bir program dosyasını yükleyip çalıştırmak için ismine *exec "fonksiyonları* denilen bir grup POSIX fonksiyonu
 kullanılmaktadır. Bu fonksiyonların yaptıkları işlemler birbirine benzerdir. Ancak fonksiyonların parametrik
 yapıları arasında ve işlevsellikleri arasında bazı farklılıklar vardır. POSIX standartlarında bulunan 7 exec
 fonksiyonunun isimleri şöyledir:
