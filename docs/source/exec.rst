@@ -6,6 +6,9 @@ Bu bölümde bir programın başka bir programı nasıl yükleyip çalıştırd�
 yaratılmasına yol açmaktadır. exec işlemleri ise yaratılmış olan prosesin başka bir program koduyla çalışmasına devam etmesini 
 sağlamaktadır. Kabuk programları da exec işlemleri yoluyla programları çalıştırmaktadır. 
 
+exec Fonksiyonları
+==================
+
 Bir program dosyasını yükleyip çalıştırmak için ismine *exec fonksiyonları* denilen bir grup POSIX fonksiyonu
 kullanılmaktadır. Bu fonksiyonların yaptıkları işlemler birbirine benzerdir. Ancak fonksiyonların parametrik
 yapıları arasında ve işlevsellikleri arasında bazı farklılıklar vardır. POSIX standartlarında bulunan 7 exec
@@ -101,7 +104,7 @@ Burada ``execl`` ile ``/bin/ls`` dosyası çalıştırılmak istenmiştir. Diğe
 ``argv`` parametresi olarak geçirilecek olan komut satırı argümanlarını belirtmektedir.
 
 exec fonksiyonları çeşitli nedenlerle başarısız olabilir. Örneğin çalıştırılacak program dosyası bulunamayabilir, bulunduğu
-halde proses dosya için *x* hakkına sahip olmayabilir, çalıştırılabilen dosyanın formatı bozulmuş olabilir. Başarısızlık
+halde proses dosya için ``'x'`` hakkına sahip olmayabilir, çalıştırılabilen dosyanın formatı bozulmuş olabilir. Başarısızlık
 durumunda ``errno`` değişkeni uygun biçimde set edilmektedir.
 
 Aşağıdaki örnekte *sample* programı *other* isimli başka bir programı çalıştırmaktadır. *sample* programı
@@ -128,7 +131,7 @@ Aşağıdaki örnekte *sample* programı *other* isimli başka bir programı ça
 
     void exit_sys(const char *msg);
 
-    int main(int argc, char *argv[])
+    int main(void)
     {
         printf("sample running...\n");
 
@@ -268,3 +271,71 @@ Bazen ``fork`` işleminden sonra programcı alt proseste bazı ayarlamalar yapt�
 Aslında ``fork`` ve ``exec`` nadiren tek başına uygulanmaktadır. Genellikle ``fork`` ve ``exec`` bir arada yukarıdaki kalıp
 eşliğinde uygulanmaktadır.
 
+Aşağıdaki örnekte üst proses ``/bin/ls`` programını çalıştırıp yoluna devam etmektedir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        pid_t pid;
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        if (pid == 0 && execl("/bin/ls", "/bin/ls", "-l", (char *)0) == -1)
+            exit_sys("execl");
+
+        for (int i = 0; i < 10; ++i) {
+            printf("sample continues: %d\n", i);
+            sleep(1);
+        }
+
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+fork/exec işlemlerinde kişilerin kafasını karıştıran bir durum oluşmaktadır. Kişiler haklı olarak şöyle düşünmektedir:
+"fork işlemi ile üst prosesin bellek alanı alt proses için kopyalandığına göre ve alt proseste de exec yapıldığında alt
+prosesin bellek alanı hemen boşaltılacağına göre burada üst prosesin bellek alanı gereksiz biçimde alt prosese
+kopyalanmış olmuyor mu?" Gerçekten de ilk bakışta böyle bir durum söz konusu gibi gözükmektedir. Ancak modern
+işlemcilerin "sayfalama (paging)" mekanizmaları sayesinde aslında ``fork`` işlemi sırasında *copy-on-write* mekanizması
+işletilmektedir. Yani aslında bugün kullandığımız işlemcilerde ``fork`` işlemi sırasında işletim sistemi üst prosesin
+bellek alanını zaten alt prosese bütünsel olarak kopyalamamaktadır. Kopyalama işlemi aslında *gerektiğinde*
+yapılmaktadır. Bu mekanizmaya *copy-on-write* denilmektedir. Bu konuda bilgiler ileride verilecektir. Ancak bazı eski
+sistemlerde *copy-on-write* mekanizması ya yoktu ya da etkin olarak gerçekleştirilemiyordu. Yani eski sistemlerde
+yukarıdaki durum gerçekten etkinlik bakımından bir problem oluşturuyordu. Bu nedenle bu eski sistemler zamanında
+``fork`` fonksiyonunun bellek kopyalamasını yapmayan (ya da minimal düzeyde yapan) ``vfork`` isminde bir benzeri de
+bulundurulmuştur. ``vfork`` fonksiyonu eskiden POSIX standartlarında bulunuyordu. 2008'den itibaren POSIX
+standartlarından kaldırılmıştır. Fakat *glibc* kütüphanesi bu fonksiyonu bulundurmaya devam etmektedir. Zaten yukarıda
+da belirttiğimiz gibi modern sistemlerde artık ``vfork`` fonksiyonuna gereksinim de kalmamıştır. ``vfork`` tamamen
+``fork`` işlemi yapar. Ancak üst prosesin bellek alanını alt prosese kopyalamaz. Çünkü ``vfork`` fonksiyonu exec için
+düşünülmüştür. Yani ``vfork`` işleminden sonra exec yapılmalıdır. Eğer ``vfork`` işleminden sonra exec yapılmayıp sanki
+``fork`` yapılmış gibi program devam ettirilirse "tanımsız davranış (undefined behavior)" oluşmaktadır. ``vfork``
+fonksiyonunun prototipi ``fork`` ile aynı biçimdedir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    pid_t vfork(void);
+
+Eski POSIX standartlarına göre ``vfork`` işleminden sonra yalnızca ``_exit`` fonksiyonu ya da exec fonksiyonları
+çağrılabilir. Bunun dışında başka bir fonksiyon çağrılamaz. Yani ``vfork`` başarılı ise biz ya ``_exit`` fonksiyonu ile
+prosesi sonlandırmalıyız ya da exec uygulamalıyız. Tabii exec de başarısız olursa ``_exit`` ile (``exit`` ile değil) alt
+prosesi sonlandırmalıyız. Başka bir fonksiyonun kullanılamamasının nedeni o fonksiyonların kodlarının alt prosese
+kopyalanmamış olmasıdır.
