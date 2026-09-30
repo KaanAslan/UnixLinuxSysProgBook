@@ -2,7 +2,14 @@
 **exec İşlemleri**
 ==================
 
-Bir program dosyasını yükleyip çalıştırmak için ismine *exec "fonksiyonları* denilen bir grup POSIX fonksiyonu
+Bu bölümde bir programın başka bir programı nasıl yükleyip çalıştırdığı üzerinde duracağız. ``fork`` işlemi yeni bir prosesin 
+yaratılmasına yol açmaktadır. exec işlemleri ise yaratılmış olan prosesin başka bir program koduyla çalışmasına devam etmesini 
+sağlamaktadır. Kabuk programları da exec işlemleri yoluyla programları çalıştırmaktadır. 
+
+exec Fonksiyonları
+==================
+
+Bir program dosyasını yükleyip çalıştırmak için ismine *exec fonksiyonları* denilen bir grup POSIX fonksiyonu
 kullanılmaktadır. Bu fonksiyonların yaptıkları işlemler birbirine benzerdir. Ancak fonksiyonların parametrik
 yapıları arasında ve işlevsellikleri arasında bazı farklılıklar vardır. POSIX standartlarında bulunan 7 exec
 fonksiyonunun isimleri şöyledir:
@@ -44,3 +51,7 @@ içerisinde biz exec fonksiyonlarıyla *other* programını çalıştırmak iste
 tamamen atılır, onun yerine *other* programının kodu ve verileri belleğe yüklenir ve *other* programının kodu
 çalıştırılır. Yukarıda da belirttiğimiz gibi exec işlemi sırasında prosesin kontrol bloğundaki temel bilgiler
 değişmez. Yani exec fonksiyonları uygulandığında proses yaşamına başka bir program koduyla devam etmektedir.
+
+
+
+
