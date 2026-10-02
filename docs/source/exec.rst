@@ -3,8 +3,8 @@
 ==================
 
 Bu bölümde bir programın başka bir programı nasıl yükleyip çalıştırdığı üzerinde duracağız. ``fork`` işlemi yeni bir prosesin 
-yaratılmasına yol açmaktadır. exec işlemleri ise yaratılmış olan prosesin başka bir program koduyla çalışmasına devam etmesini 
-sağlamaktadır. Kabuk programları da exec işlemleri yoluyla programları çalıştırmaktadır. 
+yaratılmasına yol açmaktadır. ``exec`` işlemleri ise yaratılmış olan prosesin başka bir program koduyla çalışmasına devam etmesini 
+sağlamaktadır. Kabuk programları da ``exec`` işlemleri yoluyla programları çalıştırmaktadır. 
 
 exec Fonksiyonları
 ==================
@@ -24,14 +24,14 @@ fonksiyonunun isimleri şöyledir:
     execvp
     fexecve
 
-Ayrıca POSIX standartlarında tanımlı olmasa da GNU C kütüphanesinde ``execvpe`` isimli bir exec fonksiyonu da
+Ayrıca POSIX standartlarında tanımlı olmasa da GNU C kütüphanesinde ``execvpe`` isimli bir ``exec`` fonksiyonu da
 bulunmaktadır. (Bu fonksiyon *glibc* kütüphanesinde olduğu için bu kütüphanenin kullanıldığı BSD gibi diğer UNIX
 türevi sistemlerde de bulunmaktadır.) Ayrıca Linux sistemlerine özgü bir biçimde ``sys_execveat`` isimli bir sistem
 fonksiyonu da bulunmaktadır. Linux'ta bu fonksiyon ``execveat`` ismiyle kullanılabilmektedir.
 
-Aslında UNIX/Linux sistemleri bu exec fonksiyonlarının hepsini sistem fonksiyonu biçiminde bulundurmamaktadır.
+Aslında UNIX/Linux sistemleri bu ``exec`` fonksiyonlarının hepsini sistem fonksiyonu biçiminde bulundurmamaktadır.
 Örneğin Linux sistemlerinde ``execve`` fonksiyonu bir sistem fonksiyonu biçiminde (``sys_execve``) yazılmıştır.
-Diğer exec fonksiyonları bu sistem fonksiyonunu çağıran kütüphane fonksiyonları biçiminde gerçekleştirilmiştir.
+Diğer ``exec`` fonksiyonları bu sistem fonksiyonunu çağıran kütüphane fonksiyonları biçiminde gerçekleştirilmiştir.
 Yukarıda da belirttiğimiz gibi Linux'taki ``execveat`` fonksiyonu da bir sistem fonksiyonu biçiminde
 (``sys_execveat``) gerçekleştirilmiştir. Bu durumda yukarıdaki POSIX fonksiyonları dışında Linux'a özgü olan exec
 fonksiyonları şunlardır:
@@ -41,27 +41,27 @@ fonksiyonları şunlardır:
     execvpe
     execveat
 
-exec fonksiyonları prosesin yaşamına başka bir program koduyla devam etmesini sağlamaktadır. exec fonksiyonlarına
-biz "çalıştırılabilen bir program dosyasını" argüman olarak veririz. exec fonksiyonları o anda çalışmakta olan
+``exec`` fonksiyonları prosesin yaşamına başka bir program koduyla devam etmesini sağlamaktadır. ``exec`` fonksiyonlarına
+biz "çalıştırılabilen bir program dosyasını" argüman olarak veririz. ``exec`` fonksiyonları o anda çalışmakta olan
 programın bellek alanını tamamen boşaltıp onun yerine bizim verdiğimiz program dosyasını belleğe yükler ve o
-yüklediği programın kodunu çalıştırır. exec işlemi ile prosesin kontrol bloğundaki pek çok alan
+yüklediği programın kodunu çalıştırır. ``exec`` işlemi ile prosesin kontrol bloğundaki pek çok alan
 değiştirilmemektedir. Yani prosesin ID'si, kullanıcı ve grup ID'leri, prosesin çalışma dizini vs. değişmez. exec
-işlemleriyle prosesin yalnızca çalıştırdığı program dosyası değiştirilmektedir. Örneğin *sample* programının
-içerisinde biz exec fonksiyonlarıyla *other* programını çalıştırmak istediğimizde *sample* programı bellekten
-tamamen atılır, onun yerine *other* programının kodu ve verileri belleğe yüklenir ve *other* programının kodu
-çalıştırılır. Yukarıda da belirttiğimiz gibi exec işlemi sırasında prosesin kontrol bloğundaki temel bilgiler
-değişmez. Yani exec fonksiyonları uygulandığında proses yaşamına başka bir program koduyla devam etmektedir.
+işlemleriyle prosesin yalnızca çalıştırdığı program dosyası değiştirilmektedir. Örneğin *"sample"* programının
+içerisinde biz ``exec`` fonksiyonlarıyla *"other"* programını çalıştırmak istediğimizde *"sample"* programı bellekten
+tamamen atılır, onun yerine *"other"* programının kodu ve verileri belleğe yüklenir ve *"other"* programının kodu
+çalıştırılır. Yukarıda da belirttiğimiz gibi ``exec`` işlemi sırasında prosesin kontrol bloğundaki temel bilgiler
+değişmez. Yani ``exec`` fonksiyonları uygulandığında proses yaşamına başka bir program koduyla devam etmektedir.
 
-exec fonksiyonlarının isimlerinin sonlarında bulunan ``l`` harfi (``execl``, ``execlp``) komut satırı argümanlarının tek
+``exec`` fonksiyonlarının isimlerinin sonlarında bulunan ``l`` harfi (``execl``, ``execlp``) komut satırı argümanlarının tek
 tek bir liste biçiminde, fonksiyonların isimlerinin sonundaki ``v`` harfi ise komut satırı argümanlarının bir dizi (vector)
 biçiminde verileceğini belirtir. Fonksiyonların isimlerinin sonlarındaki ``p`` harfi (*path* sözcüğünden geliyor) aramanın
 ``PATH`` çevre değişkenine bakılarak yapılacağını, ``e`` harfi (*environment* sözcüğünden geliyor) ise prosesin çevre
-değişkenlerinin exec işlemi sırasında değiştirileceği anlamına gelmektedir. Yukarıda da belirttiğimiz gibi Linux 
+değişkenlerinin ``exec`` işlemi sırasında değiştirileceği anlamına gelmektedir. Yukarıda da belirttiğimiz gibi Linux 
 sistemlerinde ``execl``, ``execv``, ``execlp``, ``execvp`` ve ``execle`` fonksiyonları aslında ``execve`` fonksiyonu 
 (``sys_execve`` sistem fonksiyonu) çağrılarak, ``fexecve`` fonksiyonu ise ``execveat`` fonksiyonu (``sys_execveat`` 
 sistem fonksiyonu) çağrılarak gerçekleştirilmiştir. Biz burada bu fonksiyonların üzerinde tek tek duracağız.
 
-exec fonksiyonları başarı durumunda geri dönmezler. Çünkü zaten başarı durumunda bu fonksiyonlar başka bir programı
+``exec`` fonksiyonları başarı durumunda geri dönmezler. Çünkü zaten başarı durumunda bu fonksiyonlar başka bir programı
 yüklemiş ve çalıştırmış durumda olurlar. Bu fonksiyonlar başarısızlık durumunda yine ``-1`` değerine geri dönerler ve
 ``errno`` değişkeni uygun biçimde set edilir.
 
@@ -79,7 +79,7 @@ execl Fonksiyonu
 Fonksiyonun birinci parametresi çalıştırılacak olan program dosyasının yol ifadesini almaktadır. Bu yol ifadesi mutlak ya
 da göreli olabilir. Fonksiyonun diğer parametreleri sırasıyla çalıştırılacak programa geçirilecek komut satırı
 argümanlarının listesini belirtir. Birinci komut satırı argümanının (``argv[0]``) her zaman program ismi olacak biçimde
-oluşturulması genel bir beklenti ve C standartlarında öngörülen bir durumdur. Programcı exec uygularken bunu sağlamak
+oluşturulması genel bir beklenti ve C standartlarında öngörülen bir durumdur. Programcı ``exec`` uygularken bunu sağlamak
 zorunda değildir. Ancak bunun sağlanmaması kötü bir tekniktir ve çalıştırılacak programların hatalı çalışmasına yol
 açabilir. Fonksiyon değişken sayıda (``...`` parametresine dikkat ediniz) argüman aldığı için argüman listesinin sonunda
 ``NULL`` adresin bulunması gerekmektedir. Ancak C'de "default argüman dönüştürmesi (default argument conversion)" denilen
@@ -89,7 +89,7 @@ türü ise double türüne dönüştürülerek" fonksiyona yollanmaktadır. Bura
 olarak da define edilmiş olabilir. Bu durumda düz ``0`` sabiti int olarak fonksiyona yollanır. Uygun olan durum düz sıfır
 değerinin ya da ``NULL`` sembolik sabitinin bir adres türüne (tipik olarak ``char *`` türüne) dönüştürülerek fonksiyona
 aktarılmasıdır. (C23 ile C'ye de eklenen ``nullptr`` sabitini hiç dönüştürme yapmadan kullanabilirsiniz.) Yukarıda da
-belirtildiği gibi exec fonksiyonları başarı durumunda zaten geri dönmezler. Başarısızlık durumunda ``-1`` değerine geri
+belirtildiği gibi ``exec`` fonksiyonları başarı durumunda zaten geri dönmezler. Başarısızlık durumunda ``-1`` değerine geri
 dönerler ve ``errno`` değişkeni uygun biçimde set edilir. ``execl`` fonksiyonunun çağrılması tipik olarak şöyle
 yapılmaktadır:
 
@@ -103,11 +103,11 @@ yapılmaktadır:
 Burada ``execl`` ile ``/bin/ls`` dosyası çalıştırılmak istenmiştir. Diğer argümanlar bu programın ``main`` fonksiyonuna
 ``argv`` parametresi olarak geçirilecek olan komut satırı argümanlarını belirtmektedir.
 
-exec fonksiyonları çeşitli nedenlerle başarısız olabilir. Örneğin çalıştırılacak program dosyası bulunamayabilir, bulunduğu
+``exec`` fonksiyonları çeşitli nedenlerle başarısız olabilir. Örneğin çalıştırılacak program dosyası bulunamayabilir, bulunduğu
 halde proses dosya için ``'x'`` hakkına sahip olmayabilir, çalıştırılabilen dosyanın formatı bozulmuş olabilir. Başarısızlık
 durumunda ``errno`` değişkeni uygun biçimde set edilmektedir.
 
-Aşağıdaki örnekte *sample* programı *other* isimli başka bir programı çalıştırmaktadır. *sample* programı
+Aşağıdaki örnekte *"sample"* programı *"other"* isimli başka bir programı çalıştırmaktadır. *"sample"* programı
 çalıştırıldığında ekrana (``stdout`` dosyasına) şu yazılar basılacaktır:
 
 .. code-block:: console
@@ -167,7 +167,7 @@ Aşağıdaki örnekte *sample* programı *other* isimli başka bir programı ça
         return 0;
     }
 
-Mademki exec fonksiyonları başarılı olduğunda zaten geri dönmemektedir, o halde exec işlemi aşağıdaki gibi de
+Mademki ``exec`` fonksiyonları başarılı olduğunda zaten geri dönmemektedir, o halde ``exec`` işlemi aşağıdaki gibi de
 yapılabilir:
 
 .. code-block:: c
@@ -175,8 +175,8 @@ yapılabilir:
     execl(...);
     exit_sys("execl");
 
-Burada exec fonksiyonları zaten başarılı olduğunda akış aşağıya geçmeyecektir, başarısız olduğunda akış aşağıya
-geçecektir. Bu durumda başarı kontrolü yapmaya aslında gerek yoktur. Fakat biz kursumuzda genel olarak exec işlemlerini
+Burada ``exec`` fonksiyonları zaten başarılı olduğunda akış aşağıya geçmeyecektir, başarısız olduğunda akış aşağıya
+geçecektir. Bu durumda başarı kontrolü yapmaya aslında gerek yoktur. Fakat biz kursumuzda genel olarak ``exec`` işlemlerini
 aşağıdaki gibi uygulayacağız:
 
 .. code-block:: c
@@ -184,19 +184,19 @@ aşağıdaki gibi uygulayacağız:
     if (execl(...) == -1)
         exit_sys("execl");
 
-fork ve exec İşlemlerinin Birlikte Uygulanması
-==============================================
+fork ve exec İşlemlerinin Birlikte Uygulanması: fork/exec Kalıbı
+================================================================
 
-exec işleminin tek başına uygulanması mevcut programı bellekten atarak başka bir programı çalıştırmaktadır. Ancak
+``exec`` işleminin tek başına uygulanması mevcut programı bellekten atarak başka bir programı çalıştırmaktadır. Ancak
 genellikle programcı kendi programının da devam etmesini ister. İşte eğer biz hem başka bir programı çalıştırmak
-istiyorsak hem de kendi programımızın devam etmesini istiyorsak bu durumda ``fork`` ve exec işlemlerini birlikte
+istiyorsak hem de kendi programımızın devam etmesini istiyorsak bu durumda ``fork`` ve ``exec`` işlemlerini birlikte
 uygulamamız gerekir.
 
 ``fork`` işlemi ile yeni bir proses yaratılıp yaratılan yeni proses üst proses ile aynı kodu çalıştırıyordu. exec
 işleminde ise prosesin bellek alanı atılıp başka bir program dosyası belleğe yükleniyordu. Peki biz hem kendi programımız
 devam etsin hem de başka bir programı da çalıştıralım istiyorsak bunu nasıl yapabiliriz? İşte bu durumda yalnızca
-``fork`` ya da yalnızca exec işe yaramamaktadır. ``fork`` ve exec fonksiyonlarının birlikte kullanılması gerekmektedir.
-Şöyle ki: Programcı önce ``fork`` yapar, sonra alt proseste exec işlemini uygular. Yani başka bir programın kodunu alt
+``fork`` ya da yalnızca ``exec`` işe yaramamaktadır. ``fork`` ve ``exec`` fonksiyonlarının birlikte kullanılması gerekmektedir.
+Şöyle ki: Programcı önce ``fork`` yapar, sonra alt proseste ``exec`` işlemini uygular. Yani başka bir programın kodunu alt
 proses çalıştırmış olur. Bu işlem tipik olarak şöyle yapılmaktadır:
 
 .. code-block:: c
@@ -309,8 +309,8 @@ Aşağıdaki örnekte üst proses ``/bin/ls`` programını çalıştırıp yolun
         exit(EXIT_FAILURE);
     }
 
-fork/exec işlemlerinde kişilerin kafasını karıştıran bir durum oluşmaktadır. Kişiler haklı olarak şöyle düşünmektedir:
-"fork işlemi ile üst prosesin bellek alanı alt proses için kopyalandığına göre ve alt proseste de exec yapıldığında alt
+``fork``/``exec`` işlemlerinde kişilerin kafasını karıştıran bir durum oluşmaktadır. Kişiler haklı olarak şöyle düşünmektedir:
+"fork işlemi ile üst prosesin bellek alanı alt proses için kopyalandığına göre ve alt proseste de ``exec`` yapıldığında alt
 prosesin bellek alanı hemen boşaltılacağına göre burada üst prosesin bellek alanı gereksiz biçimde alt prosese
 kopyalanmış olmuyor mu?" Gerçekten de ilk bakışta böyle bir durum söz konusu gibi gözükmektedir. Ancak modern
 işlemcilerin "sayfalama (paging)" mekanizmaları sayesinde aslında ``fork`` işlemi sırasında *copy-on-write* mekanizması
@@ -323,8 +323,8 @@ yukarıdaki durum gerçekten etkinlik bakımından bir problem oluşturuyordu. B
 bulundurulmuştur. ``vfork`` fonksiyonu eskiden POSIX standartlarında bulunuyordu. 2008'den itibaren POSIX
 standartlarından kaldırılmıştır. Fakat *glibc* kütüphanesi bu fonksiyonu bulundurmaya devam etmektedir. Zaten yukarıda
 da belirttiğimiz gibi modern sistemlerde artık ``vfork`` fonksiyonuna gereksinim de kalmamıştır. ``vfork`` tamamen
-``fork`` işlemi yapar. Ancak üst prosesin bellek alanını alt prosese kopyalamaz. Çünkü ``vfork`` fonksiyonu exec için
-düşünülmüştür. Yani ``vfork`` işleminden sonra exec yapılmalıdır. Eğer ``vfork`` işleminden sonra exec yapılmayıp sanki
+``fork`` işlemi yapar. Ancak üst prosesin bellek alanını alt prosese kopyalamaz. Çünkü ``vfork`` fonksiyonu ``exec`` için
+düşünülmüştür. Yani ``vfork`` işleminden sonra ``exec`` yapılmalıdır. Eğer ``vfork`` işleminden sonra ``exec`` yapılmayıp sanki
 ``fork`` yapılmış gibi program devam ettirilirse "tanımsız davranış (undefined behavior)" oluşmaktadır. ``vfork``
 fonksiyonunun prototipi ``fork`` ile aynı biçimdedir:
 
@@ -334,8 +334,8 @@ fonksiyonunun prototipi ``fork`` ile aynı biçimdedir:
 
     pid_t vfork(void);
 
-Eski POSIX standartlarına göre ``vfork`` işleminden sonra yalnızca ``_exit`` fonksiyonu ya da exec fonksiyonları
+Eski POSIX standartlarına göre ``vfork`` işleminden sonra yalnızca ``_exit`` fonksiyonu ya da ``exec`` fonksiyonları
 çağrılabilir. Bunun dışında başka bir fonksiyon çağrılamaz. Yani ``vfork`` başarılı ise biz ya ``_exit`` fonksiyonu ile
-prosesi sonlandırmalıyız ya da exec uygulamalıyız. Tabii exec de başarısız olursa ``_exit`` ile (``exit`` ile değil) alt
+prosesi sonlandırmalıyız ya da ``exec`` uygulamalıyız. Tabii ``exec`` de başarısız olursa ``_exit`` ile (``exit`` ile değil) alt
 prosesi sonlandırmalıyız. Başka bir fonksiyonun kullanılamamasının nedeni o fonksiyonların kodlarının alt prosese
 kopyalanmamış olmasıdır.

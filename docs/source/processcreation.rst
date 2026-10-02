@@ -1489,7 +1489,7 @@ O halde zombie proses yalnızca şu süreçte ortaya çıkmaktadır: "Alt proses
 wait fonksiyonlarını uygulamadan çalışmasına devam etmektedir."
 
 Şimdi bir zombie proses durumu oluşturalım. Yapacağımız şey alt prosesi sonlandırıp üst prosesin
-``wait`` fonksiyonlarını uygulamadan yoluna devam etmesini sağlamaktır. Zombie prosesler *"ps -l"*
+``wait`` fonksiyonlarını uygulamadan yoluna devam etmesini sağlamaktır. Zombie prosesler ``ps -l``
 komutunda *defunct* olarak gösterilmektedir. Bunların *proses durumları da (process state)* *Z* harfi ile
 belirtilmektedir. Örneğin:
 
