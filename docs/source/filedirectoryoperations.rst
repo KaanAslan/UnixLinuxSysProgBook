@@ -2001,7 +2001,7 @@ Ancak biz henüz o konuları görmedik. Bu nedenle aşağıdaki programla çalı
     #include <fcntl.h>
     #include <unistd.h>
 
-    #define BUFFER_SIZE.   8192
+    #define BUFFER_SIZE   8192
 
     void exit_sys(const char *msg);
 

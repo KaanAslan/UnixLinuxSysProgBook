@@ -339,3 +339,1687 @@ Eski POSIX standartlarına göre ``vfork`` işleminden sonra yalnızca ``_exit``
 prosesi sonlandırmalıyız ya da ``exec`` uygulamalıyız. Tabii ``exec`` de başarısız olursa ``_exit`` ile (``exit`` ile değil) alt
 prosesi sonlandırmalıyız. Başka bir fonksiyonun kullanılamamasının nedeni o fonksiyonların kodlarının alt prosese
 kopyalanmamış olmasıdır.
+
+execv Fonksiyonu
+================
+ 
+``execv`` fonksiyonu işlevsel olarak ``execl`` fonksiyonu ile aynıdır. Ancak bu fonksiyon çalıştırılacak
+program için komut satırı argümanlarını bir gösterici dizisi biçiminde ister. Fonksiyonun prototipi
+şöyledir:
+ 
+.. code-block:: c
+ 
+    #include <unistd.h>
+ 
+    int execv(const char *path, char * const *argv);
+ 
+Fonksiyonun birinci parametresi çalıştırılacak program dosyasının yol ifadesini belirtir. İkinci
+parametresi ise komut satırı argümanlarının bulunduğu ``char`` türden gösterici dizisinin başlangıç
+adresini almaktadır. Yani bizim komut satırı argümanlarını bir gösterici dizisine yerleştirip onun
+adresini vermemiz gerekir. Bu gösterici dizisinin son elemanı ``NULL`` adres olmalıdır. Tabii bu durumda
+tür dönüştürmesi yapmaya gerek yoktur. Örneğin:
+ 
+.. code-block:: c
+ 
+    char *argv[] = {"/bin/ls", "-l", NULL};
+    /* ... */
+ 
+    execv("/bin/ls", argv);
+    exit_sys("execv");
+ 
+``execv`` fonksiyonunun ikinci parametresindeki ``const`` niteleyicisinin yerine dikkat ediniz. Burada
+``const`` niteleyicisi adresi geçirilen gösterici dizisinin ``const`` olduğunu belirtmektedir. Yani
+fonksiyon hem o gösterici dizisinde değişiklik yapmamaktadır hem de o gösterici dizisinin gösterdiği
+dizilerde değişiklik yapmamaktadır.
+ 
+execv Örneği
+------------
+ 
+Aşağıdaki ``execv`` fonksiyonunun kullanımına bir örnek verilmiştir.
+ 
+.. code-block:: c
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    void exit_sys(const char *msg);
+ 
+    int main(int argc, char *argv[])
+    {
+        pid_t pid;
+        char *args[] = {"/bin/ls", "-l", NULL};
+ 
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+ 
+        if (pid == 0 && execv("/bin/ls", args) == -1)
+            exit_sys("execl");
+ 
+        for (int i = 0; i < 10; ++i) {
+            printf("sample continues: %d\n", i);
+            sleep(1);
+        }
+ 
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+ 
+        return 0;
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+execv'nin execl'ye Göre Avantajı (Değişken Sayıda Argüman)
+----------------------------------------------------------
+ 
+Peki ``execv`` ne zaman tercih edilebilir? İşte bazen ``execl`` fonksiyonu yerine ``execv``
+fonksiyonunun kullanılması daha uygun olabilmektedir. Örneğin biz ``sample`` isimli bir program yazalım.
+Bu program da komut satırı argümanlarıyla aldığı programı çalıştırsın. Yani ``sample`` programı şöyle
+çalıştırılsın:
+ 
+.. code-block:: console
+ 
+    $ ./sample /bin/ls -l
+ 
+Eğer böyle bir programı ``execl`` ile yazmaya çalışırsak bunu pratik bir biçimde başaramayız. Çünkü
+çalıştıracağımız programın kaç komut satırı argümanı ile çalıştırılacağını baştan bilmemekteyiz. Aşağıda
+böyle bir programa örnek verilmiştir. Programı şöyle çalıştırabilirsiniz:
+ 
+.. code-block:: console
+ 
+    $ ./sample /bin/ls -l
+    $ ./sample /bin/cp sample.c x.c
+    $ ./sample other ali veli selami
+ 
+Programda exec çağrısına dikkat ediniz:
+ 
+.. code-block:: c
+ 
+    if ((pid = fork()) == -1)
+        exit_sys("fork");
+ 
+    if (pid == 0 && execv(argv[1], &argv[1]) == -1)
+        exit_sys("execl");
+ 
+Burada ``execv`` fonksiyonuna ``argv`` gösterici dizisinin 1'inci indeksli elemanının adresi
+geçirilmiştir. ``argv`` dizisinin sonunda zaten ``NULL`` adres bulunduğunu anımsayınız:
+ 
+.. code-block:: text
+ 
+    argv -----> argv[0]
+                argv[1]     ---> biz fonksiyona bu elemanın adresini geçtik
+                argv[2]
+                ...
+                NULL
+ 
+.. code-block:: c
+ 
+    /* sample.c */
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    void exit_sys(const char *msg);
+ 
+    int main(int argc, char *argv[])
+    {
+        pid_t pid;
+ 
+        if (argc < 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+ 
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+ 
+        if (pid == 0 && execv(argv[1], &argv[1]) == -1)
+            exit_sys("execv");
+ 
+        for (int i = 0; i < 10; ++i) {
+            printf("sample continues: %d\n", i);
+            sleep(1);
+        }
+ 
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+ 
+        return 0;
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+execlp ve execvp Fonksiyonları (p'li Versiyonlar)
+=================================================
+ 
+exec fonksiyonlarının iki p'li versiyonu da vardır: ``execlp`` ve ``execvp``. Bu p'li versiyonların
+prototipleri p'siz versiyonlarla aynıdır. Yalnızca ilk parametrenin semantik anlamı farklıdır. Bunların
+prototipleri şöyledir:
+ 
+.. code-block:: c
+ 
+    #include <unistd.h>
+ 
+    int execlp(const char *file, const char *arg0, ... /*, (char *)0 */);
+    int execvp(const char *file, char *const argv[]);
+ 
+PATH Çevre Değişkeninde Arama Mantığı
+-------------------------------------
+ 
+exec fonksiyonlarının p'li versiyonları şöyle çalışmaktadır:
+ 
+- Eğer bu fonksiyonların birinci parametrelerinde belirtilen dosya isminde hiç ``/`` karakteri
+  kullanılmamışsa bu fonksiyonlar önce ``PATH`` çevre değişkeninin değerini ``getenv`` fonksiyonuyla
+  alıp buradaki yazıyı ``:`` karakterlerinden parçalara ayırırlar (parse ederler). Bu ``:``
+  karakterlerinin arasındaki yazıların dizin belirttiğini varsayarlar. Sonra exec yapılacak dosyayı
+  sırasıyla bu dizinlerde ararlar. Eğer bulurlarsa onu exec yaparlar, bulamazlarsa bu fonksiyonlar
+  başarısız olur. Tabii bu fonksiyonlar ``PATH`` çevre değişkeninde belirtilen dizinlerdeki aramayı
+  baştan sona doğru yapmaktadır ve ilk bulduğu dizindeki programı exec işlemine sokmaktadır. (Yani eğer
+  söz konusu program dosyası birden fazla ``PATH`` dizininde varsa dosyanın ilk bulunduğu dizindeki
+  program çalıştırılır.) ``PATH`` çevre değişkeninin değerinin aşağıdakine benzer bir biçimde
+  bulunması gerekmektedir:
+ 
+.. code-block:: text
+ 
+    /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+ 
+- Eğer p'li exec fonksiyonlarının birinci parametresiyle belirtilen dosya isminde en az bir ``/``
+  karakteri varsa bu durumda fonksiyonlar ``PATH`` çevre değişkenine başvurmazlar. Birinci parametresiyle
+  belirtilen göreli ya da mutlak yol ifadesinden hareketle dosyanın yerini belirlemeye çalışırlar. Başka
+  bir deyişle bu durumda fonksiyonların p'li versiyonlarının p'siz versiyonlarından hiçbir farkı
+  kalmamaktadır. Örneğin:
+ 
+.. code-block:: c
+ 
+    execlp("ls", ...);          /* PATH çevre değişkenine başvurulur */
+    execlp("./sample", ...);    /* PATH çevre değişkenine başvurulmaz */
+    execlp("a/sanple", ...);    /* PATH çevre değişkenine başvurulmaz */
+ 
+exec fonksiyonlarının p'li versiyonları eğer dosya isminde hiç ``/`` karakteri yoksa ve ``PATH``
+dizinlerinde de dosyayı bulamazlarsa prosesin çalışma dizinine bakmamaktadır. Yani bu durumda bu
+fonksiyonlar yalnızca ``PATH`` çevre değişkenindeki dizinlere bakmaktadır. Tabii ``PATH`` çevre
+değişkeninde o andaki prosesin çalışma dizini ``.`` ile de belirtilebilir. Örneğin:
+ 
+.. code-block:: text
+ 
+    /bin:/usr/bin:/:.
+ 
+PATH'e Dizin Ekleme ve Güvenlik Notu
+------------------------------------
+ 
+Buradaki ``.`` prosesin çalışma dizinini belirtmektedir. Biz ``PATH`` çevre değişkeninin sonuna dizinler
+ekleyebiliriz. Örneğin:
+ 
+.. code-block:: console
+ 
+    $ PATH=$PATH:/home/kaan
+ 
+Tabii bunun kalıcı hale getirilmesi için kabuk programının startup dosyalarına yerleştirilmesi gerekir.
+Prosesin çalışma dizininin ``PATH`` çevre değişkenine eklenmesi güvenlik zafiyeti nedeniyle iyi bir
+teknik kabul edilmemektedir. Örneğin:
+ 
+.. code-block:: console
+ 
+    $ PATH=$PATH:.
+ 
+Peki exec fonksiyonlarının p'li versiyonları ``PATH`` çevre değişkenini bulamazsa ne olur? POSIX
+standartları bu durumdaki davranışın sistemden sisteme değişebileceğini (implementation dependent)
+belirtmektedir. Pek çok sistem (örneğin Linux ve BSD) bu durumda sanki ``PATH`` çevre değişkeni
+``/bin:/usr/bin`` biçimindeymiş gibi davranmaktadır.
+ 
+p'li Versiyonların shebang'siz Dosyalarda Davranışı
+---------------------------------------------------
+ 
+exec fonksiyonlarının p'li versiyonları (``execlp`` ve ``execvp``) aramayı ``PATH`` dizinlerinde
+sırasıyla yapmaktadır. Ancak bu fonksiyonlar dosyayı bir dizinde bulduğunda ve onu sistem fonksiyonuyla
+(``execve``) çalıştırmaya çalıştığında başarısız olup ``EINVAL`` ve ``ENOEXEC`` errno değeri oluşursa
+dosyanın bir kabuk betiği (shell script) olduğundan çalıştırılamadığı sonucunu çıkartmaktadır ve bu
+durumda dosyayı ``/bin/sh`` (default shell) programı ile çalıştırmaktadır. Ancak exec fonksiyonlarının
+diğer versiyonları ``EINVAL`` ve ``ENOEXEC`` errno değeri oluştuğunda bunu yapmamaktadır. Tabii bu
+davranışı yalnızca exec fonksiyonlarının p'li versiyonları göstermektedir. exec fonksiyonlarının p'li
+versiyonları ``PATH`` dizinlerinin birinde dosyayı sistem fonksiyonuyla (Linux'taki ``sys_execve``)
+çalıştırmaya çalıştığında ``EACCES`` errno değeri ile başarısız olurlarsa dosyayı sonraki ``PATH``
+dizinlerinde aramaya devam ederler. Ancak bu arama sırasında bu fonksiyonlar artık dosyayı diğer ``PATH``
+dizinlerinde bulamazlarsa ``EACCES`` errno değeri ile başarısız olurlar.
+ 
+execlp Örneği
+-------------
+ 
+Aşağıda ``execlp`` fonksiyonuna bir örnek verilmiştir. Örnekte ``execlp`` fonksiyonu şöyle çağrılmıştır:
+ 
+.. code-block:: c
+ 
+    if ((pid = fork()) == -1)
+        exit_sys("fork");
+ 
+    if (pid == 0 && execlp("ls", "ls", "-l", (char *)0) == -1)
+        exit_sys("execv");
+ 
+Burada ``ls`` programı ``PATH`` çevre değişkeninde belirtilen ``/bin`` dizininde bulunacaktır.
+ 
+.. code-block:: c
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    void exit_sys(const char *msg);
+ 
+    int main(void)
+    {
+        pid_t pid;
+ 
+        printf("sample running...\n");
+ 
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+ 
+        if (pid == 0 && execlp("ls", "ls", "-l", (char *)0) == -1)
+            exit_sys("execv");
+ 
+        for (int i = 0; i < 10; ++i) {
+            printf("sample continues: %d\n", i);
+            sleep(1);
+        }
+ 
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+ 
+        return 0;
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+execvp Örneği
+-------------
+ 
+Aşağıda ``execvp`` kullanımına örnek verilmiştir. Örnekte ``execvp`` fonksiyonu şöyle kullanılmıştır:
+ 
+.. code-block:: c
+ 
+    if ((pid = fork()) == -1)
+        exit_sys("fork");
+ 
+    if (pid == 0 && execvp(argv[1], &argv[1]) == -1)
+        exit_sys("execvp");
+ 
+Burada ``argv[1]`` ile girilen dosya isminde hiç ``/`` karakteri yoksa dosya ``PATH`` çevre değişkeni ile
+belirtilen dizinlerde aranacaktır.
+ 
+.. code-block:: c
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    void exit_sys(const char *msg);
+ 
+    int main(int argc, char *argv[])
+    {
+        pid_t pid;
+ 
+        if (argc == 1) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+ 
+        printf("sample running...\n");
+ 
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+ 
+        if (pid == 0 && execvp(argv[1], &argv[1]) == -1)
+            exit_sys("execvp");
+ 
+        for (int i = 0; i < 10; ++i) {
+            printf("sample continues: %d\n", i);
+            sleep(1);
+        }
+ 
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+ 
+        return 0;
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+Kabuğun "./" Kullanımı ve PATH Güvenliği
+========================================
+ 
+Şimdi kabuk üzerinden programları neden ``./sample`` biçiminde başına ``./`` getirerek çalıştırdığımız
+artık anlaşılabilir. Kabuk programları önce ``fork`` yapıp alt proseste exec fonksiyonlarının p'li
+versiyonlarıyla programları çalıştırmaktadır. Dolayısıyla biz programı ``sample`` biçiminde çalıştırmak
+istediğimizde bu p'li versiyonlar bu programı ``PATH`` çevre değişkeninin belirttiği dizinlerde
+bulamayacaktır. Ancak biz programı ``./sample`` biçiminde çalıştırmak istediğimizde bu fonksiyonlar
+artık ``PATH`` çevre değişkenine bakmayacak, bulunulan dizindeki ``sample`` programını çalıştıracaktır.
+ 
+Peki kabuk programları neden exec fonksiyonlarının p'li versiyonlarını kullanmaktadır? Bunun birinci
+sebebi kolaylık sağlamak içindir. Örneğin ``ls`` komutunu biz ``/bin/ls`` biçiminde kullanmak istemeyiz.
+Bunun ikinci nedeni güvenliktir. Eskiden durum böyle değilken programın çalışma dizinine gerçek
+komutlarla aynı isimli komutlar yerleştirerek hileli işlemler yapmaya yeltenenler olmuştur. İşte bu
+nedenle ``PATH`` dizinlerinin içerisinde prosesin çalışma dizini yerleştirilmemektedir. Eğer durum böyle
+olmasaydı bazen hatalı yazılmış komutlarla istenmeden başka programlar da çalıştırılabilirdi. Örneğin
+dizinimizde ``co`` isminde bir program olsun; biz ``cp`` yerine yanlışlıkla ``co`` yazarsak bu programı
+istemeden de çalıştırabiliriz.
+ 
+myshell Programına fork/exec Ekleme
+===================================
+ 
+Şimdi de daha önce yapmış olduğumuz ``myshell`` kabuk programına fork/exec işlemini ekleyelim. Programın
+bu versiyonu önce *içsel (internal)* komutlara bakacak, eğer içsel komutlarda verilen komutu bulmazsa
+onu fork/exec ile program dosyası gibi çalıştıracaktır. Aslında ``bash`` gibi kabuk programları da böyle
+yapmaktadır.
+ 
+Biz ``myshell`` programımızda komut satırından aldığımız yazıyı parse edip parametrelerini zaten
+``g_params`` isimli bir gösterici dizisinde saklamıştık. Örneğimizde eğer komut içsel komut listesinde
+bulunamadıysa aşağıdaki gibi fork/exec uygulanmıştır:
+ 
+.. code-block:: c
+ 
+    if (g_cmds[i].name == NULL) {
+            pid_t pid;
+ 
+            if ((pid = fork()) == -1)
+                exit_sys("fork");
+            if (pid == 0 && execvp(g_params[0], &g_params[0]) == -1) {
+                fprintf(stderr, "%s: %s\n", g_params[0], strerror(errno));
+                continue;
+            }
+            if (waitpid(pid, NULL, 0) == -1)
+                exit_sys("waitpid");
+        }
+ 
+.. code-block:: c
+ 
+    /* myshell.c */
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <errno.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    #define MAX_CMD_LINE            4096
+    #define MAX_CMD_PARAMS          1024
+    #define PATH_SIZE               4096
+ 
+    struct cmd {
+        const char *name;
+        void (*proc)(void);
+    };
+ 
+    void parse_cmd_line(char *cmdline);
+    void rm_proc(void);
+    void cp_proc(void);
+    void mv_proc(void);
+    void cd_proc(void);
+    void exit_sys(const char *msg);
+ 
+    struct cmd g_cmds[] = {
+        {"cd", cd_proc},
+        {NULL, NULL}
+    };
+ 
+    char *g_params[MAX_CMD_PARAMS];
+    int g_nparams;
+    char g_cwd[PATH_SIZE];
+ 
+    int main(void)
+    {
+        char cmdline[MAX_CMD_LINE];
+        char *str;
+        int i;
+ 
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+ 
+        for (;;) {
+ 
+            printf("CSD:%s$ ", g_cwd);
+            fflush(stdout);
+ 
+            if (fgets(cmdline, MAX_CMD_LINE, stdin) == NULL)
+                continue;
+            if ((str = strchr(cmdline, '\n')) != NULL)
+                *str = '\0';
+ 
+            parse_cmd_line(cmdline);
+            if (g_nparams == 0)
+                continue;
+            if (!strcmp(g_params[0], "exit"))
+                break;
+ 
+            for (i = 0; g_cmds[i].name != NULL; ++i)
+                if (!strcmp(g_cmds[i].name, g_params[0])) {
+                    g_cmds[i].proc();
+                    break;
+                }
+            if (g_cmds[i].name == NULL) {
+                pid_t pid;
+ 
+                if ((pid = fork()) == -1)
+                    exit_sys("fork");
+                if (pid == 0 && execvp(g_params[0], &g_params[0]) == -1) {
+                    fprintf(stderr, "%s: %s\n", g_params[0], strerror(errno));
+                    continue;
+                }
+                if (waitpid(pid, NULL, 0) == -1)
+                    exit_sys("waitpid");
+            }
+        }
+ 
+        return 0;
+    }
+ 
+    void parse_cmd_line(char *cmdline)
+    {
+        char *arg;
+ 
+        g_nparams = 0;
+        for ((arg = strtok(cmdline, " \t")); arg != NULL; arg = strtok(NULL, " \t"))
+            g_params[g_nparams++] = arg;
+        g_params[g_nparams] = NULL;
+    }
+ 
+    void rm_proc(void)
+    {
+        if (g_nparams == 1) {
+            printf("too few command parameters!...\n");
+            return;
+        }
+        printf("rm command...\n");
+    }
+ 
+    void cp_proc(void)
+    {
+        if (g_nparams != 3) {
+            printf("wrong number of command parameters!...\n");
+            return;
+        }
+ 
+        printf("cp command...\n");
+    }
+ 
+    void mv_proc(void)
+    {
+        if (g_nparams != 3) {
+            printf("wrong number of command parameters!...\n");
+            return;
+        }
+ 
+        printf("mv command...\n");
+    }
+ 
+    void cd_proc(void)
+    {
+        if (g_nparams != 2) {
+            printf("wrong number of command parameters!..\n");
+            return;
+        }
+ 
+        if (chdir(g_params[1]) == -1) {
+            printf("%s: \"%s\"\n", strerror(errno), g_params[1]);
+            return;
+        }
+ 
+        if (getcwd(g_cwd, PATH_SIZE) == NULL)
+            exit_sys("fatal error");
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+exec Hatalarına İlişkin errno Değerleri
+=======================================
+ 
+exec fonksiyonlarının başarısızlığının nedeni olabilecek çeşitli ``errno`` değerleri vardır. Bunların en
+önemlilerinden birkaçı şunlardır:
+ 
+- ``ENOENT`` ("No such file or directory"): Dosya bulunamamıştır.
+- ``EACCES`` ("Permission denied"): Dosya bulunmuştur ancak proses dosyaya ``x`` hakkına sahip değildir.
+- ``ENOEXEC`` ("Exec format error"): Dosya bulunmuştur. Prosesin dosyaya ``x`` hakkı da vardır. Ancak
+  dosyanın formatı çalıştırmaya uygun değildir. Yani dosya çalıştırılabilir bir dosya değildir ya da
+  dosyanın başında *shebang* yoktur.
+- ``EINVAL`` ("Invalid argument"): Dosya bulunmuştur, proses dosyaya ``x`` hakkına sahiptir. Ancak dosya
+  bu sistem tarafından desteklenen *çalıştırılabilir (executable)* bir formata sahip değildir.
+ 
+Yukarıda da belirttiğimiz gibi exec fonksiyonlarının p'li versiyonları (``execlp`` ve ``execvp``)
+``PATH`` dizinlerinde tek tek dosyayı aramaktadır. Ancak bu fonksiyonlar dosyayı bir dizinde bulduğunda
+ve onu sistem fonksiyonuyla (Linux'ta ``sys_execve``) çalıştırmaya çalıştığında ``EINVAL`` ve ``ENOEXEC``
+errno değerleri oluşursa dosyanın bir kabuk betiği (shell script) olduğundan çalıştırılamadığı sonucunu
+çıkartmaktadır ve bu durumda dosyayı *"/bin/sh (default shell)"* programı ile çalıştırmaktadır. Ancak
+exec fonksiyonlarının diğer versiyonları ``EINVAL`` ve ``ENOEXEC`` hatalarında bunu yapmamaktadır. Bunu
+yalnızca exec fonksiyonlarının p'li versiyonları yapmaktadır. exec fonksiyonlarının p'li versiyonları
+``PATH`` dizinlerinin birinde dosyayı sistem fonksiyonuyla (``sys_execve``) çalıştırmaya çalıştığında
+``EACCES`` errno değeri ile başarısız olursa dosyayı sonraki ``PATH`` dizinlerinde aramaya devam
+ederler. Ancak bu arama sırasında bu fonksiyonlar artık dosyayı diğer ``PATH`` dizinlerinde de
+bulamazlarsa ``EACCES`` errno değeri ile başarısız olmaktadır.
+ 
+Bu davranışın anlamı izleyen bölümlerde başka paragraflarda daha iyi anlaşılacaktır.
+ 
+execle ve execve Fonksiyonları (e'li Versiyonlar)
+=================================================
+ 
+exec fonksiyonlarının iki tane e'li biçimleri vardır: ``execle`` ve ``execve``. Buradaki *e* harfi
+*environment* yani *çevre değişkenleri* anlamında isme eklenmiştir.
+ 
+Anımsanacağı gibi çevre değişkenleri tipik olarak prosesin bellek alanında bulunduruluyordu ve ``fork``
+işlemi sırasında üst prosesin bellek alanının alt prosese kopyalanmasıyla alt prosese geçiriliyordu.
+Ancak exec işlemleri prosesin bellek alanını ortadan kaldırıp yeni bir program kodunu yüklediğine göre
+prosesin çevre değişkenleri ne olacaktır? İşte exec işlemi sırasında prosesin bellek alanı boşaltılıp
+yeni program için prosesin bellek alanı yeniden oluşturulurken çevre değişkenleri de sıfırdan
+oluşturulabilmektedir. Bunu exec fonksiyonlarının e'li versiyonları yapmaktadır. exec fonksiyonlarının
+e'siz versiyonları o andaki prosesin çevre değişkenlerinin aynısını exec yapılan programın bellek
+alanına taşımaktadır. Yani biz exec fonksiyonlarının e'siz versiyonlarını kullandığımızda exec yapmadan
+önceki çevre değişkenleriyle exec yapıldıktan sonraki programın çevre değişkenleri aynı olacaktır.
+ 
+``execle`` ve ``execve`` fonksiyonlarının prototipleri şöyledir:
+ 
+.. code-block:: c
+ 
+    #include <unistd.h>
+ 
+    int execle(const char *path, const char *arg0, ... /*, (char *)0, char *const envp[]*/);
+    int execve(const char *path, char *const argv[], char *const envp[]);
+ 
+``execle`` fonksiyonunun birinci parametresi yine çalıştırılacak dosyanın yol ifadesini almaktadır.
+Diğer parametreler programa geçirilecek komut satırı argümanlarını belirtir. Bu argüman listesinin sonu
+yine ``NULL`` adresle bitirilmelidir. Bu ``NULL`` adresten sonra son parametre ``char`` türden bir
+gösterici dizisi olmalıdır. Bu gösterici dizisi çevre değişkenlerini ``anahtar=değer`` biçiminde tutan
+yazıların başlangıç adreslerinden oluşmalıdır (yani ``environ`` global değişkeninde olduğu gibi). Bu
+fonksiyonlardaki çevre değişkenleri için oluşturulan gösterici dizilerinin sonunda ``NULL`` adres
+bulunmalıdır.
+ 
+``execve`` fonksiyonu da benzerdir. Bu fonksiyon da önce çalıştırılacak programın yol ifadesini alır.
+Sonra komut satırı argümanlarını bir gösterici dizisi olarak, sonra da çevre değişkenlerini bir gösterici
+dizisi olarak almaktadır.
+ 
+execle Örneği
+-------------
+ 
+Aşağıdaki örnekte ``execve`` fonksiyonunun kullanımına bir örnek verilmiştir. Örnekte ``sample``
+programı aynı dizindeki ``other`` programını çalıştırmaktadır. ``execle`` işlemi şöyle yapılmıştır:
+ 
+.. code-block:: c
+ 
+    pid_t pid;
+    char *env[] = {"city=ankara", "furit=banana", "color=red", NULL};
+ 
+    if ((pid = fork()) == -1)
+        exit_sys("fork");
+ 
+    if (pid == 0) {
+        execle("other", "other", "ali", "veli", "selami", (char *)0, env);
+        exit_sys("execle");
+    }
+ 
+    printf("parent continues...\n");
+ 
+Burada ``execle`` fonksiyonunun argümanlarına dikkat ediniz. Artık ``other`` programı çalıştırıldığında
+alt prosesin çevre değişken listesi ``env`` gösterici dizisindeki gibi olacaktır. ``sample`` programını
+çalıştırmadan önce ``other`` programını da derlemelisiniz. ``sample`` programı çalıştırıldığında ekrana
+şunlar basılacaktır:
+ 
+.. code-block:: console
+ 
+    $ ./sample
+    parent continues...
+    other command line arguments:
+    other
+    ali
+    veli
+    selami
+    other environment variables:
+    city=ankara
+    furit=banana
+    color=red
+ 
+.. code-block:: c
+ 
+    /* sample.c */
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    void exit_sys(const char *msg);
+ 
+    int main(void)
+    {
+        pid_t pid;
+        char *env[] = {"city=ankara", "furit=banana", "color=red", NULL};
+ 
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+ 
+        if (pid == 0) {
+            execle("other", "other", "ali", "veli", "selami", (char *)0, env);
+            exit_sys("execle");
+        }
+ 
+        printf("parent continues...\n");
+ 
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+ 
+        return 0;
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+.. code-block:: c
+ 
+    /* other.c */
+ 
+    #include <stdio.h>
+ 
+    extern char **environ;
+ 
+    int main(int argc, char *argv[])
+    {
+        printf("other command line arguments:\n");
+ 
+        for (int i = 0; i < argc; ++i)
+            puts(argv[i]);
+ 
+        printf("other environment variables:\n");
+ 
+        for (int i = 0; environ[i] != NULL; ++i)
+            puts(environ[i]);
+ 
+        return 0;
+    }
+ 
+execve Örneği (execle'nin execve ile Yazımı)
+--------------------------------------------
+ 
+Daha önceden de belirtildiği gibi UNIX türevi sistemlerde yalnızca ``execve`` fonksiyonu sistem
+fonksiyonu olarak işletim sistemi içerisinde bulunmaktadır. Aslında ``execl``, ``execlp``, ``execv``,
+``execvp``, ``execle`` fonksiyonları, ``execve`` fonksiyonunu çağıran birer kütüphane fonksiyonu
+biçiminde bulundurulmaktadır. Yani burada *taban (base)* fonksiyon ``execve`` fonksiyonudur.
+ 
+Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazımına örnek verilmiştir. Bu
+örnek yukarıdaki örneğin aynısıdır. Yalnızca ``execle`` yerine ``execve`` fonksiyonu kullanılmıştır.
+ 
+.. code-block:: c
+ 
+    /* sample.c */
+ 
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+ 
+    void exit_sys(const char *msg);
+ 
+    int main(void)
+    {
+        pid_t pid;
+        char *args[] = {"ali", "veli", "selami", NULL};
+        char *env[] = {"city=ankara", "furit=banana", "color=red", NULL};
+ 
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+ 
+        if (pid == 0) {
+            execve("other", args, env);
+            exit_sys("execve");
+        }
+ 
+        printf("parent continues...\n");
+ 
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+ 
+        return 0;
+    }
+ 
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+ 
+.. code-block:: c
+ 
+    /* other.c */
+ 
+    #include <stdio.h>
+ 
+    extern char **environ;
+ 
+    int main(int argc, char *argv[])
+    {
+        printf("other command line arguments:\n");
+ 
+        for (int i = 0; i < argc; ++i)
+            puts(argv[i]);
+ 
+        printf("other environment variables:\n");
+ 
+        for (int i = 0; environ[i] != NULL; ++i)
+            puts(environ[i]);
+ 
+        return 0;
+    }
+
+
+.. _fexecve-close-on-exec-ve-shebang:
+
+===========================================================
+fexecve, close-on-exec Bayrağı, IO Yönlendirmesi ve shebang
+===========================================================
+
+execve Kullanarak Değişken Sayıda Argüman Alan execl Gerçekleştirimi
+====================================================================
+
+Aşağıdaki örnekte de ``execl`` fonksiyonunun ``execve`` kullanılarak nasıl yazıldığı hakkında bir fikir
+verilmiştir. Burada komut satırı argümanlarının sayısı ``MAX_ARG`` ile sınırlandırılmıştır.
+
+Değişken sayıda argüman alan fonksiyonların yazımını inceleyiniz.
+
+.. code-block:: c
+
+    /* execl.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+    #include <stdarg.h>
+
+    #define MAX_ARG        4096
+
+    void exit_sys(const char *msg);
+
+    extern char **environ;
+
+    int myexecl(const char *path, const char *arg0, ...)
+    {
+        va_list vl;
+        char *args[MAX_ARG + 1];
+        char *arg;
+        int i;
+
+        va_start(vl, arg0);
+
+        args[0] = (char *)arg0;
+        for (i = 1; (arg = va_arg(vl, char *)) != NULL && i < MAX_ARG; ++i)
+            args[i] = arg;
+        args[i] = NULL;
+
+        va_end(vl);
+
+        return execve(path, args, environ);
+    }
+
+    int main(void)
+    {
+        pid_t pid;
+
+        printf("execl running...\n");
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        if (pid == 0 && myexecl("/bin/ls", "/bin/ls", "-l", "-i", (char *)0) == -1)
+            exit_sys("myexecl");
+
+        printf("ok, parent continues...\n");
+
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+fexecve Fonksiyonu
+==================
+
+``fexecve`` isimli POSIX fonksiyonu ``execve`` fonksiyonu gibidir. Ancak bunun tek farkı yol ifadesi
+yerine dosya betimleyicisini alarak çalışmasıdır. Yani biz çalıştırmak istediğimiz program dosyasını
+zaten ``open`` fonksiyonu ile açmışsak bu durumda doğrudan ``fexecve`` fonksiyonunu kullanabiliriz.
+Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    int fexecve(int fd, char *const argv[], char *const envp[]);
+
+Fonksiyonun birinci parametresi çalıştırılacak dosyanın dosya betimleyicisini belirtmektedir. Diğer
+parametreler ``execve`` fonksiyonu ile tamamen aynıdır. Bu fonksiyonun birinci parametresinde belirtilen
+betimleyiciye ilişkin dosya hangi modda açılmış olmalıdır? POSIX standartlarında dosyanın ``O_EXEC``
+bayrağı ile ya da ``O_RDONLY`` bayrağı ile açılması gerektiği belirtilmiştir. ``O_EXEC`` bayrağında zaten
+açış sırasında dosyanın ``x`` hakkına sahip olup olmadığına bakılmaktadır. ``O_RDONLY`` bayrağında açış
+sırasında ``x`` hakkına bakılmaz, ancak ``fexecve`` çağrısı sırasında prosesin dosyaya ``x`` hakkına
+sahip olup olmadığı kontrol edilmektedir. Linux çekirdeği ``O_EXEC`` bayrağını desteklemediği için Linux
+sistemlerinde dosya ``O_RDONLY`` bayrağı ile ya da ``O_PATH`` bayrağı ile açılmalıdır. Anımsanacağı gibi
+``O_PATH`` bayrağı da POSIX tarafından desteklenmemektedir.
+
+Aşağıda ``fexecve`` fonksiyonunun kullanımına bir örnek verilmiştir. Burada dosya alt proseste açılmıştır:
+
+.. code-block:: c
+
+    if (pid == 0) {
+        if ((fd = open(argv[1], O_RDONLY)) == -1)
+            exit_sys("open");
+        if (fexecve(fd, &argv[1], environ) == -1)
+            exit_sys("fexecve");
+        /* unreachable code */
+    }
+    /* ... */
+
+Açış işleminin Linux'ta ``O_RDONLY`` bayrağı ile yapıldığına dikkat ediniz. (Linux ``O_EXEC`` bayrağını
+desteklememektedir.) Örneğimizde ``fexecve`` fonksiyonuna üst prosesin çevre değişken listesi
+geçirilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+
+    void exit_sys(const char *msg);
+
+    extern char **environ;
+
+    int main(int argc, char *argv[])
+    {
+        pid_t pid;
+        int fd;
+
+        if (argc == 1) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("sample running...\n");
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        if (pid == 0) {
+            if ((fd = open(argv[1], O_RDONLY)) == -1)
+                exit_sys("open");
+            if (fexecve(fd, &argv[1], environ) == -1)
+                exit_sys("fexecve");
+            /* unreachable code */
+        }
+
+        printf("ok, parent continues...\n");
+
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+exec ve Açık Dosyalar: close-on-exec Bayrağı
+============================================
+
+exec işlemi yapıldığında o ana kadar açık olan dosyaların akıbeti ne olacaktır? Anımsanacağı gibi açık
+dosyaların dosya nesnelerinin adresleri *dosya betimleyici tablosu* denilen bir tabloda tutuluyordu. exec
+işlemi sırasında prosesin betimleyici tablosu korunmaktadır. Bu durumda örneğin bir program 100 tane
+dosya açıp sonra exec işlemi uygulasa yeni çalıştırılacak program bu 100 dosyanın farkında olmayacaktır.
+Ancak dosya betimleyici tablosunda bu 100 betimleyici çoğu kez gereksiz bir biçimde (seyrek olarak
+böylesi bir durum kasten istenebilir) bulunmaya devam edecektir. İşte UNIX/Linux sistemlerinde her açık
+dosya için *close-on-exec* isminde bir bayrak da tutulmaktadır. Eğer bu bayrak *set* edilmişse bu durumda
+exec işlemi sırasında bu dosya işletim sistemi tarafından otomatik olarak kapatılır. Eğer bu bayrak
+*reset* durumdaysa bu durumda exec işlemi sırasında dosya kapatılmaz, exec yapılan program kodu dosyanın
+betimleyicisini bilirse onu kullanmaya devam edebilir. Bu bayrak default olarak *reset* durumdadır. Yani
+exec sonrasında önceki programın açmış olduğu dosyalar açık kalmaya devam etmektedir.
+
+O_CLOEXEC ile Açılışta Bayrağı Ayarlama
+---------------------------------------
+
+İşte ``open`` fonksiyonuyla dosya açılırken açış modunda ``O_CLOEXEC`` bayrağı belirtilirse bu bayrak set
+edilmiş olur. Böylece exec işlemi sırasında dosya otomatik biçimde kapatılır. Örneğin:
+
+.. code-block:: c
+
+    fd = open("test.txt", O_RDONLY|O_CLOEXEC);
+
+fcntl ile close-on-exec Bayrağını Sonradan Değiştirme
+-----------------------------------------------------
+
+Programcı isterse herhangi bir zaman ``fcntl`` fonksiyonu ile de bu bayrağı set ya da reset edebilir. Biz
+bu ``fcntl`` fonksiyonunu henüz görmedik. Ancak bu bayrağın set edilmesi işlemi şöyle yapılabilmektedir:
+
+.. code-block:: c
+
+    if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD)|FD_CLOEXEC) == -1)
+        exit_sys("fcntl");
+
+Benzer biçimde bu bayrak şöyle de reset edilebilir:
+
+.. code-block:: c
+
+    if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) & ~FD_CLOEXEC) == -1)
+        exit_sys("fcntl");
+
+Close-on-exec bayrağı dosya nesnesinin içerisinde tutulmamaktadır. Çünkü aynı dosya nesnesini gösteren
+farklı betimleyiciler olabilir. Bu betimleyicilerden birinin close-on-exec bayrağı set edilmişken
+diğerinin set edilmemiş olabilir. Yani close-on-exec bayrağı dosya nesnesinin içerisinde değil, proses
+kontrol bloğu içerisinde başka bir yerdedir.
+
+close-on-exec Örneği (sample.c / other.c)
+-----------------------------------------
+
+Aşağıdaki örnekte ``sample`` programı ``execl`` ile ``other`` programını çalıştırmıştır. Ancak ``other``
+programı ``sample`` programının açmış olduğu dosyanın betimleyici numarasını bilmediği için ``sample``
+programı komut satırı argümanıyla bu bilgiyi ``other`` programına iletmiştir.
+
+Aşağıdaki programı daha sonra dosyanın close-on-exec bayrağını set ederek yeniden deneyiniz:
+
+.. code-block:: c
+
+    if ((fd = open("sample.c", O_RDONLY|O_CLOEXEC)) == -1)
+        exit_sys("open");
+
+Tabii aynı işlem şöyle de yapılabilirdi:
+
+.. code-block:: c
+
+    if ((fd = open("sample.c", O_RDONLY)) == -1)
+        exit_sys("open");
+
+    if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD)|FD_CLOEXEC) == -1)
+        exit_sys("fcntl");
+
+Bu durumda alt proseste dosya betimleyicisi kapalı olduğu için ``read`` fonksiyonu -1 ile geri dönecek ve
+``errno`` değişkeni *EBADF ("Bad file descriptor")* ile set edilecektir.
+
+close-on-exec bayrağı bazı işlemler sırasında işletim sistemi tarafından set ya da reset edilebilmektedir.
+Örneğin ``dup`` ve ``dup2`` fonksiyonları ile dosya betimleyicisinin kopyası çıkartılırken her zaman yeni
+betimleyicinin close-on-exec bayrağı reset durumda olur.
+
+O_CLOFORK Bayrağı (POSIX 2024)
+------------------------------
+
+Anımsanacağı gibi POSIX'e 2024 versiyonu ile ``fork`` yaparken de dosyanın otomatik kapatılmasını
+sağlayan ``O_CLOFORK`` bayrağı eklenmiştir. Ancak Linux'un bu bayrağı desteklemediğini belirtmiştik.
+Linux'un bu bayrağı desteklememesinin nedeni exec işlemi olmadan tek başına ``fork`` işleminin artık pek
+kullanılmaması ve bu desteğin mevcut çekirdek tasarımına bir yük getirmesidir.
+
+.. code-block:: c
+
+    /* sample.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        pid_t pid;
+        int fd;
+        char fd_str[64];
+
+        if ((fd = open("test.txt", O_RDONLY)) == -1)
+            exit_sys("open");
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        sprintf(fd_str, "%d", fd);
+        if (pid == 0 && execl("other", "other", fd_str, (char *)0) == -1)
+            exit_sys("execve");
+
+        printf("parent process continues...\n");
+
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+.. code-block:: c
+
+    /* other.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+
+    #define BUFFER_SIZE        4096
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        int fd;
+        char buf[BUFFER_SIZE + 1];
+        ssize_t result;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!...\n");
+            exit(EXIT_FAILURE);
+        }
+        fd = atoi(argv[1]);
+        lseek(fd, 0, SEEK_SET);
+
+        while ((result = read(fd, buf, BUFFER_SIZE)) > 0) {
+            buf[result] = '\0';
+            printf("%s", buf);
+        }
+        if (result == -1)
+            exit_sys("read");
+
+        close(fd);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Kabukta IO Yönlendirmesini Taklit Etme (redirect_stdout Örneği)
+===============================================================
+
+Şimdi de kabuk programlarının IO yönlendirmesini nasıl yaptığına ilişkin küçük bir uygulama üzerinde
+duralım. Anımsanacağı gibi kabuk üzerinde ``>`` operatörü çalıştırılan programın 1 numaralı
+betimleyicisini (``STDOUT_FILENO``) ``>`` operatörünün sağındaki dosyaya yönlendirmektedir. Örneğin:
+
+.. code-block:: console
+
+    # ./sample > test.txt
+
+Burada ``sample`` programının ``stdout`` dosyasına yazdıkları ekrana yazılmayacak, ``test.txt``
+dosyasına yazılacaktır. Peki kabuk bunu nasıl yapmaktadır? İşlemin şu biçimde olduğunu varsayalım:
+
+.. code-block:: console
+
+    $ a > b
+
+İşte tipik olarak kabuk önce *a* programı için ``fork`` yapar. Ancak henüz exec yapmadan alt prosesin 1
+numaralı betimleyicisini *b* dosyasını açarak ona yönlendirir. Sonra da exec uygular.
+
+Biz bu işlemi yapan aşağıdaki gibi bir fonksiyon yazmak isteyelim:
+
+.. code-block:: c
+
+    int redirect_stdout(const char *cmd);
+
+Fonksiyon bizden tıpkı kabukta olduğu gibi ``>`` ile yapılan yönlendirme yazısını alacak olsun. Örneğin:
+
+.. code-block:: c
+
+    result = redirect_stdout("ls -l > test.txt");
+
+Bizim bu fonksiyon içerisinde önce ``>`` karakterini bulup onun solunu ve sağını ayrıştırmamız gerekir.
+Sonra ``fork`` uygulayıp alt proseste yönlendirmeyi yapıp exec uygulamamız gerekir. Bu işlemi aşağıdaki
+örnekte şöyle yaptık:
+
+.. code-block:: c
+
+    if ((pid = fork()) == -1)
+        return -1;
+
+    if (pid == 0) {
+        int fd;
+
+        if ((fd = open(pi.path, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            _exit(1);
+        if (dup2(fd, 1) == -1)
+            _exit(2);
+        execvp(pi.args[0], &pi.args[0]);
+        _exit(3);
+    }
+
+Burada ``pi``, ``>`` karakteri ile ayrıştırma sonucunda ayrıştırılmış bilgilerin yerleştirildiği
+``parse_info`` isimli bir yapı nesnesidir. ``parse_info`` yapısı şöyle tanımlanmıştır:
+
+.. code-block:: c
+
+    struct parse_info {
+        char *args[MAX_PARAM + 1];
+        char *path;
+    };
+
+Aşağıda örneği bütünsel olarak veriyoruz. Programı şöyle test edebilirsiniz:
+
+.. code-block:: console
+
+    $ ./redirect "ls -l  > test.txt"
+
+.. code-block:: c
+
+    /* redirect.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <ctype.h>
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <errno.h>
+    #include <sys/wait.h>
+
+    #define MAX_CMD_PARSE       4096
+    #define MAX_PARAM           128
+
+    struct parse_info {
+        char *args[MAX_PARAM + 1];
+        char *path;
+    };
+
+    int redirect_stdout(char *cmd);
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+        if (redirect_stdout(argv[1]) == -1)
+            exit_sys("Error");
+
+        return 0;
+    }
+
+    int parse_redirect(char *cmd, struct parse_info *pi)
+    {
+        char *str;
+        char *tok;
+        size_t i;
+
+        if ((str = strchr(cmd, '>')) == NULL || strchr(str + 1, '>'))
+            return -1;
+        *str++ = '\0';
+
+        for (i = 0, tok = strtok(cmd, " \t"); tok != NULL; tok = strtok(NULL, " \t"), ++i)
+            pi->args[i] = tok;
+
+        if (i == 0)
+            return -1;
+
+        pi->args[i] = NULL;
+
+        for (i = 0; isspace(str[i]); ++i)
+            ;
+        if (str[i] == '\0')
+            return -1;
+        pi->path = str + i;
+        for (; !isspace(str[i]) && str[i] != '\0'; ++i)
+            ;
+        str[i] = '\0';
+
+        return 0;
+    }
+
+    int redirect_stdout(char *cmd)
+    {
+        pid_t pid;
+        char cmd_parse[MAX_CMD_PARSE + 1];
+        struct parse_info pi;
+
+        if (strlen(cmd) > MAX_CMD_PARSE) {
+            errno = EINVAL;
+            return -1;
+        }
+        strcpy(cmd_parse, cmd);
+
+        if (parse_redirect(cmd_parse, &pi) == -1) {
+            errno = EINVAL;
+            return -1;
+        }
+
+        if ((pid = fork()) == -1)
+            return -1;
+
+        if (pid == 0) {
+            int fd;
+
+            if ((fd = open(pi.path, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+                _exit(1);
+            if (dup2(fd, 1) == -1)
+                _exit(2);
+            execvp(pi.args[0], &pi.args[0]);
+            _exit(3);
+        }
+
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+exec ile Betik (Script) Dosyalarının Çalıştırılması ve shebang
+==============================================================
+
+exec fonksiyonları ile betik (script) dosyaları da (yani text dosyalar da) çalıştırılabilmektedir. Bu
+özellik tamamen çekirdekte bulunan sistem fonksiyonları (Linux'ta ``execve``) tarafından sağlanmaktadır.
+exec fonksiyonları (aslında Linux'ta ``execve`` sistem fonksiyonu) eğer çalıştırılmak istenen dosya
+*çalıştırılabilir bir dosya değilse (örneğin Linux'ta ELF formatı ya da a.out formatı değilse)* bu
+dosyanın birinci satırını okuyarak onunla özel bir işlem yapmaktadır. Çalıştırılabilir formata sahip
+olmayan bir dosyanın (tipik olarak bir text dosya) birinci satırı aşağıdaki gibi ise exec fonksiyonları
+burada özel bir işlem uygulamaktadır:
+
+.. code-block:: text
+
+    #! [optional SPACE'ler] <executable file mutlak yol ifadesi> [isteğe bağlı argüman(lar)]
+
+shebang Satırının Biçimi
+------------------------
+
+Burada ``#!`` karakterlerine genellikle *shebang* denilmektedir. Bu karakterler hemen dosyanın başında
+bulunmak zorundadır. Shebang karakterlerinden sonra isteğe bağlı bir ya da birden fazla SPACE karakteri
+bulundurulabilmektedir. Bundan sonra gerçekten çalıştırılacak olan *çalıştırılabilir bir dosyanın* mutlak
+yol ifadesi olmalıdır. Bunu isteğe bağlı argümanlar izleyebilir. Örneğin aşağıdaki satırlar geçerlidir:
+
+.. code-block:: text
+
+    #! /bin/bash
+    #!/bin/bash
+    #!/usr/bin/python
+    #!/usr/bin/make -f
+
+exec işlemini yapan sistem fonksiyonları, eğer exec yapılmak istenen dosya çalıştırılabilir bir dosya
+değilse (burada ``x`` hakkını kastetmiyoruz, dosyanın ELF gibi bir formata sahip olmadığını
+kastediyoruz), onun birinci satırını okuyarak orada belirtilen çalıştırılabilir dosyayı çalıştırmaktadır.
+Ancak exec fonksiyonlarının bu işlemi yapabilmesi için exec yapılan dosyanın yine de (text dosyası
+olmasına karşın) ``x`` hakkına sahip olması gerekmektedir. Aksi takdirde exec fonksiyonları başarısız
+olur ve yine ``errno`` değeri ``EACCES`` biçiminde set edilir.
+
+Yukarıdaki gibi shebang satırı içeren bir betik dosyası exec fonksiyonlarıyla çalıştırılmak istendiğinde
+exec fonksiyonları betik dosyasını değil *shebang* satırında belirtilen çalıştırılacak dosyayı
+çalıştırmaktadır. Ancak o dosyayı çalıştırırken betik dosyasının yol ifadesini de o programa komut
+satırı argümanı olarak geçirmektedir. Örneğin ``myscript`` ismindeki aşağıdaki dosyayı exec
+fonksiyonlarıyla çalıştırmak isteyelim:
+
+.. code-block:: bash
+
+    #!/bin/bash
+
+    for i in {1..10}; do
+        echo "$i"
+    done
+
+Burada dosyanın shebang satırında ``/bin/bash`` dosyası belirtilmektedir. İşte exec fonksiyonları aslında
+bu ``/bin/bash`` dosyasını çalıştırıp ``myscript`` dosyasını da bu programa komut satırı argümanı olarak
+geçirmektedir. Yani aslında aşağıdaki çalıştırmayla eşdeğer bir durum ortaya çıkmaktadır:
+
+.. code-block:: console
+
+    $ /bin/bash myscript
+
+Görüldüğü gibi bu örnekte aslında betik dosyasını exec fonksiyonları değil ``/bin/bash`` programı
+çalıştırmaktadır. exec fonksiyonları bu sürece yalnızca aracılık etmektedir.
+
+shebang'te Belirtilen Programa Aktarılan Komut Satırı Argümanları
+-----------------------------------------------------------------
+
+Shebang satırında belirtilen programın çalıştırılması sırasında bu programa geçirilen komut satırı
+argümanları şöyledir:
+
+.. code-block:: text
+
+    argv[0] ---> shebang'te belirtilen program dosyasına ilişkin yol ifadesi
+    argv[1] ---> Eğer shebang'te çalıştırılabilen programın yanında isteğe bağlı argüman varsa o argüman
+    argv[2] ---> exec fonksiyonunda belirtilen çalıştırılabilir olmayan dosyanın (yani betik dosyasının)
+                 yol ifadesi
+    argv[3] ve sonrası ---> exec fonksiyonunda belirtilen komut satırı argümanları, ancak ilk argüman
+                 dahil değil
+
+Eğer shebang'in yanındaki programın yol ifadesinin yanında isteğe bağlı argüman verilmemişse bu durumda
+shebang'te belirtilen programın komut satırı argümanları şöyle olacaktır:
+
+.. code-block:: text
+
+    argv[0] ---> shebang'te belirtilen program dosyasına ilişkin yol ifadesi
+    argv[1] ---> exec fonksiyonunda belirtilen çalıştırılabilir olmayan dosyanın (yani betik dosyasının)
+                 yol ifadesi
+    argv[2] ve sonrası ---> exec fonksiyonunda belirtilen komut satırı argümanları, ancak ilk argüman
+                 dahil değil
+
+Burada dikkat edilmesi gereken bir nokta şudur: exec fonksiyonunda belirtilen ``argv[0]`` için girilen
+argüman shebang satırında belirtilen programa aktarılmamaktadır.
+
+Argüman Aktarımı Denemeleri
+---------------------------
+
+Şimdi çeşitli denemelerle argüman aktarımını anlamaya çalışalım.
+
+``sample.py`` isimli Python programını biz normalde şöyle çalıştırırız.
+
+.. code-block:: console
+
+    $ python3 sample.py
+
+``python3`` isimli yorumlayıcı (ismi ``python`` da olabilir) çalıştıracağı programı komut satırı
+argümanı olarak almaktadır. Şimdi biz çalıştırma işlemini kolaylaştırmak isteyelim. Bunun için
+``sample.py`` dosyasının başına shebang satırı yerleştirmeliyiz:
+
+.. code-block:: python
+
+    #!/usr/bin/python3
+
+    for i in range(10):
+        print(i)
+
+``sample.py`` dosyasına ``chmod`` komutu ile ``x`` hakkı verelim:
+
+.. code-block:: console
+
+    $ chmod +x sample.py
+
+Artık Python programını sanki bir C programıymış gibi çalıştırabiliriz:
+
+.. code-block:: console
+
+    $ ./sample.py
+    0
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+
+Burada exec fonksiyonları aslında aşağıdaki gibi bir çalıştırma yapılmış gibi işlem exec uygulayacaktır:
+
+.. code-block:: console
+
+    $ python3 sample.py
+
+``test.txt`` dosyasının shebang satırı şöyle olsun:
+
+.. code-block:: text
+
+    #!/home/kaan/Study/UnixLinux-SysProg/sample ankara
+
+Burada biz denememizin ``/home/kaan/Study/UnixLinux-SysProg`` dizininde yapıldığını varsayıyoruz. Siz bu
+denemeyi yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değiştirmelisiniz.
+
+Burada görüldüğü gibi shebang'te belirtilen programın yanında isteğe bağlı bir argüman (*ankara*
+argümanı) bulunmaktadır. Şimdi ``sample`` programının da C'de şöyle yazıldığını varsayalım:
+
+.. code-block:: c
+
+    /* sample.c */
+
+    int main(int argc, char *argv[])
+    {
+        printf("sample running...\n");
+
+        for (int i = 0; i < argc; ++i)
+            printf("argv[%d]: %s\n", i, argv[i]);
+
+        return 0;
+    }
+
+Şimdi aşağıdaki gibi exec yapmış olalım:
+
+.. code-block:: c
+
+    execl("test.txt", "test.txt", "ali", "veli", "selami", (char *)0);
+
+Ekranda şunları görmeliyiz:
+
+.. code-block:: text
+
+    sample running...
+    argv[0]: /home/kaan/Study/UnixLinux-SysProg/10-Exec/sample
+    argv[1]: ankara
+    argv[2]: test.txt
+    argv[3]: ali
+    argv[4]: veli
+    argv[5]: selami
+
+exec işlemi şöyle yapılmış olsun:
+
+.. code-block:: c
+
+    execl("test.txt", "ali", "veli", "selami", (char *)0);
+
+Ekrana şunlar çıkacaktır:
+
+.. code-block:: text
+
+    sample running...
+    argv[0]: /home/kaan/Study/UnixLinux-SysProg/10-Exec/sample
+    argv[1]: ankara
+    argv[2]: test.txt
+    argv[3]: veli
+    argv[4]: selami
+
+Şimdi de shebang satırı şöyle olsun:
+
+.. code-block:: text
+
+    #!/home/kaan/Study/UnixLinux-SysProg/sample
+
+Görüldüğü gibi burada artık shebang'te belirtilen programın yanında isteğe bağlı argüman yoktur. Şimdi
+exec işlemini şöyle yapmış olalım:
+
+.. code-block:: c
+
+    execl("test.txt", "test.txt", "ali", "veli", "selami", (char *)0);
+
+.. code-block:: text
+
+    sample running...
+    argv[0]: /home/kaan/Study/UnixLinux-SysProg/10-Exec/sample
+    argv[1]: test.txt
+    argv[2]: ali
+    argv[3]: veli
+    argv[4]: selami
+
+shebang Satırının Uzunluk Sınırı ve Göreli Yol Kullanımı
+--------------------------------------------------------
+
+Sistemlerde genellikle shebang satırları için maksimum bir uzunluk belirlenmiş olmaktadır. Örneğin eski
+Linux sistemlerinde eğer shebang satırı uzunsa çekirdek bunun ilk 127 karakterini dikkate almaktadır.
+Ancak Linux'ta 5.1 çekirdeği ile birlikte bu uzunluk 255'e yükseltilmiştir.
+
+Shebang'te belirtilen çalıştırılabilir program genellikle *mutlak yol ifadesi* ile belirtilmektedir.
+Ancak Linux'ta buradaki program *göreli yol ifadesi* ile de belirtilebilmektedir. Örneğin:
+
+.. code-block:: text
+
+    #!sample
+
+Bu durumda burada belirtilen program exec işlemini yapan prosesin çalışma dizini temel alınarak
+aranmaktadır.
+
+shebang'e Birden Fazla Argüman Yazma
+------------------------------------
+
+Shebang'te belirtilen programın yanına birden fazla argüman yazabilir miyiz? Örneğin:
+
+.. code-block:: text
+
+    #!/home/kaan/Study/Unix-Linux-SysProg/sample ankara izmir istanbul
+
+Maalesef bu durumda UNIX türevi sistemler arasında bazı farklılıklar söz konusu olmaktadır. Bu durum
+POSIX standartlarında açık biçimde belirtilmemiş ve işletim sistemini yazanların isteğine bırakılmıştır.
+Linux ve pek çok sistem bu durumda shebang'te belirtilen programın sağındaki tüm argümanları tek bir
+argümanmış gibi aktarmaktadır. ``test.txt`` dosyasının başının yukarıdaki gibi olduğunu varsayalım. Bu
+dosya aşağıdaki gibi exec yapılmış olsun:
+
+.. code-block:: c
+
+    execl("test.txt", "test.txt", "ali", "veli", "selami", (char *)0);
+
+Linux sistemlerinde aşağıdaki gibi bir çıktı elde edilmiştir:
+
+.. code-block:: text
+
+    sample running...
+    argv[0]: /home/kaan/Study/UnixLinux-SysProg/10-Exec/sample
+    argv[1]: ankara izmir istanbul
+    argv[2]: test.txt
+    argv[3]: ali
+    argv[4]: veli
+    argv[5]: selami
+
+Bazı UNIX türevi sistemler bu durumda yalnızca boşlukla ayrılmış ilk argümanı (örneğimizde *ankara*)
+programa aktarıp diğerlerini ihmal edebilmektedir. Bu durumda programcının taşınabilirliği sağlamak için
+shebang satırında tek bir argüman kullanması tavsiye edilmektedir.
+
+Betik Dosyasının Doğrudan Kabuktan Çalıştırılması
+-------------------------------------------------
+
+Tabii biz bir script dosyasını doğrudan kabuk üzerinden de çalıştırabiliriz. Fark eden bir şey yoktur. Bu
+durumda zaten exec işlemini kabuk uygulamaktadır. Örneğin ``test.txt`` dosyası şöyle olsun:
+
+.. code-block:: text
+
+    #!/home/kaan/Study/UnixLinux-SysProg/sample ankara
+
+Şimdi bunu kabuk üzerinden çalıştıralım:
+
+.. code-block:: console
+
+    $ ./test.txt ali veli selami
+
+    sample running...
+    argv[0]: /home/kaan/Study/UnixLinux-SysProg/10-Exec/sample
+    argv[1]: ankara
+    argv[2]: ./test.txt
+    argv[3]: ali
+    argv[4]: veli
+    argv[5]: selami
+
+Görüldüğü gibi burada exec işlemini kabuk uygulamıştır. Kabuk exec uygularken dosya ismini yine exec'te
+ilk komut satırı argümanı olarak kullanır. Ancak exec bunu shebang'te belirtilen programa
+aktarmamaktadır.
+
+Tam Örnek (exec-prog.c / sample.c / test.txt)
+---------------------------------------------
+
+Aşağıda shebang programına argüman aktarımının test edilmesi için bir örnek verilmiştir. Buradaki
+``test.txt`` script programına ``chmod`` komutu ile ``x`` hakkı vermeyi unutmayınız. Burada biz denemeyi
+kendi makinemizde ``/home/kaan/Study/UnixLinux-SysProg`` dizininde yaptık. Siz kendi dizininizde
+yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değiştirmelisiniz.
+
+.. code-block:: c
+
+    /* exec-prog.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        pid_t pid;
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        if (pid == 0) {
+            execl("test.txt", "test.txt", "ali", "veli", "selami", (char *)0);
+            exit_sys("execl");
+        }
+
+        if (wait(NULL) == -1)
+            exit_sys("wait");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+.. code-block:: c
+
+    /* sample.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+
+    int main(int argc, char *argv[])
+    {
+        printf("sample running...\n");
+
+        for (int i = 0; i < argc; ++i)
+            printf("argv[%d]: %s\n", i, argv[i]);
+
+        return 0;
+    }
+
+.. code-block:: text
+
+    /* test.txt */
+
+    #!/home/kaan/Study/UnixLinux-SysProg/10-Exec/sample ankara
+
