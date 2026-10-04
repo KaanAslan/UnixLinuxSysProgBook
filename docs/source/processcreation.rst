@@ -2,8 +2,9 @@
 Proseslerin Yaratılması ve Yok Edilmesi
 =======================================
 
-Anımsanacağı gibi işletim sistemlerinde çalışmakta olan programlara "proses" denilmektedir. Her proses başka bir proses 
-tarafından yaratılmaktadır. Bu bölümde dikkatimizi prosesler üzerinde üzerine çevireceğiz. 
+Anımsanacağı gibi işletim sistemlerinde çalışmakta olan programlara *proses (process)* denilmektedir. Her proses başka bir proses 
+tarafından yaratılmaktadır. Bu bölümde dikkatimizi prosesler üzerinde üzerine çevireceğiz. Proseslerin ``fork`` fonksiyonuyla 
+nasıl yaratıldığını, ``wait`` fonksiyonlarıyla onların çıkış kodlarının nasıl elde edildiğini örneklerle açıklayacağız.
 
 Proses ID (PID) Kavramı ve pid_t Türü
 =====================================
@@ -474,7 +475,7 @@ maruz kaldığı bir duruma diğeri maruz kalmayacaktır.)
 Aşağıdaki örnekte ``fork`` işlemi sonrasında üst proses ``g_x`` global değişkenine yeni bir değer
 atamıştır. Sonra alt proseste bu global değişkenin değeri yazdırılmıştır. Tabii alt proses üst prosesin
 yaptığı bu değişikliği görmeyecektir. Çünkü aslında iki prosesin de bellek alanları tamamen ``fork``
-içerisinde klonlama yöntemiyle ayrıştırılmıştır.
+içerisinde klonlama işlemiyle ayrıştırılmıştır.
 
 .. code-block:: c
 
