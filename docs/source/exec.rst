@@ -1135,12 +1135,6 @@ Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazı
     }
 
 
-.. _fexecve-close-on-exec-ve-shebang:
-
-===========================================================
-fexecve, close-on-exec Bayrağı, IO Yönlendirmesi ve shebang
-===========================================================
-
 execve Kullanarak Değişken Sayıda Argüman Alan execl Gerçekleştirimi
 ====================================================================
 
@@ -2022,4 +2016,1108 @@ yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değişt
     /* test.txt */
 
     #!/home/kaan/Study/UnixLinux-SysProg/10-Exec/sample ankara
+
+
+
+.. _shebang-mekanizmasi-ve-system-fonksiyonu:
+
+========================================
+shebang Mekanizması ve system Fonksiyonu
+========================================
+
+shebang Mekanizmasının Amacı ve Örnekler
+========================================
+
+Peki bütün bunların anlamı nedir? Yani shebang ile bir script dosyasının aslında başka bir programı
+çalıştırmasının ne faydası olabilir? İşte bu mekanizma sayesinde yorumlayıcı yoluyla çalıştırılan
+dosyaların doğrudan çalıştırılabilmesine olanak sağlanmaktadır.
+
+Bash Betiği Örneği (sample.sh)
+------------------------------
+
+Örneğin aşağıdaki gibi ``sample.sh`` isimli bir bash script dosyası olsun:
+
+.. code-block:: bash
+
+    #!/bin/bash
+
+    for i in {1..10}
+    do
+        echo $i
+    done
+
+Bu program 1'den 10'a kadar sayıları ekrana yazdırmaktadır. Normal olarak bir bash programı aşağıdaki
+gibi çalıştırılır:
+
+.. code-block:: console
+
+    $ /bin/bash sample.sh
+
+Burada ``sample.sh`` dosyasının ``x`` hakkına sahip olması gerekmez. Ancak biz dosyayı doğrudan aşağıdaki
+gibi çalıştırmak isteyebiliriz:
+
+.. code-block:: console
+
+    $ ./sample.sh
+
+Bu durumda dosyanın ``x`` hakkına sahip olması gerekir. Dosyayı böyle çalıştırmak istediğimizde kabuk
+programı exec işlemi uygulayıp ``sample.sh`` programını çalıştırmak isteyecektir. Sistem fonksiyonu da
+``sample.sh`` programının çalıştırılabilir bir dosya formatına sahip olmadığını anladığında shebang
+satırına bakıp orada belirtilen ``/bin/bash`` programını çalıştıracaktır. Ancak bu programa script
+dosyasının kendisini argüman olarak geçirecektir. Yani program adeta şöyle çalıştırılmış olacaktır:
+
+.. code-block:: console
+
+    $ /bin/bash sample.sh
+
+Peki ``/bin/bash`` programı buradaki ``sample.sh`` programını çalıştırırken onun başındaki shebang
+satırı bir soruna yol açmayacak mı? İşte betik dilleriyle, yorumlayıcılarla çalışılan dillerin hemen
+hepsinde ``#`` özellikle bu shebang kullanımını desteklemek için yorum satırı biçiminde ele alınmaktadır.
+Aynı durum Python, Perl, sed, awk gibi dillerde de böyledir.
+
+Python Betiği Örneği (sample.py)
+--------------------------------
+
+Şimdi bir Python programını shebang ile çalıştıralım. Programın ismi ``sample.py`` olsun:
+
+.. code-block:: python
+
+    #!/usr/bin/python3
+
+    for i in range(10):
+        print(i)
+
+Bu dosyaya ``x`` vererek biz artık onu komut satırından çalıştırabiliriz:
+
+.. code-block:: console
+
+    $ ./sample.py
+
+.. code-block:: python
+
+    #!/usr/bin/python3
+
+    for i in range(10):
+        print(i)
+
+make Betiği Örneği (sample.mak)
+-------------------------------
+
+Aşağıdaki örnekte bir ``make`` dosyası shebang yoluyla çalıştırılmaktadır:
+
+.. code-block:: makefile
+
+    #!/bin/make -f
+
+    sample: sample.o
+        gcc -o sample sample.o
+    sample.o: sample.c
+        gcc -c sample.c
+
+    clean:
+        rm -f *.o
+        rm -f sample
+
+Burada dosyanın ``sample.mak`` isminde olduğunu varsayalım. Bu dosyaya ``x`` hakkını verdikten sonra onu
+aşağıdaki gibi çalıştırmış olalım:
+
+.. code-block:: console
+
+    $ ./sample.mak
+
+Bu çalıştırma aslında aşağıdakiyle eşdeğer olacaktır:
+
+.. code-block:: console
+
+    $ /bin/make -f sample.mak
+
+shebang ve Dosya Formatı Kontrolü Sırası
+========================================
+
+Linux çekirdeklerinde exec fonksiyonları genel olarak (bazı ayrıntıları da vardır) önce shebang kontrolü
+yapıp sonra ELF dosyası kontrolünü (ve diğer bazı çalıştırılabilir dosya formatlarının kontrolünü)
+yapmaktadır. Ancak aslında bu sıranın da bir önemi yoktur. Çünkü ELF gibi çalıştırılabilir dosya
+formatlarının ilk bayt'larında *sihirli sayılar (magic numbers)* vardır. Bu sihirli sayılarla ``#!``
+shebang karakterleri zaten çakışmamaktadır.
+
+Shebang satırında bazı şeylere de dikkat etmek gerekir. Örneğin shebang karakterlerinin hemen ilk satırın
+başından başlatılması gerekir. Aksi takdirde exec fonksiyonlarının p'siz versiyonları (izleyen
+paragrafta ayrıntıları göreceksiniz) dosya çalıştırılabilir bir dosya değilse ve dosyanın ilk iki
+karakteri ``#!`` biçiminde de değilse ``ENOEXEC`` ile başarısız olmaktadır. Eğer exec fonksiyonları
+shebang karakterlerinin yanındaki dosyayı bulamazsa bu durumda ``ENOENT`` errno değeri ile başarısız
+olmaktadır.
+
+exec'in p'li Versiyonlarında shebang'siz Betik Çalıştırma
+=========================================================
+
+exec fonksiyonlarının p'li versiyonları (yani ``execlp`` ve ``execvp``) özel bir davranışa sahiptir.
+Bilindiği gibi bu fonksiyonlar ``PATH`` çevre değişkeninde belirtilen dizinlerde exec yapılan dosyayı tek
+tek aramaktadır. Eğer bunlar betik dosyasını (ELF dosyasını değil) ``x`` hakkına sahip olarak bulup ancak
+dosyanın başında *shebang* görmezlerse sanki dosyanın başında varmış gibi onları işleme sokmaktadır:
+
+.. code-block:: text
+
+    #!/bin/sh
+
+Buradan şu sonuç çıkmaktadır: exec fonksiyonlarının p'li versiyonları ile bir shell script dosyasını biz
+başında shebang satırı olmadan da çalıştırabiliriz. Ancak exec fonksiyonlarının p'siz versiyonlarında
+bunu yapamayız. Öte yandan Linux sistemlerinde zaten ``execve`` dışındaki exec fonksiyonlarının sistem
+fonksiyonu olmadığını anımsayınız. O halde exec fonksiyonlarının p'li versiyonları tamamen kullanıcı
+modunda script dosyasını ``execve`` yaptıktan sonra ``ENOEXEC`` errno değeri ile fonksiyonun başarısız
+olduğunu gördüklerinde bu kez ``/bin/sh`` dosyasını ``execve`` ile exec yapmaktadır. Dosya isminin
+içerisinde ``/`` karakteri kullanılsa bile exec fonksiyonlarının p'li versiyonlarının davranışı yine bu
+biçimdedir. Tabii bu durumda ``PATH`` çevre değişkenine başvurulmamaktadır. exec fonksiyonlarının p'li
+versiyonlarının bu davranışı POSIX'te eskiden isteğe bağlı bırakılmıştı. Ancak sonra standartlarda bu
+davranış zorunlu tutulmuştur. Ancak POSIX standartları çalıştırılacak kabuk programının ne olacağı
+konusunda bir belirlemede bulunmamıştır.
+
+Yukarıdaki açıklamalarımızdan çıkan bir sonuç şudur: Biz kabuk üzerinde kabuk betiğini aslında başında
+hiç shebang satırı olmadan da çalıştırabiliriz. Çünkü kabuk exec fonksiyonlarının p'li versiyonlarını
+kullanmaktadır. Aşağıdaki gibi ``x`` verilmiş ``myscript`` isminde bir Bash betik dosyası olsun:
+
+.. code-block:: bash
+
+    for i in {1..10}; do
+        echo "$i"
+    done
+
+Biz bu dosyayı başında shebang satırı olmadığı halde kabuk üzerinden çalıştırabiliriz:
+
+.. code-block:: console
+
+    $ ./myscript
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+
+shebang'in Özyinelemeli Olması
+==============================
+
+Peki shebang satırında belirtilen dosyanın kendisi de bir betik dosyası olabilir mi? Yani bu shebang
+işlemi özyinelemeli midir? Aslında POSIX standartları bu konuda bir şey söylememiştir. Bu durumda böyle
+bir işlemin özyinelemeli yapılacağının bir garantisi yoktur. Linux çekirdeği bu tür durumlarda dört
+kademeye kadar özyineleme yapabilmektedir.
+
+system Fonksiyonu
+=================
+
+``system`` isimli ilginç bir standart C fonksiyonu vardır. Bu fonksiyon ilgili sistemdeki kabuk
+programını (command interpreter) interaktif olmayan modda (non-interactive shell) çalıştırarak bizim
+verdiğimiz bir kabuk komutunun kabuk tarafından işletilmesini sağlar. Böylece biz kabuk üzerinde
+çalıştırabildiğimiz tüm komutları bir C programının içerisinde bu yolla çalıştırabiliriz. ``system``
+fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <stdlib.h>
+
+    int system(const char *command);
+
+Fonksiyon parametre olarak kabuğa işletilecek komut yazısını almaktadır. Tabii ``system`` bir standart C
+fonksiyonu olduğuna göre yalnızca UNIX/Linux sistemlerinde değil diğer tüm sistemlerde de
+kullanılabilmektedir. Örneğin ``system`` fonksiyonu UNIX/Linux sistemlerinde ``/bin/sh`` programını
+çalıştırırken, Windows sistemlerinde ``cmd.exe`` programını çalıştırmaktadır. Tabii bir sistemde kabuk
+programı bulunuyor olmak zorunda da değildir. Örneğin pek çok gömülü sistemde bir işletim sistemi
+olmadığı için kabuk programı da yoktur. İşte programcı ilgili sistemde kabuk programının olup olmadığını
+fonksiyonun parametresine ``NULL`` adres geçerek test edebilir. Bu durumda ``system`` fonksiyonu eğer
+ilgili sistemde kabuk programı varsa sıfır dışı bir değere, yoksa 0 değerine geri dönmektedir. Tabii
+programcı Windows, UNIX/Linux ve macOS gibi sistemlerde çalışıyorsa böyle bir kontrol yapmaz.
+
+system Fonksiyonunun Çalışma Mantığı ve Geri Dönüş Değeri
+---------------------------------------------------------
+
+Daha önceden de belirttiğimiz gibi pek çok sistemde kabuk programları *interaktif olmayan
+(noninteractive)* bir modda çalıştırılabilmektedir. Örneğin UNIX/Linux kabuk programları ``-c`` seçeneği
+ile çalıştırılırsa yalnızca bir komutu çalıştırıp sonlanmaktadır. Örneğin:
+
+.. code-block:: console
+
+    $ bash -c "ls -l; cat sample.c"
+
+Benzer biçimde Windows sistemlerinde de ``cmd.exe`` kabuk programı ``/C`` seçeneği ile benzer biçimde
+çalıştırılabilmektedir.
+
+O halde UNIX/Linux sistemlerinde ``system`` fonksiyonu kabuk programını ``-c`` seçeneği ile fork/exec
+yoluyla çalıştırmaktadır. Eğer ``system`` fonksiyonu ``fork`` ya da ``wait`` işleminde başarısız olursa
+-1 değeri ile geri dönmektedir. Eğer ``fork`` yapıp exec başarısız olursa sanki ``_exit(127)`` biçiminde
+oluşturulan ve ``waitpid`` fonksiyonu ile elde edilen değere (status) geri dönmektedir. (Yani başarısız
+olursa geri dönüş değeri hem sonlanma bilgisini hem de çıkış kodunu içermektedir.) Diğer durumlarda
+(yani ``fork`` ve exec başarılı bir biçimde yapılmışsa) ``system`` fonksiyonu çalıştırdığı kabuk
+programının ``waitpid`` fonksiyonuyla elde edilen değerine (status) geri dönmektedir. (Yani başarı
+durumunda ``system`` fonksiyonu kabuğun status değeriyle geri dönmektedir.) Tabii kabuk programları da
+interaktif olmayan modda çalıştırılan komutun ``waitpid`` fonksiyonu ile elde edilen status değerine geri
+dönerler. Bu durumda başarı durumunda aslında kabuktan çalıştırılan komutun (yani programın) status
+değeri elde edilmektedir. Örneğin çağrı şöyle yapılmış olsun:
+
+.. code-block:: c
+
+    system("ls -l");
+
+Burada ``system`` fonksiyonu fork/exec ile ``/bin/sh`` programını ``-c`` seçeneği ile çalıştırmaktadır.
+Tabii kabuk programı da ``ls`` programını fork/exec ile çalıştıracaktır. (Bazen kabuk programları
+interaktif modda eğer tek bir komut işletiliyorsa boşuna fork yapmayabilir.) Burada kabuk programı aslında
+``ls`` programının ``waitpid`` fonksiyonu ile elde edilen değer (status) ile sonlanmaktadır. Dolayısıyla
+biz aslında ``system`` fonksiyonunun geri dönüş değeri olarak çalıştırdığımız ``ls`` programının
+``waitpid`` fonksiyonu ile elde edilen (status) değerini elde etmiş oluruz. UNIX/Linux sistemlerinde
+genel olarak kabuk komutları (yani programları) başarı durumunda exit kodu olarak 0 değerini
+oluşturmaktadır.
+
+system Başarı Kontrolü
+----------------------
+
+Peki ``system`` fonksiyonunun başarısını nasıl kontrol etmeliyiz? Biz fonksiyonun geri dönüş değerini -1
+ve 0'dan farklılık ile test edebiliriz. Örneğin:
+
+.. code-block:: c
+
+    result = system("ls -l");
+
+    if (result == -1 || (WIFEXITED(result) && WEXITSTATUS(result) != 0) || WIFSIGNALED(result)) {
+        fprintf(stderr, "command failed!..\n");
+        exit(EXIT_FAILURE);
+    }
+
+Biz kabuk programını ``system`` fonksiyonu ile çalıştırırken komutlar arasına ``;`` koyarak birden fazla
+komutun çalıştırılmasını sağlayabiliriz. Genel olarak kabuk bu durumda son komutun status değerini bize
+vermektedir.
+
+Aslında programcılar genellikle ``system`` fonksiyonu için yalnızca -1 kontrolünü yapmaktadır. Yani
+çalıştırdıkları komutun başarısını kontrol etmemektedir. Örneğin:
+
+.. code-block:: c
+
+    if (system("any command") == -1)
+        exit_sys("system");
+
+``system`` fonksiyonu POSIX standartlarında ``errno`` değişkenini set etmektedir. POSIX standartlarına
+göre fonksiyonun -1 değeri ile geri döndüğünde ``errno`` değişkeni ancak ``ECHILD`` değeri ile set
+edilmektedir.
+
+Aşağıda ``system`` fonksiyonunun kullanımına bir örnek verilmiştir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/wait.h>
+
+    int main(int argc, char *argv[])
+    {
+        int result;
+
+        result = system("ls -l");
+        if (result == -1 || (WIFEXITED(result) && WEXITSTATUS(result) != 0) || WIFSIGNALED(result)) {
+            fprintf(stderr, "command failed!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Success...\n");
+
+        return 0;
+    }
+
+system Fonksiyonunun Kendi Gerçekleştirimi (mysystem)
+-----------------------------------------------------
+
+Peki ``system`` fonksiyonunu nasıl yazabiliriz? Aşağıda buna bir örnek verilmiştir. Ancak aşağıdaki
+örnekte bazı noktalar henüz kursumuzda o konu anlatılmadığı için ihmal edilmiştir. Bu noktalar şunlardır:
+
+- ``waitpid`` fonksiyonu sinyalle kesilirse yeniden çalıştırılması (restart edilmesi) gerekir.
+- Üst prosesin işlemler sırasında ``SIGCHLD`` sinyalini, ``SIGINT`` ve ``SIGQUIT`` sinyallerini bloke
+  etmesi gerekmektedir.
+
+Bu konular kursumuzda *sinyaller (signals)* konusu içerisinde ileride ele alınacaktır.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+
+    void exit_sys(const char *msg);
+
+    int mysystem(const char *command)
+    {
+        pid_t pid;
+        int status;
+
+        if (command == NULL)
+            return 1;
+
+        if ((pid = fork()) == -1)
+            return -1;
+
+        if (pid == 0) {
+            if (execl("/bin/sh", "/bin/sh", "-c", command, (char *)0) == -1)
+                _exit(127);
+            /* unreachable code */
+        }
+        if (waitpid(pid, &status, 0) == -1)
+            return -1;
+
+        return status;
+    }
+
+    int main(void)
+    {
+        int result;
+
+        result = mysystem("ls");
+
+        if (result == -1 || WIFEXITED(result) && WEXITSTATUS(result) != 0) {
+            fprintf(stderr,"command failed!...\n");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Ok\n");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+system mi fork/exec mi?
+=======================
+
+Peki mademki ``system`` fonksiyonu bizim için zaten fork/exec işlemlerini yapmaktadır, bu durumda
+örneğin bir programı çalıştırmak için biz fork/exec kullanmak yerine bu işlemi ``system`` fonksiyonu ile
+yapamaz mıyız? Evet aslında yapabiliriz. Ancak bu konudaki her türlü gereksinimimizi ``system``
+fonksiyonu karşılayamaz. Örneğin ``fork`` işleminden sonra alt proseste ayarlamalar yapıp exec yapmak
+isteyebiliriz. Ayrıca ``system`` fonksiyonu kendi içerisinde kabuk programını çalıştırdığı için daha
+yavaş ve daha fazla kaynak kullanır durumdadır. Bizim tavsiyemiz bir programı açıkça fork/exec ile
+çalıştırmanız, ancak karmaşık işlemleri (örneğin IO yönlendirmesi, boru vs. gibi) ``system`` fonksiyonuyla
+yapmanızdır.
+
+system ile Basit Bir Kabuk Sarmalayıcısı Örneği
+===============================================
+
+Aşağıdaki örnekte kabuk programı ``system`` fonksiyonu sayesinde sarmalanmıştır. Tabii komut satırından
+komut alıp onu ``system`` fonksiyonu yoluyla asıl kabuk programına çalıştırmak gerçek anlamda bir kabuk
+yazmak anlamına gelmemektedir. Bu bir sarmalama (wrapping) işlemidir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+
+    int main(void)
+    {
+        char cmd[4096];
+        char *str;
+
+        for (;;) {
+            printf("CSD>");
+            fflush(stdout);
+
+            if (fgets(cmd, 4096, stdin) != NULL)
+                if ((str = strchr(cmd, '\n')) != NULL)
+                    *str = '\0';
+                if (!strcmp(cmd, "exit"))
+                    break;
+            if (system(cmd) == -1)
+                perror("system");
+        }
+
+        return 0;
+    }
+
+
+.. _set-user-id-set-group-id-sticky:
+
+=================================================================
+set-user-id, set-group-id, sticky Bayrakları ve Proses Kimlikleri
+=================================================================
+
+set-user-id, set-group-id ve sticky Erişim Hakları
+==================================================
+
+Şimdi dosyaların henüz görmediğimiz *set-user-id*, *set-group-id* ve *sticky* denilen erişim hakları
+üzerinde duracağız.
+
+Biz şimdiye kadar dosyalar için 9 erişim bayrağı gördük: ``S_IRUSR``, ``S_IWUSR``, ``S_IXUSR``,
+``S_IRGRP``, ``S_IWGRP``, ``S_IXGRP``, ``S_IROTH``, ``S_IWOTH``, ``S_IXOTH``. Bu bayraklar dosyanın
+``rwx rwx rwx`` erişim haklarını belirtmektedir. Ancak aslında dosyaların erişim hakları 9 tane değil 12
+tanedir. Henüz görmediğimiz üç erişim hakkına *set-user-id*, *set-group-id* ve *sticky* hakları
+denilmektedir. Şimdi dikkatimizi bu üç erişim hakkına çevireceğiz. Bu üç erişim hakkı ``open``
+fonksiyonunda ya da ``chmod`` fonksiyonunda sırasıyla ``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` sembolik
+sabitleriyle kullanılabilmektedir. Bu sembolik sabitler aslında en yüksek anlamlı dördüncü octal digit'e
+karşılık gelmektedir:
+
+.. code-block:: text
+
+    UGS rwx rwx rwx rwx
+
+Dolayısıyla POSIX 2008 ve sonrasında bu bayrakları yüksek anlamlı dördüncü octal digit'le de
+belirtebiliriz.
+
+chmod Komutuyla set-user-id / set-group-id / sticky Ayarlama
+============================================================
+
+Sembolik Gösterim (u+s, g+s, +s, +t)
+------------------------------------
+
+Komut satırında dosyanın set-user-id bayrağını set etmek için ``chmod`` komutunda ``u+s`` seçeneği
+kullanılabilir. Örneğin:
+
+.. code-block:: console
+
+    $ ls -l sample
+    -rwxrwxrwx 1 kaan study 17176 Şub 19 11:46 sample
+    $ chmod u+s sample
+    $ ls -l sample
+    -rwsrwxrwx 1 kaan study 17176 Şub 19 11:46 sample
+
+Görüldüğü gibi eğer dosyanın hem ``x`` bayrağı hem de set-user-id bayrağı set edilmişse ``x`` hakkının
+bulunduğu yerde ``s`` harfi gözükmektedir. Ancak dosyanın yalnızca set-user-id bayrağı set edilmişse
+``x`` hakkının bulunduğu yerde ``S`` harfi gözükür. Örneğin:
+
+.. code-block:: console
+
+    $ ls -l test.txt
+    -rw-rw-rw- 1 kaan study 2087 Şub 19 10:49 test.txt
+    $ chmod u+s test.txt
+    $ ls -l test.txt
+    -rwSrw-rw- 1 kaan study 2087 Şub 19 10:49 test.txt
+
+Dosyanın set-group-id bayrağının set edilmesi de ``chmod`` komutunda ``g+s`` ile yapılmaktadır. İşlem
+sonrasında yine grup bilgisinde ``x`` hakkı yerinde ``s`` ya da ``S`` görünür. ``chmod`` komutunda
+``+s`` kullanılırsa bu durumda dosyanın hem set-user-id hem de set-group-id bayrakları set edilir.
+Dosyanın sticky bayrağını set etmek için ``chmod`` komutunda ``+t`` kullanılmaktadır. Bu işlem
+yapıldığında görüntü olarak grup hakkında ``x`` varsa ``x`` hakkının olduğu yerde ``t``, yoksa orada
+``T`` görülmektedir.
+
+Yukarıdaki komutlarda ``+`` yerine ``-`` karakterini getirerek reset işlemlerini yapabilirsiniz.
+
+Octal Gösterim (chmod 4755 ...)
+-------------------------------
+
+Benzer biçimde istersek yine ``chmod`` komutunda octal digit'lerle set-user-id, set-group-id ve sticky
+bitlerini set edebiliriz. Örneğin:
+
+.. code-block:: console
+
+    $ chmod 4755 sample
+
+Burada en soldaki octal digit 4 olduğu için dosyanın set-user-id bayrağı da set edilmiştir. En soldaki
+octal digit'in bitleri yukarıda da belirttiğimiz gibi şu sıradadır:
+
+.. code-block:: text
+
+    set-user-id  set-group-id  sticky
+
+chmod Fonksiyonuyla Programatik Olarak Ayarlama
+===============================================
+
+``chmod`` fonksiyonunda yukarıda belirttiğimiz bayrakları kullanarak set-user-id, set-group-id ve sticky
+bayraklarını set edebiliriz. Örneğin biz ``sample`` programını ``rwsrwxrwx`` haline şöyle getirebiliriz:
+
+.. code-block:: c
+
+    if (chmod("sample", S_IRWXU|S_IRWXG|S_IRWXO|S_ISUID) == -1)
+        exit_sys("chmod");
+
+Peki zaten var olan bir dosyaya mevcut erişim haklarını bozmadan bu özellikleri programlama yoluyla nasıl
+ekleyebiliriz? Bunun için önce dosyanın erişim haklarının ``stat``, ``lstat`` ya da ``fstat``
+fonksiyonuyla elde edilmesi gerekmektedir. Ondan sonra bu erişim haklarına biz ``S_ISUID``, ``S_ISGID``
+ve ``S_ISVTX`` bayraklarını OR işlemiyle ekleyebiliriz. Ancak ``stat`` fonksiyonunun bize verdiği
+``st_mode`` değeri dosyanın türünü de içermektedir. Gerçi ``chmod`` fonksiyonu bu ekstra bitleri dikkate
+almamaktadır. Ancak yine de ``stat`` yapısının ``st_mode`` elemanındaki değeri ``S_IFMT`` ile maskelemek
+daha uygundur. (Stevens *"Advanced Programming in the UNIX Environment"* kitabında böyle yapmamıştır.) O
+halde bu işlem şöyle yapılabilir:
+
+.. code-block:: c
+
+    struct stat finfo;
+
+    if (stat("sample", &finfo) == -1)
+        exit_sys("stat");
+
+    if (chmod("sample", (finfo.st_mode & ~S_IFMT) | S_ISUID) == -1)
+        exit_sys("chmod");
+
+``S_IFMT`` bayrağı erişim hakları dışındaki dosya tür bayraklarını temsil etmektedir. ``~S_IFMT`` erişim
+hakları bayraklarını 1, diğer bayrakları 0 hale getirmektedir.
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+
+    void exit_sys(const char *msg);
+
+    int main(int argc, char *argv[])
+    {
+        struct stat finfo;
+
+        if (argc != 2) {
+            fprintf(stderr, "wrong number of arguments!..\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (stat(argv[1], &finfo) == -1)
+            exit_sys("stat");
+
+        if (chmod(argv[1], (finfo.st_mode & ~S_IFMT) | S_ISUID) == -1)
+            exit_sys("chmod");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+set-user-id ve set-group-id'nin Anlamı (Çalıştırılabilir Dosyalarda)
+====================================================================
+
+Peki bir dosyanın set-user-id ve set-group-id bayraklarının set edilmiş olmasının ne anlamı vardır?
+Öncelikle bu bayrakların yalnızca *çalıştırılabilir dosyalar için* anlamlı olduğunu belirtelim. Yani bu
+bayraklar tasarımda *çalıştırılabilir dosyalar* için düşünülmüştür. Çalıştırılabilir dosyanın set-user-id
+bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin kullanıcı ID'si işletim sistemi
+tarafından dosyanın kullanıcı ID'si olacak biçimde değiştirilmektedir. Benzer biçimde çalıştırılabilir
+dosyanın set-group-id bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin grup ID'si
+dosyanın grup ID'si olarak değiştirilmektedir.
+
+passwd Örneği
+-------------
+
+Set-user-id bayrağının kullanım gerekçesini basit bir örnekle açıklayabiliriz. Bilindiği gibi kullanıcı
+parolaları komut satırında ``passwd`` komutuyla değiştirilmektedir. Default durumda ``passwd`` komutu
+kullanıcının kendi parolasını değiştirmektedir. Örneğin:
+
+.. code-block:: console
+
+    $ passwd
+
+Burada ``passwd`` önce mevcut parolayı sonra da yeni parolayı bize sormaktadır. ``passwd`` programı
+parolayı ``/etc/shadow`` dosyasına yazmaktadır. Bu dosyaya yalnızca ``root`` prosesler
+erişebilmektedir:
+
+.. code-block:: console
+
+    $ ls -l /etc/passwd
+    -rw-r--r-- 1 root root 3008 Haz 11 13:33 /etc/passwd
+
+Peki biz ``passwd`` komutunu çalıştırdığımızda kabuk önce ``fork`` sonra exec yaptığına göre bizim
+çalıştırdığımız ``passwd`` programı ``/etc/shadow`` dosyasına nasıl erişmektedir? İşte aslında
+``/bin/passwd`` programının set-user-id bayrağı set edilmiştir:
+
+.. code-block:: console
+
+    $ ls -l /bin/passwd
+    -rwsr-xr-x 1 root root 64152 May 30  2024 /bin/passwd
+
+Böylece bu dosya exec yapıldığında prosesin etkin kullanıcı id'si de set-user-id bayrağının etkisiyle
+``root`` olmaktadır. Şimdi siz bunun bir güvenlik açığı oluşturabileceğini düşünebilirsiniz. Ancak
+aslında bir güvenlik açığı söz konusu değildir. Bu programın sahibi ``root`` kullanıcısıdır ve o
+isteyerek bu programın ``root`` etkin kullanıcı ID'siyle çalıştırılmasına olanak sağlamıştır. Herhangi
+bir kullanıcı zaten başkalarına ait dosyaların erişim haklarını değiştirememektedir.
+
+Burada bir noktaya dikkat ediniz. set-user-id ya da set-group-id bayrağı set edilmiş dosyalar exec
+yapılırken prosesin yalnızca etkin kullanıcı ID'si ve etkin grup ID'si değiştirilmektedir. Gerçek
+kullanıcı ID'si ve gerçek grup ID'si değiştirilmemektedir. Biz genellikle gerçek ve etkin ID'lerin aynı
+değerde olduğunu, ancak test işlemlerine etkin ID'lerin girdiğini belirtmiştik. İşte set-user-id ve
+set-group-id bayrakları set edilmiş bir program dosyası exec yapıldığında artık gerçek kullanıcı ve
+grup ID'leriyle etkin kullanıcı ID'leri farklılaşabilmektedir.
+
+Gerçek ve Etkin ID Farkı Örneği (sample.c / other.c)
+----------------------------------------------------
+
+Aşağıdaki örnekte ``sample`` programı ``other`` programını exec yaparak çalıştırmıştır. Bu ``other``
+programı prosesin gerçek ve etkin kullanıcı ve grup ID'lerini ekrana isim olarak yazdırmaktadır. Biz bu
+örnekte ``other`` programını derledikten sonra ``chown`` komutuyla ``sudo`` ile birlikte kullanıcı
+ID'sini ve grup ID'sini ``root`` olarak değiştirdik. Bu deneyi önce ``other`` programının set-user-id
+bayrağı set edilmeden ve set edildikten sonra yineleyiniz. Aşağıda yapılanlar özetlenmiştir:
+
+.. code-block:: console
+
+    $ gcc -Wall -o sample sample.c
+    $ gcc -Wall -o other other.c
+    $ ls -l other
+    -rwxr-xr-x 1 kaan study 17088 Şub 19 13:42 other
+    $ sudo chown root:root mample
+    $ ls -l other
+    -rwxr-xr-x 1 root root 17088 Şub 19 13:42 mample
+    $ ./sample
+    Real user ID: kaan
+    Effective user ID: kaan
+    Real group ID: study
+    Effective group ID: study
+    $ sudo chmod u+s other
+    $ ls -l other
+    -rwsr-xr-x 1 root root 17088 Şub 19 13:42 other
+    $ ./sample
+    Real user ID: kaan
+    Effective user ID: root
+    Real group ID: study
+    Effective group ID: study
+    $ sudo chmod g+s other
+    $ ls -l other
+    -rwsr-sr-x 1 root root 17088 Şub 19 13:42 other
+    $ ./sample
+    Real user ID: kaan
+    Effective user ID: root
+    Real group ID: study
+    Effective group ID: root
+
+Biz bir programı ``sudo`` ile root önceliğinde (etkin proses ID'si 0 olacak biçimde) çalıştırıyor
+olalım. Dosyanın set-user-id bayrağı da set edilmiş olsun. Bu durumda program çalışırken prosesin etkin
+kullanıcı ID'si ``root`` değil, program dosyasının kullanıcı ID'si olacaktır. Yani set-user-id bayrağı
+set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılmasının bir anlamı kalmamaktadır.
+Örneğin:
+
+.. code-block:: console
+
+    $ sudo chown ali: other
+    $ ls -l other
+    -rwxr-xr-x 1 ali study 16344 Eki  1 11:48 other
+    $ sudo chmod u+s other
+    $ ls -l other
+    -rwsr-xr-x 1 ali study 16344 Eki  1 11:48 other
+    $ sudo other
+    $ sudo ./other
+    Real user ID: root
+    Effective user ID: ali
+    Real group ID: root
+    Effective group ID: root
+
+.. code-block:: c
+
+    /* sample.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/wait.h>
+    #include <unistd.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        pid_t pid;
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        if (pid == 0 && execl("mample", "mample", (char *)0) == -1)
+            exit_sys("execl");
+
+        if (wait(NULL) == -1)
+            exit_sys("wait");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+.. code-block:: c
+
+    /* other.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <errno.h>
+    #include <unistd.h>
+    #include <pwd.h>
+    #include <grp.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        struct passwd *pass;
+        struct group *gr;
+
+        errno = 0;
+        if ((pass = getpwuid(getuid())) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid user ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getpwuid");
+        }
+
+        printf("Real user ID: %s\n", pass->pw_name);
+
+        errno = 0;
+        if ((pass = getpwuid(geteuid())) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid user ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getpwuid");
+        }
+        printf("Effective user ID: %s\n", pass->pw_name);
+
+        errno = 0;
+        if ((gr = getgrgid(getgid())) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid group ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getgrgid");
+        }
+        printf("Real group ID: %s\n", gr->gr_name);
+
+        errno = 0;
+        if ((gr = getgrgid(getegid())) == NULL) {        if (errno == 0) {
+                fprintf(stderr, "invalid group ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getgrgid");
+        }
+        printf("Effective group ID: %s\n", gr->gr_name);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Dizinlerde set-group-id Bayrağı
+===============================
+
+Normal olarak set-user-id ve set-group-id bayrakları çalıştırılabilen dosyalar için söz konusudur. Ancak
+dizinler için de set-group-id bayrağının bir anlamı vardır. Pek çok UNIX türevi sistemde (Linux da buna
+dahil) bir dizinin set-group-id bayrağı set edilirse Linux o dizin içerisinde ``open`` fonksiyonuyla
+(zaten başka yolu yoktur) ya da ``mkdir`` fonksiyonuyla bir dosya ya da dizin yaratıldığında dosyanın ya
+da dizinin grup ID'sini prosesin etkin grup ID'si olarak değil, o dizinin grup ID'si olarak set
+etmektedir. BSD sistemlerinde zaten default olarak bir dosya ya da dizin yaratıldığında dosyanın ya da
+dizinin grup ID'si o dosyanın ya da dizinin içinde bulunduğu dizinin grup ID'si olarak set edilmektedir.
+O halde Linux'ta ``open`` fonksiyonu ile bir dosya ya da dizin yaratılırken dosya ya da dizinin grup
+ID'si, eğer o dosya ya da dizinin içinde bulunduğu dizinin set-group-id bayrağı set edilmemişse prosesin
+etkin grup ID'si olarak, eğer set edilmişse dizinin grup ID'si olarak set edilmektedir. Bu durumu basit
+bir biçimde şöyle test edebilirsiniz:
+
+Önce ``xxx`` gibi bir isimle bir dizin yaratınız:
+
+.. code-block:: console
+
+    $ mkdir xxx
+    $ ls -ld xxx
+    drwxr-xr-x 2 kaan study 4096 Eki  1 12:37 xxx
+
+Görüldüğü gibi dizinin kullanıcı ve grup ID'si prosesin etkin kullanıcı ID'si ve grup ID'si biçimindedir.
+Şimdi biz bu dizin içerisinde bir dosya yaratalım:
+
+.. code-block:: console
+
+    $ cd xxx
+    $ touch x.txt
+    $ ls -l x.txt
+    -rw-r--r-- 1 kaan study 0 Eki  1 12:38 x.txt
+
+Görüldüğü gibi ``x.txt`` dosyasının kullanıcı ve grup ID'leri prosesin etkin kullanıcı ve grup ID'si
+biçimindedir. Şimdi biz ``xxx`` dizininin grup ID'sini ``root`` olarak değiştirelim ve dizinin
+set-group-id bayrağını set edelim:
+
+.. code-block:: console
+
+    $ cd ..
+    $ sudo chown :root xxx
+    $ sudo chmod g+s xxx
+    $ ls -ld xxx
+    drwxr-sr-x 2 kaan root 4096 Eki  1 12:38 xxx
+
+Şimdi yeniden dizine geçip dosya yaratalım:
+
+.. code-block:: console
+
+    $ cd xxx
+    $ touch y.txt
+    $ ls -l x.txt y.txt
+    -rw-r--r-- 1 kaan study 0 Eki  1 12:38 x.txt
+    -rw-r--r-- 1 kaan root  0 Eki  1 12:43 y.txt
+
+Görüldüğü gibi artık dosyanın grup ID'si prosesin etkin grup ID'si olarak değil, içinde bulunduğu
+dizinin grup ID'si olarak set edilmiştir.
+
+Dizinlerin set-user-id bayraklarının set edilmesi benzer bir etkiye yol açmamaktadır. (Bu durum bazı eski
+UNIX sistemlerinde denenmiştir, ancak modern sistemlerde böyle bir semantik yoktur.)
+
+Betik Dosyalarında set-user-id / set-group-id Güvenlik Açığı
+============================================================
+
+Peki betik dosyaları (shebang içeren text dosyalar) için set-user-id ve set-group-id bayrakları set
+edilebilir mi? Bu işlem ilk zamanlar uygulanmıştır. Ancak güvenlik açığı nedeniyle sonra uygulamadan
+kaldırılmıştır. Bugünkü modern UNIX/Linux sistemleri betik dosyalarının set-user-id ve set-group-id
+bayrakları set edilmiş olsa bile onları dikkate almamaktadır. Buradaki güvenlik açığı ilginç bir
+biçimde aşağıdaki gibi oluşmaktadır:
+
+Betik dosyasının ismi ``x.txt`` olsun. Eğer bu dosyanın set-user-id ve set-group-id bayrakları dikkate
+alınsaydı bu durumda exec fonksiyonları bu dosyayı açıp shebang satırında bulunan programı çalıştırırken
+prosesin etkin kullanıcı ve/veya grup ID'sini ``x.txt`` dosyasının kullanıcı ve/veya grup ID'si olarak
+set ederdi. Bu durumda da eğer birisi örneğin ``y.txt`` sembolik bağlantı dosyası oluşturup bu dosyanın
+``x.txt`` dosyasını göstermesini sağlarsa ve bu ``y.txt`` ile exec yaparsa bu durumda aslında exec
+fonksiyonu sembolik bağlantıyı izleyecek ve ``x.txt`` dosyasını çalıştıracaktır. Ancak exec fonksiyonları
+bu ``x.txt`` dosyasının shebang satırındaki programı çalıştırırken yine komut satırı argümanı olarak
+``y.txt`` dosyasını kullanacaktır. İşte tam bu sırada birisi bu ``y.txt`` dosyasının sembolik
+bağlantısını değiştirirse maalesef prosesin etkin kullanıcı ID'si ``x.txt``'nin kullanıcı ID'si olacak
+biçimde aslında başka dosyayı çalıştırır.
+
+sticky Bayrağı
+==============
+
+Peki dosyaların sticky bayraklarının ne işlevi vardır? Aslında sticky bayrağı tasarımda başka bir amaçla
+düşünülmüştür. Eski sistemlerde bu bayrak çalıştırılabilen dosyaların çalıştırılması sonrasında programın
+bellekten atılmaması gibi bir ipucu oluşturmaktadır. Ancak modern sistemlerde böyle bir etkinin bir
+anlamı kalmadığı için sticky bayrağı da ilk tasarlandığı zamanki işlevinden tamamen kopmuştur. Bugün
+sticky bayrağı değişik sistemlerde değişik amaçlarla kullanılabilmektedir. POSIX standartları eskiden
+sticky bayrağı üzerinde açıklama yapmıyordu. Ancak belli zamandan sonra sticky için şöyle bir
+işlevsellik tanımlanmıştır: Bir dizinin sticky bayrağı set edilirse ve dizinin sahibi başkaları ise,
+dizine prosesin yazma hakkı olsa bile dizin içerisindeki başkalarına ait (yani kullanıcı ID'si başka)
+olan dosyalar silinememekte ve ismi değiştirilememektedir. Bugünkü sistemlerde dizin dışında diğer
+dosyaların sticky bayraklarının set edilmiş olup olmamasının işlevsel bir anlamı yoktur. Örneğin Linux
+sistemlerinde ``/tmp`` dizininin sticky bayrağı set edilmiştir ve bu dizine yazma hakkı verilmiştir. Bu
+durumda biz bu dizinde dosya yaratabiliriz, kendi dosyamızı silebiliriz. Ancak başkalarının dosyalarını
+silemeyiz. ``/tmp`` dizininin erişim hakları şöyledir:
+
+.. code-block:: text
+
+    drwxrwxrwt 19 root root 65536 Şub 25 10:05 /tmp
+
+/tmp Dizini Örneği
+------------------
+
+Bu durumu Linux sistemlerinde şöyle test edebiliriz:
+
+Önce ``yyy`` isimli bir dizin yaratalım, bu dizinin içine geçip orada sahibi ``root`` olan bir dosya
+yaratalım:
+
+.. code-block:: console
+
+    $ mkdir yyy
+    $ cd yyy
+    $ sudo touch x.txt
+    $ ls -l x.txt
+    -rw-r--r-- 1 root root 0 Eki  1 12:53 x.txt
+
+Görüldüğü gibi dosyanın kullanıcı ve grup ID'si ``sudo`` uygulanmasından dolayı ``root`` olmuştur. Şimdi
+burada ``sudo`` uygulamadan ikinci bir dosya da yaratalım:
+
+.. code-block:: console
+
+    $ touch y.txt
+    $ ls -l x.txt y.txt
+    -rw-r--r-- 1 root root  0 Eki  1 12:53 x.txt
+    -rw-r--r-- 1 kaan study 0 Eki  1 12:55 y.txt
+
+Biz her iki dosyayı da silebiliriz. Çünkü bir dosyayı silebilmek için dosyanın sahibi olmaya, dosyaya
+``w`` hakkına sahip olmaya gerek yoktur. Tek gereken şey dizin için ``w`` hakkına sahip olmaktadır. Şimdi
+dizinin sahipliğini değiştirelim ve sticky bayrağını set edip, herkese ``w`` hakkı verelim:
+
+.. code-block:: console
+
+    $ cd ..
+    $ sudo chown root:root yyy
+    $ sudo chmod 777 yyy
+    $ sudo chmod +t yyy
+    $ ls -ld yyy
+    drwxrwxrwt 2 root root 4096 Eki  1 13:05 yyy
+
+Şimdi dizine girip ``x.txt`` dosyasını silmeye çalışalım:
+
+.. code-block:: console
+
+    $ rm x.txt
+    rm: yazma korumalı normal boş dosya 'x.txt' kaldırılsın mı? y
+    rm: 'x.txt' silinemedi: İşleme izin verilmedi
+
+Görüldüğü gibi dizine yazma hakkımız olsa da dizindeki başkalarına ait dosyaları silemiyoruz. Şimdi
+``y.txt`` dosyasını silmeye çalışalım:
+
+.. code-block:: console
+
+    $ rm y.txt
+
+Görüldüğü gibi kendimize ait olan bu dosya silinebilmiştir.
+
+Gerçek, Etkin ve Saklı Kullanıcı/Grup ID'leri
+=============================================
+
+Daha önceden de belirttiğimiz gibi bir prosesin *gerçek kullanıcı ID'si (real user ID)* ile *etkin
+kullanıcı ID'si (effective user ID)*, *gerçek grup ID'si (real group ID)* ile de *etkin grup ID'si
+(effective group ID)* genellikle aynı olmaktadır. Ancak set-user-id ve set-group-id bayrakları set
+edilmiş çalıştırılabilir programlar çalıştırıldığında bu ID'ler farklı hale gelebilmektedir. Örneğin
+prosesimizin gerçek kullanıcı ID'si ve etkin kullanıcı ID'si ``kaan`` olsun. Biz set-user-id bayrağı set
+edilmiş ``/bin/passwd`` programını exec yaptığımızda prosesimizin gerçek kullanıcı ID'si ``kaan`` olmaya
+devam eder, ancak etkin kullanıcı ID'si ``root`` olur. Dosya işlemlerinde teste her zaman etkin ID'ler
+sokulmaktadır.
+
+Gerçek kullanıcı ID'si ve gerçek grup ID'si, etkin kullanıcı ID'si ve etkin grup ID'si dışında prosesin
+bir de *saklı kullanıcı ID'si (saved set user ID)* ve *saklı grup ID'si (saved set group ID)* denilen
+iki ID daha vardır. Bir proses exec uyguladığında programın set-user-id ve set-group-id bayrakları set
+edilmiş olsun ya da olmasın, her zaman çekirdek yeni etkin kullanıcı ID'sini ve yeni etkin grup ID'sini
+saklı kullanıcı ID'si ve saklı grup ID'si olarak set etmektedir. Örneğin prosesimizin gerçek kullanıcı
+ID'si ``kaan`` ve etkin kullanıcı ID'si ``kaan``, gerçek grup ID'si ``study`` ve etkin grup ID'si
+``study`` olsun. Şimdi biz set-user-id bayrağı set edilmiş olan ``/bin/passwd`` programını exec ile
+çalıştıralım. Artık prosesimizin gerçek kullanıcı ID'si ``kaan``, etkin kullanıcı ID'si ``root``
+olacaktır. Gerçek grup ID'si ``study`` ve etkin grup ID'si de ``study`` olarak kalacaktır. İşte çekirdek
+aynı zamanda bu yeni etkin kullanıcı ID'sini (örneğimizdeki ``root`` ID'sini kastediyoruz) ve grup ID'sini
+prosesin *saklı kullanıcı ID'si (saved set user ID)* ve *saklı grup ID'si* olarak da set etmektedir. O
+halde prosesimizin ID'leri artık şöyle olacaktır:
+
+.. code-block:: text
+
+    gerçek kullanıcı ID'si: kaan
+    etkin kullanıcı ID'si:  root
+    saklı kullanıcı ID'si:  root
+    gerçek grup ID'si:      study
+    etkin grup ID'si:       study
+    saklı grup ID'si:       study
+
+Bu işlem set-user-id ya da set-group-id bayrağı set edilmemiş programlar çalıştırılırken de
+yürütülmektedir. Örneğin prosesimizin gerçek kullanıcı ID'si ``kaan``, etkin kullanıcı ID'si ``kaan``,
+gerçek grup ID'si ``study`` ve etkin grup ID'si ``study`` olsun. Biz de set-user-id bayrağı set edilmemiş
+olan bir programı exec yapmış olalım. Yeni ID'ler şöyle olacaktır:
+
+.. code-block:: text
+
+    gerçek kullanıcı ID'si: kaan
+    etkin kullanıcı ID'si:  kaan
+    saklı kullanıcı ID'si:  kaan
+    gerçek grup ID'si:      study
+    etkin grup ID'si:       study
+    saklı grup ID'si:       study
+
+Tabii saklı kullanıcı ID'si ve saklı grup ID'si yine proses kontrol bloğu içerisinde (Linux'taki
+``task_struct`` yapısı içerisinde) saklanmaktadır.
+
+getuid, geteuid, getgid, getegid Fonksiyonları
+==============================================
+
+O anda çalışmakta olan prosesin (yani kendi prosesimizin) gerçek kullanıcı ID'si ``getuid`` isimli
+POSIX fonksiyonuyla, etkin kullanıcı ID'si de ``geteuid`` isimli POSIX fonksiyonuyla elde
+edilebilmektedir. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    uid_t getuid(void);
+    uid_t geteuid(void);
+
+Daha önce belirttiğimiz gibi ``uid_t`` türü ``<unistd.h>`` ve ``<sys/types.h>`` dosyaları içerisinde bir
+tamsayı türü olacak biçimde typedef edilmiştir. Bu fonksiyonlar başarısız olamamaktadır.
+
+O anda çalışmakta olan prosesin gerçek grup ID'si ``getgid`` POSIX fonksiyonu ile, etkin grup ID'si ise
+``getegid`` POSIX fonksiyonu ile elde edilebilmektedir. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+    #include <unistd.h>
+
+    gid_t getgid(void);
+    gid_t getegid(void);
+
+Daha önce de belirttiğimiz gibi ``gid_t`` türü ``<unistd.h>`` ve ``<sys/types.h>`` dosyaları içerisinde
+bir tamsayı türü olacak biçimde typedef edilmiştir.
+
+Bu fonksiyonlar da başarısız olamamaktadır.
+
+POSIX standartlarında saklı ID'leri alan fonksiyonlar yoktur. Ancak Linux sistemlerinde bu işlemi
+yapacak fonksiyon bulunmaktadır.
+
+Örnek Program
+-------------
+
+.. code-block:: c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdint.h>
+    #include <errno.h>
+    #include <unistd.h>
+    #include <pwd.h>
+    #include <grp.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        uid_t ruid, euid;
+        gid_t rgid, egid;
+        struct passwd *pw;
+        struct group *gr;
+
+        ruid = getuid();
+        euid = geteuid();
+
+        errno = 0;
+        if ((pw = getpwuid(ruid)) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid user name!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getpwuid");
+        }
+
+        printf("Real user ID: %jd (%s)\n", (intmax_t)ruid, pw->pw_name);
+
+        errno = 0;
+        if ((pw = getpwuid(euid)) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid user ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getpwuid");
+        }
+        printf("Effective user ID: %jd (%s)\n", (intmax_t)ruid, pw->pw_name);
+
+        errno = 0;
+        if ((gr = getgrgid(ruid)) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid group ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getgrgid");
+        }
+
+        rgid = getgid();
+        egid = getegid();
+
+        printf("Real group ID: %jd (%s)\n", (intmax_t)rgid, gr->gr_name);
+
+        errno = 0;
+        if ((gr = getgrgid(egid)) == NULL) {
+            if (errno == 0) {
+                fprintf(stderr, "invalid group ID!..\n");
+                exit(EXIT_FAILURE);
+            }
+            exit_sys("getgrgid");
+        }
+
+        printf("Effective group ID: %jd (%s)\n", (intmax_t)ruid, pw->pw_name);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
 
