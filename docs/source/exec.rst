@@ -343,8 +343,8 @@ kopyalanmamış olmasıdır.
 execv Fonksiyonu
 ================
  
-``execv`` fonksiyonu işlevsel olarak ``execl`` fonksiyonu ile aynıdır. Ancak bu fonksiyon çalıştırılacak
-program için komut satırı argümanlarını bir gösterici dizisi biçiminde ister. Fonksiyonun prototipi
+``execv`` fonksiyonu ``execl`` fonksiyonu ile aynı işlevselliğe sahiptir.. Ancak bu fonksiyon çalıştırılacak
+programın komut satırı argümanlarını bir gösterici dizisi biçiminde almaktadır. Fonksiyonun prototipi
 şöyledir:
  
 .. code-block:: c
@@ -353,10 +353,10 @@ program için komut satırı argümanlarını bir gösterici dizisi biçiminde i
  
     int execv(const char *path, char * const *argv);
  
-Fonksiyonun birinci parametresi çalıştırılacak program dosyasının yol ifadesini belirtir. İkinci
+Fonksiyonun birinci parametresi çalıştırılacak program dosyasının yol ifadesini, ikinci
 parametresi ise komut satırı argümanlarının bulunduğu ``char`` türden gösterici dizisinin başlangıç
-adresini almaktadır. Yani bizim komut satırı argümanlarını bir gösterici dizisine yerleştirip onun
-adresini vermemiz gerekir. Bu gösterici dizisinin son elemanı ``NULL`` adres olmalıdır. Tabii bu durumda
+adresini almaktadır. Yani bizim komut satırı argümanlarını bir gösterici dizisine yerleştirip fonksiyona 
+onun adresini vermemiz gerekir. Bu gösterici dizisinin son elemanında ``NULL`` adres bulunmalıdır. Tabii bu durumda
 tür dönüştürmesi yapmaya gerek yoktur. Örneğin:
  
 .. code-block:: c
@@ -367,15 +367,11 @@ tür dönüştürmesi yapmaya gerek yoktur. Örneğin:
     execv("/bin/ls", argv);
     exit_sys("execv");
  
-``execv`` fonksiyonunun ikinci parametresindeki ``const`` niteleyicisinin yerine dikkat ediniz. Burada
+``execv`` fonksiyonunun ikinci parametresindeki ``const`` niteleyicisinin yerine dikkat ediniz. Buradaki
 ``const`` niteleyicisi adresi geçirilen gösterici dizisinin ``const`` olduğunu belirtmektedir. Yani
-fonksiyon hem o gösterici dizisinde değişiklik yapmamaktadır hem de o gösterici dizisinin gösterdiği
-dizilerde değişiklik yapmamaktadır.
+fonksiyon hem o gösterici dizisinde değişiklik yapmamaktadır.
  
-execv Örneği
-------------
- 
-Aşağıdaki ``execv`` fonksiyonunun kullanımına bir örnek verilmiştir.
+Aşağıda ``execv`` fonksiyonunun kullanımına bir örnek verilmiştir.
  
 .. code-block:: c
  
@@ -389,7 +385,7 @@ Aşağıdaki ``execv`` fonksiyonunun kullanımına bir örnek verilmiştir.
     int main(int argc, char *argv[])
     {
         pid_t pid;
-        char *args[] = {"/bin/ls", "-l", NULL};
+        char *args[] = {"/bin/ls", "-l", "-i", NULL};
  
         if ((pid = fork()) == -1)
             exit_sys("fork");
@@ -414,17 +410,15 @@ Aşağıdaki ``execv`` fonksiyonunun kullanımına bir örnek verilmiştir.
         exit(EXIT_FAILURE);
     }
  
-execv'nin execl'ye Göre Avantajı (Değişken Sayıda Argüman)
-----------------------------------------------------------
  
 Peki ``execv`` ne zaman tercih edilebilir? İşte bazen ``execl`` fonksiyonu yerine ``execv``
-fonksiyonunun kullanılması daha uygun olabilmektedir. Örneğin biz ``sample`` isimli bir program yazalım.
-Bu program da komut satırı argümanlarıyla aldığı programı çalıştırsın. Yani ``sample`` programı şöyle
+fonksiyonunun kullanılması daha uygun olabilmektedir. Örneğin biz ``runprog`` isimli bir program yazalım.
+Bu program da komut satırı argümanlarıyla aldığı programı çalıştırsın. Yani ``runprog`` programı şöyle
 çalıştırılsın:
  
 .. code-block:: console
  
-    $ ./sample /bin/ls -l
+    $ ./runprog /bin/ls -l -i
  
 Eğer böyle bir programı ``execl`` ile yazmaya çalışırsak bunu pratik bir biçimde başaramayız. Çünkü
 çalıştıracağımız programın kaç komut satırı argümanı ile çalıştırılacağını baştan bilmemekteyiz. Aşağıda
@@ -432,11 +426,11 @@ böyle bir programa örnek verilmiştir. Programı şöyle çalıştırabilirsin
  
 .. code-block:: console
  
-    $ ./sample /bin/ls -l
-    $ ./sample /bin/cp sample.c x.c
-    $ ./sample other ali veli selami
+    $ ./runprog /bin/ls -l -i
+    $ ./runprog /bin/cp sample.c x.c
+    $ ./runprog other ali veli selami
  
-Programda exec çağrısına dikkat ediniz:
+Programda ``exec`` çağrısına dikkat ediniz:
  
 .. code-block:: c
  
@@ -449,17 +443,14 @@ Programda exec çağrısına dikkat ediniz:
 Burada ``execv`` fonksiyonuna ``argv`` gösterici dizisinin 1'inci indeksli elemanının adresi
 geçirilmiştir. ``argv`` dizisinin sonunda zaten ``NULL`` adres bulunduğunu anımsayınız:
  
-.. code-block:: text
+.. figure:: _static/argv-array.png
+    :align: center
+    :width: 65%
  
-    argv -----> argv[0]
-                argv[1]     ---> biz fonksiyona bu elemanın adresini geçtik
-                argv[2]
-                ...
-                NULL
- 
+``runprog.c``
+
 .. code-block:: c
  
-    /* sample.c */
  
     #include <stdio.h>
     #include <stdlib.h>
@@ -500,11 +491,11 @@ geçirilmiştir. ``argv`` dizisinin sonunda zaten ``NULL`` adres bulunduğunu an
         exit(EXIT_FAILURE);
     }
  
-execlp ve execvp Fonksiyonları (p'li Versiyonlar)
-=================================================
+execlp ve execvp Fonksiyonları
+==============================
  
-exec fonksiyonlarının iki p'li versiyonu da vardır: ``execlp`` ve ``execvp``. Bu p'li versiyonların
-prototipleri p'siz versiyonlarla aynıdır. Yalnızca ilk parametrenin semantik anlamı farklıdır. Bunların
+``exec`` fonksiyonlarının iki p'li versiyonu da vardır: ``execlp`` ve ``execvp``. Bu ``p``'li versiyonların
+prototipleri ``p``'siz versiyonlarla aynıdır. Yalnızca ilk parametrenin semantik anlamı farklıdır. Bunların
 prototipleri şöyledir:
  
 .. code-block:: c
@@ -514,30 +505,26 @@ prototipleri şöyledir:
     int execlp(const char *file, const char *arg0, ... /*, (char *)0 */);
     int execvp(const char *file, char *const argv[]);
  
-PATH Çevre Değişkeninde Arama Mantığı
--------------------------------------
+exec fonksiyonlarının ``p``'li versiyonları şöyle çalışmaktadır:
  
-exec fonksiyonlarının p'li versiyonları şöyle çalışmaktadır:
- 
-- Eğer bu fonksiyonların birinci parametrelerinde belirtilen dosya isminde hiç ``/`` karakteri
+- Eğer bu fonksiyonların birinci parametrelerinde belirtilen dosya isminde hiç ``'/'`` karakteri
   kullanılmamışsa bu fonksiyonlar önce ``PATH`` çevre değişkeninin değerini ``getenv`` fonksiyonuyla
-  alıp buradaki yazıyı ``:`` karakterlerinden parçalara ayırırlar (parse ederler). Bu ``:``
-  karakterlerinin arasındaki yazıların dizin belirttiğini varsayarlar. Sonra exec yapılacak dosyayı
-  sırasıyla bu dizinlerde ararlar. Eğer bulurlarsa onu exec yaparlar, bulamazlarsa bu fonksiyonlar
+  elde edip buradaki yazıyı ``':'`` karakterlerinden parçalara ayırırlar (parse ederler). Bu ``:``
+  karakterlerinin arasındaki yazıların dizin belirttiğini varsayarlar. Sonra ``exec`` yapılacak dosyayı
+  sırasıyla bu dizinlerde ararlar. Eğer bulurlarsa onu ``exec`` yaparlar, bulamazlarsa bu fonksiyonlar
   başarısız olur. Tabii bu fonksiyonlar ``PATH`` çevre değişkeninde belirtilen dizinlerdeki aramayı
-  baştan sona doğru yapmaktadır ve ilk bulduğu dizindeki programı exec işlemine sokmaktadır. (Yani eğer
+  baştan sona doğru yapmaktadır ve ilk bulduğu dizindeki programı ``exec`` işlemine sokmaktadır. (Yani eğer
   söz konusu program dosyası birden fazla ``PATH`` dizininde varsa dosyanın ilk bulunduğu dizindeki
-  program çalıştırılır.) ``PATH`` çevre değişkeninin değerinin aşağıdakine benzer bir biçimde
-  bulunması gerekmektedir:
+  program çalıştırılır.) ``PATH`` çevre değişkeninin değeri aşağıdakine benzer bir biçimdedir:
  
 .. code-block:: text
  
     /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
  
-- Eğer p'li exec fonksiyonlarının birinci parametresiyle belirtilen dosya isminde en az bir ``/``
+- Eğer ``p``'li ``exec`` fonksiyonlarının birinci parametresiyle belirtilen dosya isminde en az bir ``'/'``
   karakteri varsa bu durumda fonksiyonlar ``PATH`` çevre değişkenine başvurmazlar. Birinci parametresiyle
   belirtilen göreli ya da mutlak yol ifadesinden hareketle dosyanın yerini belirlemeye çalışırlar. Başka
-  bir deyişle bu durumda fonksiyonların p'li versiyonlarının p'siz versiyonlarından hiçbir farkı
+  bir deyişle bu durumda fonksiyonların ``p``'li versiyonlarının ``p``'siz versiyonlarından hiçbir farkı
   kalmamaktadır. Örneğin:
  
 .. code-block:: c
@@ -546,17 +533,15 @@ exec fonksiyonlarının p'li versiyonları şöyle çalışmaktadır:
     execlp("./sample", ...);    /* PATH çevre değişkenine başvurulmaz */
     execlp("a/sanple", ...);    /* PATH çevre değişkenine başvurulmaz */
  
-exec fonksiyonlarının p'li versiyonları eğer dosya isminde hiç ``/`` karakteri yoksa ve ``PATH``
+``exec`` fonksiyonlarının ``p``'li versiyonları eğer dosya isminde hiç ``'/'`` karakteri yoksa ve ``PATH``
 dizinlerinde de dosyayı bulamazlarsa prosesin çalışma dizinine bakmamaktadır. Yani bu durumda bu
 fonksiyonlar yalnızca ``PATH`` çevre değişkenindeki dizinlere bakmaktadır. Tabii ``PATH`` çevre
-değişkeninde o andaki prosesin çalışma dizini ``.`` ile de belirtilebilir. Örneğin:
+değişkeninde o andaki prosesin çalışma dizini ``'.'`` karakteri ile de belirtilebilir. Örneğin:
  
 .. code-block:: text
  
     /bin:/usr/bin:/:.
- 
-PATH'e Dizin Ekleme ve Güvenlik Notu
-------------------------------------
+
  
 Buradaki ``.`` prosesin çalışma dizinini belirtmektedir. Biz ``PATH`` çevre değişkeninin sonuna dizinler
 ekleyebiliriz. Örneğin:
