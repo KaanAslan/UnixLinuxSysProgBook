@@ -876,13 +876,13 @@ exec fonksiyonlarının başarısızlığının nedeni olabilecek çeşitli ``er
  
 - ``ENOENT`` ("*No such file or directory*"): Dosya bulunamamıştır.
 - ``EACCES`` ("*Permission denied*"): Dosyaya ilişkin tüm yol bileşenlerinde ``'x'`` hakkı yoktur ya da 
-  proses dosyaya ``^x^`` hakkına sahip değildir.
+  proses dosyaya ``'x'`` hakkına sahip değildir.
 - ``ENOEXEC`` ("*Exec format error*"): Dosya bulunmuştur, prosesin dosyaya ``'x'`` hakkı da vardır. Ancak dosyanın 
-    formatı anlaşılamamıştır ya da bozuktur. Tipik olarak dosya çalıştırılabilir bir dosya olmadığında ya da dosyanın 
-    başında *shebang* bulunmadığında bu hata ortaya çıkmaktadır.
+  formatı anlaşılamamıştır ya da bozuktur. Tipik olarak dosya çalıştırılabilir bir dosya olmadığında ya da dosyanın 
+  başında *shebang* bulunmadığında bu hata ortaya çıkmaktadır.
 - ``EINVAL`` ("*Invalid argument*"):  Dosya bulunmuştur, proses dosyaya ``'x'`` hakkına sahiptir. Dosyanın formatı 
-    tespit edilmiştir ancak sistem bu formattaki dosyaları çalıştıramamantadır. Yani bu hata "ne olduğunu biliyorum 
-    ama çalıştıramam" anlamına gelmektedir. 
+  tespit edilmiştir ancak sistem bu formattaki dosyaları çalıştıramamantadır. Yani bu hata "ne olduğunu biliyorum 
+  ama çalıştıramam" anlamına gelmektedir. 
 
 Yukarıda da belirttiğimiz gibi ``exec`` fonksiyonlarının ``p``'li versiyonları (``execlp`` ve ``execvp``)
 ``PATH`` dizinlerinde tek tek dosyayı aramaktadır. Ancak bu fonksiyonlar dosyayı bir dizinde bulduğunda
@@ -896,21 +896,21 @@ bunu yapmamaktadır. Bunu yalnızca ``exec`` fonksiyonlarının ``p``'li versiyo
 ederler. Ancak bu arama sırasında bu fonksiyonlar artık dosyayı diğer ``PATH`` dizinlerinde de
 bulamazlarsa ``EACCES`` ``errno`` değeri ile başarısız olurlar.
  
-execle ve execve Fonksiyonları (e'li Versiyonlar)
-=================================================
+execle ve execve Fonksiyonları
+==============================
  
-exec fonksiyonlarının iki tane e'li biçimleri vardır: ``execle`` ve ``execve``. Buradaki *e* harfi
+exec fonksiyonlarının iki e'li biçimi vardır: ``execle`` ve ``execve``. Buradaki ``e`` harfi
 *environment* yani *çevre değişkenleri* anlamında isme eklenmiştir.
  
 Anımsanacağı gibi çevre değişkenleri tipik olarak prosesin bellek alanında bulunduruluyordu ve ``fork``
 işlemi sırasında üst prosesin bellek alanının alt prosese kopyalanmasıyla alt prosese geçiriliyordu.
-Ancak exec işlemleri prosesin bellek alanını ortadan kaldırıp yeni bir program kodunu yüklediğine göre
-prosesin çevre değişkenleri ne olacaktır? İşte exec işlemi sırasında prosesin bellek alanı boşaltılıp
+Ancak ``exec`` işlemleri prosesin bellek alanını ortadan kaldırıp yeni bir program kodunu yüklediğine göre
+prosesin çevre değişkenleri ne olacaktır? İşte ``exec`` işlemi sırasında prosesin bellek alanı boşaltılıp
 yeni program için prosesin bellek alanı yeniden oluşturulurken çevre değişkenleri de sıfırdan
-oluşturulabilmektedir. Bunu exec fonksiyonlarının e'li versiyonları yapmaktadır. exec fonksiyonlarının
-e'siz versiyonları o andaki prosesin çevre değişkenlerinin aynısını exec yapılan programın bellek
-alanına taşımaktadır. Yani biz exec fonksiyonlarının e'siz versiyonlarını kullandığımızda exec yapmadan
-önceki çevre değişkenleriyle exec yapıldıktan sonraki programın çevre değişkenleri aynı olacaktır.
+oluşturulabilmektedir. Bunu ``exec`` fonksiyonlarının ``e``'li versiyonları yapmaktadır. ``exec`` fonksiyonlarının
+``e``'siz versiyonları o andaki prosesin çevre değişkenlerinin aynısını ``exec`` yapılan programın bellek
+alanına taşımaktadır. Yani biz ``exec`` fonksiyonlarının ``e``'siz versiyonlarını kullandığımızda ``exec`` yapmadan
+önceki çevre değişkenleriyle ``exec`` yaptıktan sonraki programın çevre değişkenleri aynı olacaktır.
  
 ``execle`` ve ``execve`` fonksiyonlarının prototipleri şöyledir:
  
@@ -925,16 +925,13 @@ alanına taşımaktadır. Yani biz exec fonksiyonlarının e'siz versiyonların�
 Diğer parametreler programa geçirilecek komut satırı argümanlarını belirtir. Bu argüman listesinin sonu
 yine ``NULL`` adresle bitirilmelidir. Bu ``NULL`` adresten sonra son parametre ``char`` türden bir
 gösterici dizisi olmalıdır. Bu gösterici dizisi çevre değişkenlerini ``anahtar=değer`` biçiminde tutan
-yazıların başlangıç adreslerinden oluşmalıdır (yani ``environ`` global değişkeninde olduğu gibi). Bu
-fonksiyonlardaki çevre değişkenleri için oluşturulan gösterici dizilerinin sonunda ``NULL`` adres
+yazıların adreslerinden oluşmalıdır (yani ``environ`` global değişkeninde olduğu gibi). Bu fonksiyonlardaki 
+çevre değişkenleri için oluşturulan gösterici dizilerinin sonunda ``NULL`` adres
 bulunmalıdır.
  
-``execve`` fonksiyonu da benzerdir. Bu fonksiyon da önce çalıştırılacak programın yol ifadesini alır.
-Sonra komut satırı argümanlarını bir gösterici dizisi olarak, sonra da çevre değişkenlerini bir gösterici
-dizisi olarak almaktadır.
- 
-execle Örneği
--------------
+``execve`` fonksiyonu da benzerdir. Bu fonksiyon da önce çalıştırılacak programın yol ifadesini,
+sonra komut satırı argümanlarını bir gösterici dizisi biçiminde, sonra da çevre değişkenlerini bir gösterici
+dizisi biçiminde almaktadır.
  
 Aşağıdaki örnekte ``execve`` fonksiyonunun kullanımına bir örnek verilmiştir. Örnekte ``sample``
 programı aynı dizindeki ``other`` programını çalıştırmaktadır. ``execle`` işlemi şöyle yapılmıştır:
@@ -973,9 +970,9 @@ alt prosesin çevre değişken listesi ``env`` gösterici dizisindeki gibi olaca
     furit=banana
     color=red
  
+``sample.c``
+
 .. code-block:: c
- 
-    /* sample.c */
  
     #include <stdio.h>
     #include <stdlib.h>
@@ -1011,9 +1008,9 @@ alt prosesin çevre değişken listesi ``env`` gösterici dizisindeki gibi olaca
         exit(EXIT_FAILURE);
     }
  
+``other.c``
+
 .. code-block:: c
- 
-    /* other.c */
  
     #include <stdio.h>
  
@@ -1034,20 +1031,12 @@ alt prosesin çevre değişken listesi ``env`` gösterici dizisindeki gibi olaca
         return 0;
     }
  
-execve Örneği (execle'nin execve ile Yazımı)
---------------------------------------------
- 
-Daha önceden de belirtildiği gibi UNIX türevi sistemlerde yalnızca ``execve`` fonksiyonu sistem
-fonksiyonu olarak işletim sistemi içerisinde bulunmaktadır. Aslında ``execl``, ``execlp``, ``execv``,
-``execvp``, ``execle`` fonksiyonları, ``execve`` fonksiyonunu çağıran birer kütüphane fonksiyonu
-biçiminde bulundurulmaktadır. Yani burada *taban (base)* fonksiyon ``execve`` fonksiyonudur.
- 
 Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazımına örnek verilmiştir. Bu
 örnek yukarıdaki örneğin aynısıdır. Yalnızca ``execle`` yerine ``execve`` fonksiyonu kullanılmıştır.
  
+``sample.c``
+
 .. code-block:: c
- 
-    /* sample.c */
  
     #include <stdio.h>
     #include <stdlib.h>
@@ -1084,9 +1073,9 @@ Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazı
         exit(EXIT_FAILURE);
     }
  
+``other.c``
+
 .. code-block:: c
- 
-    /* other.c */
  
     #include <stdio.h>
  
@@ -1107,10 +1096,14 @@ Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazı
         return 0;
     }
 
+exec Fonksiyonlarının execve Kullanılarak Gerçekleştirilmesi
+============================================================
 
-execve Kullanarak Değişken Sayıda Argüman Alan execl Gerçekleştirimi
-====================================================================
-
+Daha önceden de belirttiğimşiz gibi UNIX türevi sistemlerde genellikle yalnızca ``execve`` fonksiyonu sistem
+fonksiyonu olarak işletim sistemi içerisinde bulunmaktadır. Aslında ``execl``, ``execlp``, ``execv``,
+``execvp``, ``execle`` fonksiyonları, ``execve`` fonksiyonunu çağıran birer kütüphane fonksiyonu
+biçiminde bulundurulmaktadır. Yani burada *taban (base)* fonksiyon ``execve`` fonksiyonudur.
+ 
 Aşağıdaki örnekte de ``execl`` fonksiyonunun ``execve`` kullanılarak nasıl yazıldığı hakkında bir fikir
 verilmiştir. Burada komut satırı argümanlarının sayısı ``MAX_ARG`` ile sınırlandırılmıştır.
 
