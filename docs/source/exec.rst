@@ -507,9 +507,9 @@ prototipleri şöyledir:
  
 exec fonksiyonlarının ``p``'li versiyonları şöyle çalışmaktadır:
  
-- Eğer bu fonksiyonların birinci parametrelerinde belirtilen dosya isminde hiç ``'/'`` karakteri
+- Eğer bu fonksiyonların birinci parametrelerinde belirtilen dosya isminde hiç ``/`` karakteri
   kullanılmamışsa bu fonksiyonlar önce ``PATH`` çevre değişkeninin değerini ``getenv`` fonksiyonuyla
-  elde edip buradaki yazıyı ``':'`` karakterlerinden parçalara ayırırlar (parse ederler). Bu ``:``
+  elde edip buradaki yazıyı ``:`` karakterlerinden parçalara ayırırlar (parse ederler). Bu `:`
   karakterlerinin arasındaki yazıların dizin belirttiğini varsayarlar. Sonra ``exec`` yapılacak dosyayı
   sırasıyla bu dizinlerde ararlar. Eğer bulurlarsa onu ``exec`` yaparlar, bulamazlarsa bu fonksiyonlar
   başarısız olur. Tabii bu fonksiyonlar ``PATH`` çevre değişkeninde belirtilen dizinlerdeki aramayı
@@ -521,7 +521,7 @@ exec fonksiyonlarının ``p``'li versiyonları şöyle çalışmaktadır:
  
     /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
  
-- Eğer ``p``'li ``exec`` fonksiyonlarının birinci parametresiyle belirtilen dosya isminde en az bir ``'/'``
+- Eğer ``p``'li ``exec`` fonksiyonlarının birinci parametresiyle belirtilen dosya isminde en az bir ``/``
   karakteri varsa bu durumda fonksiyonlar ``PATH`` çevre değişkenine başvurmazlar. Birinci parametresiyle
   belirtilen göreli ya da mutlak yol ifadesinden hareketle dosyanın yerini belirlemeye çalışırlar. Başka
   bir deyişle bu durumda fonksiyonların ``p``'li versiyonlarının ``p``'siz versiyonlarından hiçbir farkı
@@ -533,24 +533,24 @@ exec fonksiyonlarının ``p``'li versiyonları şöyle çalışmaktadır:
     execlp("./sample", ...);    /* PATH çevre değişkenine başvurulmaz */
     execlp("a/sanple", ...);    /* PATH çevre değişkenine başvurulmaz */
  
-``exec`` fonksiyonlarının ``p``'li versiyonları eğer dosya isminde hiç ``'/'`` karakteri yoksa ve ``PATH``
+``exec`` fonksiyonlarının ``p``'li versiyonları eğer dosya isminde hiç ``/`` karakteri yoksa ve ``PATH``
 dizinlerinde de dosyayı bulamazlarsa prosesin çalışma dizinine bakmamaktadır. Yani bu durumda bu
 fonksiyonlar yalnızca ``PATH`` çevre değişkenindeki dizinlere bakmaktadır. Tabii ``PATH`` çevre
-değişkeninde o andaki prosesin çalışma dizini ``'.'`` karakteri ile de belirtilebilir. Örneğin:
+değişkeninde o andaki prosesin çalışma dizini ``.`` karakteri ile de belirtilebilir. Örneğin:
  
 .. code-block:: text
  
     /bin:/usr/bin:/:.
 
  
-Buradaki ``.`` prosesin çalışma dizinini belirtmektedir. Biz ``PATH`` çevre değişkeninin sonuna dizinler
+Buradaki ``.`` karakteri prosesin çalışma dizinini belirtmektedir. Biz ``PATH`` çevre değişkeninin sonuna dizinler
 ekleyebiliriz. Örneğin:
  
 .. code-block:: console
  
     $ PATH=$PATH:/home/kaan
  
-Tabii bunun kalıcı hale getirilmesi için kabuk programının startup dosyalarına yerleştirilmesi gerekir.
+Tabii bunun kalıcı hale getirilmesi için kabuk programının *startup* dosyalarına yerleştirilmesi gerekir.
 Prosesin çalışma dizininin ``PATH`` çevre değişkenine eklenmesi güvenlik zafiyeti nedeniyle iyi bir
 teknik kabul edilmemektedir. Örneğin:
  
@@ -558,28 +558,22 @@ teknik kabul edilmemektedir. Örneğin:
  
     $ PATH=$PATH:.
  
-Peki exec fonksiyonlarının p'li versiyonları ``PATH`` çevre değişkenini bulamazsa ne olur? POSIX
-standartları bu durumdaki davranışın sistemden sisteme değişebileceğini (implementation dependent)
+Peki ``exec`` fonksiyonlarının ``p``'li versiyonları ``PATH`` çevre değişkenini bulamazsa ne olur? POSIX
+standartları bu durumdaki davranışın sistemden sisteme değişebileceğini (implementation-defined)
 belirtmektedir. Pek çok sistem (örneğin Linux ve BSD) bu durumda sanki ``PATH`` çevre değişkeni
 ``/bin:/usr/bin`` biçimindeymiş gibi davranmaktadır.
  
-p'li Versiyonların shebang'siz Dosyalarda Davranışı
----------------------------------------------------
- 
-exec fonksiyonlarının p'li versiyonları (``execlp`` ve ``execvp``) aramayı ``PATH`` dizinlerinde
+exec fonksiyonlarının ``p``'li versiyonları (``execlp`` ve ``execvp``) aramayı ``PATH`` dizinlerinde
 sırasıyla yapmaktadır. Ancak bu fonksiyonlar dosyayı bir dizinde bulduğunda ve onu sistem fonksiyonuyla
-(``execve``) çalıştırmaya çalıştığında başarısız olup ``EINVAL`` ve ``ENOEXEC`` errno değeri oluşursa
-dosyanın bir kabuk betiği (shell script) olduğundan çalıştırılamadığı sonucunu çıkartmaktadır ve bu
-durumda dosyayı ``/bin/sh`` (default shell) programı ile çalıştırmaktadır. Ancak exec fonksiyonlarının
-diğer versiyonları ``EINVAL`` ve ``ENOEXEC`` errno değeri oluştuğunda bunu yapmamaktadır. Tabii bu
-davranışı yalnızca exec fonksiyonlarının p'li versiyonları göstermektedir. exec fonksiyonlarının p'li
+(``execve``) çalıştırmaya çalıştığında başarısız olup ``EINVAL`` ve ``ENOEXEC`` ``errno`` değeri oluşursa
+dosyanın bir *kabuk betiği (shell script)* olduğundan çalıştırılamadığı sonucunu çıkartmaktadır ve bu
+durumda dosyayı ``/bin/sh`` (*default shell)* programı ile çalıştırmaktadır. Ancak ``exec`` fonksiyonlarının
+diğer versiyonları ``EINVAL`` ve ``ENOEXEC`` ``errno`` değeri oluştuğunda bunu yapmamaktadır. Tabii bu
+davranışı yalnızca ``exec`` fonksiyonlarının ``p``'li versiyonları göstermektedir. ``exec`` fonksiyonlarının ``p``'li
 versiyonları ``PATH`` dizinlerinin birinde dosyayı sistem fonksiyonuyla (Linux'taki ``sys_execve``)
-çalıştırmaya çalıştığında ``EACCES`` errno değeri ile başarısız olurlarsa dosyayı sonraki ``PATH``
+çalıştırmaya çalıştığında ``EACCES`` ``errno`` değeri ile başarısız olduklarında dosyayı sonraki ``PATH``
 dizinlerinde aramaya devam ederler. Ancak bu arama sırasında bu fonksiyonlar artık dosyayı diğer ``PATH``
 dizinlerinde bulamazlarsa ``EACCES`` errno değeri ile başarısız olurlar.
- 
-execlp Örneği
--------------
  
 Aşağıda ``execlp`` fonksiyonuna bir örnek verilmiştir. Örnekte ``execlp`` fonksiyonu şöyle çağrılmıştır:
  
@@ -631,10 +625,7 @@ Burada ``ls`` programı ``PATH`` çevre değişkeninde belirtilen ``/bin`` dizin
         exit(EXIT_FAILURE);
     }
  
-execvp Örneği
--------------
- 
-Aşağıda ``execvp`` kullanımına örnek verilmiştir. Örnekte ``execvp`` fonksiyonu şöyle kullanılmıştır:
+Aşağıda da ``execvp`` kullanımına örnek verilmiştir. Örnekte ``execvp`` fonksiyonu şöyle kullanılmıştır:
  
 .. code-block:: c
  
@@ -690,36 +681,14 @@ belirtilen dizinlerde aranacaktır.
         exit(EXIT_FAILURE);
     }
  
-Kabuğun "./" Kullanımı ve PATH Güvenliği
-========================================
- 
-Şimdi kabuk üzerinden programları neden ``./sample`` biçiminde başına ``./`` getirerek çalıştırdığımız
-artık anlaşılabilir. Kabuk programları önce ``fork`` yapıp alt proseste exec fonksiyonlarının p'li
-versiyonlarıyla programları çalıştırmaktadır. Dolayısıyla biz programı ``sample`` biçiminde çalıştırmak
-istediğimizde bu p'li versiyonlar bu programı ``PATH`` çevre değişkeninin belirttiği dizinlerde
-bulamayacaktır. Ancak biz programı ``./sample`` biçiminde çalıştırmak istediğimizde bu fonksiyonlar
-artık ``PATH`` çevre değişkenine bakmayacak, bulunulan dizindeki ``sample`` programını çalıştıracaktır.
- 
-Peki kabuk programları neden exec fonksiyonlarının p'li versiyonlarını kullanmaktadır? Bunun birinci
-sebebi kolaylık sağlamak içindir. Örneğin ``ls`` komutunu biz ``/bin/ls`` biçiminde kullanmak istemeyiz.
-Bunun ikinci nedeni güvenliktir. Eskiden durum böyle değilken programın çalışma dizinine gerçek
-komutlarla aynı isimli komutlar yerleştirerek hileli işlemler yapmaya yeltenenler olmuştur. İşte bu
-nedenle ``PATH`` dizinlerinin içerisinde prosesin çalışma dizini yerleştirilmemektedir. Eğer durum böyle
-olmasaydı bazen hatalı yazılmış komutlarla istenmeden başka programlar da çalıştırılabilirdi. Örneğin
-dizinimizde ``co`` isminde bir program olsun; biz ``cp`` yerine yanlışlıkla ``co`` yazarsak bu programı
-istemeden de çalıştırabiliriz.
- 
-myshell Programına fork/exec Ekleme
-===================================
- 
-Şimdi de daha önce yapmış olduğumuz ``myshell`` kabuk programına fork/exec işlemini ekleyelim. Programın
+Şimdi de daha önce yapmış olduğumuz ``myshell`` kabuk programına ``fork``/``exec`` işlemini ekleyelim. Programın
 bu versiyonu önce *içsel (internal)* komutlara bakacak, eğer içsel komutlarda verilen komutu bulmazsa
-onu fork/exec ile program dosyası gibi çalıştıracaktır. Aslında ``bash`` gibi kabuk programları da böyle
+onu ``fork``/``exec`` ile program dosyası gibi çalıştıracaktır. Aslında ``bash`` gibi kabuk programları da böyle
 yapmaktadır.
  
 Biz ``myshell`` programımızda komut satırından aldığımız yazıyı parse edip parametrelerini zaten
 ``g_params`` isimli bir gösterici dizisinde saklamıştık. Örneğimizde eğer komut içsel komut listesinde
-bulunamadıysa aşağıdaki gibi fork/exec uygulanmıştır:
+bulunamadıysa aşağıdaki gibi ``fork``/``exec`` uygulanmıştır:
  
 .. code-block:: c
  
@@ -736,9 +705,9 @@ bulunamadıysa aşağıdaki gibi fork/exec uygulanmıştır:
                 exit_sys("waitpid");
         }
  
+``myshell.c``
+
 .. code-block:: c
- 
-    /* myshell.c */
  
     #include <stdio.h>
     #include <stdlib.h>
@@ -879,34 +848,53 @@ bulunamadıysa aşağıdaki gibi fork/exec uygulanmıştır:
         perror(msg);
         exit(EXIT_FAILURE);
     }
+
+Kabukta Programların ./ Yol İfadesi Kullanılarak Çalıştırılması
+---------------------------------------------------------------
  
-exec Hatalarına İlişkin errno Değerleri
-=======================================
+Şimdi kabuk üzerinden programları neden ``./sample`` biçiminde başına ``./`` getirerek çalıştırdığımız
+artık anlaşılabilir. Kabuk programları önce ``fork`` yapıp alt proseste ``exec`` fonksiyonlarının ``p``'li
+versiyonlarıyla programları çalıştırmaktadır. Dolayısıyla biz programı ``sample`` biçiminde çalıştırmak
+istediğimizde bu ``p``'li versiyonlar bu programı ``PATH`` çevre değişkeninin belirttiği dizinlerde
+bulamayacaktır. Ancak biz programı ``./sample`` biçiminde çalıştırmak istediğimizde bu fonksiyonlar
+artık ``PATH`` çevre değişkenine bakmayacak, bulunulan dizindeki ``sample`` programını çalıştıracaktır.
+ 
+Peki kabuk programları neden ``exec`` fonksiyonlarının ``p``'li versiyonlarını kullanmaktadır? Bunun birinci
+sebebi kolaylık sağlamak içindir. Örneğin ``ls`` komutunu biz ``/bin/ls`` biçiminde kullanmak istemeyiz.
+Bunun ikinci nedeni güvenliktir. Eskiden durum böyle değilken programın çalışma dizinine gerçek
+komutlarla aynı isimli komutlar yerleştirerek hileli işlemler yapmaya yeltenenler olmuştur. İşte bu
+nedenle ``PATH`` dizinlerinin içerisinde prosesin çalışma dizini yerleştirilmemektedir. Eğer durum böyle
+olmasaydı bazen hatalı yazılmış komutlarla istenmeden başka programlar da çalıştırılabilirdi. Örneğin
+dizinimizde ``co`` isminde bir program olsun; biz ``cp`` yerine yanlışlıkla ``co`` yazarsak bu programı
+istemeden de çalıştırabiliriz.
+ 
+exec Fonksiyonlarına İlişkin errno Değerleri
+============================================
  
 exec fonksiyonlarının başarısızlığının nedeni olabilecek çeşitli ``errno`` değerleri vardır. Bunların en
 önemlilerinden birkaçı şunlardır:
  
-- ``ENOENT`` ("No such file or directory"): Dosya bulunamamıştır.
-- ``EACCES`` ("Permission denied"): Dosya bulunmuştur ancak proses dosyaya ``x`` hakkına sahip değildir.
-- ``ENOEXEC`` ("Exec format error"): Dosya bulunmuştur. Prosesin dosyaya ``x`` hakkı da vardır. Ancak
-  dosyanın formatı çalıştırmaya uygun değildir. Yani dosya çalıştırılabilir bir dosya değildir ya da
-  dosyanın başında *shebang* yoktur.
-- ``EINVAL`` ("Invalid argument"): Dosya bulunmuştur, proses dosyaya ``x`` hakkına sahiptir. Ancak dosya
-  bu sistem tarafından desteklenen *çalıştırılabilir (executable)* bir formata sahip değildir.
- 
-Yukarıda da belirttiğimiz gibi exec fonksiyonlarının p'li versiyonları (``execlp`` ve ``execvp``)
+- ``ENOENT`` ("*No such file or directory*"): Dosya bulunamamıştır.
+- ``EACCES`` ("*Permission denied*"): Dosyaya ilişkin tüm yol bileşenlerinde ``'x'`` hakkı yoktur ya da 
+  proses dosyaya ``^x^`` hakkına sahip değildir.
+- ``ENOEXEC`` ("*Exec format error*"): Dosya bulunmuştur, prosesin dosyaya ``'x'`` hakkı da vardır. Ancak dosyanın 
+    formatı anlaşılamamıştır ya da bozuktur. Tipik olarak dosya çalıştırılabilir bir dosya olmadığında ya da dosyanın 
+    başında *shebang* bulunmadığında bu hata ortaya çıkmaktadır.
+- ``EINVAL`` ("*Invalid argument*"):  Dosya bulunmuştur, proses dosyaya ``'x'`` hakkına sahiptir. Dosyanın formatı 
+    tespit edilmiştir ancak sistem bu formattaki dosyaları çalıştıramamantadır. Yani bu hata "ne olduğunu biliyorum 
+    ama çalıştıramam" anlamına gelmektedir. 
+
+Yukarıda da belirttiğimiz gibi ``exec`` fonksiyonlarının ``p``'li versiyonları (``execlp`` ve ``execvp``)
 ``PATH`` dizinlerinde tek tek dosyayı aramaktadır. Ancak bu fonksiyonlar dosyayı bir dizinde bulduğunda
-ve onu sistem fonksiyonuyla (Linux'ta ``sys_execve``) çalıştırmaya çalıştığında ``EINVAL`` ve ``ENOEXEC``
-errno değerleri oluşursa dosyanın bir kabuk betiği (shell script) olduğundan çalıştırılamadığı sonucunu
-çıkartmaktadır ve bu durumda dosyayı *"/bin/sh (default shell)"* programı ile çalıştırmaktadır. Ancak
-exec fonksiyonlarının diğer versiyonları ``EINVAL`` ve ``ENOEXEC`` hatalarında bunu yapmamaktadır. Bunu
-yalnızca exec fonksiyonlarının p'li versiyonları yapmaktadır. exec fonksiyonlarının p'li versiyonları
-``PATH`` dizinlerinin birinde dosyayı sistem fonksiyonuyla (``sys_execve``) çalıştırmaya çalıştığında
-``EACCES`` errno değeri ile başarısız olursa dosyayı sonraki ``PATH`` dizinlerinde aramaya devam
+ve onu sistem fonksiyonuyla (Linux'ta ``sys_execve``) çalıştırmaya çalıştığında ``EINVAL`` ya da ``ENOEXEC``
+``errno`` değerleri ile başarısızlık durumu oluşursa dosyanın bir *kabuk betiği (shell script)* olduğundan 
+çalıştırılamadığı sonucunu çıkartmaktadır ve bu durumda dosyayı *"/bin/sh (default shell)"* programı ile 
+çalıştırmaktadır. Ancak ``exec`` fonksiyonlarının diğer versiyonları ``EINVAL`` ve ``ENOEXEC`` hatalarında 
+bunu yapmamaktadır. Bunu yalnızca ``exec`` fonksiyonlarının ``p``'li versiyonları yapmaktadır. ``exec`` fonksiyonlarının 
+``p``'li versiyonları ``PATH`` dizinlerinin birinde dosyayı sistem fonksiyonuyla (``sys_execve``) çalıştırmaya çalıştığında
+``EACCES`` ``errno`` değeri ile başarısız olurlarsa dosyayı sonraki ``PATH`` dizinlerinde aramaya devam
 ederler. Ancak bu arama sırasında bu fonksiyonlar artık dosyayı diğer ``PATH`` dizinlerinde de
-bulamazlarsa ``EACCES`` errno değeri ile başarısız olmaktadır.
- 
-Bu davranışın anlamı izleyen bölümlerde başka paragraflarda daha iyi anlaşılacaktır.
+bulamazlarsa ``EACCES`` ``errno`` değeri ile başarısız olurlar.
  
 execle ve execve Fonksiyonları (e'li Versiyonlar)
 =================================================
