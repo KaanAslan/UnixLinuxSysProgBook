@@ -1097,7 +1097,7 @@ Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazı
     }
 
 exec Fonksiyonlarının execve Kullanılarak Gerçekleştirilmesi
-============================================================
+------------------------------------------------------------
 
 Daha önceden de belirttiğimşiz gibi UNIX türevi sistemlerde genellikle yalnızca ``execve`` fonksiyonu sistem
 fonksiyonu olarak işletim sistemi içerisinde bulunmaktadır. Aslında ``execl``, ``execlp``, ``execv``,
@@ -1173,8 +1173,8 @@ Değişken sayıda argüman alan fonksiyonların yazımını inceleyiniz.
 fexecve Fonksiyonu
 ==================
 
-``fexecve`` isimli POSIX fonksiyonu ``execve`` fonksiyonu gibidir. Ancak bunun tek farkı yol ifadesi
-yerine dosya betimleyicisini alarak çalışmasıdır. Yani biz çalıştırmak istediğimiz program dosyasını
+``fexecve`` isimli POSIX fonksiyonu ``execve`` fonksiyonu gibidir. Ancak bunun tek farkı parametre olarak 
+dosyanın yol ifadesini değil dosya betimleyicisini almasıdır. Yani biz çalıştırmak istediğimiz program dosyasını
 zaten ``open`` fonksiyonu ile açmışsak bu durumda doğrudan ``fexecve`` fonksiyonunu kullanabiliriz.
 Fonksiyonun prototipi şöyledir:
 
@@ -1185,11 +1185,11 @@ Fonksiyonun prototipi şöyledir:
     int fexecve(int fd, char *const argv[], char *const envp[]);
 
 Fonksiyonun birinci parametresi çalıştırılacak dosyanın dosya betimleyicisini belirtmektedir. Diğer
-parametreler ``execve`` fonksiyonu ile tamamen aynıdır. Bu fonksiyonun birinci parametresinde belirtilen
+parametreler ``execve`` fonksiyonu ile tamamen aynıdır. Peki bu fonksiyonun birinci parametresinde belirtilen
 betimleyiciye ilişkin dosya hangi modda açılmış olmalıdır? POSIX standartlarında dosyanın ``O_EXEC``
 bayrağı ile ya da ``O_RDONLY`` bayrağı ile açılması gerektiği belirtilmiştir. ``O_EXEC`` bayrağında zaten
-açış sırasında dosyanın ``x`` hakkına sahip olup olmadığına bakılmaktadır. ``O_RDONLY`` bayrağında açış
-sırasında ``x`` hakkına bakılmaz, ancak ``fexecve`` çağrısı sırasında prosesin dosyaya ``x`` hakkına
+açım sırasında dosyanın ``'x'`` hakkına sahip olup olmadığına bakılmaktadır. ``O_RDONLY`` bayrağında açım
+sırasında ``'x'`` hakkına bakılmaz, ancak ``fexecve`` çağrısı sırasında prosesin dosyaya ``'x'`` hakkına
 sahip olup olmadığı kontrol edilmektedir. Linux çekirdeği ``O_EXEC`` bayrağını desteklemediği için Linux
 sistemlerinde dosya ``O_RDONLY`` bayrağı ile ya da ``O_PATH`` bayrağı ile açılmalıdır. Anımsanacağı gibi
 ``O_PATH`` bayrağı da POSIX tarafından desteklenmemektedir.
@@ -1205,11 +1205,9 @@ Aşağıda ``fexecve`` fonksiyonunun kullanımına bir örnek verilmiştir. Bura
             exit_sys("fexecve");
         /* unreachable code */
     }
-    /* ... */
 
-Açış işleminin Linux'ta ``O_RDONLY`` bayrağı ile yapıldığına dikkat ediniz. (Linux ``O_EXEC`` bayrağını
-desteklememektedir.) Örneğimizde ``fexecve`` fonksiyonuna üst prosesin çevre değişken listesi
-geçirilmiştir.
+Açım işleminin Linux'ta ``O_RDONLY`` bayrağı ile yapıldığına dikkat ediniz. Örneğimizde ``fexecve`` fonksiyonuna üst 
+prosesin çevre değişken listesi geçirilmiştir.
 
 .. code-block:: c
 
@@ -1260,43 +1258,36 @@ geçirilmiştir.
         exit(EXIT_FAILURE);
     }
 
-exec ve Açık Dosyalar: close-on-exec Bayrağı
-============================================
+exec İşlemlerine Açık Dosyaların Durumu ve Betimleyicilerin *close-on-exec* Bayrakları
+======================================================================================
 
-exec işlemi yapıldığında o ana kadar açık olan dosyaların akıbeti ne olacaktır? Anımsanacağı gibi açık
-dosyaların dosya nesnelerinin adresleri *dosya betimleyici tablosu* denilen bir tabloda tutuluyordu. exec
-işlemi sırasında prosesin betimleyici tablosu korunmaktadır. Bu durumda örneğin bir program 100 tane
-dosya açıp sonra exec işlemi uygulasa yeni çalıştırılacak program bu 100 dosyanın farkında olmayacaktır.
-Ancak dosya betimleyici tablosunda bu 100 betimleyici çoğu kez gereksiz bir biçimde (seyrek olarak
+``exec`` işlemi yapıldığında o ana kadar açık olan dosyaların akıbeti ne olacaktır? Anımsanacağı gibi açık
+dosyaların dosya nesnelerinin adresleri *dosya betimleyici tablosu* denilen bir tabloda tutuluyordu. ``exec``
+işlemi sırasında prosesin betimleyici tablosu korunmaktadır. Bu durumda örneğin bir program ``100`` tane
+dosya açıp sonra ``exec`` işlemi uygulasa yeni çalıştırılacak program bu ``100`` dosyanın farkında olmayacaktır.
+Ancak dosya betimleyici tablosunda bu ``100`` betimleyici çoğu kez gereksiz bir biçimde (seyrek olarak
 böylesi bir durum kasten istenebilir) bulunmaya devam edecektir. İşte UNIX/Linux sistemlerinde her açık
-dosya için *close-on-exec* isminde bir bayrak da tutulmaktadır. Eğer bu bayrak *set* edilmişse bu durumda
-exec işlemi sırasında bu dosya işletim sistemi tarafından otomatik olarak kapatılır. Eğer bu bayrak
-*reset* durumdaysa bu durumda exec işlemi sırasında dosya kapatılmaz, exec yapılan program kodu dosyanın
-betimleyicisini bilirse onu kullanmaya devam edebilir. Bu bayrak default olarak *reset* durumdadır. Yani
-exec sonrasında önceki programın açmış olduğu dosyalar açık kalmaya devam etmektedir.
-
-O_CLOEXEC ile Açılışta Bayrağı Ayarlama
----------------------------------------
-
-İşte ``open`` fonksiyonuyla dosya açılırken açış modunda ``O_CLOEXEC`` bayrağı belirtilirse bu bayrak set
-edilmiş olur. Böylece exec işlemi sırasında dosya otomatik biçimde kapatılır. Örneğin:
+dosya için *close-on-exec* isminde bir bayrak da tutulmaktadır. Eğer bu bayrak set edilmişse bu durumda
+``exec`` işlemi sırasında bu dosya işletim sistemi tarafından otomatik olarak kapatılır. Eğer bu bayrak
+reset durumdaysa bu durumda ``exec`` işlemi sırasında dosya kapatılmaz, ``exec`` yapılan program kodu dosyanın
+betimleyicisini bilirse onu kullanmaya devam edebilir. Bu bayrak varsayılan durumda set edilmemiştir. 
+Yani ``exec`` sonrasında önceki programın açmış olduğu dosyalar açık kalmaya devam etmektedir. İşte ``open`` 
+fonksiyonuyla dosya açılırken açış modunda ``O_CLOEXEC`` bayrağı belirtilirse bu bayrak set edilmiş olur. 
+Böylece` ``exec`` işlemi sırasında dosya otomatik biçimde kapatılır. Örneğin:
 
 .. code-block:: c
 
     fd = open("test.txt", O_RDONLY|O_CLOEXEC);
 
-fcntl ile close-on-exec Bayrağını Sonradan Değiştirme
------------------------------------------------------
-
 Programcı isterse herhangi bir zaman ``fcntl`` fonksiyonu ile de bu bayrağı set ya da reset edebilir. Biz
-bu ``fcntl`` fonksiyonunu henüz görmedik. Ancak bu bayrağın set edilmesi işlemi şöyle yapılabilmektedir:
+``fcntl`` fonksiyonunu henüz görmedik. Ancak bu bayrağın set edilmesi işlemi şöyle yapılabilmektedir:
 
 .. code-block:: c
 
     if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD)|FD_CLOEXEC) == -1)
         exit_sys("fcntl");
 
-Benzer biçimde bu bayrak şöyle de reset edilebilir:
+Benzer biçimde bu bayrak şöyle reset edilebilmektedir:
 
 .. code-block:: c
 
@@ -1304,12 +1295,9 @@ Benzer biçimde bu bayrak şöyle de reset edilebilir:
         exit_sys("fcntl");
 
 Close-on-exec bayrağı dosya nesnesinin içerisinde tutulmamaktadır. Çünkü aynı dosya nesnesini gösteren
-farklı betimleyiciler olabilir. Bu betimleyicilerden birinin close-on-exec bayrağı set edilmişken
-diğerinin set edilmemiş olabilir. Yani close-on-exec bayrağı dosya nesnesinin içerisinde değil, proses
+farklı betimleyiciler olabilir. Bu betimleyicilerden birinin *close-on-exec* bayrağı set edilmişken
+diğerinin set edilmemiş olabilir. Yani *close-on-exec* bayrağı dosya nesnesinin içerisinde değil, proses
 kontrol bloğu içerisinde başka bir yerdedir.
-
-close-on-exec Örneği (sample.c / other.c)
------------------------------------------
 
 Aşağıdaki örnekte ``sample`` programı ``execl`` ile ``other`` programını çalıştırmıştır. Ancak ``other``
 programı ``sample`` programının açmış olduğu dosyanın betimleyici numarasını bilmediği için ``sample``
@@ -1332,24 +1320,12 @@ Tabii aynı işlem şöyle de yapılabilirdi:
     if (fcntl(fd, F_SETFD, fcntl(fd, F_GETFD)|FD_CLOEXEC) == -1)
         exit_sys("fcntl");
 
-Bu durumda alt proseste dosya betimleyicisi kapalı olduğu için ``read`` fonksiyonu -1 ile geri dönecek ve
-``errno`` değişkeni *EBADF ("Bad file descriptor")* ile set edilecektir.
+Bu durumda alt proseste dosya betimleyicisi kapalı olduğu için ``read`` fonksiyonu ``-1`` ile geri dönecek ve
+``errno`` değişkeni ``EBADF`` ("*Bad file descriptor*") ile set edilecektir.
 
-close-on-exec bayrağı bazı işlemler sırasında işletim sistemi tarafından set ya da reset edilebilmektedir.
-Örneğin ``dup`` ve ``dup2`` fonksiyonları ile dosya betimleyicisinin kopyası çıkartılırken her zaman yeni
-betimleyicinin close-on-exec bayrağı reset durumda olur.
-
-O_CLOFORK Bayrağı (POSIX 2024)
-------------------------------
-
-Anımsanacağı gibi POSIX'e 2024 versiyonu ile ``fork`` yaparken de dosyanın otomatik kapatılmasını
-sağlayan ``O_CLOFORK`` bayrağı eklenmiştir. Ancak Linux'un bu bayrağı desteklemediğini belirtmiştik.
-Linux'un bu bayrağı desteklememesinin nedeni exec işlemi olmadan tek başına ``fork`` işleminin artık pek
-kullanılmaması ve bu desteğin mevcut çekirdek tasarımına bir yük getirmesidir.
+``sample.c``
 
 .. code-block:: c
-
-    /* sample.c */
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -1391,9 +1367,9 @@ kullanılmaması ve bu desteğin mevcut çekirdek tasarımına bir yük getirmes
         exit(EXIT_FAILURE);
     }
 
-.. code-block:: c
+``other.c```
 
-    /* other.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -1433,6 +1409,15 @@ kullanılmaması ve bu desteğin mevcut çekirdek tasarımına bir yük getirmes
         perror(msg);
         exit(EXIT_FAILURE);
     }
+
+*close-on-exec* bayrağı bazı işlemler sırasında işletim sistemi tarafından set ya da reset edilebilmektedir.
+Örneğin ``dup`` ve ``dup2`` fonksiyonları ile dosya betimleyicisinin kopyası çıkartılırken her zaman yeni
+betimleyicinin *close-on-exec* bayrağı reset edilmektedir.
+
+Anımsanacağı gibi POSIX'e 2024 versiyonu ile ``fork`` yaparken de dosyanın otomatik kapatılmasını
+sağlayan ``O_CLOFORK`` bayrağı eklenmiştir. Ancak Linux'un bu bayrağı desteklemediğini belirtmiştik.
+Linux'un bu bayrağı desteklememesinin nedeni ``exec`` işlemi olmadan tek başına ``fork`` işleminin artık pek
+kullanılmaması ve bu desteğin mevcut çekirdek tasarımına bir yük getirmesidir.
 
 Kabukta IO Yönlendirmesini Taklit Etme (redirect_stdout Örneği)
 ===============================================================
