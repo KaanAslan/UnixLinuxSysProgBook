@@ -751,7 +751,6 @@ bulunamadıysa aşağıdaki gibi ``fork``/``exec`` uygulanmıştır:
             exit_sys("fatal error");
  
         for (;;) {
- 
             printf("CSD:%s$ ", g_cwd);
             fflush(stdout);
  
