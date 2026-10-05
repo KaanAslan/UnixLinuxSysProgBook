@@ -1257,7 +1257,7 @@ prosesin çevre değişken listesi geçirilmiştir.
         exit(EXIT_FAILURE);
     }
 
-exec İşlemlerine Açık Dosyaların Durumu ve Betimleyicilerin *close-on-exec* Bayrakları
+exec İşlemlerinde Açık Dosyaların Durumu ve Betimleyicilerin close-on-exec Bayrakları
 ======================================================================================
 
 ``exec`` işlemi yapıldığında o ana kadar açık olan dosyaların akıbeti ne olacaktır? Anımsanacağı gibi açık
@@ -1302,7 +1302,7 @@ Aşağıdaki örnekte ``sample`` programı ``execl`` ile ``other`` programını 
 programı ``sample`` programının açmış olduğu dosyanın betimleyici numarasını bilmediği için ``sample``
 programı komut satırı argümanıyla bu bilgiyi ``other`` programına iletmiştir.
 
-Aşağıdaki programı daha sonra dosyanın close-on-exec bayrağını set ederek yeniden deneyiniz:
+Aşağıdaki programı daha sonra dosyanın *close-on-exec* bayrağını set ederek yeniden deneyiniz:
 
 .. code-block:: c
 
@@ -1366,7 +1366,7 @@ Bu durumda alt proseste dosya betimleyicisi kapalı olduğu için ``read`` fonks
         exit(EXIT_FAILURE);
     }
 
-``other.c```
+``other.c``
 
 .. code-block:: c
 
@@ -1418,8 +1418,8 @@ sağlayan ``O_CLOFORK`` bayrağı eklenmiştir. Ancak Linux'un bu bayrağı dest
 Linux'un bu bayrağı desteklememesinin nedeni ``exec`` işlemi olmadan tek başına ``fork`` işleminin artık pek
 kullanılmaması ve bu desteğin mevcut çekirdek tasarımına bir yük getirmesidir.
 
-Kabukta IO Yönlendirmesini Taklit Etme (redirect_stdout Örneği)
-===============================================================
+Kabuk IO Yönlendirmesini Nasıl Yapıyor?
+=======================================
 
 Şimdi de kabuk programlarının IO yönlendirmesini nasıl yaptığına ilişkin küçük bir uygulama üzerinde
 duralım. Anımsanacağı gibi kabuk üzerinde ``>`` operatörü çalıştırılan programın 1 numaralı
@@ -1430,14 +1430,14 @@ betimleyicisini (``STDOUT_FILENO``) ``>`` operatörünün sağındaki dosyaya y�
     # ./sample > test.txt
 
 Burada ``sample`` programının ``stdout`` dosyasına yazdıkları ekrana yazılmayacak, ``test.txt``
-dosyasına yazılacaktır. Peki kabuk bunu nasıl yapmaktadır? İşlemin şu biçimde olduğunu varsayalım:
+dosyasına yazılacaktır. Peki kabuk bunu nasıl yapmaktadır? Yönlendirmenin şu biçimde yapıldığını varsayalım:
 
 .. code-block:: console
 
     $ a > b
 
-İşte tipik olarak kabuk önce *a* programı için ``fork`` yapar. Ancak henüz exec yapmadan alt prosesin 1
-numaralı betimleyicisini *b* dosyasını açarak ona yönlendirir. Sonra da exec uygular.
+İşte tipik olarak kabuk önce ``a`` programı için ``fork`` yapar. Ancak henüz ``exec`` yapmadan alt prosesin ``1``
+numaralı betimleyicisini ``b`` dosyasını açarak ona yönlendirir. Sonra da ``exec`` uygular.
 
 Biz bu işlemi yapan aşağıdaki gibi bir fonksiyon yazmak isteyelim:
 
@@ -1452,7 +1452,7 @@ Fonksiyon bizden tıpkı kabukta olduğu gibi ``>`` ile yapılan yönlendirme ya
     result = redirect_stdout("ls -l > test.txt");
 
 Bizim bu fonksiyon içerisinde önce ``>`` karakterini bulup onun solunu ve sağını ayrıştırmamız gerekir.
-Sonra ``fork`` uygulayıp alt proseste yönlendirmeyi yapıp exec uygulamamız gerekir. Bu işlemi aşağıdaki
+Sonra ``fork`` uygulayıp alt proseste yönlendirmeyi yapıp ``exec`` uygulamamız gerekir. Bu işlemi aşağıdaki
 örnekte şöyle yaptık:
 
 .. code-block:: c
@@ -1487,9 +1487,10 @@ Aşağıda örneği bütünsel olarak veriyoruz. Programı şöyle test edebilir
 
     $ ./redirect "ls -l  > test.txt"
 
+``redirect.c``
+
 .. code-block:: c
 
-    /* redirect.c */
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -1530,16 +1531,14 @@ Aşağıda örneği bütünsel olarak veriyoruz. Programı şöyle test edebilir
         char *tok;
         size_t i;
 
-        if ((str = strchr(cmd, '>')) == NULL || strchr(str + 1, '>'))
+        if ((str = strchr(cmd, '>')) == NULL || strchr(str + 1, '>') != NULL)
             return -1;
         *str++ = '\0';
 
         for (i = 0, tok = strtok(cmd, " \t"); tok != NULL; tok = strtok(NULL, " \t"), ++i)
             pi->args[i] = tok;
-
         if (i == 0)
             return -1;
-
         pi->args[i] = NULL;
 
         for (i = 0; isspace(str[i]); ++i)
@@ -1597,26 +1596,23 @@ Aşağıda örneği bütünsel olarak veriyoruz. Programı şöyle test edebilir
         exit(EXIT_FAILURE);
     }
 
-exec ile Betik (Script) Dosyalarının Çalıştırılması ve shebang
-==============================================================
+exec Fonksiyonlarıyla Betik Dosyalarının Çalıştırılması
+=======================================================
 
-exec fonksiyonları ile betik (script) dosyaları da (yani text dosyalar da) çalıştırılabilmektedir. Bu
-özellik tamamen çekirdekte bulunan sistem fonksiyonları (Linux'ta ``execve``) tarafından sağlanmaktadır.
-exec fonksiyonları (aslında Linux'ta ``execve`` sistem fonksiyonu) eğer çalıştırılmak istenen dosya
-*çalıştırılabilir bir dosya değilse (örneğin Linux'ta ELF formatı ya da a.out formatı değilse)* bu
+``exec`` fonksiyonları ile betik (script) dosyaları da (yani text dosyalar da) çalıştırılabilmektedir. Bu
+özellik tamamen çekirdekte bulunan sistem fonksiyonları (Linux'ta ``execve`` ve ``execveat``) tarafından sağlanmaktadır.
+exec fonksiyonları (aslında Linux'ta ``execve`` ve ``execveat`` sistem fonksiyonu) eğer çalıştırılmak istenen dosya
+çalıştırılabilir bir dosya değilse (örneğin Linux'ta ``ELF`` formatı ya da ``a.out`` formatı değilse) bu
 dosyanın birinci satırını okuyarak onunla özel bir işlem yapmaktadır. Çalıştırılabilir formata sahip
-olmayan bir dosyanın (tipik olarak bir text dosya) birinci satırı aşağıdaki gibi ise exec fonksiyonları
+olmayan bir dosyanın (tipik olarak bir text dosya) birinci satırı aşağıdaki gibi ise ``exec`` fonksiyonları
 burada özel bir işlem uygulamaktadır:
 
 .. code-block:: text
 
-    #! [optional SPACE'ler] <executable file mutlak yol ifadesi> [isteğe bağlı argüman(lar)]
-
-shebang Satırının Biçimi
-------------------------
+    #! [isteğe bağlı SPACE'ler] <executable file mutlak yol ifadesi> [isteğe bağlı argüman(lar)]
 
 Burada ``#!`` karakterlerine genellikle *shebang* denilmektedir. Bu karakterler hemen dosyanın başında
-bulunmak zorundadır. Shebang karakterlerinden sonra isteğe bağlı bir ya da birden fazla SPACE karakteri
+bulunmak zorundadır. Shebang karakterlerinden sonra isteğe bağlı bir ya da birden fazla ``SPACE`` karakteri
 bulundurulabilmektedir. Bundan sonra gerçekten çalıştırılacak olan *çalıştırılabilir bir dosyanın* mutlak
 yol ifadesi olmalıdır. Bunu isteğe bağlı argümanlar izleyebilir. Örneğin aşağıdaki satırlar geçerlidir:
 
@@ -1627,18 +1623,17 @@ yol ifadesi olmalıdır. Bunu isteğe bağlı argümanlar izleyebilir. Örneğin
     #!/usr/bin/python
     #!/usr/bin/make -f
 
-exec işlemini yapan sistem fonksiyonları, eğer exec yapılmak istenen dosya çalıştırılabilir bir dosya
-değilse (burada ``x`` hakkını kastetmiyoruz, dosyanın ELF gibi bir formata sahip olmadığını
+``exec`` işlemini yapan sistem fonksiyonları, eğer ``exec`` yapılmak istenen dosya çalıştırılabilir bir dosya
+değilse (burada ``x`` hakkını kastetmiyoruz, dosyanın ``ELF`` gibi bir formata sahip olmadığını
 kastediyoruz), onun birinci satırını okuyarak orada belirtilen çalıştırılabilir dosyayı çalıştırmaktadır.
-Ancak exec fonksiyonlarının bu işlemi yapabilmesi için exec yapılan dosyanın yine de (text dosyası
-olmasına karşın) ``x`` hakkına sahip olması gerekmektedir. Aksi takdirde exec fonksiyonları başarısız
+Ancak ``exec`` fonksiyonlarının bu işlemi yapabilmesi için ``exec`` yapılan dosyanın yine de (text dosyası
+olmasına karşın) ``x`` hakkına sahip olması gerekmektedir. Aksi takdirde ``exec`` fonksiyonları başarısız
 olur ve yine ``errno`` değeri ``EACCES`` biçiminde set edilir.
 
-Yukarıdaki gibi shebang satırı içeren bir betik dosyası exec fonksiyonlarıyla çalıştırılmak istendiğinde
-exec fonksiyonları betik dosyasını değil *shebang* satırında belirtilen çalıştırılacak dosyayı
-çalıştırmaktadır. Ancak o dosyayı çalıştırırken betik dosyasının yol ifadesini de o programa komut
-satırı argümanı olarak geçirmektedir. Örneğin ``myscript`` ismindeki aşağıdaki dosyayı exec
-fonksiyonlarıyla çalıştırmak isteyelim:
+Yukarıdaki gibi shebang satırı içeren bir betik dosyası ``exec`` fonksiyonlarıyla çalıştırılmak istendiğinde
+``exec`` fonksiyonları betik dosyasını değil *shebang* satırında belirtilen dosyayı çalıştırmaktadır. 
+Ancak o dosyayı çalıştırırken betik dosyasının yol ifadesini de o programa komut satırı argümanı olarak 
+geçirmektedir. Örneğin ``myscript`` ismindeki aşağıdaki dosyayı ``exec`` fonksiyonlarıyla çalıştırmak isteyelim:
 
 .. code-block:: bash
 
@@ -1648,7 +1643,7 @@ fonksiyonlarıyla çalıştırmak isteyelim:
         echo "$i"
     done
 
-Burada dosyanın shebang satırında ``/bin/bash`` dosyası belirtilmektedir. İşte exec fonksiyonları aslında
+Burada dosyanın shebang satırında ``/bin/bash`` dosyası belirtilmektedir. İşte ``exec`` fonksiyonları aslında
 bu ``/bin/bash`` dosyasını çalıştırıp ``myscript`` dosyasını da bu programa komut satırı argümanı olarak
 geçirmektedir. Yani aslında aşağıdaki çalıştırmayla eşdeğer bir durum ortaya çıkmaktadır:
 
@@ -1656,40 +1651,23 @@ geçirmektedir. Yani aslında aşağıdaki çalıştırmayla eşdeğer bir durum
 
     $ /bin/bash myscript
 
-Görüldüğü gibi bu örnekte aslında betik dosyasını exec fonksiyonları değil ``/bin/bash`` programı
-çalıştırmaktadır. exec fonksiyonları bu sürece yalnızca aracılık etmektedir.
-
-shebang'te Belirtilen Programa Aktarılan Komut Satırı Argümanları
------------------------------------------------------------------
+Görüldüğü gibi bu örnekte aslında betik dosyasını ``exec`` fonksiyonları değil ``/bin/bash`` programı
+çalıştırmaktadır. ``exec`` fonksiyonları bu sürece yalnızca aracılık etmektedir.
 
 Shebang satırında belirtilen programın çalıştırılması sırasında bu programa geçirilen komut satırı
 argümanları şöyledir:
 
-.. code-block:: text
+.. figure:: _static/shebang-argv.png
+    :width: 60%
 
-    argv[0] ---> shebang'te belirtilen program dosyasına ilişkin yol ifadesi
-    argv[1] ---> Eğer shebang'te çalıştırılabilen programın yanında isteğe bağlı argüman varsa o argüman
-    argv[2] ---> exec fonksiyonunda belirtilen çalıştırılabilir olmayan dosyanın (yani betik dosyasının)
-                 yol ifadesi
-    argv[3] ve sonrası ---> exec fonksiyonunda belirtilen komut satırı argümanları, ancak ilk argüman
-                 dahil değil
+Eğer shebang'in yanındaki programın yol ifadesinin yanında argüman yoksa bu durumda shebang'te belirtilen programın 
+komut satırı argümanları şöyle olacaktır:
 
-Eğer shebang'in yanındaki programın yol ifadesinin yanında isteğe bağlı argüman verilmemişse bu durumda
-shebang'te belirtilen programın komut satırı argümanları şöyle olacaktır:
+.. figure:: _static/shebang-argv-noarg.png
+    :width: 60%
 
-.. code-block:: text
-
-    argv[0] ---> shebang'te belirtilen program dosyasına ilişkin yol ifadesi
-    argv[1] ---> exec fonksiyonunda belirtilen çalıştırılabilir olmayan dosyanın (yani betik dosyasının)
-                 yol ifadesi
-    argv[2] ve sonrası ---> exec fonksiyonunda belirtilen komut satırı argümanları, ancak ilk argüman
-                 dahil değil
-
-Burada dikkat edilmesi gereken bir nokta şudur: exec fonksiyonunda belirtilen ``argv[0]`` için girilen
+Burada dikkat edilmesi gereken bir nokta şudur: ``exec`` fonksiyonunda belirtilen ``argv[0]`` için girilen
 argüman shebang satırında belirtilen programa aktarılmamaktadır.
-
-Argüman Aktarımı Denemeleri
----------------------------
 
 Şimdi çeşitli denemelerle argüman aktarımını anlamaya çalışalım.
 
@@ -1710,7 +1688,7 @@ argümanı olarak almaktadır. Şimdi biz çalıştırma işlemini kolaylaştır
     for i in range(10):
         print(i)
 
-``sample.py`` dosyasına ``chmod`` komutu ile ``x`` hakkı verelim:
+``sample.py`` dosyasına ``chmod`` komutu ile ``'x'`` hakkı verelim:
 
 .. code-block:: console
 
@@ -1732,27 +1710,21 @@ Artık Python programını sanki bir C programıymış gibi çalıştırabiliriz
     8
     9
 
-Burada exec fonksiyonları aslında aşağıdaki gibi bir çalıştırma yapılmış gibi işlem exec uygulayacaktır:
-
-.. code-block:: console
-
-    $ python3 sample.py
-
 ``test.txt`` dosyasının shebang satırı şöyle olsun:
 
 .. code-block:: text
 
     #!/home/kaan/Study/UnixLinux-SysProg/sample ankara
 
-Burada biz denememizin ``/home/kaan/Study/UnixLinux-SysProg`` dizininde yapıldığını varsayıyoruz. Siz bu
+Burada biz denememenin ``/home/kaan/Study/UnixLinux-SysProg`` dizininde yapıldığını varsayıyoruz. Siz bu
 denemeyi yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değiştirmelisiniz.
 
 Burada görüldüğü gibi shebang'te belirtilen programın yanında isteğe bağlı bir argüman (*ankara*
 argümanı) bulunmaktadır. Şimdi ``sample`` programının da C'de şöyle yazıldığını varsayalım:
 
-.. code-block:: c
+``sample.c```
 
-    /* sample.c */
+.. code-block:: c
 
     int main(int argc, char *argv[])
     {
@@ -1770,7 +1742,7 @@ argümanı) bulunmaktadır. Şimdi ``sample`` programının da C'de şöyle yaz�
 
     execl("test.txt", "test.txt", "ali", "veli", "selami", (char *)0);
 
-Ekranda şunları görmeliyiz:
+Ekranda şunları görürüz:
 
 .. code-block:: text
 
@@ -1782,13 +1754,13 @@ Ekranda şunları görmeliyiz:
     argv[4]: veli
     argv[5]: selami
 
-exec işlemi şöyle yapılmış olsun:
+``exec`` işlemi şöyle yapılmış olsun:
 
 .. code-block:: c
 
     execl("test.txt", "ali", "veli", "selami", (char *)0);
 
-Ekrana şunlar çıkacaktır:
+Bu durumda ekrana şunlar basılacaktır:
 
 .. code-block:: text
 
@@ -1799,18 +1771,21 @@ Ekrana şunlar çıkacaktır:
     argv[3]: veli
     argv[4]: selami
 
-Şimdi de shebang satırı şöyle olsun:
+Shebang satırı şöyle olsun:
 
 .. code-block:: text
 
     #!/home/kaan/Study/UnixLinux-SysProg/sample
 
-Görüldüğü gibi burada artık shebang'te belirtilen programın yanında isteğe bağlı argüman yoktur. Şimdi
-exec işlemini şöyle yapmış olalım:
+Görüldüğü gibi burada artık shebang'te belirtilen programın yanında argüman yoktur. Şimdi exec işlemini 
+şöyle yapmış olalım:
 
 .. code-block:: c
 
     execl("test.txt", "test.txt", "ali", "veli", "selami", (char *)0);
+
+
+Ekrana şunlar basılacaktır:
 
 .. code-block:: text
 
@@ -1968,13 +1943,6 @@ yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değişt
     #!/home/kaan/Study/UnixLinux-SysProg/10-Exec/sample ankara
 
 
-
-.. _shebang-mekanizmasi-ve-system-fonksiyonu:
-
-========================================
-shebang Mekanizması ve system Fonksiyonu
-========================================
-
 shebang Mekanizmasının Amacı ve Örnekler
 ========================================
 
@@ -2085,8 +2053,8 @@ shebang ve Dosya Formatı Kontrolü Sırası
 ========================================
 
 Linux çekirdeklerinde exec fonksiyonları genel olarak (bazı ayrıntıları da vardır) önce shebang kontrolü
-yapıp sonra ELF dosyası kontrolünü (ve diğer bazı çalıştırılabilir dosya formatlarının kontrolünü)
-yapmaktadır. Ancak aslında bu sıranın da bir önemi yoktur. Çünkü ELF gibi çalıştırılabilir dosya
+yapıp sonra ``ELF`` dosyası kontrolünü (ve diğer bazı çalıştırılabilir dosya formatlarının kontrolünü)
+yapmaktadır. Ancak aslında bu sıranın da bir önemi yoktur. Çünkü ``ELF`` gibi çalıştırılabilir dosya
 formatlarının ilk bayt'larında *sihirli sayılar (magic numbers)* vardır. Bu sihirli sayılarla ``#!``
 shebang karakterleri zaten çakışmamaktadır.
 
@@ -2102,7 +2070,7 @@ exec'in p'li Versiyonlarında shebang'siz Betik Çalıştırma
 
 exec fonksiyonlarının p'li versiyonları (yani ``execlp`` ve ``execvp``) özel bir davranışa sahiptir.
 Bilindiği gibi bu fonksiyonlar ``PATH`` çevre değişkeninde belirtilen dizinlerde exec yapılan dosyayı tek
-tek aramaktadır. Eğer bunlar betik dosyasını (ELF dosyasını değil) ``x`` hakkına sahip olarak bulup ancak
+tek aramaktadır. Eğer bunlar betik dosyasını (``ELF`` dosyasını değil) ``x`` hakkına sahip olarak bulup ancak
 dosyanın başında *shebang* görmezlerse sanki dosyanın başında varmış gibi onları işleme sokmaktadır:
 
 .. code-block:: text
@@ -2384,12 +2352,6 @@ yazmak anlamına gelmemektedir. Bu bir sarmalama (wrapping) işlemidir.
         return 0;
     }
 
-
-.. _set-user-id-set-group-id-sticky:
-
-=================================================================
-set-user-id, set-group-id, sticky Bayrakları ve Proses Kimlikleri
-=================================================================
 
 set-user-id, set-group-id ve sticky Erişim Hakları
 ==================================================
