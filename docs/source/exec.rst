@@ -1796,15 +1796,12 @@ Ekrana şunlar basılacaktır:
     argv[3]: veli
     argv[4]: selami
 
-shebang Satırının Uzunluk Sınırı ve Göreli Yol Kullanımı
---------------------------------------------------------
+Sistemlerde genellikle shebang satırları için maksimum bir uzunluk belirlenmektedir. Örneğin eski
+Linux sistemlerinde eğer shebang satırı uzunsa çekirdek bunun ilk ``127`` karakterini dikkate almaktadır.
+Ancak Linux'ta 5.1 çekirdeği ile birlikte bu uzunluk ``255``'e yükseltilmiştir.
 
-Sistemlerde genellikle shebang satırları için maksimum bir uzunluk belirlenmiş olmaktadır. Örneğin eski
-Linux sistemlerinde eğer shebang satırı uzunsa çekirdek bunun ilk 127 karakterini dikkate almaktadır.
-Ancak Linux'ta 5.1 çekirdeği ile birlikte bu uzunluk 255'e yükseltilmiştir.
-
-Shebang'te belirtilen çalıştırılabilir program genellikle *mutlak yol ifadesi* ile belirtilmektedir.
-Ancak Linux'ta buradaki program *göreli yol ifadesi* ile de belirtilebilmektedir. Örneğin:
+Shebang'te belirtilen çalıştırılabilir program genellikle mutlak yol ifadesi ile belirtilmektedir.
+Ancak Linux'ta buradaki program göreli yol ifadesi ile de belirtilebilmektedir. Örneğin:
 
 .. code-block:: text
 
@@ -1813,10 +1810,7 @@ Ancak Linux'ta buradaki program *göreli yol ifadesi* ile de belirtilebilmektedi
 Bu durumda burada belirtilen program exec işlemini yapan prosesin çalışma dizini temel alınarak
 aranmaktadır.
 
-shebang'e Birden Fazla Argüman Yazma
-------------------------------------
-
-Shebang'te belirtilen programın yanına birden fazla argüman yazabilir miyiz? Örneğin:
+Prki shebang'te belirtilen programın yanına birden fazla argüman yazabilir miyiz? Örneğin:
 
 .. code-block:: text
 
@@ -1848,11 +1842,8 @@ Bazı UNIX türevi sistemler bu durumda yalnızca boşlukla ayrılmış ilk arg�
 programa aktarıp diğerlerini ihmal edebilmektedir. Bu durumda programcının taşınabilirliği sağlamak için
 shebang satırında tek bir argüman kullanması tavsiye edilmektedir.
 
-Betik Dosyasının Doğrudan Kabuktan Çalıştırılması
--------------------------------------------------
-
-Tabii biz bir script dosyasını doğrudan kabuk üzerinden de çalıştırabiliriz. Fark eden bir şey yoktur. Bu
-durumda zaten exec işlemini kabuk uygulamaktadır. Örneğin ``test.txt`` dosyası şöyle olsun:
+Tabii biz konya girişte de belirttiğimiz gibi bir script dosyasını doğrudan kabuk üzerinden de çalıştırabiliriz. Fark eden 
+bir şey yoktur. Bu durumda zaten exec işlemini kabuk uygulamaktadır. Örneğin ``test.txt`` dosyası şöyle olsun:
 
 .. code-block:: text
 
@@ -1872,21 +1863,17 @@ durumda zaten exec işlemini kabuk uygulamaktadır. Örneğin ``test.txt`` dosya
     argv[4]: veli
     argv[5]: selami
 
-Görüldüğü gibi burada exec işlemini kabuk uygulamıştır. Kabuk exec uygularken dosya ismini yine exec'te
-ilk komut satırı argümanı olarak kullanır. Ancak exec bunu shebang'te belirtilen programa
-aktarmamaktadır.
+Görüldüğü gibi burada ``exec`` işlemini kabuk uygulamıştır. Kabuk ``exec`` uygularken dosya ismini yine ``exec``'te
+ilk komut satırı argümanı olarak kullanır. Ancak exec bu dosya ismini shebang'te belirtilen programa aktarmamaktadır.
 
-Tam Örnek (exec-prog.c / sample.c / test.txt)
----------------------------------------------
-
-Aşağıda shebang programına argüman aktarımının test edilmesi için bir örnek verilmiştir. Buradaki
+Aşağıda shebang satırında belirtilen programa argüman aktarımının test edilmesi için bir örnek verilmiştir. Örnekteki
 ``test.txt`` script programına ``chmod`` komutu ile ``x`` hakkı vermeyi unutmayınız. Burada biz denemeyi
 kendi makinemizde ``/home/kaan/Study/UnixLinux-SysProg`` dizininde yaptık. Siz kendi dizininizde
-yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değiştirmelisiniz.
+yaparken shebang satırındaki yol ifadesini kendi çalıştığınız dizinle değiştirmelisiniz.
+
+``exec-prog.c``
 
 .. code-block:: c
-
-    /* exec-prog.c */
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -1919,9 +1906,9 @@ yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değişt
         exit(EXIT_FAILURE);
     }
 
-.. code-block:: c
+``sample.c```
 
-    /* sample.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -1936,22 +1923,15 @@ yaparken shebang satırındaki dizini kendi çalıştığınız dizinle değişt
         return 0;
     }
 
-.. code-block:: text
+``test.txt``
 
-    /* test.txt */
+.. code-block:: text
 
     #!/home/kaan/Study/UnixLinux-SysProg/10-Exec/sample ankara
 
-
-shebang Mekanizmasının Amacı ve Örnekler
-========================================
-
-Peki bütün bunların anlamı nedir? Yani shebang ile bir script dosyasının aslında başka bir programı
+Peki bütün bunların anlamı nedir? Yani shebang ile bir betik dosyasının aslında başka bir programı
 çalıştırmasının ne faydası olabilir? İşte bu mekanizma sayesinde yorumlayıcı yoluyla çalıştırılan
 dosyaların doğrudan çalıştırılabilmesine olanak sağlanmaktadır.
-
-Bash Betiği Örneği (sample.sh)
-------------------------------
 
 Örneğin aşağıdaki gibi ``sample.sh`` isimli bir bash script dosyası olsun:
 
@@ -1964,25 +1944,25 @@ Bash Betiği Örneği (sample.sh)
         echo $i
     done
 
-Bu program 1'den 10'a kadar sayıları ekrana yazdırmaktadır. Normal olarak bir bash programı aşağıdaki
+Bu program ``1``'den ``10``'a kadar sayıları ekrana yazdırmaktadır. Normal olarak bir bash programı aşağıdaki
 gibi çalıştırılır:
 
 .. code-block:: console
 
     $ /bin/bash sample.sh
 
-Burada ``sample.sh`` dosyasının ``x`` hakkına sahip olması gerekmez. Ancak biz dosyayı doğrudan aşağıdaki
+Burada ``sample.sh`` dosyasının ``'x'`` hakkına sahip olması gerekmez. Ancak biz dosyayı doğrudan aşağıdaki
 gibi çalıştırmak isteyebiliriz:
 
 .. code-block:: console
 
     $ ./sample.sh
 
-Bu durumda dosyanın ``x`` hakkına sahip olması gerekir. Dosyayı böyle çalıştırmak istediğimizde kabuk
+Bu durumda dosyanın ``'x'`` hakkına sahip olması gerekir. Dosyayı böyle çalıştırmak istediğimizde kabuk
 programı exec işlemi uygulayıp ``sample.sh`` programını çalıştırmak isteyecektir. Sistem fonksiyonu da
 ``sample.sh`` programının çalıştırılabilir bir dosya formatına sahip olmadığını anladığında shebang
-satırına bakıp orada belirtilen ``/bin/bash`` programını çalıştıracaktır. Ancak bu programa script
-dosyasının kendisini argüman olarak geçirecektir. Yani program adeta şöyle çalıştırılmış olacaktır:
+satırına bakıp orada belirtilen ``/bin/bash`` programını çalıştıracaktır. Ancak bu programa betik
+dosyasının yol ifadesini argüman olarak geçirecektir. Yani program adeta şöyle çalıştırılmış olacaktır:
 
 .. code-block:: console
 
@@ -1990,13 +1970,11 @@ dosyasının kendisini argüman olarak geçirecektir. Yani program adeta şöyle
 
 Peki ``/bin/bash`` programı buradaki ``sample.sh`` programını çalıştırırken onun başındaki shebang
 satırı bir soruna yol açmayacak mı? İşte betik dilleriyle, yorumlayıcılarla çalışılan dillerin hemen
-hepsinde ``#`` özellikle bu shebang kullanımını desteklemek için yorum satırı biçiminde ele alınmaktadır.
-Aynı durum Python, Perl, sed, awk gibi dillerde de böyledir.
+hepsinde ``#`` özellikle bu shebang kullanımını desteklemek için yorumlama biçiminde ele alınmaktadır.
+Aynı durum *Python*, *Perl*, *sed*, *awk* gibi dillerde de böyledir.
 
-Python Betiği Örneği (sample.py)
---------------------------------
-
-Şimdi bir Python programını shebang ile çalıştıralım. Programın ismi ``sample.py`` olsun:
+Yukarıda Python programlarının da bu biçimde çalıştırılmasına örnek vermiştik. Yinelemek istiyoruz. Python 
+programımızın ismi ``sample.py`` olsun:
 
 .. code-block:: python
 
@@ -2005,7 +1983,13 @@ Python Betiği Örneği (sample.py)
     for i in range(10):
         print(i)
 
-Bu dosyaya ``x`` vererek biz artık onu komut satırından çalıştırabiliriz:
+Bu dosyaya ``x`` verelim:
+
+.. code-block:: console
+
+    $ chmode +x sample.py
+
+Artık onu komut satırından çalıştırabiliriz:
 
 .. code-block:: console
 
@@ -2018,10 +2002,7 @@ Bu dosyaya ``x`` vererek biz artık onu komut satırından çalıştırabiliriz:
     for i in range(10):
         print(i)
 
-make Betiği Örneği (sample.mak)
--------------------------------
-
-Aşağıdaki örnekte bir ``make`` dosyası shebang yoluyla çalıştırılmaktadır:
+Aşağıdaki örnekte bir ``make`` dosyası shebang yoluyla betik dosyası biçiminde çalıştırılmaktadır:
 
 .. code-block:: makefile
 
@@ -2036,7 +2017,7 @@ Aşağıdaki örnekte bir ``make`` dosyası shebang yoluyla çalıştırılmakta
         rm -f *.o
         rm -f sample
 
-Burada dosyanın ``sample.mak`` isminde olduğunu varsayalım. Bu dosyaya ``x`` hakkını verdikten sonra onu
+Burada dosyanın ``sample.mak`` isminde olduğunu varsayalım. Bu dosyaya ``'x'`` hakkını verdikten sonra onu
 aşağıdaki gibi çalıştırmış olalım:
 
 .. code-block:: console
@@ -2049,49 +2030,47 @@ Bu çalıştırma aslında aşağıdakiyle eşdeğer olacaktır:
 
     $ /bin/make -f sample.mak
 
-shebang ve Dosya Formatı Kontrolü Sırası
-========================================
+exec İşlemeri Sıasında shebang Kontrolü 
+---------------------------------------
 
-Linux çekirdeklerinde exec fonksiyonları genel olarak (bazı ayrıntıları da vardır) önce shebang kontrolü
+Linux çekirdeklerinde ``exec`` fonksiyonları genel olarak (bazı ayrıntıları da vardır) önce shebang kontrolü
 yapıp sonra ``ELF`` dosyası kontrolünü (ve diğer bazı çalıştırılabilir dosya formatlarının kontrolünü)
 yapmaktadır. Ancak aslında bu sıranın da bir önemi yoktur. Çünkü ``ELF`` gibi çalıştırılabilir dosya
 formatlarının ilk bayt'larında *sihirli sayılar (magic numbers)* vardır. Bu sihirli sayılarla ``#!``
 shebang karakterleri zaten çakışmamaktadır.
 
 Shebang satırında bazı şeylere de dikkat etmek gerekir. Örneğin shebang karakterlerinin hemen ilk satırın
-başından başlatılması gerekir. Aksi takdirde exec fonksiyonlarının p'siz versiyonları (izleyen
-paragrafta ayrıntıları göreceksiniz) dosya çalıştırılabilir bir dosya değilse ve dosyanın ilk iki
-karakteri ``#!`` biçiminde de değilse ``ENOEXEC`` ile başarısız olmaktadır. Eğer exec fonksiyonları
-shebang karakterlerinin yanındaki dosyayı bulamazsa bu durumda ``ENOENT`` errno değeri ile başarısız
+başından başlatılması gerekir. Aksi takdirde ``exec`` fonksiyonlarının ``p``'siz versiyonları (izleyen
+paragrafta ayrıntıları göreceksiniz) dosya çalıştırılabilir bir dosya formatına sahip değilse ve dosyanın ilk iki
+karakteri ``#!`` biçiminde de değilse ``ENOEXEC`` ile başarısız olmaktadır. Eğer ``exec`` fonksiyonları
+shebang karakterlerinin yanındaki dosyayı bulamazsa bu durumda ``ENOENT`` ``errno`` değeri ile başarısız
 olmaktadır.
 
-exec'in p'li Versiyonlarında shebang'siz Betik Çalıştırma
-=========================================================
-
-exec fonksiyonlarının p'li versiyonları (yani ``execlp`` ve ``execvp``) özel bir davranışa sahiptir.
+exec fonksiyonlarının ``p``'li versiyonları (yani ``execlp`` ve ``execvp``) özel bir davranışa sahiptir.
 Bilindiği gibi bu fonksiyonlar ``PATH`` çevre değişkeninde belirtilen dizinlerde exec yapılan dosyayı tek
 tek aramaktadır. Eğer bunlar betik dosyasını (``ELF`` dosyasını değil) ``x`` hakkına sahip olarak bulup ancak
-dosyanın başında *shebang* görmezlerse sanki dosyanın başında varmış gibi onları işleme sokmaktadır:
+dosyanın başında *shebang* görmezlerse sanki dosyanın başında aşağıdaki gibi bir satır varmış gibi onları 
+işleme sokmaktadır:
 
 .. code-block:: text
 
     #!/bin/sh
 
-Buradan şu sonuç çıkmaktadır: exec fonksiyonlarının p'li versiyonları ile bir shell script dosyasını biz
-başında shebang satırı olmadan da çalıştırabiliriz. Ancak exec fonksiyonlarının p'siz versiyonlarında
-bunu yapamayız. Öte yandan Linux sistemlerinde zaten ``execve`` dışındaki exec fonksiyonlarının sistem
-fonksiyonu olmadığını anımsayınız. O halde exec fonksiyonlarının p'li versiyonları tamamen kullanıcı
-modunda script dosyasını ``execve`` yaptıktan sonra ``ENOEXEC`` errno değeri ile fonksiyonun başarısız
-olduğunu gördüklerinde bu kez ``/bin/sh`` dosyasını ``execve`` ile exec yapmaktadır. Dosya isminin
-içerisinde ``/`` karakteri kullanılsa bile exec fonksiyonlarının p'li versiyonlarının davranışı yine bu
-biçimdedir. Tabii bu durumda ``PATH`` çevre değişkenine başvurulmamaktadır. exec fonksiyonlarının p'li
+Buradan şu sonuç çıkmaktadır: exec fonksiyonlarının ``p``'li versiyonları ile bir kabuk betik dosyasını biz
+başında shebang satırı olmadan da çalıştırabiliriz. Ancak ``exec`` fonksiyonlarının ``p``'siz versiyonlarında
+bunu yapamayız. Öte yandan Linux sistemlerinde zaten ``execve`` dışındaki ``exec`` fonksiyonlarının sistem
+fonksiyonu olmadığını anımsayınız. O halde ``exec`` fonksiyonlarının ``p``'li versiyonları tamamen kullanıcı
+modunda betik dosyasını ``execve`` yaptıktan sonra ``ENOEXEC`` ``errno`` değeri ile fonksiyonun başarısız
+olduğunu gördüklerinde bu kez ``/bin/sh`` dosyasını ``execve`` ile ``exec`` yapmaktadır. Dosya isminin
+içerisinde ``/`` karakteri kullanılsa bile ``exec`` fonksiyonlarının ``p``'li versiyonlarının davranışı yine bu
+biçimdedir. Tabii bu durumda ``PATH`` çevre değişkenine başvurulmamaktadır. ``exec`` fonksiyonlarının ``p``'li
 versiyonlarının bu davranışı POSIX'te eskiden isteğe bağlı bırakılmıştı. Ancak sonra standartlarda bu
 davranış zorunlu tutulmuştur. Ancak POSIX standartları çalıştırılacak kabuk programının ne olacağı
 konusunda bir belirlemede bulunmamıştır.
 
 Yukarıdaki açıklamalarımızdan çıkan bir sonuç şudur: Biz kabuk üzerinde kabuk betiğini aslında başında
-hiç shebang satırı olmadan da çalıştırabiliriz. Çünkü kabuk exec fonksiyonlarının p'li versiyonlarını
-kullanmaktadır. Aşağıdaki gibi ``x`` verilmiş ``myscript`` isminde bir Bash betik dosyası olsun:
+hiç shebang satırı olmadan da çalıştırabiliriz. Çünkü kabuk ``exec`` fonksiyonlarının ``p``'li versiyonlarını
+kullanmaktadır. Aşağıdaki gibi ``'x'`` hakkı verilmiş ``myscript`` isminde bir Bash betik dosyası olsun:
 
 .. code-block:: bash
 
@@ -2115,8 +2094,8 @@ Biz bu dosyayı başında shebang satırı olmadığı halde kabuk üzerinden ç
     9
     10
 
-shebang'in Özyinelemeli Olması
-==============================
+Shebang Satırı İçeren Dosyalar Özyinelemeli Olabilir mi?
+--------------------------------------------------------
 
 Peki shebang satırında belirtilen dosyanın kendisi de bir betik dosyası olabilir mi? Yani bu shebang
 işlemi özyinelemeli midir? Aslında POSIX standartları bu konuda bir şey söylememiştir. Bu durumda böyle
