@@ -2094,9 +2094,6 @@ Biz bu dosyayı başında shebang satırı olmadığı halde kabuk üzerinden ç
     9
     10
 
-Shebang Satırı İçeren Dosyalar Özyinelemeli Olabilir mi?
---------------------------------------------------------
-
 Peki shebang satırında belirtilen dosyanın kendisi de bir betik dosyası olabilir mi? Yani bu shebang
 işlemi özyinelemeli midir? Aslında POSIX standartları bu konuda bir şey söylememiştir. Bu durumda böyle
 bir işlemin özyinelemeli yapılacağının bir garantisi yoktur. Linux çekirdeği bu tür durumlarda dört
