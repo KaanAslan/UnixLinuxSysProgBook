@@ -50,4 +50,6 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    processcreation
    environment
    exec
+   processidsdetails
+   
    
