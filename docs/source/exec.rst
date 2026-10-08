@@ -2134,10 +2134,10 @@ ile çalıştırılırsa yalnızca bir komutu çalıştırıp sonlanmaktadır. �
 
 Windows sistemlerinde de ``cmd.exe`` kabuk programı ``/C`` seçeneği ile benzer biçimde çalıştırılabilmektedir.
 
-O halde UNIX/Linux sistemlerinde ``system`` fonksiyonu kabuk programını ``-c`` seçeneği ile ``fork``/``exec``
+UNIX/Linux sistemlerinde ``system`` fonksiyonu kabuk programını ``-c`` seçeneği ile ``fork``/``exec``
 yoluyla çalıştırmaktadır. Eğer ``system`` fonksiyonu ``fork`` ya da ``wait`` işleminde başarısız olursa
 ``-1`` değeri ile geri dönmektedir. Eğer ``fork`` başarılı olup ``exec`` başarısız olursa sanki ``_exit(127)`` biçiminde
-oluşturulan durum (status) bilgisine geri dönmektedir. (Yani başarısız olursa geri dönüş değeri hem sonlanma 
+oluşturulan durum (*status*) bilgisine geri dönmektedir. (Yani başarısız olursa geri dönüş değeri hem sonlanma 
 bilgisini hem de çıkış kodunu içermektedir.) Diğer durumlarda (yani ``fork`` ve ``exec`` başarılı bir biçimde yapılmışsa) 
 ``system`` fonksiyonu çalıştırdığı kabuk programının durum (*status*) bilgisine geri dönmektedir. Tabii kabuk programları da
 interaktif olmayan modda çalıştırılan komutun durum (*status*) bilgisine geri dönerler. Bu durumda başarı durumunda aslında
@@ -2152,12 +2152,9 @@ Tabii kabuk programı da ``ls`` programını fork/exec ile çalıştıracaktır.
 interaktif modda eğer tek bir komut işletiliyorsa boşuna fork yapmayabilir.) Burada kabuk programı aslında
 ``ls`` programının ``waitpid`` fonksiyonu ile elde edilen değer (status) ile sonlanmaktadır. Dolayısıyla
 biz aslında ``system`` fonksiyonunun geri dönüş değeri olarak çalıştırdığımız ``ls`` programının
-``waitpid`` fonksiyonu ile elde edilen (status) değerini elde etmiş oluruz. UNIX/Linux sistemlerinde
+``waitpid`` fonksiyonu ile elde edilen (*status*) değerini elde etmiş oluruz. UNIX/Linux sistemlerinde
 genel olarak kabuk komutları (yani programları) başarı durumunda exit kodu olarak 0 değerini
 oluşturmaktadır.
-
-system Başarı Kontrolü
-----------------------
 
 Peki ``system`` fonksiyonunun başarısını nasıl kontrol etmeliyiz? Biz fonksiyonun geri dönüş değerini -1
 ve 0'dan farklılık ile test edebiliriz. Örneğin:
