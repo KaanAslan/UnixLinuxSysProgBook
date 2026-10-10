@@ -2147,17 +2147,16 @@ kabuktan çalıştırılan komutun (yani programın) durum (*status*) bilgisi el
 
     system("ls -l");
 
-Burada ``system`` fonksiyonu fork/exec ile ``/bin/sh`` programını ``-c`` seçeneği ile çalıştırmaktadır.
-Tabii kabuk programı da ``ls`` programını fork/exec ile çalıştıracaktır. (Bazen kabuk programları
+Burada ``system`` fonksiyonu ``fork``/``exec`` ile ``/bin/sh`` programını ``-c`` seçeneği ile çalıştırmaktadır.
+Tabii kabuk programı da ``ls`` programını ``fork``/``exec`` ile çalıştıracaktır. (Bazen kabuk programları
 interaktif modda eğer tek bir komut işletiliyorsa boşuna fork yapmayabilir.) Burada kabuk programı aslında
-``ls`` programının ``waitpid`` fonksiyonu ile elde edilen değer (status) ile sonlanmaktadır. Dolayısıyla
-biz aslında ``system`` fonksiyonunun geri dönüş değeri olarak çalıştırdığımız ``ls`` programının
-``waitpid`` fonksiyonu ile elde edilen (*status*) değerini elde etmiş oluruz. UNIX/Linux sistemlerinde
-genel olarak kabuk komutları (yani programları) başarı durumunda exit kodu olarak 0 değerini
+``ls`` programının durum (*status*) bilgisi ile sonlanmaktadır. Dolayısıyla biz aslında ``system`` fonksiyonunun 
+geri dönüş değeri olarak çalıştırdığımız ``ls`` programının durum (*status*) bilgisini elde etmiş oluruz. 
+UNIX/Linux sistemlerinde genel olarak kabuk komutları (yani programları) başarı durumunda çıkış kodu olarak ``0`` değerini
 oluşturmaktadır.
 
-Peki ``system`` fonksiyonunun başarısını nasıl kontrol etmeliyiz? Biz fonksiyonun geri dönüş değerini -1
-ve 0'dan farklılık ile test edebiliriz. Örneğin:
+Peki ``system`` fonksiyonunun başarısını nasıl kontrol etmeliyiz? Biz fonksiyonun geri dönüş değerini ``-1``
+ya da ``0``  ile karşılaştırarak test edebiliriz. Örneğin:
 
 .. code-block:: c
 
@@ -2172,7 +2171,7 @@ Biz kabuk programını ``system`` fonksiyonu ile çalıştırırken komutlar ara
 komutun çalıştırılmasını sağlayabiliriz. Genel olarak kabuk bu durumda son komutun status değerini bize
 vermektedir.
 
-Aslında programcılar genellikle ``system`` fonksiyonu için yalnızca -1 kontrolünü yapmaktadır. Yani
+Aslında programcılar genellikle ``system`` fonksiyonu için yalnızca ``-1`` kontrolünü yapmaktadır. Yani
 çalıştırdıkları komutun başarısını kontrol etmemektedir. Örneğin:
 
 .. code-block:: c
@@ -2180,9 +2179,8 @@ Aslında programcılar genellikle ``system`` fonksiyonu için yalnızca -1 kontr
     if (system("any command") == -1)
         exit_sys("system");
 
-``system`` fonksiyonu POSIX standartlarında ``errno`` değişkenini set etmektedir. POSIX standartlarına
-göre fonksiyonun -1 değeri ile geri döndüğünde ``errno`` değişkeni ancak ``ECHILD`` değeri ile set
-edilmektedir.
+POSIX standartlarına göre ``system`` fonksiyonu  ``-1`` değeri ile geri döndüğünde ``errno`` değişkenini yalnızca ``ECHILD`` 
+ile set etmektedir. 
 
 Aşağıda ``system`` fonksiyonunun kullanımına bir örnek verilmiştir.
 
@@ -2207,15 +2205,15 @@ Aşağıda ``system`` fonksiyonunun kullanımına bir örnek verilmiştir.
         return 0;
     }
 
-system Fonksiyonunun Kendi Gerçekleştirimi (mysystem)
------------------------------------------------------
+system Fonksiyonunun Örnek Bir Gerçekleştirimi
+----------------------------------------------
 
 Peki ``system`` fonksiyonunu nasıl yazabiliriz? Aşağıda buna bir örnek verilmiştir. Ancak aşağıdaki
-örnekte bazı noktalar henüz kursumuzda o konu anlatılmadığı için ihmal edilmiştir. Bu noktalar şunlardır:
+örnekte bazı noktalar (henüz kitabımızda o konuları anlatmadığımız için) ihmal edilmiştir. Bu noktalar şunlardır:
 
 - ``waitpid`` fonksiyonu sinyalle kesilirse yeniden çalıştırılması (restart edilmesi) gerekir.
 - Üst prosesin işlemler sırasında ``SIGCHLD`` sinyalini, ``SIGINT`` ve ``SIGQUIT`` sinyallerini bloke
-  etmesi gerekmektedir.
+  etmesi gerekir.
 
 Bu konular kursumuzda *sinyaller (signals)* konusu içerisinde ileride ele alınacaktır.
 
@@ -2273,19 +2271,19 @@ Bu konular kursumuzda *sinyaller (signals)* konusu içerisinde ileride ele alın
     }
 
 system mi fork/exec mi?
-=======================
+-----------------------
 
-Peki mademki ``system`` fonksiyonu bizim için zaten fork/exec işlemlerini yapmaktadır, bu durumda
-örneğin bir programı çalıştırmak için biz fork/exec kullanmak yerine bu işlemi ``system`` fonksiyonu ile
+Peki mademki ``system`` fonksiyonu bizim için zaten ``fork``/``exec`` işlemlerini yapmaktadır, bu durumda
+örneğin bir programı çalıştırmak için biz ``fork``/``exec`` kullanmak yerine bu işlemi ``system`` fonksiyonu ile
 yapamaz mıyız? Evet aslında yapabiliriz. Ancak bu konudaki her türlü gereksinimimizi ``system``
-fonksiyonu karşılayamaz. Örneğin ``fork`` işleminden sonra alt proseste ayarlamalar yapıp exec yapmak
+fonksiyonu karşılayamaz. Örneğin ``fork`` işleminden sonra alt proseste ayarlamalar yapıp ``exec`` yapmak
 isteyebiliriz. Ayrıca ``system`` fonksiyonu kendi içerisinde kabuk programını çalıştırdığı için daha
-yavaş ve daha fazla kaynak kullanır durumdadır. Bizim tavsiyemiz bir programı açıkça fork/exec ile
+yavaş ve daha fazla kaynak kullanır durumdadır. Bizim tavsiyemiz bir programı açıkça ``fork``/``exec`` ile
 çalıştırmanız, ancak karmaşık işlemleri (örneğin IO yönlendirmesi, boru vs. gibi) ``system`` fonksiyonuyla
 yapmanızdır.
 
-system ile Basit Bir Kabuk Sarmalayıcısı Örneği
-===============================================
+system Fonksiyonu İle Basit Bir Kabuk Sarmalayıcısı Örneği
+----------------------------------------------------------
 
 Aşağıdaki örnekte kabuk programı ``system`` fonksiyonu sayesinde sarmalanmıştır. Tabii komut satırından
 komut alıp onu ``system`` fonksiyonu yoluyla asıl kabuk programına çalıştırmak gerçek anlamda bir kabuk
