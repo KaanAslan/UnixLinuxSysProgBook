@@ -1,17 +1,18 @@
-==============================================================
-**Proseslerin Kullanıcı ve Grup ID'lerine İlişkin Ayrıntılar**
-==============================================================
-
-set-user-id, set-group-id ve sticky Erişim Hakları
+==================================================
+**Dosya ve Dizin Erişimlerine İlişkin Ayrıntılar**
 ==================================================
 
-Şimdi dosyaların henüz görmediğimiz *set-user-id*, *set-group-id* ve *sticky* denilen erişim hakları
-üzerinde duracağız.
+Bu bölümde dosya ve dizin erişimlerinde etkili olan çeşitli kavramlar üzerinde duracağız. Bölüm içerisinde önce 
+çalıştırılabilen dosyalara ilişkin *set-user-ID*, *set-group-ID* ve *sticky* hakları üzeründe duracağız. Sonra proseslerin
+kullanıcı, grup ve saklı ID'lerinini nasıl elde edilip değiştirileceğini açıklayacağız.
+
+Dosyaların set-user-ID, set-group-ID ve sticky Erişim Hakları
+=============================================================
 
 Biz şimdiye kadar dosyalar için 9 erişim bayrağı gördük: ``S_IRUSR``, ``S_IWUSR``, ``S_IXUSR``,
 ``S_IRGRP``, ``S_IWGRP``, ``S_IXGRP``, ``S_IROTH``, ``S_IWOTH``, ``S_IXOTH``. Bu bayraklar dosyanın
 ``rwx rwx rwx`` erişim haklarını belirtmektedir. Ancak aslında dosyaların erişim hakları 9 tane değil 12
-tanedir. Henüz görmediğimiz üç erişim hakkına *set-user-id*, *set-group-id* ve *sticky* hakları
+tanedir. Henüz görmediğimiz üç erişim hakkına *set-user-ID*, *set-group-ID* ve *sticky* hakları
 denilmektedir. Şimdi dikkatimizi bu üç erişim hakkına çevireceğiz. Bu üç erişim hakkı ``open``
 fonksiyonunda ya da ``chmod`` fonksiyonunda sırasıyla ``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` sembolik
 sabitleriyle kullanılabilmektedir. Bu sembolik sabitler aslında en yüksek anlamlı dördüncü octal digit'e
@@ -24,14 +25,7 @@ karşılık gelmektedir:
 Dolayısıyla POSIX 2008 ve sonrasında bu bayrakları yüksek anlamlı dördüncü octal digit'le de
 belirtebiliriz.
 
-chmod Komutuyla set-user-id / set-group-id / sticky Ayarlama
-============================================================
-
-Sembolik Gösterim (u+s, g+s, +s, +t)
-------------------------------------
-
-Komut satırında dosyanın set-user-id bayrağını set etmek için ``chmod`` komutunda ``u+s`` seçeneği
-kullanılabilir. Örneğin:
+Bir dosyanın set-user-ID bayrağı  ``chmod`` komutunda ``u+s`` seçeneği kullanılarak set edilebilir. Örneğin:
 
 .. code-block:: console
 
@@ -41,9 +35,9 @@ kullanılabilir. Örneğin:
     $ ls -l sample
     -rwsrwxrwx 1 kaan study 17176 Şub 19 11:46 sample
 
-Görüldüğü gibi eğer dosyanın hem ``x`` bayrağı hem de set-user-id bayrağı set edilmişse ``x`` hakkının
-bulunduğu yerde ``s`` harfi gözükmektedir. Ancak dosyanın yalnızca set-user-id bayrağı set edilmişse
-``x`` hakkının bulunduğu yerde ``S`` harfi gözükür. Örneğin:
+Görüldüğü gibi eğer dosyanın hem ``'x'`` hakkı hem de set-user-ID hakkı set edilmişse ``x`` harfinin
+bulunduğu yerde ``'s'`` harfi, yalnızca set-user-ID hakkı set edilmişse ``'x'`` harfinin bulunduğu yerde ``'S'`` 
+harfi görüntülenmektedir. Örneğin:
 
 .. code-block:: console
 
@@ -53,9 +47,9 @@ bulunduğu yerde ``s`` harfi gözükmektedir. Ancak dosyanın yalnızca set-user
     $ ls -l test.txt
     -rwSrw-rw- 1 kaan study 2087 Şub 19 10:49 test.txt
 
-Dosyanın set-group-id bayrağının set edilmesi de ``chmod`` komutunda ``g+s`` ile yapılmaktadır. İşlem
+Dosyanın set-group-ID bayrağının set edilmesi de ``chmod`` komutunda ``g+s`` ile yapılmaktadır. İşlem
 sonrasında yine grup bilgisinde ``x`` hakkı yerinde ``s`` ya da ``S`` görünür. ``chmod`` komutunda
-``+s`` kullanılırsa bu durumda dosyanın hem set-user-id hem de set-group-id bayrakları set edilir.
+``+s`` kullanılırsa bu durumda dosyanın hem set-user-ID hem de set-group-ID bayrakları set edilir.
 Dosyanın sticky bayrağını set etmek için ``chmod`` komutunda ``+t`` kullanılmaktadır. Bu işlem
 yapıldığında görüntü olarak grup hakkında ``x`` varsa ``x`` hakkının olduğu yerde ``t``, yoksa orada
 ``T`` görülmektedir.
@@ -65,24 +59,24 @@ Yukarıdaki komutlarda ``+`` yerine ``-`` karakterini getirerek reset işlemleri
 Octal Gösterim (chmod 4755 ...)
 -------------------------------
 
-Benzer biçimde istersek yine ``chmod`` komutunda octal digit'lerle set-user-id, set-group-id ve sticky
+Benzer biçimde istersek yine ``chmod`` komutunda octal digit'lerle set-user-ID, set-group-ID ve sticky
 bitlerini set edebiliriz. Örneğin:
 
 .. code-block:: console
 
     $ chmod 4755 sample
 
-Burada en soldaki octal digit 4 olduğu için dosyanın set-user-id bayrağı da set edilmiştir. En soldaki
+Burada en soldaki octal digit 4 olduğu için dosyanın set-user-ID bayrağı da set edilmiştir. En soldaki
 octal digit'in bitleri yukarıda da belirttiğimiz gibi şu sıradadır:
 
 .. code-block:: text
 
-    set-user-id  set-group-id  sticky
+    set-user-ID  set-group-ID  sticky
 
 chmod Fonksiyonuyla Programatik Olarak Ayarlama
 ===============================================
 
-``chmod`` fonksiyonunda yukarıda belirttiğimiz bayrakları kullanarak set-user-id, set-group-id ve sticky
+``chmod`` fonksiyonunda yukarıda belirttiğimiz bayrakları kullanarak set-user-ID, set-group-ID ve sticky
 bayraklarını set edebiliriz. Örneğin biz ``sample`` programını ``rwsrwxrwx`` haline şöyle getirebiliriz:
 
 .. code-block:: c
@@ -144,15 +138,15 @@ hakları bayraklarını 1, diğer bayrakları 0 hale getirmektedir.
         exit(EXIT_FAILURE);
     }
 
-set-user-id ve set-group-id'nin Anlamı (Çalıştırılabilir Dosyalarda)
+set-user-ID ve set-group-ID'nin Anlamı (Çalıştırılabilir Dosyalarda)
 ====================================================================
 
-Peki bir dosyanın set-user-id ve set-group-id bayraklarının set edilmiş olmasının ne anlamı vardır?
+Peki bir dosyanın set-user-ID ve set-group-ID bayraklarının set edilmiş olmasının ne anlamı vardır?
 Öncelikle bu bayrakların yalnızca *çalıştırılabilir dosyalar için* anlamlı olduğunu belirtelim. Yani bu
-bayraklar tasarımda *çalıştırılabilir dosyalar* için düşünülmüştür. Çalıştırılabilir dosyanın set-user-id
+bayraklar tasarımda *çalıştırılabilir dosyalar* için düşünülmüştür. Çalıştırılabilir dosyanın set-user-ID
 bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin kullanıcı ID'si işletim sistemi
 tarafından dosyanın kullanıcı ID'si olacak biçimde değiştirilmektedir. Benzer biçimde çalıştırılabilir
-dosyanın set-group-id bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin grup ID'si
+dosyanın set-group-ID bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin grup ID'si
 dosyanın grup ID'si olarak değiştirilmektedir.
 
 passwd Örneği
@@ -177,24 +171,24 @@ erişebilmektedir:
 
 Peki biz ``passwd`` komutunu çalıştırdığımızda kabuk önce ``fork`` sonra exec yaptığına göre bizim
 çalıştırdığımız ``passwd`` programı ``/etc/shadow`` dosyasına nasıl erişmektedir? İşte aslında
-``/bin/passwd`` programının set-user-id bayrağı set edilmiştir:
+``/bin/passwd`` programının set-user-ID bayrağı set edilmiştir:
 
 .. code-block:: console
 
     $ ls -l /bin/passwd
     -rwsr-xr-x 1 root root 64152 May 30  2024 /bin/passwd
 
-Böylece bu dosya exec yapıldığında prosesin etkin kullanıcı id'si de set-user-id bayrağının etkisiyle
+Böylece bu dosya exec yapıldığında prosesin etkin kullanıcı id'si de set-user-ID bayrağının etkisiyle
 ``root`` olmaktadır. Şimdi siz bunun bir güvenlik açığı oluşturabileceğini düşünebilirsiniz. Ancak
 aslında bir güvenlik açığı söz konusu değildir. Bu programın sahibi ``root`` kullanıcısıdır ve o
 isteyerek bu programın ``root`` etkin kullanıcı ID'siyle çalıştırılmasına olanak sağlamıştır. Herhangi
 bir kullanıcı zaten başkalarına ait dosyaların erişim haklarını değiştirememektedir.
 
-Burada bir noktaya dikkat ediniz. set-user-id ya da set-group-id bayrağı set edilmiş dosyalar exec
+Burada bir noktaya dikkat ediniz. set-user-ID ya da set-group-ID bayrağı set edilmiş dosyalar exec
 yapılırken prosesin yalnızca etkin kullanıcı ID'si ve etkin grup ID'si değiştirilmektedir. Gerçek
 kullanıcı ID'si ve gerçek grup ID'si değiştirilmemektedir. Biz genellikle gerçek ve etkin ID'lerin aynı
-değerde olduğunu, ancak test işlemlerine etkin ID'lerin girdiğini belirtmiştik. İşte set-user-id ve
-set-group-id bayrakları set edilmiş bir program dosyası exec yapıldığında artık gerçek kullanıcı ve
+değerde olduğunu, ancak test işlemlerine etkin ID'lerin girdiğini belirtmiştik. İşte set-user-ID ve
+set-group-ID bayrakları set edilmiş bir program dosyası exec yapıldığında artık gerçek kullanıcı ve
 grup ID'leriyle etkin kullanıcı ID'leri farklılaşabilmektedir.
 
 Gerçek ve Etkin ID Farkı Örneği (sample.c / other.c)
@@ -203,7 +197,7 @@ Gerçek ve Etkin ID Farkı Örneği (sample.c / other.c)
 Aşağıdaki örnekte ``sample`` programı ``other`` programını exec yaparak çalıştırmıştır. Bu ``other``
 programı prosesin gerçek ve etkin kullanıcı ve grup ID'lerini ekrana isim olarak yazdırmaktadır. Biz bu
 örnekte ``other`` programını derledikten sonra ``chown`` komutuyla ``sudo`` ile birlikte kullanıcı
-ID'sini ve grup ID'sini ``root`` olarak değiştirdik. Bu deneyi önce ``other`` programının set-user-id
+ID'sini ve grup ID'sini ``root`` olarak değiştirdik. Bu deneyi önce ``other`` programının set-user-ID
 bayrağı set edilmeden ve set edildikten sonra yineleyiniz. Aşağıda yapılanlar özetlenmiştir:
 
 .. code-block:: console
@@ -238,8 +232,8 @@ bayrağı set edilmeden ve set edildikten sonra yineleyiniz. Aşağıda yapılan
     Effective group ID: root
 
 Biz bir programı ``sudo`` ile root önceliğinde (etkin proses ID'si 0 olacak biçimde) çalıştırıyor
-olalım. Dosyanın set-user-id bayrağı da set edilmiş olsun. Bu durumda program çalışırken prosesin etkin
-kullanıcı ID'si ``root`` değil, program dosyasının kullanıcı ID'si olacaktır. Yani set-user-id bayrağı
+olalım. Dosyanın set-user-ID bayrağı da set edilmiş olsun. Bu durumda program çalışırken prosesin etkin
+kullanıcı ID'si ``root`` değil, program dosyasının kullanıcı ID'si olacaktır. Yani set-user-ID bayrağı
 set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılmasının bir anlamı kalmamaktadır.
 Örneğin:
 
@@ -358,18 +352,18 @@ set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılm
         exit(EXIT_FAILURE);
     }
 
-Dizinlerde set-group-id Bayrağı
+Dizinlerde set-group-ID Bayrağı
 ===============================
 
-Normal olarak set-user-id ve set-group-id bayrakları çalıştırılabilen dosyalar için söz konusudur. Ancak
-dizinler için de set-group-id bayrağının bir anlamı vardır. Pek çok UNIX türevi sistemde (Linux da buna
-dahil) bir dizinin set-group-id bayrağı set edilirse Linux o dizin içerisinde ``open`` fonksiyonuyla
+Normal olarak set-user-ID ve set-group-ID bayrakları çalıştırılabilen dosyalar için söz konusudur. Ancak
+dizinler için de set-group-ID bayrağının bir anlamı vardır. Pek çok UNIX türevi sistemde (Linux da buna
+dahil) bir dizinin set-group-ID bayrağı set edilirse Linux o dizin içerisinde ``open`` fonksiyonuyla
 (zaten başka yolu yoktur) ya da ``mkdir`` fonksiyonuyla bir dosya ya da dizin yaratıldığında dosyanın ya
 da dizinin grup ID'sini prosesin etkin grup ID'si olarak değil, o dizinin grup ID'si olarak set
 etmektedir. BSD sistemlerinde zaten default olarak bir dosya ya da dizin yaratıldığında dosyanın ya da
 dizinin grup ID'si o dosyanın ya da dizinin içinde bulunduğu dizinin grup ID'si olarak set edilmektedir.
 O halde Linux'ta ``open`` fonksiyonu ile bir dosya ya da dizin yaratılırken dosya ya da dizinin grup
-ID'si, eğer o dosya ya da dizinin içinde bulunduğu dizinin set-group-id bayrağı set edilmemişse prosesin
+ID'si, eğer o dosya ya da dizinin içinde bulunduğu dizinin set-group-ID bayrağı set edilmemişse prosesin
 etkin grup ID'si olarak, eğer set edilmişse dizinin grup ID'si olarak set edilmektedir. Bu durumu basit
 bir biçimde şöyle test edebilirsiniz:
 
@@ -393,7 +387,7 @@ Görüldüğü gibi dizinin kullanıcı ve grup ID'si prosesin etkin kullanıcı
 
 Görüldüğü gibi ``x.txt`` dosyasının kullanıcı ve grup ID'leri prosesin etkin kullanıcı ve grup ID'si
 biçimindedir. Şimdi biz ``xxx`` dizininin grup ID'sini ``root`` olarak değiştirelim ve dizinin
-set-group-id bayrağını set edelim:
+set-group-ID bayrağını set edelim:
 
 .. code-block:: console
 
@@ -416,19 +410,19 @@ set-group-id bayrağını set edelim:
 Görüldüğü gibi artık dosyanın grup ID'si prosesin etkin grup ID'si olarak değil, içinde bulunduğu
 dizinin grup ID'si olarak set edilmiştir.
 
-Dizinlerin set-user-id bayraklarının set edilmesi benzer bir etkiye yol açmamaktadır. (Bu durum bazı eski
+Dizinlerin set-user-ID bayraklarının set edilmesi benzer bir etkiye yol açmamaktadır. (Bu durum bazı eski
 UNIX sistemlerinde denenmiştir, ancak modern sistemlerde böyle bir semantik yoktur.)
 
-Betik Dosyalarında set-user-id / set-group-id Güvenlik Açığı
+Betik Dosyalarında set-user-ID / set-group-ID Güvenlik Açığı
 ============================================================
 
-Peki betik dosyaları (shebang içeren text dosyalar) için set-user-id ve set-group-id bayrakları set
+Peki betik dosyaları (shebang içeren text dosyalar) için set-user-ID ve set-group-ID bayrakları set
 edilebilir mi? Bu işlem ilk zamanlar uygulanmıştır. Ancak güvenlik açığı nedeniyle sonra uygulamadan
-kaldırılmıştır. Bugünkü modern UNIX/Linux sistemleri betik dosyalarının set-user-id ve set-group-id
+kaldırılmıştır. Bugünkü modern UNIX/Linux sistemleri betik dosyalarının set-user-ID ve set-group-ID
 bayrakları set edilmiş olsa bile onları dikkate almamaktadır. Buradaki güvenlik açığı ilginç bir
 biçimde aşağıdaki gibi oluşmaktadır:
 
-Betik dosyasının ismi ``x.txt`` olsun. Eğer bu dosyanın set-user-id ve set-group-id bayrakları dikkate
+Betik dosyasının ismi ``x.txt`` olsun. Eğer bu dosyanın set-user-ID ve set-group-ID bayrakları dikkate
 alınsaydı bu durumda exec fonksiyonları bu dosyayı açıp shebang satırında bulunan programı çalıştırırken
 prosesin etkin kullanıcı ve/veya grup ID'sini ``x.txt`` dosyasının kullanıcı ve/veya grup ID'si olarak
 set ederdi. Bu durumda da eğer birisi örneğin ``y.txt`` sembolik bağlantı dosyası oluşturup bu dosyanın
@@ -521,20 +515,20 @@ Gerçek, Etkin ve Saklı Kullanıcı/Grup ID'leri
 
 Daha önceden de belirttiğimiz gibi bir prosesin *gerçek kullanıcı ID'si (real user ID)* ile *etkin
 kullanıcı ID'si (effective user ID)*, *gerçek grup ID'si (real group ID)* ile de *etkin grup ID'si
-(effective group ID)* genellikle aynı olmaktadır. Ancak set-user-id ve set-group-id bayrakları set
+(effective group ID)* genellikle aynı olmaktadır. Ancak set-user-ID ve set-group-ID bayrakları set
 edilmiş çalıştırılabilir programlar çalıştırıldığında bu ID'ler farklı hale gelebilmektedir. Örneğin
-prosesimizin gerçek kullanıcı ID'si ve etkin kullanıcı ID'si ``kaan`` olsun. Biz set-user-id bayrağı set
+prosesimizin gerçek kullanıcı ID'si ve etkin kullanıcı ID'si ``kaan`` olsun. Biz set-user-ID bayrağı set
 edilmiş ``/bin/passwd`` programını exec yaptığımızda prosesimizin gerçek kullanıcı ID'si ``kaan`` olmaya
 devam eder, ancak etkin kullanıcı ID'si ``root`` olur. Dosya işlemlerinde teste her zaman etkin ID'ler
 sokulmaktadır.
 
 Gerçek kullanıcı ID'si ve gerçek grup ID'si, etkin kullanıcı ID'si ve etkin grup ID'si dışında prosesin
 bir de *saklı kullanıcı ID'si (saved set user ID)* ve *saklı grup ID'si (saved set group ID)* denilen
-iki ID daha vardır. Bir proses exec uyguladığında programın set-user-id ve set-group-id bayrakları set
+iki ID daha vardır. Bir proses exec uyguladığında programın set-user-ID ve set-group-ID bayrakları set
 edilmiş olsun ya da olmasın, her zaman çekirdek yeni etkin kullanıcı ID'sini ve yeni etkin grup ID'sini
 saklı kullanıcı ID'si ve saklı grup ID'si olarak set etmektedir. Örneğin prosesimizin gerçek kullanıcı
 ID'si ``kaan`` ve etkin kullanıcı ID'si ``kaan``, gerçek grup ID'si ``study`` ve etkin grup ID'si
-``study`` olsun. Şimdi biz set-user-id bayrağı set edilmiş olan ``/bin/passwd`` programını exec ile
+``study`` olsun. Şimdi biz set-user-ID bayrağı set edilmiş olan ``/bin/passwd`` programını exec ile
 çalıştıralım. Artık prosesimizin gerçek kullanıcı ID'si ``kaan``, etkin kullanıcı ID'si ``root``
 olacaktır. Gerçek grup ID'si ``study`` ve etkin grup ID'si de ``study`` olarak kalacaktır. İşte çekirdek
 aynı zamanda bu yeni etkin kullanıcı ID'sini (örneğimizdeki ``root`` ID'sini kastediyoruz) ve grup ID'sini
@@ -550,9 +544,9 @@ halde prosesimizin ID'leri artık şöyle olacaktır:
     etkin grup ID'si:       study
     saklı grup ID'si:       study
 
-Bu işlem set-user-id ya da set-group-id bayrağı set edilmemiş programlar çalıştırılırken de
+Bu işlem set-user-ID ya da set-group-ID bayrağı set edilmemiş programlar çalıştırılırken de
 yürütülmektedir. Örneğin prosesimizin gerçek kullanıcı ID'si ``kaan``, etkin kullanıcı ID'si ``kaan``,
-gerçek grup ID'si ``study`` ve etkin grup ID'si ``study`` olsun. Biz de set-user-id bayrağı set edilmemiş
+gerçek grup ID'si ``study`` ve etkin grup ID'si ``study`` olsun. Biz de set-user-ID bayrağı set edilmemiş
 olan bir programı exec yapmış olalım. Yeni ID'ler şöyle olacaktır:
 
 .. code-block:: text
