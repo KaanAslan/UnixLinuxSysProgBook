@@ -4,7 +4,7 @@
 
 Bu bölümde dosya ve dizin erişimlerinde etkili olan çeşitli kavramlar üzerinde duracağız. Bölüm içerisinde önce 
 çalıştırılabilen dosyalara ilişkin *set-user-ID*, *set-group-ID* ve *sticky* hakları üzeründe duracağız. Sonra proseslerin
-kullanıcı, grup ve saklı ID'lerinini nasıl elde edilip değiştirileceğini açıklayacağız.
+kullanıcı, grup ve saklı ID'lerinin nasıl elde edilip değiştirileceğini açıklayacağız.
 
 Dosyaların set-user-ID, set-group-ID ve sticky Erişim Hakları
 =============================================================
@@ -36,7 +36,7 @@ Bir dosyanın set-user-ID bayrağı  ``chmod`` komutunda ``u+s`` seçeneği kull
     -rwsrwxrwx 1 kaan study 17176 Şub 19 11:46 sample
 
 Görüldüğü gibi eğer dosyanın hem ``'x'`` hakkı hem de set-user-ID hakkı set edilmişse ``x`` harfinin
-bulunduğu yerde ``'s'`` harfi, yalnızca set-user-ID hakkı set edilmişse ``'x'`` harfinin bulunduğu yerde ``'S'`` 
+bulunduğu yerde ``s`` harfi, yalnızca set-user-ID hakkı set edilmişse ``x`` harfinin bulunduğu yerde ``S`` 
 harfi görüntülenmektedir. Örneğin:
 
 .. code-block:: console
@@ -48,16 +48,13 @@ harfi görüntülenmektedir. Örneğin:
     -rwSrw-rw- 1 kaan study 2087 Şub 19 10:49 test.txt
 
 Dosyanın set-group-ID bayrağının set edilmesi de ``chmod`` komutunda ``g+s`` ile yapılmaktadır. İşlem
-sonrasında yine grup bilgisinde ``x`` hakkı yerinde ``s`` ya da ``S`` görünür. ``chmod`` komutunda
+sonrasında yine grup bilgisinde ``x`` harfi yerinde ``s`` ya da ``S`` harfi görüntülenir. ``chmod`` komutunda
 ``+s`` kullanılırsa bu durumda dosyanın hem set-user-ID hem de set-group-ID bayrakları set edilir.
-Dosyanın sticky bayrağını set etmek için ``chmod`` komutunda ``+t`` kullanılmaktadır. Bu işlem
-yapıldığında görüntü olarak grup hakkında ``x`` varsa ``x`` hakkının olduğu yerde ``t``, yoksa orada
-``T`` görülmektedir.
+Dosyanın sticky bayrağını set etmek için ``+t`` kullanılmaktadır. Bu işlem yapıldığında grupta ``'x'`` hakkı 
+varsa ``x`` harfinin olduğu yerde ``t`` harfi, grupta ``'x'`` hakkı yoksa ``x`` harfinin olduğu yerde `T`` harfi 
+görüntülenmektedir.
 
-Yukarıdaki komutlarda ``+`` yerine ``-`` karakterini getirerek reset işlemlerini yapabilirsiniz.
-
-Octal Gösterim (chmod 4755 ...)
--------------------------------
+Yukarıdaki komutlarda ``+`` yerine ``-`` karakterini kullanarak reset işlemlerini yapabilirsiniz.
 
 Benzer biçimde istersek yine ``chmod`` komutunda octal digit'lerle set-user-ID, set-group-ID ve sticky
 bitlerini set edebiliriz. Örneğin:
@@ -73,11 +70,8 @@ octal digit'in bitleri yukarıda da belirttiğimiz gibi şu sıradadır:
 
     set-user-ID  set-group-ID  sticky
 
-chmod Fonksiyonuyla Programatik Olarak Ayarlama
-===============================================
-
 ``chmod`` fonksiyonunda yukarıda belirttiğimiz bayrakları kullanarak set-user-ID, set-group-ID ve sticky
-bayraklarını set edebiliriz. Örneğin biz ``sample`` programını ``rwsrwxrwx`` haline şöyle getirebiliriz:
+bayraklarını set edebiliriz. Örneğin biz *sample* programını ``rwsrwxrwx`` haline şöyle getirebiliriz:
 
 .. code-block:: c
 
@@ -86,7 +80,7 @@ bayraklarını set edebiliriz. Örneğin biz ``sample`` programını ``rwsrwxrwx
 
 Peki zaten var olan bir dosyaya mevcut erişim haklarını bozmadan bu özellikleri programlama yoluyla nasıl
 ekleyebiliriz? Bunun için önce dosyanın erişim haklarının ``stat``, ``lstat`` ya da ``fstat``
-fonksiyonuyla elde edilmesi gerekmektedir. Ondan sonra bu erişim haklarına biz ``S_ISUID``, ``S_ISGID``
+fonksiyonuyla elde edilmesi gerekir. Ondan sonra bu erişim haklarına biz ``S_ISUID``, ``S_ISGID``
 ve ``S_ISVTX`` bayraklarını OR işlemiyle ekleyebiliriz. Ancak ``stat`` fonksiyonunun bize verdiği
 ``st_mode`` değeri dosyanın türünü de içermektedir. Gerçi ``chmod`` fonksiyonu bu ekstra bitleri dikkate
 almamaktadır. Ancak yine de ``stat`` yapısının ``st_mode`` elemanındaki değeri ``S_IFMT`` ile maskelemek

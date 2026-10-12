@@ -234,7 +234,7 @@ bilgilerden olşmaktadır. Bir dizini temsili olarak şöyle bir yapı gibi dü�
 
 .. figure:: _static/directory-entries.png
     :align: center
-    :class: fig-mapping1f
+    :class: fig-mapping1
     :width: 25%
 
 Dizinler ileride göreceğimiz gibi ``opendir`` POSIX fonksiyonuyla açılıp içindeki girişler ``readdir`` POSIX
@@ -947,20 +947,20 @@ olsun:
 
 .. figure:: _static/file-offset.png
     :class: fig-mapping1
-    :width: 20%
+    :width: 17%
 
 Bu dosya açıldığında dosya göstericisinin değeri ilk byte'ın offset'i olan ``0``'dır. Biz bu pozisyondan iki
 byte okursak ``an`` byte'larını okuruz ve dosya göstericisi de 2 byte ilerletilir:
 
 .. figure:: _static/file-offset-2.png
     :class: fig-mapping1
-    :width: 20%
+    :width: 17%
 
 Şimdi 2 byte daha okursak artık ``ka`` byte'larını okuruz:
 
 .. figure:: _static/file-offset-3.png
     :class: fig-mapping1
-    :width: 20%
+    :width: 17%
 
 Dosya göstericisinin dosyanın son byte'ından sonraki byte'ı göstermesi durumuna "``EOF`` (*End of File*) durumu"
 denilmektedir. ``EOF`` durumunda dosyadan okuma yapılamaz, çünkü okunacak bir şey yoktur. Ancak ``EOF`` durumunda dosyaya yazma
@@ -970,27 +970,28 @@ kavram yoktur. Dosya boyutunu değiştirmek için dosya göstericisini ``EOF`` d
 
 .. figure:: _static/file-offset-4.png
     :class: fig-mapping1
-    :width: 20%
+    :width: 17%
 
 Burada dosya göstericisi artık ``EOF`` konumundadır. Şimdi biz bu dosyaya ``istanbul`` yazısının byte'larını yazacak
 olsak bunlar artık dosyaya eklenecektir:
 
 .. figure:: _static/file-offset-5.png
-    :width: 45%
+    :class: fig-mapping5
+    :width: 37%
 
 Bir dosya yeni yaratıldığında dosyanın içi boştur, dolayısıyla dosya göstericisi de zaten ``EOF`` durumundadır.
 Örneğin:
 
 .. figure:: _static/file-offset-empty.png
     :class: fig-mapping2
-    :width: 25%
+    :width: 20%
 
 Biz yeni yaratılmış bir dosyaya yazma yaparsak ona ekleme yapmış oluruz. Örneğin boş bir dosyaya ``istanbul`` yazısının 
 karakterlerine iişkin byte'ları yazmış olalım:
 
 .. figure:: _static/file-offset-istanbul.png
     :class: fig-mapping2
-    :width: 30%
+    :width: 23%
 
 Dosya göstericisinin konumu dosya nesnesi içerisinde saklanmaktadır. (Linux'un kaynak kodlarında ``file``
 yapısının ``f_pos`` elemanı dosya göstericisinin konumunu tutmaktadır.) Biz aynı dosyayı ikinci kez açsak
@@ -1004,7 +1005,8 @@ tutan bir gösterici dizisidir:
 
 .. figure:: _static/fd-table.png
     :align: center
-    :width: 65%
+    :class: fig-mapping4
+    :width: 60%
 
 Göürldüğü gibi *dosya betimleyici tablosunun* her elemanı bir dosya nesnesini göstermektedir. 
 Dosya betimleyici tablosu prosese özgüdür ve ona o prosesin proses kontrol bloğu (Linux'ta ``task_struct``
@@ -1482,7 +1484,7 @@ adresini dosya betimleyici tablosunun 3. indeksli slotuna yerleştirmiş olsun:
 
 .. figure:: _static/fd-table-new.png
     :align: center
-    :width: 65%
+    :width: 60%
 
 Bu durumda ``open`` fonksiyonu ``3`` değeri ile geri dönecektir.
 
@@ -1498,6 +1500,7 @@ betimleyicileri* denilmektedir. Böylece ilk boş betimleyici genellikle ``3`` n
 
 .. figure:: _static/fd-table-2.png
     :align: center
+    :width: 60%
 
 Bu durumda ``open`` fonksiyonunun ``4`` ile geri dönecektir. Çünkü ilk boş slot ``4`` numaralı slottur.  
 
