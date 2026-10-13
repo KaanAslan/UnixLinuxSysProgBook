@@ -70,8 +70,8 @@ html_meta = {
     "description": "UNIX/Linux Sistem Programlama",
     "keywords": (
         "Linux programlama, işletim sistemleri, sistem programlama, UNIX, Linux" +
-        "POSIX programlama, C ve Sistem Programcıları Derneği, UNIX programlama" +
-        "POSIX, linux çekirdeği"
+        "Linux programlama, C ve Sistem Programcıları Derneği, UNIX programlama" +
+        "POSIX, Linux çekirdeği, Linux sistem çağrıları, POSIX fonksiyonları"
     )
 }
 
