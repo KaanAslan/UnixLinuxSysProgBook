@@ -345,8 +345,8 @@ Burada tek farklılık dosyanın grup ID'sinin de ``root`` haline gelmiş olmas�
         exit(EXIT_FAILURE);
     }
 
-Dizinlerde set-group-ID Erişim Hakkı
-------------------------------------
+Dizinlerde set-group-ID Erişim Bayrağının İşlevi
+------------------------------------------------
 
 Normal olarak *set-user-ID* ve *set-group-ID* bayrakları çalıştırılabilir dosyalar için söz konusudur. Ancak
 dizinler için de *set-group-ID* bayrağının bir anlamı vardır. Pek çok UNIX türevi sistemde (Linux da buna
