@@ -406,9 +406,6 @@ dizinin grup ID'si olarak set edilmiştir.
 Dizinlerin *set-user-ID* bayraklarının set edilmesi benzer bir etkiye yol açmamaktadır. (Bu durum bazı eski
 UNIX sistemlerinde denenmiştir, ancak modern sistemlerde böyle bir semantik yoktur.)
 
-Betik Dosyalarında set-user-ID / set-group-ID Güvenlik Açığı
-------------------------------------------------------------
-
 Peki betik dosyaları (shebang içeren text dosyalar) için *set-user-ID* ve *set-group-ID* bayrakları set
 edilebilir mi? Bu işlem ilk zamanlar uygulanmıştır. Ancak güvenlik açığı nedeniyle sonra uygulamadan
 kaldırılmıştır. Bugünkü modern UNIX/Linux sistemleri betik dosyalarının *set-user-ID* ve *set-group-ID*
@@ -427,7 +424,7 @@ bağlantısını değiştirirse maalesef prosesin etkin kullanıcı ID'si ``x.tx
 biçimde başka dosyayı çalıştıracaktır.
 
 sticky Erişim Bayrağı
---------------------
+---------------------
 
 Peki dosyaların *sticky* bayraklarır (modu'nun) ne işlevi vardır? Aslında *sticky* tasarımda başka bir amaçla
 düşünülmüştür. Eski sistemlerde bu ``S_ISVTX`` bayrağı çalıştırılabilir dosyaların çalıştırılması sonrasında programın
