@@ -48,8 +48,9 @@ Dosyaların ve Dizinlerin Erişim Hakları
 =======================================
 
 UNIX/Linux sistemlerinde her dosyanın ve dizinin erişim hakları vardır. Teknik olarak dosyanın erişim haklarına
-*dosyanın mode bilgisi* de denilmektedir. Dosyaların ve dizinlerin erişim hakları ``ls -l`` komutunda en soldaki
-sütunda belirtilmektedir. Örneğin:
+*dosyanın mod (mode) bilgisi* de denilmektedir. Biz kurusumuzda "mod (mode)" terimi yerine klasik biçimde "erişim hakkı" 
+terimini kullanacağız.Dosyaların ve dizinlerin erişim hakları ``ls -l`` komutunda en soldaki sütunda belirtilmektedir. 
+Örneğin:
 
 .. code-block:: bash
 

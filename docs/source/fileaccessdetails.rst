@@ -3,17 +3,17 @@
 ==================================================
 
 Bu bölümde dosya ve dizin erişimlerinde etkili olan çeşitli kavramlar üzerinde duracağız. Bölüm içerisinde önce 
-çalıştırılabilen dosyalara ilişkin *set-user-ID*, *set-group-ID* ve *sticky* hakları üzeründe duracağız. Sonra proseslerin
+çalıştırılabilen dosyalara ilişkin *set-user-ID*, *set-group-ID* ve *sticky* erişim bayrakları duracağız. Sonra proseslerin
 kullanıcı, grup ve saklı ID'lerinin nasıl elde edilip değiştirileceğini açıklayacağız.
 
-Dosyaların set-user-ID, set-group-ID ve sticky Erişim Hakları
-=============================================================
+Dosyaların set-user-ID, set-group-ID ve sticky Erişim Bayrakları
+================================================================
 
-Biz şimdiye kadar dosyalar için 9 erişim bayrağı gördük: ``S_IRUSR``, ``S_IWUSR``, ``S_IXUSR``,
+Biz şimdiye kadar dosyalar için ``9`` erişim bayrağı gördük: ``S_IRUSR``, ``S_IWUSR``, ``S_IXUSR``,
 ``S_IRGRP``, ``S_IWGRP``, ``S_IXGRP``, ``S_IROTH``, ``S_IWOTH``, ``S_IXOTH``. Bu bayraklar dosyanın
-``rwx rwx rwx`` erişim haklarını belirtmektedir. Ancak aslında dosyaların erişim hakları 9 tane değil 12
-tanedir. Henüz görmediğimiz üç erişim hakkına *set-user-ID*, *set-group-ID* ve *sticky* hakları
-denilmektedir. Şimdi dikkatimizi bu üç erişim hakkına çevireceğiz. Bu üç erişim hakkı ``open``
+``rwx rwx rwx`` erişim haklarını belirtmektedir. Ancak aslında dosyaların erişim bilgileri ``9`` tane değil ``12``
+tanedir. Henüz görmediğimiz üç erişim bayrağına *set-user-ID*, *set-group-ID* ve *sticky* bayrakları
+denilmektedir. Şimdi dikkatimizi bu üç erişim bayrağına çevireceğiz. Bu üç erişim bayrağı ``open``
 fonksiyonunda ya da ``chmod`` fonksiyonunda sırasıyla ``S_ISUID``, ``S_ISGID`` ve ``S_ISVTX`` sembolik
 sabitleriyle kullanılabilmektedir. Bu sembolik sabitler aslında en yüksek anlamlı dördüncü octal digit'e
 karşılık gelmektedir:
@@ -25,7 +25,11 @@ karşılık gelmektedir:
 Dolayısıyla POSIX 2008 ve sonrasında bu bayrakları yüksek anlamlı dördüncü octal digit'le de
 belirtebiliriz.
 
-Bir dosyanın set-user-ID bayrağı  ``chmod`` komutunda ``u+s`` seçeneği kullanılarak set edilebilir. Örneğin:
+Burada bir anımsatmada bulunmak istiyoruz. Daha önce de belirttiğimiz gibi POSIX standartlarında dosyanın sahip olduğu 
+"UGS rwx rwx rwx rwx" bilgilerine dosyanın "mod (mode)" bilgileri denilmektedir. Biz kitabımızda bunlara "erişim bayrağı" 
+diyeceğiz.
+
+Bir dosyanın *set-user-ID* bayrağı  ``chmod`` komutunda ``u+s`` seçeneği kullanılarak set edilebilir. Örneğin:
 
 .. code-block:: console
 
@@ -35,8 +39,8 @@ Bir dosyanın set-user-ID bayrağı  ``chmod`` komutunda ``u+s`` seçeneği kull
     $ ls -l sample
     -rwsrwxrwx 1 kaan study 17176 Şub 19 11:46 sample
 
-Görüldüğü gibi eğer dosyanın hem ``'x'`` hakkı hem de set-user-ID hakkı set edilmişse ``x`` harfinin
-bulunduğu yerde ``s`` harfi, yalnızca set-user-ID hakkı set edilmişse ``x`` harfinin bulunduğu yerde ``S`` 
+Görüldüğü gibi eğer dosyanın hem ``'x'`` hakkı hem de *set-user-ID* bayrağı set edilmişse ``x`` harfinin
+bulunduğu yerde ``s`` harfi, yalnızca *set-user-ID* bayrağı set edilmişse ``x`` harfinin bulunduğu yerde ``S`` 
 harfi görüntülenmektedir. Örneğin:
 
 .. code-block:: console
@@ -47,30 +51,30 @@ harfi görüntülenmektedir. Örneğin:
     $ ls -l test.txt
     -rwSrw-rw- 1 kaan study 2087 Şub 19 10:49 test.txt
 
-Dosyanın set-group-ID bayrağının set edilmesi de ``chmod`` komutunda ``g+s`` ile yapılmaktadır. İşlem
+Dosyanın *set-group-ID* bayrağının set edilmesi de ``chmod`` komutunda ``g+s`` ile yapılmaktadır. İşlem
 sonrasında yine grup bilgisinde ``x`` harfi yerinde ``s`` ya da ``S`` harfi görüntülenir. ``chmod`` komutunda
-``+s`` kullanılırsa bu durumda dosyanın hem set-user-ID hem de set-group-ID bayrakları set edilir.
-Dosyanın sticky bayrağını set etmek için ``+t`` kullanılmaktadır. Bu işlem yapıldığında grupta ``'x'`` hakkı 
-varsa ``x`` harfinin olduğu yerde ``t`` harfi, grupta ``'x'`` hakkı yoksa ``x`` harfinin olduğu yerde `T`` harfi 
+``+s`` kullanılırsa bu durumda dosyanın hem *set-user-ID* hem de *set-group-ID* bayrakları set edilir.
+Dosyanın *sticky* bayrağını set etmek için ``+t`` kullanılmaktadır. Bu işlem yapıldığında grupta ``'x'`` hakkı 
+varsa ``x`` harfinin olduğu yerde ``t`` harfi, grupta ``'x'`` hakkı yoksa ``x`` harfinin olduğu yerde ``T`` harfi 
 görüntülenmektedir.
 
 Yukarıdaki komutlarda ``+`` yerine ``-`` karakterini kullanarak reset işlemlerini yapabilirsiniz.
 
-Benzer biçimde istersek yine ``chmod`` komutunda octal digit'lerle set-user-ID, set-group-ID ve sticky
+Benzer biçimde istersek yine ``chmod`` komutunda octal digit'lerle *set-user-ID*, *set-group-ID* ve *sticky*
 bitlerini set edebiliriz. Örneğin:
 
 .. code-block:: console
 
     $ chmod 4755 sample
 
-Burada en soldaki octal digit 4 olduğu için dosyanın set-user-ID bayrağı da set edilmiştir. En soldaki
+Burada en soldaki octal digit ``4`` olduğu için dosyanın *set-user-ID* bayrağı da set edilmiştir. En soldaki
 octal digit'in bitleri yukarıda da belirttiğimiz gibi şu sıradadır:
 
 .. code-block:: text
 
-    set-user-ID  set-group-ID  sticky
+    *set-user-ID*  *set-group-ID*  sticky
 
-``chmod`` fonksiyonunda yukarıda belirttiğimiz bayrakları kullanarak set-user-ID, set-group-ID ve sticky
+``chmod`` fonksiyonunda yukarıda belirttiğimiz bayrakları kullanarak *set-user-ID*, *set-group-ID* ve *sticky*
 bayraklarını set edebiliriz. Örneğin biz *sample* programını ``rwsrwxrwx`` haline şöyle getirebiliriz:
 
 .. code-block:: c
@@ -81,11 +85,11 @@ bayraklarını set edebiliriz. Örneğin biz *sample* programını ``rwsrwxrwx``
 Peki zaten var olan bir dosyaya mevcut erişim haklarını bozmadan bu özellikleri programlama yoluyla nasıl
 ekleyebiliriz? Bunun için önce dosyanın erişim haklarının ``stat``, ``lstat`` ya da ``fstat``
 fonksiyonuyla elde edilmesi gerekir. Ondan sonra bu erişim haklarına biz ``S_ISUID``, ``S_ISGID``
-ve ``S_ISVTX`` bayraklarını OR işlemiyle ekleyebiliriz. Ancak ``stat`` fonksiyonunun bize verdiği
-``st_mode`` değeri dosyanın türünü de içermektedir. Gerçi ``chmod`` fonksiyonu bu ekstra bitleri dikkate
-almamaktadır. Ancak yine de ``stat`` yapısının ``st_mode`` elemanındaki değeri ``S_IFMT`` ile maskelemek
-daha uygundur. (Stevens *"Advanced Programming in the UNIX Environment"* kitabında böyle yapmamıştır.) O
-halde bu işlem şöyle yapılabilir:
+ve ``S_ISVTX`` bayraklarını ``|`` operatörüyle ekleyebiliriz. Ancak ``stat`` fonksiyonlarının bize verdiği
+``st_mode`` değeri dosyanın türünü de içermektedir. Gerçi Linux'un ``chmod`` fonksiyonu bu ekstra bitleri dikkate
+almamaktadır, fakat POSIX uyumu için ``stat`` yapısının ``st_mode`` elemanındaki değerin ``S_IFMT`` ile maskelenmesi
+gerekir. (POSIX standratlarında ``chmod`` fonksiyonunun erişim bayraklarının dışında bayraklarla karşılaştığında başarısız 
+olabileceği belirtilmiştir.) O halde bu işlem şöyle yapılabilir:
 
 .. code-block:: c
 
@@ -98,7 +102,7 @@ halde bu işlem şöyle yapılabilir:
         exit_sys("chmod");
 
 ``S_IFMT`` bayrağı erişim hakları dışındaki dosya tür bayraklarını temsil etmektedir. ``~S_IFMT`` erişim
-hakları bayraklarını 1, diğer bayrakları 0 hale getirmektedir.
+hakları bayraklarını ``1``, diğer bayrakları ``0`` hale getirmektedir.
 
 .. code-block:: c
 
@@ -132,29 +136,26 @@ hakları bayraklarını 1, diğer bayrakları 0 hale getirmektedir.
         exit(EXIT_FAILURE);
     }
 
-set-user-ID ve set-group-ID'nin Anlamı (Çalıştırılabilir Dosyalarda)
-====================================================================
+set-user-ID ve set-group-ID Erişim Haklarının Anlamı
+----------------------------------------------------
 
-Peki bir dosyanın set-user-ID ve set-group-ID bayraklarının set edilmiş olmasının ne anlamı vardır?
-Öncelikle bu bayrakların yalnızca *çalıştırılabilir dosyalar için* anlamlı olduğunu belirtelim. Yani bu
-bayraklar tasarımda *çalıştırılabilir dosyalar* için düşünülmüştür. Çalıştırılabilir dosyanın set-user-ID
-bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin kullanıcı ID'si işletim sistemi
+Peki bir dosyanın *set-user-ID* ve *set-group-ID* erişim haklarının set edilmiş olmasının ne anlamı vardır?
+Öncelikle bu hakların yalnızca *çalıştırılabilir (executable) dosyalar için* anlamlı olduğunu belirtelim. Yani bu
+bayraklar tasarımda *çalıştırılabilir dosyalar* için düşünülmüştür. Çalıştırılabilir dosyanın *set-user-ID*
+erişim bayrağı set edilmişse bu dosya ``exec`` yapıldığında prosesin etkin kullanıcı ID'si işletim sistemi
 tarafından dosyanın kullanıcı ID'si olacak biçimde değiştirilmektedir. Benzer biçimde çalıştırılabilir
-dosyanın set-group-ID bayrağı set edilmişse bu dosya exec yapıldığında prosesin etkin grup ID'si
+dosyanın *set-group-ID* bayrağı set edilmişse bu dosya ``exec`` yapıldığında prosesin etkin grup ID'si
 dosyanın grup ID'si olarak değiştirilmektedir.
 
-passwd Örneği
--------------
-
-Set-user-id bayrağının kullanım gerekçesini basit bir örnekle açıklayabiliriz. Bilindiği gibi kullanıcı
-parolaları komut satırında ``passwd`` komutuyla değiştirilmektedir. Default durumda ``passwd`` komutu
+*Set-user-id* bayrağının kullanım gerekçesini basit bir örnekle açıklayabiliriz. Bilindiği gibi kullanıcı
+parolaları komut satırında ``passwd`` komutuyla değiştirilmektedir. Default durumda ``passwd`` programı
 kullanıcının kendi parolasını değiştirmektedir. Örneğin:
 
 .. code-block:: console
 
     $ passwd
 
-Burada ``passwd`` önce mevcut parolayı sonra da yeni parolayı bize sormaktadır. ``passwd`` programı
+Burada ``passwd`` programı önce mevcut parolayı sonra da yeni parolayı bize soracaktır. ``passwd`` programı
 parolayı ``/etc/shadow`` dosyasına yazmaktadır. Bu dosyaya yalnızca ``root`` prosesler
 erişebilmektedir:
 
@@ -165,34 +166,31 @@ erişebilmektedir:
 
 Peki biz ``passwd`` komutunu çalıştırdığımızda kabuk önce ``fork`` sonra exec yaptığına göre bizim
 çalıştırdığımız ``passwd`` programı ``/etc/shadow`` dosyasına nasıl erişmektedir? İşte aslında
-``/bin/passwd`` programının set-user-ID bayrağı set edilmiştir:
+``/bin/passwd`` programının *set-user-ID* bayrağı set edilmiştir:
 
 .. code-block:: console
 
     $ ls -l /bin/passwd
     -rwsr-xr-x 1 root root 64152 May 30  2024 /bin/passwd
 
-Böylece bu dosya exec yapıldığında prosesin etkin kullanıcı id'si de set-user-ID bayrağının etkisiyle
+Böylece bu dosya exec yapıldığında prosesin etkin kullanıcı id'si de *set-user-ID* bayrağının etkisiyle
 ``root`` olmaktadır. Şimdi siz bunun bir güvenlik açığı oluşturabileceğini düşünebilirsiniz. Ancak
 aslında bir güvenlik açığı söz konusu değildir. Bu programın sahibi ``root`` kullanıcısıdır ve o
 isteyerek bu programın ``root`` etkin kullanıcı ID'siyle çalıştırılmasına olanak sağlamıştır. Herhangi
 bir kullanıcı zaten başkalarına ait dosyaların erişim haklarını değiştirememektedir.
 
-Burada bir noktaya dikkat ediniz. set-user-ID ya da set-group-ID bayrağı set edilmiş dosyalar exec
+Burada bir noktaya dikkat ediniz. *set-user-ID* ya da *set-group-ID* erişim hakları set edilmiş dosyalar ``exec``
 yapılırken prosesin yalnızca etkin kullanıcı ID'si ve etkin grup ID'si değiştirilmektedir. Gerçek
 kullanıcı ID'si ve gerçek grup ID'si değiştirilmemektedir. Biz genellikle gerçek ve etkin ID'lerin aynı
-değerde olduğunu, ancak test işlemlerine etkin ID'lerin girdiğini belirtmiştik. İşte set-user-ID ve
-set-group-ID bayrakları set edilmiş bir program dosyası exec yapıldığında artık gerçek kullanıcı ve
+değerde olduğunu, ancak test işlemlerine etkin ID'lerin girdiğini belirtmiştik. İşte *set-user-ID* ve
+*set-group-ID* bayrakları set edilmiş bir program dosyası exec yapıldığında artık gerçek kullanıcı ve
 grup ID'leriyle etkin kullanıcı ID'leri farklılaşabilmektedir.
 
-Gerçek ve Etkin ID Farkı Örneği (sample.c / other.c)
-----------------------------------------------------
-
-Aşağıdaki örnekte ``sample`` programı ``other`` programını exec yaparak çalıştırmıştır. Bu ``other``
+Aşağıdaki örnekte *sample* programı *other* programını ``exec`` yaparak çalıştırmıştır. *other*
 programı prosesin gerçek ve etkin kullanıcı ve grup ID'lerini ekrana isim olarak yazdırmaktadır. Biz bu
-örnekte ``other`` programını derledikten sonra ``chown`` komutuyla ``sudo`` ile birlikte kullanıcı
-ID'sini ve grup ID'sini ``root`` olarak değiştirdik. Bu deneyi önce ``other`` programının set-user-ID
-bayrağı set edilmeden ve set edildikten sonra yineleyiniz. Aşağıda yapılanlar özetlenmiştir:
+örnekte *other* programını derledikten sonra ``chown`` komutuyla ``sudo`` ile birlikte kullanıcı
+ID'sini ve grup ID'sini ``root`` olarak değiştirdik. Bu deneyi önce *other* programının *set-user-ID*
+bayrağını set etmeden sonra da set ederek yapınız. Aşağıda yapılanlar özetlenmiştir:
 
 .. code-block:: console
 
@@ -200,9 +198,9 @@ bayrağı set edilmeden ve set edildikten sonra yineleyiniz. Aşağıda yapılan
     $ gcc -Wall -o other other.c
     $ ls -l other
     -rwxr-xr-x 1 kaan study 17088 Şub 19 13:42 other
-    $ sudo chown root:root mample
+    $ sudo chown root other
     $ ls -l other
-    -rwxr-xr-x 1 root root 17088 Şub 19 13:42 mample
+    -rwxr-xr-x 1 root study 17088 Şub 19 13:42 other
     $ ./sample
     Real user ID: kaan
     Effective user ID: kaan
@@ -225,30 +223,31 @@ bayrağı set edilmeden ve set edildikten sonra yineleyiniz. Aşağıda yapılan
     Real group ID: study
     Effective group ID: root
 
-Biz bir programı ``sudo`` ile root önceliğinde (etkin proses ID'si 0 olacak biçimde) çalıştırıyor
-olalım. Dosyanın set-user-ID bayrağı da set edilmiş olsun. Bu durumda program çalışırken prosesin etkin
-kullanıcı ID'si ``root`` değil, program dosyasının kullanıcı ID'si olacaktır. Yani set-user-ID bayrağı
-set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılmasının bir anlamı kalmamaktadır.
+Biz bir programı ``sudo`` ile ``root`` önceliğinde (etkin proses ID'si 0 olacak biçimde) çalıştırıyor
+olalım. Dosyanın *set-user-ID* bayrağı da set edilmiş olsun. Bu durumda program çalışırken prosesin etkin
+kullanıcı ID'si ``root`` değil, program dosyasının kullanıcı ID'si olacaktır. Yani *set-user-ID* bayrağı
+set edilmiş olan programların ``sudo`` ile ``root`` önceliğinde çalıştırılmasının bir anlamı kalmamaktadır.
 Örneğin:
 
 .. code-block:: console
 
-    $ sudo chown ali: other
+    $ sudo chown ali other
     $ ls -l other
     -rwxr-xr-x 1 ali study 16344 Eki  1 11:48 other
     $ sudo chmod u+s other
     $ ls -l other
     -rwsr-xr-x 1 ali study 16344 Eki  1 11:48 other
-    $ sudo other
     $ sudo ./other
     Real user ID: root
     Effective user ID: ali
     Real group ID: root
     Effective group ID: root
 
-.. code-block:: c
+Burada tek farklılık dosyanın grup ID'sinin de ``root`` haline gelmiş olmasıdır.
 
-    /* sample.c */
+``sample.c``
+
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -264,7 +263,7 @@ set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılm
         if ((pid = fork()) == -1)
             exit_sys("fork");
 
-        if (pid == 0 && execl("mample", "mample", (char *)0) == -1)
+        if (pid == 0 && execl("other", "other", (char *)0) == -1)
             exit_sys("execl");
 
         if (wait(NULL) == -1)
@@ -279,9 +278,9 @@ set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılm
         exit(EXIT_FAILURE);
     }
 
-.. code-block:: c
+``other.c`` 
 
-    /* other.c */
+.. code-block:: c
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -346,22 +345,22 @@ set edilmiş olan programların ``sudo`` ile root önceliğinde çalıştırılm
         exit(EXIT_FAILURE);
     }
 
-Dizinlerde set-group-ID Bayrağı
-===============================
+Dizinlerde set-group-ID Erişim Hakkı
+------------------------------------
 
-Normal olarak set-user-ID ve set-group-ID bayrakları çalıştırılabilen dosyalar için söz konusudur. Ancak
-dizinler için de set-group-ID bayrağının bir anlamı vardır. Pek çok UNIX türevi sistemde (Linux da buna
-dahil) bir dizinin set-group-ID bayrağı set edilirse Linux o dizin içerisinde ``open`` fonksiyonuyla
+Normal olarak *set-user-ID* ve *set-group-ID* bayrakları çalıştırılabilir dosyalar için söz konusudur. Ancak
+dizinler için de *set-group-ID* bayrağının bir anlamı vardır. Pek çok UNIX türevi sistemde (Linux da buna
+dahil) bir dizinin *set-group-ID* bayrağı set edilirse Linux o dizin içerisinde ``open`` fonksiyonuyla
 (zaten başka yolu yoktur) ya da ``mkdir`` fonksiyonuyla bir dosya ya da dizin yaratıldığında dosyanın ya
 da dizinin grup ID'sini prosesin etkin grup ID'si olarak değil, o dizinin grup ID'si olarak set
-etmektedir. BSD sistemlerinde zaten default olarak bir dosya ya da dizin yaratıldığında dosyanın ya da
+etmektedir. BSD sistemlerinde zaten varsayılan durumda bir dosya ya da dizin yaratıldığında dosyanın ya da
 dizinin grup ID'si o dosyanın ya da dizinin içinde bulunduğu dizinin grup ID'si olarak set edilmektedir.
 O halde Linux'ta ``open`` fonksiyonu ile bir dosya ya da dizin yaratılırken dosya ya da dizinin grup
-ID'si, eğer o dosya ya da dizinin içinde bulunduğu dizinin set-group-ID bayrağı set edilmemişse prosesin
+ID'si, eğer o dosya ya da dizinin içinde bulunduğu dizinin *set-group-ID* bayrağı set edilmemişse prosesin
 etkin grup ID'si olarak, eğer set edilmişse dizinin grup ID'si olarak set edilmektedir. Bu durumu basit
 bir biçimde şöyle test edebilirsiniz:
 
-Önce ``xxx`` gibi bir isimle bir dizin yaratınız:
+Önce ``xxx`` gibi bir isimle bir dizin yaratalım:
 
 .. code-block:: console
 
@@ -381,7 +380,7 @@ Görüldüğü gibi dizinin kullanıcı ve grup ID'si prosesin etkin kullanıcı
 
 Görüldüğü gibi ``x.txt`` dosyasının kullanıcı ve grup ID'leri prosesin etkin kullanıcı ve grup ID'si
 biçimindedir. Şimdi biz ``xxx`` dizininin grup ID'sini ``root`` olarak değiştirelim ve dizinin
-set-group-ID bayrağını set edelim:
+*set-group-ID* erişim bayrağını set edelim:
 
 .. code-block:: console
 
@@ -404,56 +403,53 @@ set-group-ID bayrağını set edelim:
 Görüldüğü gibi artık dosyanın grup ID'si prosesin etkin grup ID'si olarak değil, içinde bulunduğu
 dizinin grup ID'si olarak set edilmiştir.
 
-Dizinlerin set-user-ID bayraklarının set edilmesi benzer bir etkiye yol açmamaktadır. (Bu durum bazı eski
+Dizinlerin *set-user-ID* bayraklarının set edilmesi benzer bir etkiye yol açmamaktadır. (Bu durum bazı eski
 UNIX sistemlerinde denenmiştir, ancak modern sistemlerde böyle bir semantik yoktur.)
 
 Betik Dosyalarında set-user-ID / set-group-ID Güvenlik Açığı
-============================================================
+------------------------------------------------------------
 
-Peki betik dosyaları (shebang içeren text dosyalar) için set-user-ID ve set-group-ID bayrakları set
+Peki betik dosyaları (shebang içeren text dosyalar) için *set-user-ID* ve *set-group-ID* bayrakları set
 edilebilir mi? Bu işlem ilk zamanlar uygulanmıştır. Ancak güvenlik açığı nedeniyle sonra uygulamadan
-kaldırılmıştır. Bugünkü modern UNIX/Linux sistemleri betik dosyalarının set-user-ID ve set-group-ID
-bayrakları set edilmiş olsa bile onları dikkate almamaktadır. Buradaki güvenlik açığı ilginç bir
-biçimde aşağıdaki gibi oluşmaktadır:
+kaldırılmıştır. Bugünkü modern UNIX/Linux sistemleri betik dosyalarının *set-user-ID* ve *set-group-ID*
+hakları set edilmiş olsa bile onları dikkate almamaktadır. Buradaki güvenlik açığı ilginç bir
+biçimde şöyle oluşmaktadır:
 
-Betik dosyasının ismi ``x.txt`` olsun. Eğer bu dosyanın set-user-ID ve set-group-ID bayrakları dikkate
-alınsaydı bu durumda exec fonksiyonları bu dosyayı açıp shebang satırında bulunan programı çalıştırırken
+Betik dosyasının ismi ``x.txt`` olsun. Bu dosyanın *set-user-ID* ve *set-group-ID* haklarının dikkate alınmış
+olduğunu varsayalım. Bu durumda ``exec`` fonksiyonları bu dosyayı açıp shebang satırında bulunan programı çalıştırırken
 prosesin etkin kullanıcı ve/veya grup ID'sini ``x.txt`` dosyasının kullanıcı ve/veya grup ID'si olarak
-set ederdi. Bu durumda da eğer birisi örneğin ``y.txt`` sembolik bağlantı dosyası oluşturup bu dosyanın
-``x.txt`` dosyasını göstermesini sağlarsa ve bu ``y.txt`` ile exec yaparsa bu durumda aslında exec
-fonksiyonu sembolik bağlantıyı izleyecek ve ``x.txt`` dosyasını çalıştıracaktır. Ancak exec fonksiyonları
-bu ``x.txt`` dosyasının shebang satırındaki programı çalıştırırken yine komut satırı argümanı olarak
+set edecektir. Bu durumda da eğer birisi örneğin ``y.txt`` gibi bir sembolik bağlantı dosyası oluşturup bu dosyanın
+``x.txt`` dosyasını göstermesini sağlarsa ve bu ``y.txt`` ile ``exec`` yaparsa bu durumda aslında ``exec``
+fonksiyonu sembolik bağlantıyı izleyecek ve ``x.txt`` dosyasını çalıştıracaktır. Ancak ``exec`` fonksiyonu
+bu ``x.txt`` dosyasının shebang satırındaki programı çalıştırırken komut satırı argümanı olarak
 ``y.txt`` dosyasını kullanacaktır. İşte tam bu sırada birisi bu ``y.txt`` dosyasının sembolik
 bağlantısını değiştirirse maalesef prosesin etkin kullanıcı ID'si ``x.txt``'nin kullanıcı ID'si olacak
-biçimde aslında başka dosyayı çalıştırır.
+biçimde başka dosyayı çalıştıracaktır.
 
-sticky Bayrağı
-==============
+sticky Erişim Hakkı
+-------------------
 
-Peki dosyaların sticky bayraklarının ne işlevi vardır? Aslında sticky bayrağı tasarımda başka bir amaçla
-düşünülmüştür. Eski sistemlerde bu bayrak çalıştırılabilen dosyaların çalıştırılması sonrasında programın
-bellekten atılmaması gibi bir ipucu oluşturmaktadır. Ancak modern sistemlerde böyle bir etkinin bir
-anlamı kalmadığı için sticky bayrağı da ilk tasarlandığı zamanki işlevinden tamamen kopmuştur. Bugün
+Peki dosyaların *sticky* hakkının (modu'nun) ne işlevi vardır? Aslında *sticky* tasarımda başka bir amaçla
+düşünülmüştür. Eski sistemlerde bu ``S_ISVTX`` bayrağı çalıştırılabilir dosyaların çalıştırılması sonrasında programın
+bellekten atılmaması gibi bir ipucu oluşturmaktaydı. Ancak modern sistemlerde böyle bir etkinin bir
+anlamı kalmadığı için *sticky* bayrağı da ilk tasarlandığı zamanki işlevinden tamamen kopmuştur. Bugün
 sticky bayrağı değişik sistemlerde değişik amaçlarla kullanılabilmektedir. POSIX standartları eskiden
-sticky bayrağı üzerinde açıklama yapmıyordu. Ancak belli zamandan sonra sticky için şöyle bir
-işlevsellik tanımlanmıştır: Bir dizinin sticky bayrağı set edilirse ve dizinin sahibi başkaları ise,
-dizine prosesin yazma hakkı olsa bile dizin içerisindeki başkalarına ait (yani kullanıcı ID'si başka)
-olan dosyalar silinememekte ve ismi değiştirilememektedir. Bugünkü sistemlerde dizin dışında diğer
-dosyaların sticky bayraklarının set edilmiş olup olmamasının işlevsel bir anlamı yoktur. Örneğin Linux
-sistemlerinde ``/tmp`` dizininin sticky bayrağı set edilmiştir ve bu dizine yazma hakkı verilmiştir. Bu
-durumda biz bu dizinde dosya yaratabiliriz, kendi dosyamızı silebiliriz. Ancak başkalarının dosyalarını
+sticky bayrağı üzerinde açıklama yapmıyordu. Ancak belli zamandan sonra *sticky* için şöyle bir
+işlevsellik tanımlanmıştır: Bir dizinin *sticky* bayrağı set edilirse ve dizinin sahibi başkaları ise,
+dizine prosesin yazma hakkı olsa bile dizin içerisindeki başkalarına ait olan (yani kullanıcı ID'si işlemi uygulayan 
+prosesin kullanıcı ID'sinden farklı olan) dosyalar silinememekte ve ismi değiştirilememektedir". Bugünkü 
+sistemlerde dizin dışında diğer dosyaların *sticky* bayraklarının set edilmiş olup olmamasının işlevsel bir anlamı yoktur. 
+Örneğin Linux sistemlerinde ``/tmp`` dizininin *sticky* bayrağı set edilmiştir ve bu dizine yazma hakkı verilmiştir. Bu
+durumda biz bu dizinde dosya yaratabiliriz, dizindeki kendi dosyamızı silebiliriz. Ancak başkalarının dosyalarını
 silemeyiz. ``/tmp`` dizininin erişim hakları şöyledir:
 
 .. code-block:: text
 
     drwxrwxrwt 19 root root 65536 Şub 25 10:05 /tmp
 
-/tmp Dizini Örneği
-------------------
+Linux sistemlerinde *sticky* bayrağının dizin üzerindeki etkisini şöyle test edebiliriz:
 
-Bu durumu Linux sistemlerinde şöyle test edebiliriz:
-
-Önce ``yyy`` isimli bir dizin yaratalım, bu dizinin içine geçip orada sahibi ``root`` olan bir dosya
+Önce ``yyy`` isimli bir dizin yaratalım, sonra bu dizinin içine geçip orada sahibi ``root`` olan bir dosya
 yaratalım:
 
 .. code-block:: console
@@ -464,7 +460,7 @@ yaratalım:
     $ ls -l x.txt
     -rw-r--r-- 1 root root 0 Eki  1 12:53 x.txt
 
-Görüldüğü gibi dosyanın kullanıcı ve grup ID'si ``sudo`` uygulanmasından dolayı ``root`` olmuştur. Şimdi
+Görüldüğü gibi dosyanın kullanıcı ve grup ID'si ``sudo`` işleminden dolayı ``root`` olmuştur. Şimdi
 burada ``sudo`` uygulamadan ikinci bir dosya da yaratalım:
 
 .. code-block:: console
@@ -476,7 +472,7 @@ burada ``sudo`` uygulamadan ikinci bir dosya da yaratalım:
 
 Biz her iki dosyayı da silebiliriz. Çünkü bir dosyayı silebilmek için dosyanın sahibi olmaya, dosyaya
 ``w`` hakkına sahip olmaya gerek yoktur. Tek gereken şey dizin için ``w`` hakkına sahip olmaktadır. Şimdi
-dizinin sahipliğini değiştirelim ve sticky bayrağını set edip, herkese ``w`` hakkı verelim:
+dizinin sahipliğini değiştirelim ve *sticky* bayrağını set edip, herkese ``w`` hakkı verelim:
 
 .. code-block:: console
 
@@ -502,29 +498,29 @@ Görüldüğü gibi dizine yazma hakkımız olsa da dizindeki başkalarına ait 
 
     $ rm y.txt
 
-Görüldüğü gibi kendimize ait olan bu dosya silinebilmiştir.
+Görüldüğü gibi kendimize ait olan dosyaları silebilmekteyiz. 
 
-Gerçek, Etkin ve Saklı Kullanıcı/Grup ID'leri
-=============================================
+Proseslerin Saklı Kullanıcı ve Grup ID'leri
+===========================================
 
 Daha önceden de belirttiğimiz gibi bir prosesin *gerçek kullanıcı ID'si (real user ID)* ile *etkin
 kullanıcı ID'si (effective user ID)*, *gerçek grup ID'si (real group ID)* ile de *etkin grup ID'si
-(effective group ID)* genellikle aynı olmaktadır. Ancak set-user-ID ve set-group-ID bayrakları set
+(effective group ID)* genellikle aynı olmaktadır. Ancak *set-user-ID* ve *set-group-ID* bayrakları set
 edilmiş çalıştırılabilir programlar çalıştırıldığında bu ID'ler farklı hale gelebilmektedir. Örneğin
-prosesimizin gerçek kullanıcı ID'si ve etkin kullanıcı ID'si ``kaan`` olsun. Biz set-user-ID bayrağı set
+prosesimizin gerçek kullanıcı ID'si ve etkin kullanıcı ID'si ``kaan`` olsun. Biz *set-user-ID* bayrağı set
 edilmiş ``/bin/passwd`` programını exec yaptığımızda prosesimizin gerçek kullanıcı ID'si ``kaan`` olmaya
 devam eder, ancak etkin kullanıcı ID'si ``root`` olur. Dosya işlemlerinde teste her zaman etkin ID'ler
 sokulmaktadır.
 
 Gerçek kullanıcı ID'si ve gerçek grup ID'si, etkin kullanıcı ID'si ve etkin grup ID'si dışında prosesin
 bir de *saklı kullanıcı ID'si (saved set user ID)* ve *saklı grup ID'si (saved set group ID)* denilen
-iki ID daha vardır. Bir proses exec uyguladığında programın set-user-ID ve set-group-ID bayrakları set
+iki ID'si daha vardır. Bir proses exec uyguladığında programın *set-user-ID* ve *set-group-ID* hakları set
 edilmiş olsun ya da olmasın, her zaman çekirdek yeni etkin kullanıcı ID'sini ve yeni etkin grup ID'sini
 saklı kullanıcı ID'si ve saklı grup ID'si olarak set etmektedir. Örneğin prosesimizin gerçek kullanıcı
 ID'si ``kaan`` ve etkin kullanıcı ID'si ``kaan``, gerçek grup ID'si ``study`` ve etkin grup ID'si
-``study`` olsun. Şimdi biz set-user-ID bayrağı set edilmiş olan ``/bin/passwd`` programını exec ile
+``study`` olsun. Şimdi biz *set-user-ID* bayrağı set edilmiş olan ``/bin/passwd`` programını ``exec`` ile
 çalıştıralım. Artık prosesimizin gerçek kullanıcı ID'si ``kaan``, etkin kullanıcı ID'si ``root``
-olacaktır. Gerçek grup ID'si ``study`` ve etkin grup ID'si de ``study`` olarak kalacaktır. İşte çekirdek
+olacaktır, gerçek grup ID'si ``study`` ve etkin grup ID'si ``study`` olarak kalacaktır. İşte çekirdek
 aynı zamanda bu yeni etkin kullanıcı ID'sini (örneğimizdeki ``root`` ID'sini kastediyoruz) ve grup ID'sini
 prosesin *saklı kullanıcı ID'si (saved set user ID)* ve *saklı grup ID'si* olarak da set etmektedir. O
 halde prosesimizin ID'leri artık şöyle olacaktır:
@@ -538,10 +534,10 @@ halde prosesimizin ID'leri artık şöyle olacaktır:
     etkin grup ID'si:       study
     saklı grup ID'si:       study
 
-Bu işlem set-user-ID ya da set-group-ID bayrağı set edilmemiş programlar çalıştırılırken de
+Bu işlem *set-user-ID* ya da *set-group-ID* hakları set edilmemiş programlar çalıştırılırken de
 yürütülmektedir. Örneğin prosesimizin gerçek kullanıcı ID'si ``kaan``, etkin kullanıcı ID'si ``kaan``,
-gerçek grup ID'si ``study`` ve etkin grup ID'si ``study`` olsun. Biz de set-user-ID bayrağı set edilmemiş
-olan bir programı exec yapmış olalım. Yeni ID'ler şöyle olacaktır:
+gerçek grup ID'si ``study`` ve etkin grup ID'si ``study`` olsun. Biz de *set-user-ID* bayrağı set edilmemiş
+olan bir programı ``exec`` yapmış olalım. Yeni ID'ler şöyle olacaktır:
 
 .. code-block:: text
 
@@ -559,8 +555,8 @@ getuid, geteuid, getgid, getegid Fonksiyonları
 ==============================================
 
 O anda çalışmakta olan prosesin (yani kendi prosesimizin) gerçek kullanıcı ID'si ``getuid`` isimli
-POSIX fonksiyonuyla, etkin kullanıcı ID'si de ``geteuid`` isimli POSIX fonksiyonuyla elde
-edilebilmektedir. Fonksiyonların prototipleri şöyledir:
+POSIX fonksiyonuyla, etkin kullanıcı ID'si de ``geteuid`` isimli POSIX fonksiyonuyla elde edilebilmektedir. 
+Fonksiyonların prototipleri şöyledir:
 
 .. code-block:: c
 
@@ -570,7 +566,7 @@ edilebilmektedir. Fonksiyonların prototipleri şöyledir:
     uid_t geteuid(void);
 
 Daha önce belirttiğimiz gibi ``uid_t`` türü ``<unistd.h>`` ve ``<sys/types.h>`` dosyaları içerisinde bir
-tamsayı türü olacak biçimde typedef edilmiştir. Bu fonksiyonlar başarısız olamamaktadır.
+tamsayı türünü belirtecek biçimde typedef edilmiştir. Bu fonksiyonlar başarısız olamamaktadır.
 
 O anda çalışmakta olan prosesin gerçek grup ID'si ``getgid`` POSIX fonksiyonu ile, etkin grup ID'si ise
 ``getegid`` POSIX fonksiyonu ile elde edilebilmektedir. Fonksiyonların prototipleri şöyledir:
@@ -583,15 +579,10 @@ O anda çalışmakta olan prosesin gerçek grup ID'si ``getgid`` POSIX fonksiyon
     gid_t getegid(void);
 
 Daha önce de belirttiğimiz gibi ``gid_t`` türü ``<unistd.h>`` ve ``<sys/types.h>`` dosyaları içerisinde
-bir tamsayı türü olacak biçimde typedef edilmiştir.
+bir tamsayı türünü beliretecek biçimde typedef edilmiştir. Bu fonksiyonlar da başarısız olamamaktadır. 
 
-Bu fonksiyonlar da başarısız olamamaktadır.
+Aşağıda bu fonksiyonların kullanımına ilişkin bir örnek veriyoruz:
 
-POSIX standartlarında saklı ID'leri alan fonksiyonlar yoktur. Ancak Linux sistemlerinde bu işlemi
-yapacak fonksiyon bulunmaktadır.
-
-Örnek Program
--------------
 
 .. code-block:: c
 
