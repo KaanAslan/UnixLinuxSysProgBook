@@ -136,8 +136,8 @@ hakları bayraklarını ``1``, diğer bayrakları ``0`` hale getirmektedir.
         exit(EXIT_FAILURE);
     }
 
-set-user-ID ve set-group-ID Erişim Haklarının Anlamı
-----------------------------------------------------
+set-user-ID ve set-group-ID Erişim Bayraklarının Anlamı
+-------------------------------------------------------
 
 Peki bir dosyanın *set-user-ID* ve *set-group-ID* erişim haklarının set edilmiş olmasının ne anlamı vardır?
 Öncelikle bu hakların yalnızca *çalıştırılabilir (executable) dosyalar için* anlamlı olduğunu belirtelim. Yani bu
@@ -426,8 +426,8 @@ bu ``x.txt`` dosyasının shebang satırındaki programı çalıştırırken kom
 bağlantısını değiştirirse maalesef prosesin etkin kullanıcı ID'si ``x.txt``'nin kullanıcı ID'si olacak
 biçimde başka dosyayı çalıştıracaktır.
 
-sticky Erişim Hakkı
--------------------
+sticky Erişim Bayrağı
+--------------------
 
 Peki dosyaların *sticky* bayraklarır (modu'nun) ne işlevi vardır? Aslında *sticky* tasarımda başka bir amaçla
 düşünülmüştür. Eski sistemlerde bu ``S_ISVTX`` bayrağı çalıştırılabilir dosyaların çalıştırılması sonrasında programın
