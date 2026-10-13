@@ -429,7 +429,7 @@ biçimde başka dosyayı çalıştıracaktır.
 sticky Erişim Hakkı
 -------------------
 
-Peki dosyaların *sticky* hakkının (modu'nun) ne işlevi vardır? Aslında *sticky* tasarımda başka bir amaçla
+Peki dosyaların *sticky* bayraklarır (modu'nun) ne işlevi vardır? Aslında *sticky* tasarımda başka bir amaçla
 düşünülmüştür. Eski sistemlerde bu ``S_ISVTX`` bayrağı çalıştırılabilir dosyaların çalıştırılması sonrasında programın
 bellekten atılmaması gibi bir ipucu oluşturmaktaydı. Ancak modern sistemlerde böyle bir etkinin bir
 anlamı kalmadığı için *sticky* bayrağı da ilk tasarlandığı zamanki işlevinden tamamen kopmuştur. Bugün
