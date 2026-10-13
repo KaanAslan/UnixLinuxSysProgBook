@@ -727,7 +727,7 @@ Bunu bir çevre değişkeni ile ayarlanabilir hale getirebiliriz:
 
     char *data_path = "datafile.dat";
     char *value;
-    FILE *s;
+    FILE *f;
 
     if ((value = getenv("DATA_LOCATION")) != NULL)
         data_path = value;
