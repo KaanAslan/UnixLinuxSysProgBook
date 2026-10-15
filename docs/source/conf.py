@@ -69,10 +69,10 @@ latex_additional_files = ['_static/fontawesome7.sty']
 html_meta = {
     "description": "UNIX/Linux Sistem Programlama",
     "keywords": (
-        "Linux programlama, işletim sistemleri, sistem programlama, UNIX, Linux" +
-        "Linux programlama, C ve Sistem Programcıları Derneği, UNIX programlama" +
+        "Linux programlama, işletim sistemleri, sistem programlama, UNIX, Linux, "
+        "C ve Sistem Programcıları Derneği, UNIX programlama, "
         "POSIX, Linux çekirdeği, Linux sistem çağrıları, POSIX fonksiyonları"
-    )
+    ),
 }
 
 rst_prolog = """

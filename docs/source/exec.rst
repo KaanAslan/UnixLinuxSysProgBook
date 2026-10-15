@@ -2030,7 +2030,7 @@ Bu çalıştırma aslında aşağıdakiyle eşdeğer olacaktır:
 
     $ /bin/make -f sample.mak
 
-exec İşlemeri Sıasında shebang Kontrolü 
+exec İşlemeri Sıasında Shebang Kontrolü 
 ---------------------------------------
 
 Linux çekirdeklerinde ``exec`` fonksiyonları genel olarak (bazı ayrıntıları da vardır) önce shebang kontrolü
