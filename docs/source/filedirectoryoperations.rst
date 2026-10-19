@@ -291,8 +291,8 @@ POSIX'in Uygun Öncelikler Kavramı
 POSIX standartlarında kaynaklara erişim üzerinde açıklamalar yapılırken "``root`` önceliği" ya da "prosesin etkin
 kullanıcı ID'sinin ``0`` olması" gibi bir anlatım tercih edilmemiştir. Onun yerine POSIX standartlarında
 *uygun öncelikler (appropriate privileges)* terimi kullanılmıştır. Çünkü bir POSIX sistemi "ya hep ya hiç" biçiminde tasarlanmak
-zorunda değildir. Gerçekten de örneğin Linux sistemlerinde *yeteneklilik (capability)* denilen bir özellik bulunmaktadır. Bu
-*yeteneklilik* sayesinde bir prosesin etkin kullanıcı ID'si ``0`` olmamasına karşın o proses, belirlenen bazı
+zorunda değildir. Gerçekten de örneğin Linux sistemlerinde *yetenekler (capabilities)* denilen bir özellik bulunmaktadır. Bu
+*yetenekler* sayesinde bir prosesin etkin kullanıcı ID'si ``0`` olmamasına karşın o proses, belirlenen bazı
 şeyleri yapabilir duruma getirilebilmektedir. İşte POSIX standartlarındaki *uygun öncelikler (appropriate privileges)* 
 terimi bunu anlatmaktadır. Yani buradaki *uygun öncelikler* terimi "prosesin etkin kullanıcı ID'sinin ``0`` olduğunu ya da
 ``0`` olmasa da prosesin bu işlemi yapabilme yeteneğine sahip olduğunu" belirtmektedir. 
@@ -300,7 +300,7 @@ terimi bunu anlatmaktadır. Yani buradaki *uygun öncelikler* terimi "prosesin e
 Klasik UNIX tasarımında "ya hep ya hiç" sistemi kullanılmıştır. Yani ya bir proses ``root`` olarak her şeyi
 yapabilir ya da yalnızca kendine ilişkin şeyleri yapabilir. Ancak bu "ya hep ya hiç" sistemi bazı UNIX türevi
 sistemler tarafından zaman içerisinde gevşetilmiştir. Örneğin Linux sistemlerinde yukarıda da belirttiğimiz
-*yeteneklilik (capability)* denilen özellik sayesinde prosesler "her şeyi değil bazı şeyleri yapabilir" hale
+*yetenekler (capabilities)* denilen özellik sayesinde prosesler "her şeyi değil bazı şeyleri yapabilir" hale
 getirilebilmektedir. İşte bu nedenle POSIX standartları ``root`` terimi ya da "proses ID'si ``0`` olan prosesler"
 terimi yerine *appropriate privileges* terimini kullanmaktadır.
 
@@ -312,7 +312,7 @@ hakları testinde başarısız olursa bu durumda ``errno`` değişkeni ``EACCES`
 ``EACCES`` ``errno`` değerinin İngilizce mesaj yazısı "*Permission denied*"" biçimindedir. UNIX/Linux sistemlerinde 
 proseslerin bazı işlemleri yapabilmesi için (bu işlemler dosya sistemine ilişkin olabileceği gibi olmayabilir de) bazı 
 koşulların sağlanması gerekebilmektedir. (Örneğin işlemi yapan prosesin etkin kullanıcı ID'sinin ``0`` olması (*root* proses) 
-ya da Linux sistemlerinde ilgili yetenekliliğe sahip olması gibi.) Eğer proses bu koşulları sağlamıyorsa ilgili fonksiyon 
+ya da Linux sistemlerinde ilgili yeteneğe sahip olması gibi.) Eğer proses bu koşulları sağlamıyorsa ilgili fonksiyon 
 ``errno`` değişkenini ``EPERM`` değeri ile set ederek başarısız olmaktadır. UNIX/Linux programcıları ``EACCES`` ile 
 ``EPERM`` değerlerinin anlamları konusunda tereddüt yaşayabilmektedir. ``EACCES`` dosya erişimlerinde ortaya çıkarken 
 ``EPERM`` kaynak erişimleri ve özel bazı işlemlerin yapılması sırasında ortaya çıkmaktadır.
@@ -4467,7 +4467,7 @@ Fonksiyonlar başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1
 ``remove`` ve ``unlink`` fonksiyonlarıyla bir dosyayı silebilmek için prosesin dosyaya ``'w'`` hakkına sahip olması
 gerekmez. Ancak dosyanın içinde bulunduğu dizin için ``'w'`` hakkına sahip olması gerekir. Bizim eğer dosyanın içinde
 bulunduğu dizine ``'w'`` hakkımız varsa dosyanın sahibi olmasak bile dosyayı silebiliriz. Tabii proses ID'si ``0`` olan
-prosesler (*root* prosesler) ya da Linux'ta ``CAP_DAC_OVERRIDE`` yetenekliliğine (capability) sahip olan prosesler her zaman silme 
+prosesler (*root* prosesler) ya da Linux'ta ``CAP_DAC_OVERRIDE`` yeteneğine (capability) sahip olan prosesler her zaman silme 
 işlemini yapabilirler.
 
 Bir dosya ``remove`` ya da ``unlink`` fonksiyonlarıyla silindiğinde dizin girişi silinir. Ancak yukarıda da
@@ -4533,7 +4533,7 @@ hakları her zaman ``rwxrwxrwx`` biçimindedir ve Linux gibi bazı sistemlerinde
 
 Bir dosyanın erişim haklarını ``chmod`` fonksiyonuyla değiştirebilmek için prosesin etkin kullanıcı ID'sinin dosyanın
 kullanıcı ID'si ile aynı olması ya da prosesin etkin kullanıcı ID'sinin 0 olması (*root* proses) gerekmektedir. Linux
-yeteneklilik (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı ID'si 0 olmasa bile proses
+yetenek (capability) özelliğini de kullanmaktadır. Linux'ta prosesin etkin kullanıcı ID'si 0 olmasa bile proses
 ``CAP_FSETID`` yeteneğine sahipse herhangi bir dosyanın erişim haklarını değiştirebilmektedir.
 
 Dosya zaten açıksa ve onun dosya betimleyicisi biliniyorsa ``chmod`` fonksiyonu yerine ``fchmod`` fonksiyonu
@@ -4814,7 +4814,7 @@ sözcükleriyle ifade edilmektedir. İlgili sistemin bu izni verip vermediği ``
 vermemektedir, mevcut değilse sistem bu izni vermektedir. (Bu durumda sorgulamayı ``#ifdef`` önişlemci komutuyla
 yapmalısınız.) Linux sistemleri de *change own restricted* durumdadır. Yani bu işleme izin vermemektedir.
 
-2) Proses ID'si 0 olan *root* prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yetenekliliğine sahip prosesler) her zaman
+2) Proses ID'si 0 olan *root* prosesler (ya da Linux sistemlerinde ``CAP_FOWNER`` yeteneğine sahip prosesler) her zaman
 dosyanın kullanıcı ve grup ID'sini istedikleri gibi değiştirebilirler. (Yani biz bir dosyanın kullanıcı ve grup ID'sini
 istediğimiz gibi değiştirmek istiyorsak programımızı *sudo* ile çalıştırmalıyız.)
 

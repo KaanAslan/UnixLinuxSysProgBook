@@ -659,16 +659,12 @@ Aşağıda bu fonksiyonların kullanımına ilişkin bir örnek veriyoruz:
 
 .. _setuid-ailesi-ve-ek-gruplar:
 
-===============================================================
-Kullanıcı/Grup ID'lerini Değiştirme Fonksiyonları ve Ek Gruplar
-===============================================================
-
 getresuid ve getresgid Fonksiyonları
 ====================================
 
-Eskiden POSIX standartlarında saklı kullanıcı ve grup ID'lerini almanın bir yolu yoktu. Ancak Linux
+Eskiden POSIX standartlarında saklı kullanıcı ve grup ID'lerini almanın bir yolu yoktu. Fakat Linux
 sistemleri buna izin veriyordu. POSIX'in 2024 versiyonu ile birlikte ``getresuid`` ve ``getresgid``
-fonksiyonları bütün ID'leri tek hamlede elde etmeye izin vermektedir.
+fonksiyonları bu ID'lerin hepsini tek hamlede elde etmeye izin vermektedir.
 
 .. code-block:: c
 
@@ -679,7 +675,8 @@ fonksiyonları bütün ID'leri tek hamlede elde etmeye izin vermektedir.
     int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid);
 
 Fonksiyonlar ilgili nesnelerin adreslerini alıp değerleri oraya yerleştirmektedir. Başarı durumunda 0,
-başarısızlık durumunda -1 değerine geri dönmektedir.
+başarısızlık durumunda -1 değerine geri dönmektedir. (Fonksiyonlarn ancak geçersiz bir adres girildiğinde 
+başarız olabileceğine dikkat ediniz.)
 
 Eskiden bu *glibc* fonksiyonlarını kullanabilmek için ``_GNU_SOURCE`` makrosunun programın başında define
 edilmesi gerekiyordu. Ancak güncel durumda bu zorunluluk ortadan kalkmıştır. Ancak eski *glibc*
@@ -715,7 +712,7 @@ edilip ekrana yazdırılmıştır.
                 fprintf(stderr, "invalid user id!..\n");
                 exit(EXIT_FAILURE);
             }
-            exit_sys("getpwnam");
+            exit_sys("getpwuid");
         }
 
         printf("Real User ID: %s (%ju)\n", pass->pw_name, (uintmax_t)ruid);
@@ -726,7 +723,7 @@ edilip ekrana yazdırılmıştır.
                 fprintf(stderr, "invalid user id!..\n");
                 exit(EXIT_FAILURE);
             }
-            exit_sys("getpwnam");
+            exit_sys("getpwuid");
         }
 
         printf("Effective User ID: %s (%ju)\n", pass->pw_name, (uintmax_t)euid);
@@ -737,7 +734,7 @@ edilip ekrana yazdırılmıştır.
                 fprintf(stderr, "invalid user id!..\n");
                 exit(EXIT_FAILURE);
             }
-            exit_sys("getpwnam");
+            exit_sys("getpwuid");
         }
 
         printf("Saved Set User ID: %s (%ju)\n", pass->pw_name, (uintmax_t)ssuid);
@@ -769,18 +766,18 @@ setuid Fonksiyonu
 
     int setuid(uid_t uid);
 
-Her ne kadar fonksiyonun ismi sanki yalnızca prosesin *gerçek kullanıcı ID'sini* değiştirecek gibi
+Her ne kadar fonksiyonun ismi sanki yalnızca prosesin yalnızca gerçek kullanıcı ID'sini değiştiriyor gibi
 görünüyorsa da aslında fonksiyon şöyle davranmaktadır:
 
-1. Prosesin önceliği uygunsa (appropriate privileges) yani prosesin etkin kullanıcı ID'si 0 ise ya da
-   Linux sistemlerinde proses bu işi yapacak yeterliliğe (capability) sahipse (``CAP_SETUID``) fonksiyon
+| **1.** Prosesin önceliği (appropriate privileges) uygunsa yani prosesin etkin kullanıcı ID'si 0 ise ya da
+   Linux sistemlerinde proses bu işi yapacak yeteneğe (capability) sahipse (``CAP_SETUID``) fonksiyon
    prosesin hem gerçek kullanıcı ID'sini, hem etkin kullanıcı ID'sini hem de saklı kullanıcı ID'sini
    parametresi ile belirtilen kullanıcı ID'si yapar. Yani eğer uygun önceliğe sahipsek biz bu fonksiyonla
    prosesin gerçek kullanıcı ID'sini, etkin kullanıcı ID'sini ve saklı kullanıcı ID'sini tek hamlede
    değiştirebiliriz.
 
-2. Eğer prosesin önceliği uygun değilse (yani ``root`` değilse ya da Linux'ta ``CAP_SETUID`` yeterliliği
-   yoksa) bu durumda ``setuid`` fonksiyonu eğer parametresi ile belirtilen uid değeri prosesin gerçek ya
+| **2.** Eğer prosesin önceliği uygun değilse (yani proses ``root`` değilse ya da Linux'ta ``CAP_SETUID`` yeteneğine
+   sahip değilse) bu durumda ``setuid`` fonksiyonu eğer parametresi ile belirtilen uid değeri prosesin gerçek ya
    da saklı kullanıcı ID'si ile aynı ise prosesin yalnızca etkin kullanıcı ID'sini parametresi ile
    belirtilen ID olarak değiştirir. Bu koşullar sağlanmıyorsa fonksiyon başarısız olmaktadır. Peki bunun
    anlamı nedir? Bu işlem set-user-ID programların daha sonra dönüp yeniden önceliği geri almasını
@@ -806,16 +803,14 @@ olacaktır:
     Saklı kullanıcı ID'si:  root
 
 İşte şimdi bu noktada biz ``setuid`` fonksiyonu ile yeniden ``root`` önceliğine dönebiliriz. Çünkü bizim
-şu anda uygun önceliğimiz olmasa da saklı kullanıcı ID'miz hala ``root`` durumundadır. Yani programlar
-önceliği yüksek birtakım işlemler yapıp sonra önceliği düşürüp sonra da yüksek önceliğe dönebilsinler
-diye saklı ID kavramı sisteme eklenmiştir.
+şu anda uygun önceliğimiz olmasa da saklı kullanıcı ID'miz hala ``root`` durumundadır. 
 
-``setuid`` fonksiyonu başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri döner ve
-``errno`` değişkeni uygun biçimde set edilir.
+``setuid`` fonksiyonu başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmekte ve
+başarısızlık durumunda ``errno`` değişkeni uygun biçimde set edilmektedir.
 
 Örneğin ``login`` programı eğer parola doğrulamasını yaparsa ``setuid`` fonksiyonuyla tek hamlede
 prosesin hem gerçek kullanıcı ID'sini, hem etkin kullanıcı ID'sini hem de saklı kullanıcı ID'sini
-``/etc/passwd`` dosyasında belirtildiği gibi değiştirebilmektedir.
+``/etc/passwd`` dosyasında belirtildiği gibi değiştirmektedir.
 
 seteuid Fonksiyonu
 ------------------
@@ -832,12 +827,12 @@ Fonksiyonun prototipi şöyledir:
 Fonksiyonun çalışması şöyledir:
 
 1. Prosesin önceliği uygunsa (appropriate privileges) yani prosesin etkin kullanıcı ID'si 0 ise ya da
-   proses Linux sistemlerinde bu işi yapacak yeterliliğe (capability) sahipse (``CAP_SETUID``) fonksiyon
+   proses Linux sistemlerinde bu işi yapacak yeteneğe (capability) sahipse (``CAP_SETUID``) fonksiyon
    prosesin yalnızca etkin kullanıcı ID'sini parametresiyle belirtilen ID olarak değiştirir. Bu fonksiyon
    prosesin gerçek kullanıcı ID'sini ve saklı kullanıcı ID'sini değiştirmez.
 
 2. Eğer prosesin önceliği uygun değilse (yani proses ``root`` değilse ya da Linux'ta ``CAP_SETUID``
-   yeterliliğine sahip değilse) bu durumda ``seteuid`` fonksiyonu eğer parametresi ile belirtilen uid
+   yeteneğine sahip değilse) bu durumda ``seteuid`` fonksiyonu eğer parametresi ile belirtilen uid
    değeri prosesin gerçek ya da saklı kullanıcı ID'si ile aynı ise prosesin yalnızca etkin kullanıcı
    ID'sini parametresi ile belirtilen ID olarak değiştirir. Bu maddedeki davranış ``setuid``
    fonksiyonuyla aynıdır.
@@ -911,11 +906,11 @@ setgid Fonksiyonu
 Fonksiyon şöyle çalışmaktadır:
 
 1. Prosesin önceliği uygunsa (appropriate privileges) yani prosesin etkin kullanıcı ID'si 0 ise ya da
-   Linux sistemlerinde proses bu işi yapacak yeterliliğe (capability) sahipse (``CAP_SETGID``) fonksiyon
+   Linux sistemlerinde proses bu işi yapacak yeteneğe (capability) sahipse (``CAP_SETGID``) fonksiyon
    prosesin hem gerçek grup ID'sini, hem etkin grup ID'sini hem de saklı grup ID'sini parametresi ile
    belirtilen grup ID'si yapar.
 
-2. Eğer prosesin önceliği uygun değilse (yani ``root`` değilse ya da Linux'ta ``CAP_SETGID`` yeterliliği
+2. Eğer prosesin önceliği uygun değilse (yani ``root`` değilse ya da Linux'ta ``CAP_SETGID`` yeteneği
    yoksa) bu durumda ``setgid`` fonksiyonu eğer parametresi ile belirtilen gid değeri prosesin gerçek ya
    da saklı grup ID'si ile aynı ise prosesin yalnızca etkin grup ID'sini parametresi ile belirtilen grup
    ID olarak değiştirir.
@@ -938,10 +933,10 @@ yalnızca etkin grup ID'lerini değiştirmektedir. Fonksiyonun prototipi şöyle
 Fonksiyon şöyle çalışmaktadır:
 
 1. Prosesin önceliği uygunsa (appropriate privileges) yani prosesin etkin kullanıcı ID'si 0 ise ya da
-   Linux sistemlerinde proses bu işi yapacak yeterliliğe (capability) sahipse (``CAP_SETGID``) fonksiyon
+   Linux sistemlerinde proses bu işi yapacak yeteneğe (capability) sahipse (``CAP_SETGID``) fonksiyon
    prosesin yalnızca etkin grup ID'sini parametresiyle belirtilen grup ID'si olarak değiştirmektedir.
 
-2. Eğer prosesin önceliği uygun değilse (yani ``root`` değilse ya da Linux'ta ``CAP_SETGID`` yeterliliği
+2. Eğer prosesin önceliği uygun değilse (yani ``root`` değilse ya da Linux'ta ``CAP_SETGID`` yeteneği
    yoksa) bu durumda ``setegid`` fonksiyonu eğer parametresi ile belirtilen gid değeri prosesin gerçek ya
    da saklı grup ID'si ile aynı ise prosesin yalnızca etkin grup ID'sini parametresi ile belirtilen grup
    ID olarak değiştirir.
@@ -1398,7 +1393,7 @@ dizinin başlangıç adresini almaktadır. Bu listeye prosesin etkin grup ID'si 
 Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri döner. Tabii fonksiyonu
 herkes çağıramaz. Fonksiyonun başarılı olması için prosesin uygun önceliğe (appropriate privileges)
 sahip olması gerekmektedir. (Yani prosesin etkin kullanıcı ID'si 0 (``root``) olması ya da Linux
-sistemlerinde ``CAP_SETGID`` yeterliliğine sahip olması gerekir.)
+sistemlerinde ``CAP_SETGID`` yeteneğine sahip olması gerekir.)
 
 Yukarıda da belirttiğimiz gibi aslında bu fonksiyon sisteme giriş sırasında ``/etc/group`` dosyası
 taranarak ``login`` programı tarafından çağrılmaktadır.
