@@ -1817,7 +1817,7 @@ read Fonksiyonu Örneği
 fonksiyonuyla bir okuma yapılmak istensin. Linux sistemlerinde ``read`` fonksiyonu çekirdekteki
 ``sys_read`` sistem fonksiyonunu çağırmaktadır. ``sys_read`` sistem fonksiyonu önce dosyanın o kısmının
 *sayfa önbelleği (page cache)* denilen RAM'deki önbellek sisteminde olup olmadığına bakmaktadır. Eğer
-dosyanın o kısmı sayfa önbelleğinde bulunuyorsa okuma hiç bloke olmadan sayfa önbelleğinden
+dosyanın o kısmı sayfa önbelleğinde bulunuyorsa okuma thread hiç bloke olmadan sayfa önbelleğinden
 yapılmaktadır. Eğer dosyanın o kısmı sayfa önbelleğinde yoksa işletim sistemi thread'i bloke edip bekleme
 kuyruğuna yerleştirmektedir. Bundan sonra işletim sistemi disk okumasını başlatır ve bağlamsal geçiş
 yaparak sonraki thread'in çizelgelenmesini sağlar. Disk okuması bittiğinde disk denetleyicisi CPU'da bir
