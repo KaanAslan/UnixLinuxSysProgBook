@@ -1270,7 +1270,7 @@ edilebilmektedir. Fonksiyonun prototipi şöyledir:
 Fonksiyonun ikinci parametresi ek grup ID'lerinin yerleştirileceği ``gid_t`` türünden dizinin başlangıç
 adresini, birinci parametresi ise bu dizinin uzunluğunu belirtmektedir. Fonksiyon başarı durumunda diziye
 yerleştirdiği eleman sayısına geri döner. Eğer dizi yeterince büyük değilse fonksiyon başarısız olur ve
--1 değerine geri döner.
+``-1`` değerine geri döner.
 
 Peki biz bu fonksiyona geçireceğimiz dizinin uzunluğunu nasıl belirleyebiliriz? Daha ileride göreceğimiz
 gibi ``<limits.h>`` içerisinde ``NGROUPS_MAX`` isimli bir sembolik sabit vardır. Bu sembolik sabit ilgili
