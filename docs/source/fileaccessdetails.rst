@@ -1178,23 +1178,20 @@ Eskiden bu *glibc* fonksiyonlarını kullanabilmek için ``_GNU_SOURCE`` makrosu
 edilmesi gerekiyordu. Ancak güncel durumda bu zorunluluk ortadan kalkmıştır. Ancak eski *glibc*
 versiyonlarıyla çalışıyorsanız bu makroyu define etmelisiniz.
 
-Ek Grup ID'leri (Supplementary Group IDs)
-=========================================
+Proseslerin Ek Grup ID'leri 
+===========================
 
-Şimdi proseslerin *ek grup ID'leri (supplementary group IDs)* konusu üzerinde duralım.
+Biz daha önce *ek grup ID'leri (supplementary group IDs)* bahsetmiştik. Bu başlık altında konunun ayrıntılarına gireceğiz. 
 
 İlk zamanlar UNIX sistemlerinde prosesler tek bir grup ile ilişkilendirilmişti. Sonra bir prosesin birden
-fazla grup ile ilişkili olması gerektiği anlaşıldı ve bu durum *ek gruplar (supplementary groups)*
-kavramı ile sisteme dahil edilerek gerçekleştirildi. Ek gruplar konusu uzun süredir POSIX
-standartlarının içerisinde var olan ve neredeyse tüm UNIX türevi sistemlerin desteklediği bir özelliktir.
-
-Ek Grupların Gerekçesi ve login Programı
-----------------------------------------
+fazla grup ile ilişkili olması gerektiği anlaşıldı ve sorun *ek gruplar (supplementary groups)*
+kavramı ile çözüldü. Ek gruplar konusu uzun süredir POSIX standartlarının içerisinde var olan 
+ve neredeyse tüm UNIX türevi sistemlerin desteklediği bir özelliktir.
 
 Bir kullanıcının gerçek bir grubu vardır. Dolayısıyla işin başında gerçek grup ID'si ve etkin grup ID'si
 bu gruptur. Anımsanacağı gibi dosya erişimlerinde test işlemlerine etkin kullanıcı ID'si ve etkin grup
-ID'si girmektedir. Yine anımsanacağı gibi bir dosyanın ``rwx`` biçimindeki hangi üçlü kısmının ``open``
-fonksiyonunda ve diğer fonksiyonlarda dikkate alınacağı şöyle belirleniyordu:
+ID'si girmektedir. Yine anımsanacağı gibi bir dosyanın ``rwx`` biçimindeki erişim haklarının hangi üçlük 
+kısmının dikkate alınacağı şöyle belirleniyordu:
 
 .. code-block:: text
 
@@ -1213,7 +1210,7 @@ olsun. Ancak ek gruplarının ID'leri de ``work`` ve ``test`` olsun. Erişmeye �
 ID'si ``test`` ise her ne kadar bizim etkin grup ID'miz ``test`` değilse de ek gruplarımızdan biri
 ``test`` olduğu için biz bu dosya ile aynı grupta olan bir proses olarak kabul ediliriz.
 
-Peki ek gruplara neden gereksinim duyulmuştur? Bunun gerekçesini şöyle bir örnekle açıklayabiliriz.
+Peki ek gruplara neden gereksinim duyulmuştur? Bunun gerekçesini şöyle bir örnekle açıklayabiliriz:
 ``ali``, ``veli`` ve ``selami`` ortak bir proje üzerinde çalışıyor olsunlar. Bu kişilerin proje
 dosyalarına ortak biçimde erişebilmesi için aynı grupta olmaları gerekir. Ancak ``ali`` kullanıcısının
 ``ayse`` ve ``fatma`` ile başka bir proje üzerinde de çalıştığını varsayalım. Eğer bu ikinci proje
@@ -1238,26 +1235,25 @@ gruba ek grup olarak dahil olan kullanıcıları belirtmekteydi. Örneğin:
 
 Burada ``syslog`` kullanıcısı hem ``adm`` grubuna hem de ``tty`` grubuna ek grup olarak üyedir. ``kaan``
 kullanıcısı da ek grup olarak ``adm`` grubuna üyedir. Tabii login prosesinin bir kullanıcının ek
-gruplarını belirleyebilmesi için ``/etc/group`` dosyasındaki tüm satırları gözden geçirmesi
-gerekmektedir.
+gruplarını belirleyebilmesi için ``/etc/group`` dosyasındaki tüm satırları gözden geçirmesi gerekir.
 
 Bu durumda ``login`` programı şöyle yazılmıştır:
 
-1. user name ve password iste (bunu terminal programı da yapıyor olabilir)
-2. ``/etc/passwd`` ve ``/etc/shadow`` dosyalarına başvurarak parola doğrulamasını yap
+1. Kullanıcı adı ve parola iste (bunu terminal programları da yapabilmektedir).
+2. ``/etc/passwd`` ve ``/etc/shadow`` dosyalarına başvurarak parola doğrulamasını yap.
 3. Kullanıcının ek gruplarını tespit etmek için ``/etc/group`` dosyasını dolaş ve kullanıcının ek
-   gruplarını elde et
-4. ``setuid`` fonksiyonuyla prosesin gerçek, etkin ve saklı kullanıcı ID'sini ``/etc/passwd`` dosyasında
+   gruplarını elde et.
+4. ``setuid`` fonksiyonuyla prosesin gerçek, etkin ve saklı kullanıcı ID'lerini ``/etc/passwd`` dosyasında
    belirtilen kullanıcı ID'si olarak set et.
 5. ``setgid`` fonksiyonuyla prosesin gerçek, etkin ve saklı grup ID'sini ``/etc/passwd`` dosyasında
-   belirtilen grup ID'si olarak set et.
+   belirtilen grup ID'si olarak set et ve kullanıcının ek gruplarını da aşağıda açıklayacağımız gibi set et.
 6. ``chdir`` fonksiyonuyla prosesin çalışma dizinini ``/etc/passwd`` dosyasında belirtildiği gibi set et
 7. exec ile ``/etc/passwd`` dosyasında belirtilen programı (tipik olarak kabuk programı) çalıştır.
 
-Genel olarak ``login`` programı kabuk programını fork/exec ile değil yalnızca exec ile çalıştırmaktadır.
+Genel olarak ``login`` programı kabuk programını ``fork``/``exec`` ile değil yalnızca ``exec`` ile çalıştırmaktadır.
 Biz kabuktan çıkınca normalde yeniden ``login`` programı çalıştırılmaktadır.
 
-Tabii prosesin ek grupları da diğer bilgilerde olduğu gibi prosesin kontrol bloğunda saklanmaktadır.
+Tabii prosesin ek grup ID'leri de diğer ID'leri gibi olduğu gibi prosesin kontrol bloğunda saklanmaktadır.
 
 getgroups Fonksiyonu
 --------------------
