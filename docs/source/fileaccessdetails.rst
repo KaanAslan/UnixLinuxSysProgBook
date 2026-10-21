@@ -1273,28 +1273,28 @@ yerleştirdiği eleman sayısına geri döner. Eğer dizi yeterince büyük değ
 ``-1`` değerine geri döner.
 
 Peki biz bu fonksiyona geçireceğimiz dizinin uzunluğunu nasıl belirleyebiliriz? Daha ileride göreceğimiz
-gibi ``<limits.h>`` içerisinde ``NGROUPS_MAX`` isimli bir sembolik sabit vardır. Bu sembolik sabit ilgili
+gibi ``<limits.h>`` dosyası içerisinde ``NGROUPS_MAX`` isimli bir sembolik sabit vardır. Bu sembolik sabit ilgili
 sistemdeki proseslerin sahip olabileceği maksimum grup sayısını belirtmektedir. Ancak maalesef bu
 sembolik sabit *Runtime Increasable Values* grubundadır. Yani bu değer sistem açıldıktan sonra
 artırılmış olabilir. Gerçek değer ise ``sysconf`` fonksiyonuyla elde edilmektedir. Ancak ``sysconf``
 fonksiyonunun çağrılması zahmetlidir. ``getgroups`` fonksiyonunun özel bir durum olarak birinci
-parametresi 0 geçilirse zaten fonksiyon bize o kullanıcının ek gruplarının sayısını vermektedir. Biz de
-bu sayı kadar alanı ``malloc`` ile tahsis edebiliriz. Fonksiyonun birinci parametresine 0 girildiğinde
+parametresi ``0`` geçilirse zaten fonksiyon bize o kullanıcının ek gruplarının sayısını vermektedir. Biz de
+bu sayı kadar alanı ``malloc`` ile tahsis edebiliriz. Fonksiyonun birinci parametresine ``0`` girildiğinde
 ikinci parametresi zaten dikkate alınmaz, ``NULL`` adres geçilebilir.
 
 ``getgroups`` fonksiyonunun bize verdiği grup listesi içerisinde prosesin etkin grup ID'sinin de olup
 olmayacağı sistemden sisteme değişebilmektedir. Linux sistemleri her zaman prosesin etkin grup ID'sini
 de bu diziye yerleştirmektedir. ``NGROUPS_MAX`` sembolik sabitine bu değer dahil değildir. Yani buradan
-hareketle dizi uzunluğu belirlenecekse bu değerden bir fazla değer kadar alan ``malloc`` ile tahsisat
-yapılmalıdır. Ancak birinci parametre 0 geçilirse zaten geri döndürülen değere bu değer dahildir.
+hareketle dizi uzunluğu belirlenecekse bu değerden bir fazla değer kadar alan ``malloc`` fonksiyonuyla
+tahsis edilmelidir. Ancak birinci parametre ``0`` geçilirse zaten geri döndürülen değere bu değer dahildir.
 Özetle fonksiyonun çağrılmasında şu yöntemler izlenebilir:
 
-1. Dizi ``NGROUPS_MAX + 1`` uzunlukta açılıp fonksiyon başarısız olursa ``sysconf`` fonksiyonu ile
+1. Dizi ``NGROUPS_MAX + 1`` uzunlukta açılıp çağrı yapılır. Fonksiyon başarısız olursa ``sysconf`` fonksiyonu ile
    gerçek değer elde edilebilir. Ya da doğrudan ``sysconf`` fonksiyonu kullanılabilir.
 
 2. Dizi uzunluğu büyük bir değer olarak girilebilir. Tabii fonksiyonun başarısı kontrol edilmelidir.
 
-3. Fonksiyonun birinci parametresine 0 geçilerek fonksiyon çağrılabilir. Elde edilen değerden hareketle
+3. Fonksiyonun birinci parametresine ``0`` geçilerek fonksiyon çağrılabilir. Elde edilen değerden hareketle
    ``malloc`` fonksiyonu ile tam istenen uzunlukta alan tahsis edilebilir.
 
 Aşağıdaki örnekte prosesin ek grup ID'leri alınıp ekrana (``stdout`` dosyasına) yazdırılmıştır. Linux
@@ -1341,7 +1341,7 @@ sistemlerinde bu listeye prosesin etkin grup ID'sinin de dahil edildiğine dikka
             else
                 printf("%s(%jd)", grp->gr_name, (intmax_t)gids[i]);
         }
-        printf("\n");
+        putchar('\n');
 
         free(gids);
 
@@ -1358,9 +1358,9 @@ setgroups Fonksiyonu
 --------------------
 
 POSIX standartlarında prosesin ek gruplarını set eden bir fonksiyon bulundurulmamıştır. Ancak işletim
-sistemlerinde bunu yapan mecburen bir sistem fonksiyonu bulundurulmak zorundadır. Linux sistemlerinde ve
-diğer pek çok UNIX türevi sistemde ``setgroups`` isimli fonksiyon ilgili sistem fonksiyonunu çağırarak
-bu işi yapmaktadır. Fonksiyonun prototipi şöyledir:
+sistemlerinde bunu yapan bir sistem fonksiyonu olmak zorundadır. Linux sistemlerinde ve diğer pek çok 
+UNIX türevi sistemde ``setgroups`` isimli fonksiyon ilgili sistem fonksiyonunu çağırarak bu işi yapmaktadır. 
+Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
 
@@ -1370,9 +1370,9 @@ bu işi yapmaktadır. Fonksiyonun prototipi şöyledir:
 
 Fonksiyonun birinci parametresi grup ID'lerinin bulunduğu dizinin uzunluğunu, ikinci parametresi bu
 dizinin başlangıç adresini almaktadır. Bu listeye prosesin etkin grup ID'si dahil edilmemelidir.
-Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri döner. Tabii fonksiyonu
+Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri döner. Tabii fonksiyonu
 herkes çağıramaz. Fonksiyonun başarılı olması için prosesin uygun önceliğe (appropriate privileges)
-sahip olması gerekmektedir. (Yani prosesin etkin kullanıcı ID'si 0 (``root``) olması ya da Linux
+sahip olması gerekmektedir. (Yani prosesin etkin kullanıcı ID'si ``0`` (``root``) olması ya da Linux
 sistemlerinde ``CAP_SETGID`` yeteneğine sahip olması gerekir.)
 
 Yukarıda da belirttiğimiz gibi aslında bu fonksiyon sisteme giriş sırasında ``/etc/group`` dosyası
@@ -1380,16 +1380,15 @@ taranarak ``login`` programı tarafından çağrılmaktadır.
 
 Aşağıdaki programda önce prosesin ek grupları elde edilmiş sonra ek gruplara bir grup dahil edilip
 ``setgroups`` fonksiyonuyla prosesin ek grupları set edilmiştir. ``setgroups`` işleminde prosesin etkin
-kullanıcı ID'si 0 olduğu için fonksiyon başarılı olacaktır. En sonunda programda ``setuid`` fonksiyonu
-ile prosesin etkin kullanıcı ve saklı kullanıcı ID'si gerçek kullanıcı ID'si haline getirilmiştir.
-
-Çalıştırılabilir dosya derleme işleminden sonra set-user-ID bayrağı set edilmiş sahibi ``root`` olan bir
-program dosyası haline getirilmiştir. Böylece programı çalıştırırken ``sudo`` yapmaya gerek
-kalmayacaktır. Bunun için program önce aşağıdaki gibi derlenmelidir:
+kullanıcı ID'si ``0`` olduğu için fonksiyon başarılı olacaktır. En sonunda programda ``setuid`` fonksiyonu
+ile prosesin etkin kullanıcı ve saklı kullanıcı ID'si gerçek kullanıcı ID'si haline getirilmiştir. Örneğimizde derleme 
+işleminden sonra çalıştırılabilir dosyanın set-user-ID bayrağı set edilmiş ve sahibi ``root`` yapılmıştır. 
+Böylece programı çalıştırırken ``sudo`` yapmaya gerek kalmayacaktır. Bunun için program önce aşağıdaki gibi 
+derlenmelidir:
 
 .. code-block:: console
 
-    $ gcc -o sample sample.c
+    $ gcc -Wall -o sample sample.c
 
 Sonra program dosyasının sahibi ``root`` olarak değiştirilmelidir:
 
@@ -1483,7 +1482,7 @@ etmektedir. ``chown`` fonksiyonunun dokümantasyonunu dikkatlice bir kez daha ok
             else
                 printf("%s(%jd)", grp->gr_name, (intmax_t)gids[i]);
         }
-        printf("\n");
+        putchar('\n');
 
         free(gids);
     }
@@ -1494,11 +1493,11 @@ etmektedir. ``chown`` fonksiyonunun dokümantasyonunu dikkatlice bir kez daha ok
         exit(EXIT_FAILURE);
     }
 
-id, groups, adduser, usermod ve deluser Komutları
-=================================================
+id, groups, adduser, usermod ve deluser Kabuk Komutları
+-------------------------------------------------------
 
-Bir kullanıcının (yani kullanıcı ID'sinin) ilişkin olduğu tüm grupları görebilmek için kabuk üzerinde
-``id`` komutu ya da ``groups`` komutu uygulanabilir. Örneğin:
+Bir kullanıcının (yani kullanıcı ID'sinin) ilişkin olduğu tüm grupları kabuk üzerinde ``id`` komutu ya da ``groups`` 
+komutu ile görüntülenebilir. Örneğin:
 
 .. code-block:: console
 
@@ -1506,10 +1505,8 @@ Bir kullanıcının (yani kullanıcı ID'sinin) ilişkin olduğu tüm grupları 
     uid=1000(kaan) gid=1000(study) gruplar=1000(study),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),115(lpadmin),136(sambashare)
     $ groups
     study adm cdrom sudo dip plugdev lpadmin sambashare
-
     $ id ali
     uid=1001(ali) gid=1000(study) gruplar=1000(study)
-
     $ groups ali
     ali : study
 
@@ -1551,13 +1548,13 @@ yapılabilmektedir. Örneğin:
 Burada ``kaan`` kullanıcısı ``work`` isimli gruptan çıkarılmıştır. Tabii bu komut da yalnızca
 ``/etc/group`` dosyası üzerinde güncelleme yapmaktadır.
 
-Ek Grupların fork ile Aktarımı
-==============================
+Ek Grupların fork İşlemi Sırasnda Alt Prosese Aktarılması
+---------------------------------------------------------
 
 Prosesin ek grupları proses kontrol bloğu içerisinde (Linux'taki ``task_struct``) saklanmaktadır.
 ``fork`` işlemi sırasında üst prosesin proses kontrol bloğu alt prosese kopyalanırken üst prosesin tüm
 ek grupları da alt prosese aktarılmaktadır. Yani örneğin biz kabuk üzerinden bir program
-çalıştırdığımızda kabuk prosesinin ek grupları bizim prosesimize kabuğun uyguladığı ``fork`` neticesinde
+çalıştırdığımızda kabuk prosesinin ek grupları bizim prosesimize kabuğun uyguladığı ``fork`` sonucunda
 aktarılmış olacaktır. Tabii kabuk prosesinin de ek grupları aslında ``login`` programı tarafından
 ``/etc/group`` dosyasına başvurularak ``setgroups`` fonksiyonuyla set edilmektedir.
 
@@ -1566,8 +1563,8 @@ initgroups Fonksiyonu
 
 Aslında bir POSIX fonksiyonu olmasa da Linux, BSD ve pek çok UNIX türevi sistemlerde ``initgroups`` isimli
 bir fonksiyon da bulunmaktadır. Bu fonksiyon ``/etc/group`` dosyasını dolaşarak belli bir kullanıcının
-bütün ek grup bilgilerini elde eder ve ``setgroups`` fonksiyonu ile bunları set eder. Yani tipik olarak
-``login`` programı aslında bu ``initgroups`` fonksiyonunu çağırmaktadır. Fonksiyonun prototipi şöyledir:
+bütün ek grup bilgilerini elde eder ve ``setgroups`` fonksiyonu ile bunları set eder. Yani aslında 
+``login`` programı bu ``initgroups`` fonksiyonunu çağırmaktadır. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
 
