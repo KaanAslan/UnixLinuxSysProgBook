@@ -51,5 +51,6 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    environment
    exec
    fileaccessdetails
+   timesharing
    
    
