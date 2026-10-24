@@ -1309,7 +1309,7 @@ bazı ayrıntılar vardır.) Yani iki proses de aslında aynı fiziksel sayfalar
 fiziksel sayfaları *read-only* olarak işaretler. Böylece proseslerden biri bu sayfaya yazma yaptığında *page
 fault* oluşur. Bunun sonucunda işletim sistemi devreye girer ve iki fiziksel sayfayı birbirinden ayırır. Bu
 sürece copy-on-write denilmektedir. Görüldüğü gibi üst proses ile alt proses mümkün olduğunca aynı fiziksel
-sayfaları kullanmakta, ancak yazma yapıldığında bunlar ayrışmaktadır. Örneğin programın makine kodlarının
+sayfaları kullanmakta, ancak yazma yapıldığında bunlar ayrıştırılmaktadır. Örneğin programın makine kodlarının
 bulunduğu kısma (*.text* bölümüne) yazma yapılmaz. Bu kısım hem üst proseste hem de alt proseste aynı fiziksel
 sayfaları kullanmaktadır. Aynı durum bir programı ikinci kez çalıştırdığımızda da benzer biçimde oluşmaktadır.
 Örneğin *sample* programını iki kez çalıştıralım. İşletim sistemi mümkün olduğunca bu iki programın fiziksel
