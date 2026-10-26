@@ -52,5 +52,6 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    exec
    fileaccessdetails
    timesharing
+   pagingvirtualmemory
    
    
