@@ -90,7 +90,7 @@ Windows 3.X sistemleri ve IOS'un ilk versiyonları bu biçimde bir zaman paylaş
 oluşturuyordu.
 
 Çok CPU'lu Sistemlerde Zaman Paylaşımlı Çalışma
-===============================================
+-----------------------------------------------
 
 Peki sistemimizde birden fazla CPU (ya da çekirdek) varsa zaman paylaşımlı çalışma nasıl
 yürütülmektedir? Aslında değişen bir şey yoktur. Bu durum tıpkı yemek verilen bir kurumda yemeğin birden
