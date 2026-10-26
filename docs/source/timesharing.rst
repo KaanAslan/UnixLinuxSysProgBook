@@ -1,18 +1,12 @@
-
-==========================================
-Zaman Paylaşımlı Çalışma ve Thread Kavramı
+===========================================
+Thread Kavramı ve Zaman Paylaşımlı Çalışma 
 ==========================================
 
 Kitabımızın bu bölümünde kavramsal olarak zaman paylaşımlı çalışma ve bloke kavramı hakkında açıklamalar yapacağız. 
 Bu temel kavramları izleyen konularda kullanacağız. Thread'ler kitabımızda ileride ayrı bir bölüm olarak ele alınmaktadır.
 
-Zaman Paylaşımlı Çalışma Nedir?
-===============================
-
-Bugünkü masaüstü işletim sistemleri *zaman paylaşımlı (time sharing)* bir çalışma ortamı
-oluşturmaktadır. Zaman paylaşımlı çalışma fikri ilk kez 1957 yılında uygulanmış ve sonra aktif bir
-biçimde işletim sistemlerine sokulmuştur. Dolayısıyla bugün kullandığımız UNIX/Linux, Windows ve macOS
-sistemleri zaman paylaşımlı çalışma uygulamaktadır.
+Thread Nedir?
+=============
 
 Proses terimi çalışmakta olan programın bütün bilgilerini içermektedir. Örneğin onun bellek alanı, yetki
 ID'leri, açmış olduğu dosyalar, çalışma dizini gibi kavramlar proses kavramının bilgilerini
@@ -21,6 +15,14 @@ oluşturmaktadır. Prosesin bağımsız çizelgelenen akışlarına ise *thread*
 proses tek bir thread'le çalışmaya başlatılır. Buna prosesin *ana thread'i (main thread)* denir. Diğer
 thread'ler sistem fonksiyonlarıyla ya da sistem fonksiyonlarını çağıran kütüphane fonksiyonlarıyla
 programcı tarafından yaratılmaktadır.
+
+Zaman Paylaşımlı Çalışma Nedir?
+===============================
+
+Bugünkü masaüstü işletim sistemleri *zaman paylaşımlı (time sharing)* bir çalışma ortamı
+oluşturmaktadır. Zaman paylaşımlı çalışma fikri ilk kez 1957 yılında uygulanmış ve sonra aktif bir
+biçimde işletim sistemlerine sokulmuştur. Dolayısıyla bugün kullandığımız UNIX/Linux, Windows ve macOS
+sistemleri zaman paylaşımlı çalışma uygulamaktadır.
 
 Zaman paylaşımlı çalışmada proseslerin thread'leri işletim sistemi tarafından CPU'ya atanır. O thread'in
 CPU'da belli bir süre çalışmasına izin verilir. O süre dolduğunda thread'in çalışmasına ara verilip
