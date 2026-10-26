@@ -35,7 +35,7 @@ Thread'li işletim sistemlerinde CPU tarafından çizelgelenen birimler prosesle
 
 .. figure:: _static/process-threads.png
     :align: center
-    :width: 25%
+    :width: 23%
 
 Burada işletim sistemi bu 7 thread'i ismine *çalışma kuyruğu (run queue)* denilen bir kuyruk sistemine
 alır. Onları parçalı bir biçimde çalıştırır. İşletim sistemi gözüyle bakıldığında bu çalışma kuyruğunda
