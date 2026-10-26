@@ -1,13 +1,13 @@
 
 ==========================================
-Zaman Paylaşımlı Çalışma ve Bloke Kavramı
+Zaman Paylaşımlı Çalışma ve Thread Kavramı
 ==========================================
 
 Kitabımızın bu bölümünde kavramsal olarak zaman paylaşımlı çalışma ve bloke kavramı hakkında açıklamalar yapacağız. 
 Bu temel kavramları izleyen konularda kullanacağız. Thread'ler kitabımızda ileride ayrı bir bölüm olarak ele alınmaktadır.
 
-Zaman Paylaşımlı Çalışma ve Thread Kavramı
-==========================================
+Zaman Paylaşımlı Çalışma Nedir?
+===============================
 
 Bugünkü masaüstü işletim sistemleri *zaman paylaşımlı (time sharing)* bir çalışma ortamı
 oluşturmaktadır. Zaman paylaşımlı çalışma fikri ilk kez 1957 yılında uygulanmış ve sonra aktif bir
@@ -35,7 +35,7 @@ Thread'li işletim sistemlerinde CPU tarafından çizelgelenen birimler prosesle
 
 .. figure:: _static/process-threads.png
     :align: center
-    :width: 23%
+    :width: 22%
 
 Burada işletim sistemi bu 7 thread'i ismine *çalışma kuyruğu (run queue)* denilen bir kuyruk sistemine
 alır. Onları parçalı bir biçimde çalıştırır. İşletim sistemi gözüyle bakıldığında bu çalışma kuyruğunda
@@ -224,7 +224,7 @@ betimleyebiliriz:
 .. image:: _static/ders41-read-bloke-akisi.png
    :alt: read fonksiyonunun sayfa önbelleği, bloke olma ve kesme ile uyanma akışı
    :align: center
-   :width: 55%
+   :width: 40%
 
 Burada bir noktaya dikkat ediniz. Thread'in çalıştırma kuyruğundan çıkartılıp bekleme kuyruğuna alınması
 sıradan prosesler tarafından yapılamamaktadır. Bu işlem çekirdek modunda işletim sisteminin sistem
