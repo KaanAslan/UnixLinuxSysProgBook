@@ -1,6 +1,6 @@
 ===========================================
 Thread Kavramı ve Zaman Paylaşımlı Çalışma 
-==========================================
+===========================================
 
 Kitabımızın bu bölümünde kavramsal olarak zaman paylaşımlı çalışma ve bloke kavramı hakkında açıklamalar yapacağız. 
 Bu temel kavramları izleyen konularda kullanacağız. Thread'ler kitabımızda ileride ayrı bir bölüm olarak ele alınmaktadır.
