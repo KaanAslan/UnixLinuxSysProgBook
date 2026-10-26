@@ -1257,7 +1257,7 @@ prosesin çevre değişken listesi geçirilmiştir.
         exit(EXIT_FAILURE);
     }
 
-exec İşlemlerinde Açık Dosyaların Durumu ve Betimleyicilerin close-on-exec Bayrakları
+exec İşlemlerinde Açık Dosyaların Durumu ve Betimleyicilerin Close-on-exec Bayrakları
 ======================================================================================
 
 ``exec`` işlemi yapıldığında o ana kadar açık olan dosyaların akıbeti ne olacaktır? Anımsanacağı gibi açık

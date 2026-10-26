@@ -27,18 +27,15 @@ CPU'da belli bir süre çalışmasına izin verilir. O süre dolduğunda thread'
 başka bir thread benzer biçimde CPU'ya atanır. Tabii çalışmasına ara verilen thread'in bilgileri proses
 kontrol bloğuna kaydedilmekte ve çalışma sırası yeniden o thread'e geldiğinde thread en son kesilen
 noktadan çalışmasına devam etmektedir. Böylece aslında programın akışlarını oluşturan thread'ler kesiksiz
-değil parçalı bir biçimde çalıştırılır. Dışarıdan bakıldığında sanki akış kesiksiz ilerliyormuş gibi bir
+değil parçalı bir biçimde çalıştırılmaktadır. Dışarıdan bakıldığında sanki akış kesiksiz ilerliyormuş gibi bir
 illüzyon oluşmaktadır. Halbuki akış kesikli bir biçimde ilerlemektedir.
 
 Thread'li işletim sistemlerinde CPU tarafından çizelgelenen birimler prosesler değil thread'lerdir.
 Örneğin proseslerin thread'leri şunlar olsun:
 
-.. code-block:: text
-
-    P1 ---> T1, T2, T3
-    P2 ---> T1, T2
-    P3 ---> T1
-    P4 ---> T1
+.. figure:: _static/process-threads.png
+    :align: center
+    :width: 25%
 
 Burada işletim sistemi bu 7 thread'i ismine *çalışma kuyruğu (run queue)* denilen bir kuyruk sistemine
 alır. Onları parçalı bir biçimde çalıştırır. İşletim sistemi gözüyle bakıldığında bu çalışma kuyruğunda
@@ -50,14 +47,13 @@ Quantum Süresi ve Bağlamsal Geçiş
 Bir thread'in zaman paylaşımlı çalışma modelinde parçalı çalışma süresine *quantum süresi* ya da
 İngilizce *time quantum* denilmektedir. Quantum süresinin ne kadar olacağı işletim sisteminin tasarımına
 bağlıdır. Bir thread'in çalışmasına ara verilmesi ve sıradaki thread'in CPU'ya atanması sürecine ise
-İngilizce *context switch* ya da *task switch* denilmektedir. Biz kursumuzda *context switch* yerine
+İngilizce *context switch* ya da *task switch* denilmektedir. Biz kitabımızda *context switch* yerine
 Türkçe *bağlamsel geçiş* terimini kullanacağız.
 
-Thread'in parçalı çalışma süresini belirten quantum süresi hangi uzunlukta olmalıdır? Eğer quantum süresi
-uzun tutulursa interaktivite azalır. Quantum süresi kısa tutulursa zamanın önemli kısmı bağlamsal geçiş
+Peki thread'lerin parçalı çalışma süresini belirten quantum süresi hangi uzunlukta olmalıdır? Eğer quantum süresi
+uzun tutulursa interaktivite azalır, quantum süresi kısa tutulursa zamanın önemli kısmı bağlamsal geçiş
 için harcanır, dolayısıyla *birim zamanda yapılan iş miktarı (throughput)* düşer. Quantum süresi çeşitli
-faktörlere bağlı olarak değişebilmektedir. UNIX/Linux sistemleri ortalama 60 ms. civarında, Windows
-sistemleri ortalama 20 ms. civarında bir quantum süresi uygulamaktadır.
+faktörlere bağlı olarak değişebilmektedir. 
 
 Zaman paylaşımlı bir sistemde kullanıcı sanki tüm proseslerin aynı anda çalıştığını sanmaktadır. Halbuki
 bu bir illüzyondur. Aslında proseslerin akışlarını oluşturan thread'ler sürekli ara verilip
