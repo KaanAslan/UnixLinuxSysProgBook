@@ -24,17 +24,19 @@ fonksiyonunun isimleri şöyledir:
     execvp
     fexecve
 
-Ayrıca POSIX standartlarında tanımlı olmasa da GNU C kütüphanesinde ``execvpe`` isimli bir ``exec`` fonksiyonu da
+Ayrıca POSIX standartlarında tanımlı olmasa da GNU C kütüphanesinde ``execvpe`` isimli bir exec fonksiyonu da
 bulunmaktadır. (Bu fonksiyon *glibc* kütüphanesinde olduğu için bu kütüphanenin kullanıldığı BSD gibi diğer UNIX
-türevi sistemlerde de bulunmaktadır.) Ayrıca Linux sistemlerine özgü bir biçimde ``sys_execveat`` isimli bir sistem
-fonksiyonu da bulunmaktadır. Linux'ta bu fonksiyon ``execveat`` ismiyle kullanılabilmektedir.
+türevi sistemlerde de bulunmaktadır.)
 
-Aslında UNIX/Linux sistemleri bu ``exec`` fonksiyonlarının hepsini sistem fonksiyonu biçiminde bulundurmamaktadır.
-Örneğin Linux sistemlerinde ``execve`` fonksiyonu bir sistem fonksiyonu biçiminde (``sys_execve``) yazılmıştır.
-Diğer ``exec`` fonksiyonları bu sistem fonksiyonunu çağıran kütüphane fonksiyonları biçiminde gerçekleştirilmiştir.
-Yukarıda da belirttiğimiz gibi Linux'taki ``execveat`` fonksiyonu da bir sistem fonksiyonu biçiminde
-(``sys_execveat``) gerçekleştirilmiştir. Bu durumda yukarıdaki POSIX fonksiyonları dışında Linux'a özgü olan exec
-fonksiyonları şunlardır:
+Biz genel olarak bu fonksiyonlara *exec fonksiyonları* diyeceğiz.
+
+Aslında UNIX/Linux sistemleri bu exec fonksiyonlarının hepsini sistem fonksiyonu biçiminde bulundurmamaktadır.
+Örneğin Linux sistemlerinde ``execve`` fonksiyonu bir sistem fonksiyonu biçiminde (``sys_execve``) yazılmıştır,
+``fexecve`` dışındaki exec fonksiyonlarının hepsi ``execve`` fonksiyonu çağrılarak gerçekleştirilmiştir. Ayrıca
+Linux sistemlerinde ``sys_execveat`` isimli bir sistem fonksiyonu da bulunmaktadır. Bu sistem fonksiyonu
+``execveat`` ismiyle *glibc* kütüphanesi yoluyla çağrılabilmektedir. ``fexecve`` fonksiyonu da aslında ``execveat``
+fonksiyonu çağrılarak yazılmıştır. Bu durumda Linux'a özgü POSIX standartlarında bulunmayan iki exec fonksiyonu
+şunlardır:
 
 .. code-block:: text
 
@@ -848,8 +850,8 @@ bulunamadıysa aşağıdaki gibi ``fork``/``exec`` uygulanmıştır:
         exit(EXIT_FAILURE);
     }
 
-Kabukta Programların ./ Yol İfadesi Kullanılarak Çalıştırılması
----------------------------------------------------------------
+Kabukta Programların ./ Yol Bileşeni Kullanılarak Çalıştırılması
+----------------------------------------------------------------
  
 Şimdi kabuk üzerinden programları neden ``./sample`` biçiminde başına ``./`` getirerek çalıştırdığımız
 artık anlaşılabilir. Kabuk programları önce ``fork`` yapıp alt proseste ``exec`` fonksiyonlarının ``p``'li
@@ -932,7 +934,7 @@ bulunmalıdır.
 sonra komut satırı argümanlarını bir gösterici dizisi biçiminde, sonra da çevre değişkenlerini bir gösterici
 dizisi biçiminde almaktadır.
  
-Aşağıdaki örnekte ``execve`` fonksiyonunun kullanımına bir örnek verilmiştir. Örnekte ``sample``
+Aşağıdaki örnekte ``execle`` fonksiyonunun kullanımına bir örnek verilmiştir. Örnekte ``sample``
 programı aynı dizindeki ``other`` programını çalıştırmaktadır. ``execle`` işlemi şöyle yapılmıştır:
  
 .. code-block:: c
@@ -1030,8 +1032,7 @@ alt prosesin çevre değişken listesi ``env`` gösterici dizisindeki gibi olaca
         return 0;
     }
  
-Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazımına örnek verilmiştir. Bu
-örnek yukarıdaki örneğin aynısıdır. Yalnızca ``execle`` yerine ``execve`` fonksiyonu kullanılmıştır.
+Aşağıda aynı örnek exeve ile yapılmıştır:
  
 ``sample.c``
 
@@ -1093,80 +1094,6 @@ Aşağıda ``execv`` fonksiyonunun ``execve`` kullanılarak basit biçimde yazı
             puts(environ[i]);
  
         return 0;
-    }
-
-exec Fonksiyonlarının execve Kullanılarak Gerçekleştirilmesi
-------------------------------------------------------------
-
-Daha önceden de belirttiğimşiz gibi UNIX türevi sistemlerde genellikle yalnızca ``execve`` fonksiyonu sistem
-fonksiyonu olarak işletim sistemi içerisinde bulunmaktadır. Aslında ``execl``, ``execlp``, ``execv``,
-``execvp``, ``execle`` fonksiyonları, ``execve`` fonksiyonunu çağıran birer kütüphane fonksiyonu
-biçiminde bulundurulmaktadır. Yani burada *taban (base)* fonksiyon ``execve`` fonksiyonudur.
- 
-Aşağıdaki örnekte de ``execl`` fonksiyonunun ``execve`` kullanılarak nasıl yazıldığı hakkında bir fikir
-verilmiştir. Burada komut satırı argümanlarının sayısı ``MAX_ARG`` ile sınırlandırılmıştır.
-
-Değişken sayıda argüman alan fonksiyonların yazımını inceleyiniz.
-
-.. code-block:: c
-
-    /* execl.c */
-
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include <sys/wait.h>
-    #include <stdarg.h>
-
-    #define MAX_ARG        4096
-
-    void exit_sys(const char *msg);
-
-    extern char **environ;
-
-    int myexecl(const char *path, const char *arg0, ...)
-    {
-        va_list vl;
-        char *args[MAX_ARG + 1];
-        char *arg;
-        int i;
-
-        va_start(vl, arg0);
-
-        args[0] = (char *)arg0;
-        for (i = 1; (arg = va_arg(vl, char *)) != NULL && i < MAX_ARG; ++i)
-            args[i] = arg;
-        args[i] = NULL;
-
-        va_end(vl);
-
-        return execve(path, args, environ);
-    }
-
-    int main(void)
-    {
-        pid_t pid;
-
-        printf("execl running...\n");
-
-        if ((pid = fork()) == -1)
-            exit_sys("fork");
-
-        if (pid == 0 && myexecl("/bin/ls", "/bin/ls", "-l", "-i", (char *)0) == -1)
-            exit_sys("myexecl");
-
-        printf("ok, parent continues...\n");
-
-        if (waitpid(pid, NULL, 0) == -1)
-            exit_sys("waitpid");
-
-        return 0;
-    }
-
-    void exit_sys(const char *msg)
-    {
-        perror(msg);
-        exit(EXIT_FAILURE);
     }
 
 fexecve Fonksiyonu
@@ -1242,6 +1169,83 @@ prosesin çevre değişken listesi geçirilmiştir.
                 exit_sys("fexecve");
             /* unreachable code */
         }
+
+        printf("ok, parent continues...\n");
+
+        if (waitpid(pid, NULL, 0) == -1)
+            exit_sys("waitpid");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+exec Fonksiyonlarının execve ve execveat Kullanılarak Gerçekleştirilmesi
+------------------------------------------------------------------------
+
+Aslında UNIX türevi sistemlerde daha önce de belirttiğimiz gibi genellikle yalnızca ``execve`` fonksiyonu bir sistem
+fonksiyonu biçiminde yazılmaktadır. Diğer exec fonksiyonları aslında bu fonksiyon çağrılarak yazılmış sarma
+fonksiyonlardır. Linux sistemlerinde ``execveat`` fonksiyonunun da bir sistem fonksiyonu olarak yazıldığını
+belirtmiştik. Aşağıdaki şekilde Linux sistemlerinde exec fonksiyonlarının ``execve`` ve ``execveat`` sistem
+fonksiyonları kullanılarak nasıl yazıldığına ilişkin bir ipucu veriyoruz:
+
+.. figure:: _static/exec-functions.png
+    :align: center
+    :width: 75%
+
+Aşağıdaki örnekte de ``execl`` fonksiyonunun ``execve`` kullanılarak nasıl yazıldığı hakkında bir fikir
+verilmiştir. Burada komut satırı argümanlarının sayısı ``MAX_ARG`` ile sınırlandırılmıştır.
+
+.. code-block:: c
+
+    /* execl.c */
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <sys/wait.h>
+    #include <stdarg.h>
+
+    #define MAX_ARG        4096
+
+    void exit_sys(const char *msg);
+
+    extern char **environ;
+
+    int myexecl(const char *path, const char *arg0, ...)
+    {
+        va_list vl;
+        char *args[MAX_ARG + 1];
+        char *arg;
+        int i;
+
+        va_start(vl, arg0);
+
+        args[0] = (char *)arg0;
+        for (i = 1; (arg = va_arg(vl, char *)) != NULL && i < MAX_ARG; ++i)
+            args[i] = arg;
+        args[i] = NULL;
+
+        va_end(vl);
+
+        return execve(path, args, environ);
+    }
+
+    int main(void)
+    {
+        pid_t pid;
+
+        printf("execl running...\n");
+
+        if ((pid = fork()) == -1)
+            exit_sys("fork");
+
+        if (pid == 0 && myexecl("/bin/ls", "/bin/ls", "-l", "-i", (char *)0) == -1)
+            exit_sys("myexecl");
 
         printf("ok, parent continues...\n");
 
