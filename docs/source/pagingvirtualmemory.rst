@@ -96,8 +96,8 @@ işlemcilerin desteklediği sayfa uzunluklarını bir tablo halinde veriyoruz:
      - 32M (16K ile)
 
 Sayfalama mekanizması etkin hale getirildiğinde işlemci RAM'deki her sayfaya bir sayfa numarası karşılık
-getirilir. Örneğin ilk 4096 byte 0'ıncı sayfaya, sonraki 4096 byte 1'inci sayfaya karşı gelir. Sayfalar bu
-biçimde ilk sayfa 0'dan başlatılarak ardışıl biçimde numaralandırılmaktadır. Yani her byte aslında bir sayfa
+getirilir. Örneğin ilk ``4096`` byte ``0``'ıncı sayfaya, sonraki ``4096`` byte ``1``'inci sayfaya karşı gelir. Sayfalar bu
+biçimde ilk sayfa ``0``'dan başlatılarak ardışıl biçimde numaralandırılmaktadır. Yani her byte aslında bir sayfa
 içerisinde bulunur.
 
 Sanal Adresler ve Sayfa Tabloları
@@ -107,7 +107,7 @@ Bir program içerisinde kullanılan yani derleyicinin ürettiği adresler aslın
 Bu adreslere *sanal adresler (virtual addresses)* ya da *doğrusal adresler (linear addresses)* denilmektedir. 
 Örneğin biz C'de bir nesnenin adresini alıp bir göstericiye yerleştirdiğimizde gösterici içerisindeki bu adres gerçek 
 fiziksel adres değildir, sanal bir adrestir. Derleyiciler kodları sanki RAM'de program tek başına çalışacakmış gibi üretmektedir.
-Örneğin 32 bit işlemcilerin kullanıldığı bir Linux sisteminde (Windows ve macOS sistemlerinde de benzer) derleyici sanki 
+Örneğin ``32 bit`` işlemcilerin kullanıldığı bir Linux sisteminde (Windows ve macOS sistemlerinde de benzer) derleyici sanki 
 program 4 GB'lik RAM'de belli bir adresten itibaren tek başına yüklenecekmiş gibi kod üretmektedir. (Bu konunun çeşitli 
 ayrıntıları vardır.) Her program derlendiğinde aynı biçimde kod üretilmektedir. Çünkü derleyicinin ürettiği bu adresler 
 sanal adreslerdir. Peki her program aynı biçimde örneğin RAM'in 4 MB'sinden itibaren ardışıl bir biçimde yüklenecekmiş 
@@ -135,22 +135,22 @@ tablodur. Sayfa tablosunun basitleştirilmiş görünümü aşağıdaki gibidir:
    * - ...
      - ...
 
-Şimdi Intel işlemcisinin aşağıdaki gibi bir makine kodunu çalıştırdığını düşünelim:
+Şimdi ``32 bit`` Intel işlemcisinin aşağıdaki gibi bir makine kodunu çalıştırdığını düşünelim:
 
 .. code-block:: text
 
    MOV EAX, [05C34782]
 
-Burada makine komutu bellekte 0x05C34782 numaralı adresten başlayan 4 byte'a erişmek istemektedir. İşlemci
+Burada makine komutu bellekte ``0x05C34782`` numaralı adresten başlayan ``4`` byte'a erişmek istemektedir. İşlemci
 önce bu adres değerinin kaçıncı sanal sayfaya karşılık geldiğini hesaplar. Bu hesap işlemci tarafından oldukça
-kolay bir biçimde yapılır. Sayı 12 kere sağa ötelenirse (başka bir deyişle sayının sağındaki 3 hex digit
+kolay bir biçimde yapılır. Sayı ``12`` kere sağa ötelenirse (başka bir deyişle sayının sağındaki ``3`` hex digit
 atılırsa) bu sanal adresin kaçıncı sanal sayfaya karşılık geldiği bulunabilir:
 
 .. code-block:: text
 
    05C34782 >> 12 = 05C34 (sanal sayfa no, decimal 23604)
 
-Artık işlemci sayfa tablosunda 0x5C34 yani decimal 23604 numaralı girişe bakar. Sayfa tablosunun ilgili kısmı
+Artık işlemci sayfa tablosunda ``0x5C34`` yani decimal ``23604`` numaralı girişe bakar. Sayfa tablosunun ilgili kısmı
 şöyle olsun:
 
 .. list-table:: Sayfa tablosunun ilgili kısmı
@@ -171,7 +171,7 @@ Artık işlemci sayfa tablosunda 0x5C34 yani decimal 23604 numaralı girişe bak
    * - ...
      - ...
 
-Burada 23604 (0x5C34) numaralı sanal sayfa 52689 (0xCDD1) fiziksel sayfasına yönlendirilmiştir. Peki işlemci
+Burada ``23604 (0x5C34)`` numaralı sanal sayfa ``52689 (0xCDD1)`` fiziksel sayfasına yönlendirilmiştir. Peki işlemci
 hangi fiziksel adrese erişecektir? İşte bizim sanal adresimiz 05C34782 idi. Bu adres iki kısma
 ayrıştırılabilir:
 
@@ -180,8 +180,9 @@ ayrıştırılabilir:
    05C34   Sanal sayfa no (hex)
    782     Sayfa offset'i (hex)
 
-Bu durumda işlemci aslında fiziksel RAM'de 52689 (0xCDD1)'uncu fiziksel sayfanın 1922 (0x782) byte'ına
-erişecektir. O zaman gerçek bellekteki erişim adresi 52689 (0xCDD1) * 4096 (0x1000) + 1922 (0x782) olacaktır.
+Bu durumda işlemci aslında fiziksel RAM'de ``52689 (0xCDD1)``'uncu fiziksel sayfanın ``1922 (0x782)`` byte'ına
+erişecektir. O zaman gerçek bellekteki erişim adresi ``52689 (0xCDD1) * 4096 (0x1000) + 1922 (0x782)`` olacaktır.
+Bu adresin ``0xCDD1782`` olduğuna dikkat ediniz. 
 
 Burada özetle anlatılmak istenen şey şudur: İşlemci her bellek erişiminde erişilecek sanal adresi iki kısma
 ayırır: *Sanal Sayfa No* ve *Sayfa Offset'i*. Sonra sayfa tablosuna giderek sanal sayfa numarasına karşı gelen
@@ -198,17 +199,17 @@ Derleyicimiz de şöyle bir kod üretmiş olsun:
 
    CALL 06F14678  (hex)
 
-Burada 0x06F14678 foo fonksiyonunun sanal bellek adresidir. Derleyici bu adresi üretmiştir. Ancak program
-çalışırken işlemci bu adresi ikiye ayırır (hex olarak konuşacağız):
+Burada ``0x06F14678`` adresi ``foo`` fonksiyonunun sanal bellek adresidir. Derleyici bu adresi üretmiştir. Ancak program
+çalışırken işlemci bu adresi ikiye ayırır (hex sistemde devam ediyoruz):
 
 .. code-block:: text
 
    06F146      Sanal Sayfa No (hex)
    678         Sayfa Offset'i (hex)
 
-Sonra sayfa tablosuna gider ve 0x06F146 sayfasının hangi fiziksel sayfaya yönlendirildiğini tespit eder. Bu
-fiziksel sayfanın hex olarak 0x7C45 olduğunu düşünelim. O zaman işlemcinin erişeceği fiziksel adres 0x7C45000
-+ 0x678 hex adresi olacaktır.
+Sonra sayfa tablosuna gider ve 0x06F146 sayfasının hangi fiziksel sayfaya yönlendirildiğini belirler. Bu
+fiziksel sayfanın hex olarak ``0x7C45`` olduğunu düşünelim. O zaman işlemcinin erişeceği fiziksel adres ``0x7C45000
++ 0x678`` hex adresi olacaktır.
 
 Biz yukarıda sayfa tablosunu gerçekte olduğundan daha basite indirgedik. Aslında işlemciler temel mantık aynı
 olmak üzere sanal adresi iki parçaya değil, üç parçaya ya da dört parçaya ayırmaktadır. Böylece sayfa
@@ -219,7 +220,7 @@ Sayfa Tablolarının Oluşturulması ve Proseslerarası Geçiş
 
 Buraya kadar şunları anladık:
 
-- Derleyici 32 bit bir sistemde sanki program 4 GB'lik bir RAM'de tek başına program belli bir adresten
+- Derleyici 32 bit bir sistemde sanki program ``4 GB``'lik bir fiziksel RAM'de tek başına belli bir adresten
   itibaren yüklenerek çalıştırılacakmış gibi bir kod üretmektedir.
 
 - İşlemci kodu çalıştırırken her bellek erişiminde sayfa tablosuna başvurup aslında o sanal adresleri fiziksel
@@ -231,25 +232,25 @@ ya da dört parçaya bölmektedir.
 
 Peki sayfa tablosunu kim oluşturmaktadır? Sayfa tablosu işletim sistemi tarafından proses belleğe yüklenirken
 (exec fonksiyonları tarafından) oluşturulmaktadır. Sürecin işletim sistemine bağlı ayrıntıları olmakla
-birlikte işlem kabaca şöyle yürütülmektedir: İşletim sisteminin yükleyicisi (loader) programı 4K'lık parçalara
+birlikte işlem kabaca şöyle yürütülmektedir: İşletim sisteminin yükleyicisi (loader) programı ``4K``'lık parçalara
 ayırarak sanal sayfa numaraları ardışıl ancak fiziksel sayfa numaraları ardışıl olmayacak biçimde fiziksel
-RAM'e yüklemektedir. Yani işletim sistemi fiziksel RAM'deki boş sayfalara bakar. Programın 4K'lık kısımlarını
+RAM'e yüklemektedir. Yani işletim sistemi fiziksel RAM'deki boş sayfalara bakar. Programın ``4K``'lık kısımlarını
 bu fiziksel RAM'deki boş sayfalara yükler ve sayfa tablosunu buradan hareketle oluşturur. Yukarıda da
 belirttiğimiz gibi bu sürecin aslında ayrıntıları vardır. Biz burada basit bir model eşliğinde konuyu
-açıklamaya çalışıyoruz. Örneğin Linux sistemlerinde exec işlemi sonrasında başlangıçta sayfa tablosu boş
-gibidir. Sayfa tablosunun doldurulması izleyen paragraflarda açıklayacağımız sayfalama hataları (page faults)
+açıklamaya çalışıyoruz. Örneğin Linux sistemlerinde ``exec`` işlemi sonrasında başlangıçta sayfa tablosu boş
+gibidir. Sayfa tablosunun doldurulması izleyen paragraflarda açıklayacağımız *sayfalama hataları (page faults)*
 eşiliğinde yapılmaktadır.
 
 Sayfalama mekanizmasında bir noktaya dikkatinizi çekmek istiyoruz. Bir program fiziksel RAM'de ardışıl bir
-biçimde bulunmak zorunda değildir. Yani örneğin programın 4K'lık bir sayfası ile sonraki 4K'lık sayfası
-fiziksel RAM'de ardışıl olmak zorunda değildir. Zaten *programın parçalarının fiziksel RAM'e ardışıl yüklenme
-zorunluluğunun ortadan kaldırılması* sayfalama mekanizmasının asıl amaçladığı şeydir. Programın sanal adres
+biçimde bulunmak zorunda değildir. Yani örneğin programın ``4K``'lık bir sayfası ile sonraki ``4K``'lık sayfası
+fiziksel RAM'de ardışıl olmak zorunda değildir. Zaten programın parçalarının fiziksel RAM'e ardışıl yüklenme
+zorunluluğunun ortadan kaldırılması sayfalama mekanizmasının asıl amaçladığı şeydir. Programın sanal adres
 alanı ardışıldır, program parçaları fiziksel RAM'de ardışıl değildir.
 
 Sayfa tablosu toplamda bir tane değildir. İşletim sistemi her proses için ayrı bir sayfa tablosu
 oluşturmaktadır. İşlemciler sayfa tablolarını belli bir yazmacın gösterdiği yerde ararlar (Örneğin Intel
-işlemcilerinde sayfa tablosu CR3 yazmacının gösterdiği yerdedir.) İşletim sistemi bağlamsal geçiş (context
-switch) yapıldığında çalışmasına ara verilen thread ile yeni geçilen thread'in aynı prosesin thread'leri olup
+işlemcilerinde sayfa tablosu ``CR3`` yazmacının gösterdiği yerdedir.) İşletim sistemi bağlamsal geçiş (*context
+switch*) yapıldığında çalışmasına ara verilen thread ile yeni geçilen thread'in aynı prosesin thread'leri olup
 olmadığına bakar. Eğer yeni geçilen thread ile çalışmasına ara verilen thread aynı prosese ilişkinse sayfa
 tablosu değiştirilmez. Çünkü aynı prosesin thread'leri aynı sanal bellek alanını kullanmaktadır. Ancak yeni
 geçilen thread kesilen thread'le farklı proseslere ilişkinse işletim sistemi işlemcinin gördüğü sayfa
@@ -295,17 +296,14 @@ Görüldüğü gibi farklı proseslerde aynı sanal adresler aslında fiziksel R
 tablosu kullanıp aynı sanal adresleri farklı fiziksel sayfalara yönlendirecektir. Böylece aslında aynı sanal
 adreslere sahip olan programlar farklı fiziksel adresleri kullanacaktır.
 
-Sık Sorulan Sorular
--------------------
-
 Konu ile ilgili sorular ve özet yanıtları şöyledir:
 
 **Soru:** Bir programı debugger ile inceliyorum. Orada bir nesnenin adresini görüyorum. Bu adres nasıl bir adrestir?
 
 **Yanıt:** Bu adres sanal bir adrestir. İşlemci bu adrese erişmek istediğinde aslında sayfa tablosu yoluyla
-fiziksel olan başka bir adrese erişecektir.
+fiziksel RAM'de başka bir adrese erişecektir.
 
-**Soru:** İki farklı programda sanal 0x5FC120 adresi kullanılıyorsa bunlar fiziksel RAM'de aynı yeri mi gösteriyordur?
+**Soru:** İki farklı programda aynı sanal 0x5FC120 adresi kullanılıyorsa bunlar fiziksel RAM'de aynı yeri mi gösteriyordur?
 
 **Yanıt:** Hayır, çünkü işletim sistemi her proses için farklı bir sayfa tablosu oluşturmaktadır. Bir thread
 çalışırken işlemci o thread'e ilişkin prosesin sayfa tablosunu kullanıyor durumdadır. Dolayısıyla bu iki
@@ -320,22 +318,20 @@ işletim sistemi aslında tüm proseslerin sayfa tablolarını fiziksel RAM'da o
 yalnızca sayfa tablosunun yerini belirten ilgili yazmacın değerini değiştirir.
 
 **Soru:** Sayfalama mekanizması işlemcinin çalışmasını yavaşlatmaz mı? Ne de olsa her sanal adres önce
-fiziksel adrese dönüştürülmek zorunda.
+fiziksel adrese dönüştürülmek zorundadır.
 
-**Yanıt:** Teorik olarak sayfalama mekanizması işlemcinin çalışmasını yavaşlatabilir. Ancak bugünkü
-işlemcilerin çalışma hızları zaten bu sayfalama mekanizmasının aktif olduğu durumla belirlenmektedir.
-Dolayısıyla donanımsal olarak sayfalama mekanizması iyi bir biçimde oluşturulduğu için buradaki hız kaybı
-önemsenecek ölçüde değildir. Ayrıca işlemciler sayfa tablosuna erişimi azaltmak için zaten onun bazı
-bölümlerini kendi içlerindeki bir önbellek (cache) sisteminde tutabilmektedir. Ayrıca sayfa girişlerine hızlı
-erişim için işlemciler TLB (Translation Lookaside Buffer) denilen bir önbellek mekanizmasını da
-kullanmaktadır.
+**Yanıt:** Teorik olarak sayfalama mekanizması işlemcinin çalışmasını yavaşlatabilir. Ancak donanımsal 
+olarak sayfalama mekanizması iyi bir biçimde oluşturulduğu için buradaki hız kaybı önemsenecek ölçüde değildir. 
+Ayrıca işlemciler sayfa tablosuna erişimi azaltmak için zaten onun bazı bölümlerini kendi içlerindeki bir önbellek (cache) 
+sisteminde tutabilmektedir. Ayrıca sayfa girişlerine hızlı erişim için işlemciler *TLB (Translation Lookaside Buffer)* 
+denilen bir önbellek mekanizmasını da kullanmaktadır.
 
 **Soru:** Sayfalama mekanizmasına ne gerek vardır?
 
-**Yanıt:** Bu durum izleyen paragraflarda ele alınacaktır.
+**Yanıt:** Bu durum izleyen başlıklarda ele alınacaktır.
 
 Proseslerin Bellek Alanlarının İzole Edilmesi
----------------------------------------------
+=============================================
 
 İşletim sistemi her proses için ayrı bir sayfa tablosu oluşturduğu için ve bu sayfa tablosunda aynı sanal
 sayfa numaralarını zaten farklı fiziksel sayfalara yönlendirdiği için aslında hiçbir proses diğerinin fiziksel
@@ -383,11 +379,11 @@ edilmesi* denilmektedir. Örneğin aşağıdaki gibi iki prosesin sayfa tablosu 
 birbirlerinin alanlarına erişemeyecektir. Sayfa tabloları yoluyla proseslerin fiziksel bellek alanlarının
 birbirinden izole edilmesi çok sağlam bir koruma oluşturmaktadır.
 
-Sayfa Tablolarının Kapladığı Alan
----------------------------------
+Sayfa Tabloları Ne Kadar Yer Kaplar?
+====================================
 
 Peki sayfa tabloları ne kadar yer kaplamaktadır? 32 bit mimarilerde fiziksel RAM en fazla 4 GB olabilir.
-Proseslerin sanal bellek alanları da 4 GB'dir. O halde toplam sayfa sayısı 4GB/4K = 2^32/2^12 = 2^20 = 1 MB
+Proseslerin sanal bellek alanları da ``4 GB``'dir. O halde toplam sayfa sayısı 4GB/4K = 2^32/2^12 = 2^20 = 1 MB
 olur. Her sayfa tablosu girişi Intel mimarisinde 4 byte'tır. Dolayısıyla yukarıdaki basitleştirilmiş anlatıma
 göre bir prosesin sayfa tablosu 4 MB yer kaplar. Bu alan sayfa tablosu için çok büyüktür. Bu nedenle
 işlemcileri tasarlayanlar sayfa tablolarının kapladığı alanı küçültmek için sanal adresleri iki parçaya değil,
