@@ -498,8 +498,8 @@ kalabilmektedir. Bu da bir çeşit bölünmedir. Bu bölünme durumuna *içsel b
 denilmektedir. İçsel bölünmede yapılabilecek bir şey yoktur. Ancak içsel bölünmenin olumsuz etkisi diğerine 
 göre daha düşük olmaktadır.
 
-Paylaşılan Bellek Alanları 
---------------------------
+Sayfalama Mekanizması Eşliğinde Paylaşılan Bellek Alanlarının Oluşturulması 
+---------------------------------------------------------------------------
 
 Yukarıda da açıkladığımız gibi işletim sistemi sayfa tabloları yoluyla proseslerin bellek alanlarını tam
 olarak birbirinden izole etmektedir. Dolayısıyla bir proses istese de başka bir prosesin bellek alanına
