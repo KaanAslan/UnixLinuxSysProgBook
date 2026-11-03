@@ -215,10 +215,10 @@ Artık okunacak kısım sayfa önbelleği denilen önbellek içerisindedir. Thre
 geldiğinde bilgiyi önbellekten okuyup yoluna devam eder. Bu süreci şekilsel olarak aşağıdaki gibi
 betimleyebiliriz:
 
-.. image:: _static/ders41-read-bloke-akisi.png
+.. image:: _static/thread-blocking-flow.png
    :alt: read fonksiyonunun sayfa önbelleği, bloke olma ve kesme ile uyanma akışı
    :align: center
-   :width: 40%
+   :width: 35%
 
 Burada bir noktaya dikkat ediniz. Thread'in çalıştırma kuyruğundan çıkartılıp bekleme kuyruğuna alınması
 sıradan prosesler tarafından yapılamamaktadır. Bu işlem çekirdek modunda işletim sisteminin sistem
@@ -226,12 +226,12 @@ fonksiyonları tarafından ya da aygıt sürücüler tarafından yapılmaktadır
 programın çalışması sırasında çağrılan bir sistem fonksiyonu (ya da aygıt sürücü fonksiyonu)
 tarafından sağlanmaktadır.
 
-Thread'in Yaşam Döngüsü
-=======================
+Thread'lerin Yaşam Döngüsü
+--------------------------
 
-O halde bir thread'in yaşam döngüsünü aşağıdaki şekille özetleyebiliriz:
+Bir thread'in yaşam döngüsünü aşağıdaki şekille özetleyebiliriz:
 
-.. image:: _static/ders41-thread-durumlari.png
+.. image:: _static/thread-states.png
    :alt: Thread durum diyagramı: Running, Ready ve Waiting durumları arasındaki geçişler
    :align: center
    :width: 80%
@@ -239,20 +239,19 @@ O halde bir thread'in yaşam döngüsünü aşağıdaki şekille özetleyebiliri
 Burada teorik kitaplardaki terminoloji kullanılmıştır. *Running* thread'in CPU'ya atanmış olduğu ve CPU
 tarafından çalıştırılmakta olduğunu belirtmektedir. *Ready* çalışma kuyruğunu temsil etmektedir. Yani
 *Ready* durumunda thread çalışma kuyruğundadır ancak CPU'ya atanmamıştır. *Waiting* ise bekleme kuyruğunu
-temsil etmektedir. Thread bloke olup çalışma kuyruğundan çıkartılıp bekleme kuyruğuna
-yerleştirilmektedir.
+temsil etmektedir. Thread bloke olup çalışma kuyruğundan çıkartılıp bekleme kuyruğuna yerleştirilmektedir.
 
 IO Yoğun ve CPU Yoğun Thread'ler
 ================================
 
-Thread'ler *IO yoğun (IO bound)* ve *CPU yoğun (CPU bound)* olmak üzere ikiye ayrılmaktadır. IO yoğun
+Thread'leri *IO yoğun (IO bound)* ve *CPU yoğun (CPU bound)* olmak üzere ikiye ayırabiliriz. IO yoğun
 thread'ler kendisine verilen quantum süresini çok az kullanıp hemen bloke olan thread'lerdir. CPU yoğun
 thread'ler ise kendisine verilen quantum süresini büyük ölçüde kullanan thread'lerdir. Örneğin bir döngü
 içerisinde sürekli hesap yapan bir thread CPU yoğun bir thread'tir:
 
 .. code-block:: c
 
-    for (int i = 1; i <= TOO_BIG_NUMBER; ++i)
+    for (long long i = 1; i <= TOO_BIG_NUMBER; ++i)
         total += i;
 
 Ancak aşağıdaki gibi bir thread IO yoğun thread'tir:
@@ -266,15 +265,15 @@ Ancak aşağıdaki gibi bir thread IO yoğun thread'tir:
         printf("%d\n", val);
     }
 
-Burada bu thread aslında çok az CPU zamanı harcamaktadır. Zamanının büyük kısmını uykuda geçirecektir. IO
-yoğun ve CPU yoğun thread kavramı işletim sistemi için değil durumun insanlar tarafından anlaşılması için
-uydurulmuş kavramlardır. Yani işletim sistemi thread'leri IO yoğun, CPU yoğun biçimde ayırmamaktadır. Bir
-sistemde yüzlerde IO yoğun thread olsa bile bu durum CPU'lar üzerinde bir baskı oluşturmaz. Ancak çok
-sayıda CPU yoğun thread CPU kullanım oranını ciddi bir biçimde yükseltip sistemin yavaşlamasına yol
-açacaktır.
+Burada bu thread aslında çok az CPU zamanı harcamaktadır. Çünkü zamanının büyük kısmını uykuda geçirmektedir.
+İşletim sistemi thread'leri *IO yoğun*, *CPU yoğun* biçimde ayırmamaktadır. Bu kavramlar yalnızca thread'in CPU
+kullanımını belirtmek için uydurulmuştur.
 
-Zaman Ölçümü Deneyi (clock_gettime)
-===================================
+Bir sistemde yüzlerce IO yoğun thread olsa bile bu durum CPU'lar üzerinde bir baskı oluşturmaz. Ancak çok sayıda
+CPU yoğun thread CPU kullanım oranını ciddi biçimde yükseltip sistemin yavaşlamasına yol açabilmektedir.
+
+Programın İki Nokyası Arasında Geçen Zamanın Değişebilirliği
+------------------------------------------------------------
 
 Bir programda iki nokta arasında geçen zaman sistemin o anki yüküne bağlı olarak değişebilmektedir.
 Örneğin sistemde çok sayıda CPU yoğun thread varsa iki nokta arasındaki zaman eskisine göre uzayabilir.
@@ -283,7 +282,7 @@ Aşağıdaki programı önce bir kez çalıştırınız sonra kabuk üzerinden k
 çok sayıda çalıştırınız. Programın döngüde harcadığı gerçek zaman uzayacaktır. Biz bu programda C'nin
 ``clock_gettime`` fonksiyonunu kullandık. Bu fonksiyon nanosaniye temelinde çözünürlüğe sahiptir.
 ``clock`` isimli standart C fonksiyonu Linux sistemlerinde CPU zamanını verdiği için bu deneyde
-kullanılamamaktadır. Ancak ileride zaman ölçme konusu ayrı başlık altında değerlendirilecektir.
+kullanılamamaktadır. Biz kitabımızda zaman ölçme konusu ayrı başlık altında değerlendirilecektir.
 
 .. code-block:: c
 
@@ -320,9 +319,6 @@ kullanılamamaktadır. Ancak ileride zaman ölçme konusu ayrı başlık altınd
         exit(EXIT_FAILURE);
     }
 
-time Kabuk Komutu
-=================
-
 Aslında bir programın toplam çalışma zamanı ``time`` isimli kabuk komutuyla da ölçülebilmektedir. Komut
 basit bir biçimde şöyle kullanılabilir:
 
@@ -340,4 +336,4 @@ basit bir biçimde şöyle kullanılabilir:
 
 Görüldüğü gibi ``time`` komutu programın hem toplam çalışma zamanını hem de çekirdek ve kullanıcı
 modunda harcadığı zamanı rapor etmektedir.
-
+  
