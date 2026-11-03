@@ -2,30 +2,30 @@
 İşlemcilerin Sayfalama Mekanizması ve Sanal Bellek Kavramı
 ==========================================================
 
-Şimdi de işlemcilerin sayfalama (paging) mekanizması ve *sanal bellek (virtual memory)* kavramları üzerinde duracağız.
+Bu bölümde işlemcilerin sayfalama (paging) mekanizması ve *sanal bellek (virtual memory)* kavramları üzerinde duracağız.
 
-Sayfalama Mekanizması
-=====================
+İşlemcilerin Sayfalama Mekanizması
+==================================
 
-Modern kapasiteli mikroişlemcilerde *sayfalama (paging)* denilen önemli bir mekanizma vardır. Örneğin Intel
-işlemcileri bu sayfalama mekanizmasına 80386 modelleriyle birlikte sahip olmuştur. ARM Cortex A serisi
-işlemcilerin de bu mekanizmaları vardır. Itanium, PowerPC gibi işlemcilerde de sayfalama mekanizması
-bulunmaktadır. Genellikle koruma mekanizmasına sahip işlemciler sayfalama mekanizmasına da sahip olurlar.
-Ancak koruma mekanizmasına sahip olduğu halde sayfalama mekanizmasına sahip olmayan işlemciler de vardır.
-Sayfalama mekanizması güçlü işlemcilerde bulunan bir mekanizmadır. Genel olarak mikrodenetleyiciler bu
-mekanizmaya sahip olmazlar. Örneğin ARM'ın Cortex M serisi mikrodenetleyicilerinde sayfalama mekanizması
-bulunmamaktadır. Ayrıca işlemcilerdeki bu sayfalama mekanizması aktif ve pasif duruma getirilebilmektedir.
-Yani işlemci sayfalama mekanizmasına sahip olduğu halde sistem programcısı bu mekanizmayı açmayabilir ve
-kullanmayabilir. İşlemciler reset edildiğinde sayfalama mekanizması pasif durumdadır. İşletim sistemleri bazı
-ön hazırlıkları yaptıktan sonra bu mekanizmayı açmaktadır.
+Masaüstü sistemlerde kullanılan güçlü işlemciler *sayfalama (paging)* denilen bir mekanizmaya sahiptir. Örneğin
+Intel işlemcileri bu sayfalama mekanizmasına 80386 modelleriyle birlikte sahip olmuştur. ARM Cortex-A serisi
+işlemciler de bu mekanizmaya sahiptir. Itanium, PowerPC gibi işlemcilerde de sayfalama mekanizması bulunmaktadır.
+Genellikle koruma mekanizmasına sahip işlemciler sayfalama mekanizmasına da sahip olurlar. Ancak koruma
+mekanizmasına sahip olduğu halde sayfalama mekanizmasına sahip olmayan işlemciler de vardır. Sayfalama mekanizması
+güçlü işlemcilerde bulunan bir mekanizmadır. Mikrodenetleyicilerde genellikle sayfalama mekanizması
+bulunmamaktadır. ARM'ın Cortex-M serisi mikrodenetleyicilerinde sayfalama mekanizması bulunmamaktadır. Ayrıca
+işlemcilerdeki bu sayfalama mekanizması aktif ve pasif duruma getirilebilmektedir. Yani işlemci sayfalama
+mekanizmasına sahip olduğu halde sistem programcısı bu mekanizmayı açmayabilir ve kullanmayabilir. İşlemciler
+reset edildiğinde sayfalama mekanizması pasif durumdadır. İşletim sistemleri bazı ön hazırlıkları yaptıktan sonra
+bu mekanizmayı açmaktadır.
 
-Sayfalama mekanizmasında fiziksel RAM aynı zamanda *sayfa (page)* denilen ardışıl mantıksal bloklara ayrılır.
+Sayfalama mekanizmasında fiziksel RAM aynı zamanda *sayfa (page)* denilen ardışıl mantıksal bloklara ayrılmaktadır.
 Sayfa uzunluğu işlemci ailesinden işlemci ailesine hatta aynı işlemci ailesinde işlemcinin modundan moduna
-değişebilir. Ancak en tipik kullanılan sayfa uzunluğu 4096 (4K) byte'tır. Gerçekten de bugün Linux, Windows ve
-macOS sistemleri 4K'lık sayfalar kullanmaktadır. Aşağıda yaygın işlemcilerin desteklediği sayfa uzunlukları
-bir tablo halinde veriyoruz:
+değişebilmektedir. Ancak en tipik kullanılan sayfa uzunluğu ``4096`` (``4K``) byte'tır. Gerçekten de bugün Linux,
+Windows ve macOS sistemleri bazı özel durumlar dışında ``4K``'lık sayfalar kullanmaktadır. Aşağıda yaygın
+işlemcilerin desteklediği sayfa uzunluklarını bir tablo halinde veriyoruz:
 
-.. list-table:: Yaygın işlemcilerin desteklediği sayfa uzunlukları
+.. list-table:: 
    :header-rows: 1
    :widths: 18 26 20 36
    :align: center
@@ -96,28 +96,28 @@ bir tablo halinde veriyoruz:
      - 32M (16K ile)
 
 Sayfalama mekanizması etkin hale getirildiğinde işlemci RAM'deki her sayfaya bir sayfa numarası karşılık
-getirir. Örneğin ilk 4096 byte 0'ıncı sayfaya, sonraki 4096 byte 1'inci sayfaya karşı gelir. Sayfalar bu
+getirilir. Örneğin ilk 4096 byte 0'ıncı sayfaya, sonraki 4096 byte 1'inci sayfaya karşı gelir. Sayfalar bu
 biçimde ilk sayfa 0'dan başlatılarak ardışıl biçimde numaralandırılmaktadır. Yani her byte aslında bir sayfa
 içerisinde bulunur.
 
-Sanal Adresler ve Sayfa Tablosu
-===============================
+Sanal Adresler ve Sayfa Tabloları
+=================================
 
-Bir program içerisinde kullanılan yani derleyicinin ürettiği adresler aslında gerçek fiziksel adresler
-değildir. Bu adreslere *sanal adresler (virtual addresses)* denilmektedir. Örneğin biz C'de bir nesnenin
-adresini alıp bir göstericiye yerleştirdiğimizde gösterici içerisindeki bu adres gerçek fiziksel adres
-değildir, sanal adrestir. Derleyiciler kodları sanki RAM'de program tek başına çalışacakmış gibi üretmektedir.
-Örneğin 32 bit işlemcilerin kullanıldığı bir Linux sisteminde (Windows ve macOS sistemlerinde de benzer)
-derleyici sanki program 4 GB'lik RAM'de tek başına 4 MB'den itibaren (duruma göre değişebilmektedir)
-yüklenecekmiş gibi kod üretmektedir. Her program derlendiğinde aynı biçimde kod üretilmektedir. Çünkü
-derleyicinin ürettiği bu adresler sanal adreslerdir. Peki her program aynı biçimde örneğin RAM'in 4 MB'sinden
-itibaren ardışıl bir biçimde yüklenecekmiş gibi bir koda sahipse bu programlar nasıl çalışmaktadır?
+Bir program içerisinde kullanılan yani derleyicinin ürettiği adresler aslında gerçek fiziksel adresler değildir. 
+Bu adreslere *sanal adresler (virtual addresses)* ya da *doğrusal adresler (linear addresses)* denilmektedir. 
+Örneğin biz C'de bir nesnenin adresini alıp bir göstericiye yerleştirdiğimizde gösterici içerisindeki bu adres gerçek 
+fiziksel adres değildir, sanal bir adrestir. Derleyiciler kodları sanki RAM'de program tek başına çalışacakmış gibi üretmektedir.
+Örneğin 32 bit işlemcilerin kullanıldığı bir Linux sisteminde (Windows ve macOS sistemlerinde de benzer) derleyici sanki 
+program 4 GB'lik RAM'de belli bir adresten itibaren tek başına yüklenecekmiş gibi kod üretmektedir. (Bu konunun çeşitli 
+ayrıntıları vardır.) Her program derlendiğinde aynı biçimde kod üretilmektedir. Çünkü derleyicinin ürettiği bu adresler 
+sanal adreslerdir. Peki her program aynı biçimde örneğin RAM'in 4 MB'sinden itibaren ardışıl bir biçimde yüklenecekmiş 
+gibi bir koda sahipse bu programlar nasıl çalışmaktadır?
 
 İşte sayfalama mekanizmasına sahip olan işlemciler aslında *sayfa tablosu (page table)* denilen bir tabloya
 başvurarak çalışırlar. Sayfa tablosu sanal sayfa numaralarını fiziksel sayfa numaralarına eşleyen bir
 tablodur. Sayfa tablosunun basitleştirilmiş görünümü aşağıdaki gibidir:
 
-.. list-table:: Sayfa tablosu
+.. list-table:: S
    :header-rows: 1
    :widths: 50 50
    :align: center
