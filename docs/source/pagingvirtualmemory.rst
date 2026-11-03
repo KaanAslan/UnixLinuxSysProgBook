@@ -669,19 +669,20 @@ oluştuğunda arka planda *kswapd* isimli thread'ler uyandırılarak son zamanla
 bellekten atarak (ve gerekirse diske geri yazarak) fiziksel RAM'de yer açmaktadır. Ancak sistemin işleyişinin pek
 çok ayrıntısı vardır.
 
-Takas Dosyası (Swap File)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Takas Dosyaları
+---------------
 
-İşletim sistemi programın RAM'de olmayan bir sayfasını RAM'e yüklemek istesin (swap-in). RAM'in de tıka basa
-dolu olduğunu düşünelim. Bu durumda işletim sistemi RAM'den bazı sayfaları atacaktır. RAM'den sayfa atılacağı
-zaman ya atılacak sayfa üzerinde daha önce yazma işlemleri (update) yapıldıysa ne olacaktır? İşte içeriği
+İşletim sistemi programın RAM'de olmayan bir sayfasını fiziksel RAM'e yüklemek istesin (swap-in). RAM'in de 
+tıka basa dolu olduğunu düşünelim. Bu durumda işletim sistemi RAM'den bazı sayfaları atacaktır. RAM'den sayfa 
+atılacağı zaman ya atılacak sayfa üzerinde daha önce yazma işlemleri yapıldıysa ne olacaktır? İşte içeriği
 değiştirilmiş olan bir sayfanın RAM'den atılması sırasında mecburen o sayfanın diskte saklanması gerekir.
 İşletim sistemleri bu işlemler için diskte ismine *takas dosyası (swap file)* denilen dosyalar
-bulundurmaktadır. Değiştirilmiş olan sayfaları bu dosyalara yazmaktadır. Linux işletim sisteminde sistem
-yöneticisi takas alanı olarak genellikle ayrı bir disk bölümünü kullanmaktadır. Ancak herhangi bir dosya da
-takas dosyası olarak kullanılabilmektedir. Diskte kullanılacak takas alanlarının toplamı bazen önemli
-olabilir. Çünkü sistemin toplam sanal bellek kapasitesi bu takas alanlarının kapasitesiyle ilgilidir. Linux
-sistemlerinde o andaki toplam takas alanları ``/proc/swaps`` dosyasından elde edilebilir. Örneğin:
+bulundurmaktadır. Değiştirilmiş olan sayfaları bu dosyalara yazmaktadır. 
+
+Linux işletim sisteminde takas alanı olarak ayrı bir disk bölümü ya da sıradan disk dosyaları kullanılabilmektedir. 
+Ancak herhangi bir dosya da takas dosyası olarak kullanılabilmektedir. Diskte kullanılacak takas alanlarının 
+toplamı bazen önemli olabilir. Çünkü sistemin toplam sanal bellek kapasitesi bu takas alanlarının kapasitesiyle 
+ilgilidir. Linux sistemlerinde o andaki toplam takas alanları ``/proc/swaps`` dosyasından elde edilebilir. Örneğin:
 
 .. code-block:: console
 
@@ -689,8 +690,8 @@ sistemlerinde o andaki toplam takas alanları ``/proc/swaps`` dosyasından elde 
    Filename                Type            Size            Used    Priority
    /swapfile               file            3991548         218768  -2
 
-Buradaki değer Kilo Byte cinsindendir. Yani bu sistemde kök dizinde ``swapfile`` isimli bir dosya takas
-dosyası olarak kullanılmaktadır. Bu dosyanın boyutu da yaklaşık 4GB'dir:
+Buradaki değer kilo byte cinsindendir. Yani bu sistemde kök dizinde ``swapfile`` isimli bir dosya takas
+dosyası olarak kullanılmaktadır. Bu dosyanın boyutu da yaklaşık 4 GB'dir:
 
 .. code-block:: console
 
@@ -707,27 +708,24 @@ Diskteki takas alanlarını görmek için "*swapon -s*" komutu da kullanılabilm
 
 Bu komut da zaten bilgiyi yine ``/proc/swaps`` dosyasından elde etmektedir.
 
-Peki sistemin kullandığı swap alanı dolarsa ne olur? İşte bu durumda sistemin sanal bellek limiti dolmuş kabul
-edilir. Yapılacak şey sisteme yeni swap alanları eklemektir. Bunun Linux'ta nasıl yapılacağını ilgili
+Peki sistemin kullandığı takas alanı dolarsa ne olur? İşte bu durumda sistemin sanal bellek alanı dolmuş kabul
+edilir. Yapılacak şey sisteme yeni takas alanları eklemektir. Bunun Linux'ta nasıl yapılacağını ilgili
 kaynaklardan öğrenebilirsiniz.
-
-Minimum Working Set
--------------------
 
 Peki işletim sistemi programı belleğe yüklerken baştan kaç sayfayı yüklemektedir? İşte buna *minimum working
 set* denilmektedir. İşletim sistemleri genel olarak bir program için en az yüklenebilecek sayfa sayısını
-belirlemiş durumdadır. Böylece yüklenmiş her programın en azından *minimum working set* kadar sayfası RAM'de
+belirlemiş durumdadır. Böylece yüklenmiş her programın en azından *minimum working set* kadar sayfası fizikel RAM'de
 bulunmak zorundadır. Linux sistemleri *minimum working set* gibi bir kavramı kullanmamaktadır. Bir program
 neredeyse boş bir sayfa tablosuyla yüklenmektedir. İzleyen paragrafta açıklayacağımız gibi sayfalar gerektikçe
 diskten yüklenmektedir.
 
-Sanal Bellek Mekanizmasının Gerçekleştirilmesi: Page Fault
-----------------------------------------------------------
+Sanal Bellek Mekanizmasının Gerçekleştirilmesi
+----------------------------------------------
 
-Peki sanal bellek mekanizması nasıl gerçekleştirilmektedir? İşte işlemciler sanal bellek mekanizmasını
-oluşturabilmek için özel bir biçimde tasarlanmıştır. İşlemci sanal adresi fiziksel adrese dönüştürmek için
+Peki sanal bellek mekanizması nasıl gerçekleştirilmektedir? İşte işlemciler sanal bellek mekanizmasının 
+işletilebilmesi için özel bir biçimde tasarlanmıştır. İşlemci sanal adresi fiziksel adrese dönüştürmek için
 sayfa tablosuna başvurduğunda, eğer sayfa tablosunda o sanal adrese bir fiziksel sayfa karşılık getirilmemişse
-ismine *page fault* denilen bir içsel kesme (interrupt) oluşturmaktadır. Örneğin:
+ismine *sayfa hatası (page fault)* denilen bir içsel kesme oluşturmaktadır. Örneğin:
 
 .. list-table:: Sayfa Tablosu
    :header-rows: 1
@@ -751,82 +749,73 @@ ismine *page fault* denilen bir içsel kesme (interrupt) oluşturmaktadır. Örn
    * - ...
      - ...
 
-Burada Fiziksel Sayfa Numarasındaki ``-`` sembolleri o sanal sayfaya bir fiziksel sayfanın karşı
-getirilmediğini belirtmektedir. Dolayısıyla örneğin işlemci 23604 numaralı, 23606 numaralı sanal sayfalar için
-dönüştürme yapmak istediğinde *page fault* oluşturacaktır. İşte *page fault* denilen kesme oluştuğunda işletim
-sisteminin kesme kodu devreye girer. Buna *page fault handler* denilmektedir. Bütün takas mekanizması işletim
-sisteminin bu kesme kodu tarafından yürütülmektedir. İşletim sisteminin bu kesme kodu (page fault handler)
-önce hangi prosesin hangi sayfaya erişmek istediğini tespit eder. Sonra onun diskteki karşılığını bulur ve yer
-değiştirme işlemini yapar. Tabii bu kesme kodu yer değiştirme işlemini yaptıktan sonra artık sayfa tablosunu
-da güncellemektedir. İşletim sisteminin kesme kodu bittiğinde kesmeye yol açan makine komutu yeniden
-çalıştırılarak akış devam ettirilmektedir. Bu komut yeniden çalıştırıldığında artık sayfa tablosu düzeltildiği
-için *page fault* oluşmayacaktır. Bu durumda bir program çalıştırılmak istendiğinde işletim sistemi aslında
-programın az sayıda sayfasını fiziksel RAM'e yükleyip sayfa tablosunun o sayfalar dışındaki fiziksel sayfa
-numaralarını ``-`` haline getirir. Böylece yukarıda açıklanan mekanizma eşliğinde kesiksiz çalışma sağlanır.
-Biz burada sayfa tablosunda fiziksel eşleştirme yapılmamış olan girişleri ``-`` ile gösterdik. Genellikle bu
-bilgi tek bir bitle tutulmaktadır ve bu bite *P (present)* biti denilmektedir.
+Burada Fiziksel Sayfa Numarasındaki ``-`` sembolleri o sanal sayfaya bir fiziksel sayfanın karşı getirilmediğini 
+belirtmektedir. Dolayısıyla örneğin işlemci 23604 numaralı, 23606 numaralı sanal sayfalar için
+dönüştürme yapmak istediğinde *sayfa hatası (page fault)* oluşturacaktır. İşte *sayfa hatası (page fault)* denilen 
+bu kesme oluştuğunda işletim sisteminin kesme kodu devreye girer. (Buna İnilizce *page fault handler* denilmektedir.) 
+Bütün takas mekanizması işletim sisteminin bu kesme kodu tarafından yürütülmektedir. İşletim sisteminin bu kesme 
+kodu (page fault handler) önce hangi prosesin hangi sayfaya erişmek istediğini tespit eder. Sonra onun diskteki 
+karşılığını bulur ve yer değiştirme işlemini yapar. Tabii bu kesme kodu yer değiştirme işlemini yaptıktan sonra 
+artık sayfa tablosunu da güncellemektedir. İşletim sisteminin kesme kodu bittiğinde kesmeye yol açan makine 
+komutu yeniden çalıştırılarak akış devam ettirilmektedir. Bu komut yeniden çalıştırıldığında artık sayfa tablosu 
+düzeltildiği için *sayfa hatası (page fault)* oluşmayacaktır. Bu durumda bir program çalıştırılmak istendiğinde 
+işletim sistemi aslında programın az sayıda sayfasını fiziksel RAM'e yükleyip sayfa tablosunun o sayfalar dışındaki 
+fiziksel ssayfalarının P bitini 0 yapar. Böylece yukarıda açıklanan mekanizma eşliğinde kesiksiz çalışma sağlanır.
+Biz burada sayfa tablosunda fiziksel eşleştirme yapılmamış olan girişleri ``-`` ile temsil ettik. Genellikle bu
+bilgi sayfa özelliklerinde tek bir bitle tutulmaktadır ve bu bite *P (present)* biti denilmektedir.
 
 Peki ya erişilmek istenen sanal adres geçerli bir adres değilse ne olacaktır? Örneğin biz bir göstericiye
 rastgele bir adres atayıp oraya erişmek isteyelim. Bu durumda ne olacaktır? Çünkü bu adresin aslında
-çalıştırılabilir dosya da ya da takas dosyasında bir karşılığı yoktur. İşte işletim sisteminin *page fault*
-kesme kodu (handler) öncelikle erişilmek istenen adresin o proses için legal bir adres olup olmadığına
-bakmaktadır. Eğer erişilmek istenen adres legal bir adres değilse artık hiç takas işlemi yapılmadan proses
-cezalandırılır ve sonlandırılır. Örneğin Linux çekirdekleri her prosesin kullandığı sanal adres alanlarını
-proses kontrol bloğunda kaydetmektedir. Böylece bir *page fault* oluştuğunda erişilmek istenen adresin legal
-bir adres olup olmadığını çekirdek hızlı bir biçimde tespit edebilmektedir.
+çalıştırılabilir dosya da ya da takas dosyasında bir karşılığı yoktur. İşte işletim sisteminin *sayfa hatası*
+kesme kodu öncelikle erişilmek istenen adresin o proses için geçerli bir adres olup olmadığına bakmaktadır. 
+Eğer erişilmek istenen adres geçerli bir adres değilse artık hiç takas işlemi yapılmadan proses cezalandırılarak 
+sonlandırılır. Örneğin Linux çekirdekleri her prosesin kullandığı sanal adres alanlarını proses kontrol bloğunda
+*maple ağacı* denilen bir ver yapısı içerisinde kaydetmektedir. Böylece bir *sayfa hatası* oluştuğunda erişilmek istenen
+adresin geçerli bir adres olup olmadığını çekirdek hızlı bir biçimde tespit edebilmektedir.
 
-O halde sanal bellek mekanizması tipik olarak işlemci ve işletim sistemi tarafından şöyle gerçekleştirilmektedir:
+O halde sanal bellek mekanizması tipik olarak işlemci ve işletim sistemi tarafından tipik olarak şöyle gerçekleştirilmektedir:
 
-1) Proses bir sanal adrese erişmeye çalışır.
-
-2) İşlemci sanal adresi parçalarına ayırır ve sayfa tablosuna başvurur.
-
-3) Sayfa tablosunda ilgili sayfaya bir fiziksel sayfa karşı getirilmişse sorun oluşmaz çalışma normal olarak
+| **1.** Proses bir sanal adrese erişmeye çalışır.
+| **2.** İşlemci sanal adresi parçalarına ayırır ve sayfa tablosuna başvurur.
+| **3.** Sayfa tablosunda ilgili sayfaya bir fiziksel sayfa karşı getirilmişse sorun oluşmaz çalışma normal olarak
    devam eder. Ancak sanal sayfaya bir fiziksel adres karşı getirilmemişse (şekilde onu ``-`` ile gösterdik)
-   bu durumda işlemci *page fault* denilen içsel kesmeyi oluşturur.
-
-4) Page fault kesmesi için kesme kodunu işletim sistemini yazanlar bulundurmuştur. Bu kod önce erişilmek
+   bu durumda işlemci *sayfa hatası (page fault)* denilen içsel kesmeyi oluşturur.
+| **4.** Sayfa hatası kesmesi için kesme kodunu işletim sistemini yazanlar bulundurmuştur. Bu kod önce erişilmek
    istenen adresin geçerli bir adres olup olmadığına bakar. Eğer erişilmek istenen adres geçerli bir adres
-   değilse proses sonlandırılır. Eğer erişilmek istenen adres geçerli bir adresse *page fault* kesme kodu
-   *takas mekanizması* ile programın ilgili kısmını RAM'e yükler, sayfa tablosunu günceller ve kesme kodundan
-   çıkar. Artık işlemci fault oluşturan makine komutuyla çalışmasına devam eder. Ancak sayfa tablosu
-   düzeltildiği için bu kez fault oluşturmaz.
-
-Sanal Bellek Yönetimi
-=--------------------
+   değilse proses sonlandırılır. Eğer erişilmek istenen adres geçerli bir adresse *sayfa hatası* kesme kodu
+   *takas mekanizması* ile programın ilgili kısmını fiziksel RAM'e yükler, sayfa tablosunu günceller ve kesme kodundan
+   çıkar. Artık işlemci sayfa hatası oluşturan makine komutuyla çalışmasına devam eder. Ancak sayfa tablosu
+   düzeltildiği için bu kez sayfa hatası oluşmayacaktır.
 
 Peki işletim sisteminin *bellek yönetimi (memory management)* kısmını yazanlar hangi bilgileri tutmak
-zorundadır? İşte işletim sistemleri tipik olarak bu mekanizma için şu bilgileri çekirdek alanı içerisinde
+zorundadır? İşte işletim sistemleri tipik olarak bu mekanizma için çekirdek alanı içerisinde şu bilgileri
 oluşturmak zorundadır:
 
-1) Fiziksel RAM'deki tüm sayfaların tahsisat durumunu tutan bir veri yapısı.
-
-2) Bir fiziksel sayfa eğer tahsis edilmişse onun hangi proses tarafından kullanıldığı bilgisi
-
-3) Takas (swap) dosyalarının yerleri ve organizasyonu
-
-4) Hangi proseslerin hangi sayfalarının o anda fiziksel RAM'de hangi fiziksel sayfalarda bulunduğu bilgisi
-
-5) Diğer başka bilgiler
+| **1.** Fiziksel RAM'deki tüm sayfaların tahsisat durumunu tutan bir veri yapısı.
+| **2.** Bir fiziksel sayfa eğer tahsis edilmişse onun hangi proses tarafından kullanıldığı bilgisi.
+| **3.**  Takas dosyalarının yerleri ve organizasyonu.
+| **4.**  Hangi proseslerin hangi sayfalarının o anda fiziksel RAM'de hangi fiziksel sayfalarda bulunduğu bilgisi.
+| **5.**  Diğer başka gerekli bilgiler.
 
 Bellek yönetimi (memory management) bir işletim sisteminin en önemli ve en karmaşık alt sistemlerinden biridir.
 
-Sanal Belleğin Sağladığı Faydalar
----------------------------------
+Sanal Bellek Mekanizmasının Sağladığı Faydalar
+----------------------------------------------
 
-Peki sanal bellek toplamda bize ne sağlamaktadır? Sanal bellek mekanizması sayesinde fiziksel bellekte yeterli
-yer olmasa bile çok sayıda büyük program birlikte çalıştırılabilmektedir. Çünkü programların hepsinin fiziksel
-belleğe yüklenmesi gerekmemektedir. Örneğin bizim elimizde 8 GB RAM olsa bile biz onlarca büyük programı
-çalışır durumda tutabiliriz. Ancak yukarıda da belirttiğimiz gibi işletim sistemi bir takas alanı
-bulundurmaktadır. Eğer bu takas alanı dolarsa gerçekten bu sefer *out of memory* durumu oluşabilmektedir. Bu
-nedenle eğer programlar çok fazla bellek kullanıyorsa bu takas alanlarının büyütülmesi gerekir. Linux gibi
-modern işletim sistemleri fiziksel RAM'deki sayfaları sürekli izler, boş sayfa sayısı belli bir eşiğin altına
-düştüğünde program dosyalarından geri alınamayacak olan sayfaları takas dosyalarına yazar. İşte bu yazım
-sırasında takas dosyası da dolarsa bu durumda sistemde gerçekten sanal bellek alanı limitine ulaşılmaktadır.
-Bu tür durumlarda yapılacak şey takas dosyalarını büyütmektir.
+Peki sanal bellek mekanizması toplamda bize hangi faydaları sağlamaktadır? Sanal bellek mekanizması sayesinde 
+fiziksel bellekte yeterli yer olmasa bile çok sayıda büyük program birlikte çalıştırılabilmektedir. Çünkü programların 
+hepsinin fiziksel belleğe yüklenmesi gerekmemektedir. Örneğin bizim elimizde ``8 GB`` RAM olsa bile biz onlarca büyük programı
+çalışır durumda tutabiliriz. Ancak yukarıda da belirttiğimiz gibi işletim sistemleri takas takas alanı bulundurmaktadır. 
+Eğer bu takas alanları dolarsa gerçekten bu sefer *out of memory* durumu oluşabilmektedir. Bu nedenle eğer programlar 
+çok fazla bellek kullanıyorsa bu takas alanlarının büyütülmesi gerekir. 
 
-Kullanıcı Alanı ve Çekirdek Alanı
----------------------------------
+Linux gibi modern işletim sistemleri fiziksel RAM'deki sayfaları sürekli izlemekte, boş sayfa sayısı belli bir 
+eşiğin altına düştüğünde program dosyalarından geri alınamayacak olan sayfaları takas dosyalarına yazmaktadır. 
+İşte bu yazım sırasında takas dosyaları da dolarsa bu durumda sistemde gerçekten sanal bellek alanı limitine 
+ulaşılmaktadır. Bu tür durumlarda yapılacak şey takas dosyalarını büyütmektir.
+
+Prosslerin Sanal Adres Alanları
+-------------------------------
 
 Sayfalama ve sanal bellek mekanizmasında işletim sistemi de o anda sanal bellek alanı içerisinde bulunmak
 zorundadır. Peki işletim sisteminin kodları sayfa tablosunda sanal belleğin neresindedir? İşte genellikle
@@ -838,7 +827,7 @@ sanal bellek alanını şöyle ayırmıştır:
 .. image:: _static/ders43-sanal-bellek-32bit.png
    :alt: 32 bit Linux sistemlerinde sanal bellek alanının kullanıcı ve çekirdek alanı olarak ayrılması
    :align: center
-   :width: 70%
+   :width: 60%
 
 Bu durumda 32 bit Linux sistemlerinde bir programın kullanabileceği maksimum sanal bellek 3 GB'dir.
 (Windows'ta 2 GB kullanıcı alanı için, 2 GB da çekirdek space için ayrılmaktadır.) 64 bit Linux sistemlerinde
@@ -847,7 +836,7 @@ ise prosesin sanal bellek alanı şöyle organize edilmiştir:
 .. image:: _static/ders43-sanal-bellek-64bit.png
    :alt: 64 bit Linux sistemlerinde sanal bellek alanının organizasyonu
    :align: center
-   :width: 80%
+   :width: 70%
 
 Görüldüğü gibi 64 bit sistemlerde teorik sanal bellek 16 EB olduğu halde 64 bit Linux sistemleri yalnızca 256
 TB sanal belleğe izin vermektedir.
@@ -855,9 +844,6 @@ TB sanal belleğe izin vermektedir.
 Proseslerin sayfa tablolarında çekirdek alanının içeriği hep aynıdır. Yani bağlamsal geçiş yapılsa bile
 çekirdek kodları hep aynı sanal adreslerde bulunmaktadır. Böylece proses çalışırken bir sistem fonksiyonu
 çağrıldığında sistem fonksiyonu her proseste hep aynı sanal adreste bulunur.
-
-Dinamik Tahsisat ve Takas Alanı
--------------------------------
 
 Peki biz bir program içerisinde yüksek miktarda dinamik tahsisat yaptığımızda ne olur? Linux sistemlerinde
 malloc fonksiyonu brk ya da sbrk denilen sistem fonksiyonunu çağırabilmektedir. Eğer tahsis edilen alan 128
@@ -995,8 +981,8 @@ düşünelim. İşlemler sırasıyla şöyle yürütülür:
 
       $ sudo swapon /dev/sdb2
 
-Copy-on-Write
--------------
+Copy-on-Write Mekaniaması
+-------------------------
 
 fork işleminden sonra üst prosesin sayfa tablosuyla alt prosesin sayfa tablosu başlangıçta aynıdır. (Linux'ta
 bazı ayrıntılar vardır.) Yani iki proses de aslında aynı fiziksel sayfaları kullanmaktadır. İşletim sistemi bu
