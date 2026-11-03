@@ -1,6 +1,6 @@
-==========================================================
-İşlemcilerin Sayfalama Mekanizması ve Sanal Bellek Kavramı
-==========================================================
+==================================================
+İşlemcilerin Sayfalama Mekanizması ve Sanal Bellek
+==================================================
 
 Bu bölümde işlemcilerin sayfalama (paging) mekanizması ve *sanal bellek (virtual memory)* kavramları üzerinde duracağız.
 
@@ -19,8 +19,8 @@ mekanizmasına sahip olduğu halde sistem programcısı bu mekanizmayı açmayab
 reset edildiğinde sayfalama mekanizması pasif durumdadır. İşletim sistemleri bazı ön hazırlıkları yaptıktan sonra
 bu mekanizmayı açmaktadır.
 
-Sayfalama mekanizmasında fiziksel RAM aynı zamanda *sayfa (page)* denilen ardışıl mantıksal bloklara ayrılmaktadır.
-Sayfa uzunluğu işlemci ailesinden işlemci ailesine hatta aynı işlemci ailesinde işlemcinin modundan moduna
+Sayfalama mekanizmasında fiziksel bellek (RAM) aynı zamanda *sayfa (page)* denilen ardışıl mantıksal bloklara 
+ayrılmaktadır. Sayfa uzunluğu işlemci ailesinden işlemci ailesine hatta aynı işlemci ailesinde işlemcinin modundan moduna
 değişebilmektedir. Ancak en tipik kullanılan sayfa uzunluğu ``4096`` (``4K``) byte'tır. Gerçekten de bugün Linux,
 Windows ve macOS sistemleri bazı özel durumlar dışında ``4K``'lık sayfalar kullanmaktadır. Aşağıda yaygın
 işlemcilerin desteklediği sayfa uzunluklarını bir tablo halinde veriyoruz:
@@ -580,15 +580,65 @@ program sonlandırılacaktır.
        return 0;
    }
 
-Sanal Bellek
-============
+Aşağıda kafanızda bir fikir oluşsun diye 32 bit Intel işlemcilerindeki bir sayfa girişinin gerçek formatını
+veriyoruz:
+
+.. figure:: _static/x86-pte-flags.png
+    :align: center
+    :width: 60%
+
+Buradaki bitlerin anlamlarını da aşağıdaki tabloda özetliyoruz:
+
+.. list-table::
+   :widths: 10 12 78
+   :header-rows: 1
+
+   * - Bit
+     - Alan
+     - Açıklama
+   * - 0
+     - ``P``
+     - Present: ``1`` ise sayfa bellekte, ``0`` ise erişimde ``#PF``
+   * - 1
+     - ``R/W``
+     - ``0`` ise yazma yasak, ``1`` ise yazılabilir (*)
+   * - 2
+     - ``U/S``
+     - ``0`` ise yalnızca çekirdek, ``1`` ise kullanıcılar da erişebilir
+   * - 3
+     - ``PWT``
+     - Page-level Write-Through (önbellek türü seçimi)
+   * - 4
+     - ``PCD``
+     - Page-level Cache Disable (önbellek türü seçimi)
+   * - 5
+     - ``A``
+     - Accessed: erişimde işlemci tarafından ``1`` yapılır
+   * - 6
+     - ``D``
+     - Dirty: yazmada işlemci tarafından ``1`` yapılır
+   * - 7
+     - ``PAT``
+     - PAT indeksinin bir biti; PAT desteklenmiyorsa rezerve (``0``)
+   * - 8
+     - ``G``
+     - Global: ``CR4.PGE=1`` ise ``CR3`` yüklemesinde TLB'den atılmaz
+   * - 11:9
+     - ``Ign.``
+     - İşlemci tarafından yok sayılır (sistem yazılımına açık)
+   * - 31:12
+     - Adres
+     - 4 KB'lik sayfa çerçevesinin fiziksel adresi
+
+Sanal Bellek Mekanizması
+========================
 
 Şimdi de *sanal bellek (virtual memory)* kavramı üzerinde duralım.
 
-Sanal bellek (virtual memory) bir programın tamamının değil belli kısımlarının belleğe yüklenerek disk ile RAM
+Sanal bellek (virtual memory) bir programın tamamının değil belli kısımlarının belleğe yüklenerek disk ile fiziksel RAM
 arasında yer değiştirmeli bir biçimde çalıştırılmasına yönelik bir mekanizmadır. Bu mekanizma sayesinde
-örneğin 100 MB'lık bir programın başlangıçta yalnızca örneğin 64K'lık kısmı RAM'e yüklenebilir. Sonra program
-çalışmaya başlar. Çalışma sırasında programın fiziksel bellekte olmayan bir kısmına erişildiğinde işletim
+örneğin ``100 MB``'lik bir programın başlangıçta yalnızca örneğin ``64K``'lık kısmı fiziksel RAM'e yüklenebilir. 
+Sonra program çalışmaya başlar. Çalışma sırasında programın fiziksel bellekte olmayan bir kısmına erişildiğinde işletim
 sistemi programın fiziksel bellekte olmayan kısmını diskte bulur ve diskten fiziksel belleğe yükler ve çalışma
 kesintisiz devam ettirilir.
 
@@ -602,16 +652,22 @@ sistemi hangi programın RAM'deki hangi sayfasının boşaltılacağı konusunda
 İşletim sistemine göre *gelecekte kullanılma olasılığı en düşük olan sayfanın* RAM'den atılması en iyi
 stratejidir.
 
-Bu durumda bir program çalışırken aslında sürekli bir biçimde disk ile RAM arasında yer değiştirmeler
+Bu durumda bir program çalışırken aslında sürekli bir biçimde disk ile fiziksel RAM arasında yer değiştirmeler
 yapılmaktadır. Bu yer değiştirmelere genel olarak işletim sistemi dünyasında *takas (swap)* işlemi
-denilmektedir. Şüphesiz takas işlemi yavaş bir işlemdir ve toplam performans üzerinde en önemli zayıflatıcı
-etkilerden birini oluşturmaktadır. Takas işlemlerinin olumsuz etkisini azaltmak için ilk akla gelen şey
-fiziksel RAM'i büyütmektir. Ancak fiziksel RAM'in büyütülmesi maliyet oluşturmaktadır. Bugünkü SSD'ler hard
-disklere göre oldukça iyi performans göstermektedir. Dolayısıyla bilgisayarımızda hard disk yerine SSD varsa
-takas işlemleri daha hızlı yürütülecektir. Şüphesiz en önemli unsur aslında hangi sayfaların fiziksel RAM'de
-tutulacağı hangi sayfaların fiziksel RAM'den atılacağına ilişkin kullanılan algoritmalardır. Bunlara *sayfa
-yer değiştirme (page replacement) algoritmaları* denilmektedir. Tabii bugünkü işletim sistemleri bilinen en
-iyi algoritmaları zaten kullanmaktadır.
+denilmektedir. Şüphesiz takas işlemi yavaş bir işlemdir ve işletim sisteminin toplam performansı üzerinde en 
+önemli zayıflatıcı etkilerden birini oluşturmaktadır. Takas işlemlerinin olumsuz etkisini azaltmak için ilk akla 
+gelen önlem fiziksel RAM'i büyütmektir. Tabii fiziksel RAM'in büyütülmesi maliyet de oluşturmaktadır. Bugünkü 
+SSD'ler hard disklere göre oldukça iyi performans göstermektedir. Dolayısıyla bilgisayarımızda hard disk yerine 
+SSD varsa takas işlemleri daha hızlı yürütülecektir. Fakat performans üzerindeki en önemli unsur aslında hangi 
+sayfaların fiziksel RAM'de tutulacağı hangi sayfaların fiziksel RAM'den atılacağına ilişkin kullanılan algoritmalardır. 
+Bunlara *sayfa yer değiştirme (page replacement) algoritmaları* denilmektedir. Tabii bugünkü işletim sistemleri 
+bilinen en iyi algoritmaları zaten kullanmaktadır.
+
+Güncel Linux çekirdeklerinde oldukça karmaşık ve sofistike bir bellek yönetim sistemi kullanılmaktadır. Uygulanan bu
+yöntemde fiziksel belleğe çekilmiş olan sayfalar bellek baskısı oluşmadıkça bellekten atılmamaktadır. Bellek baskısı
+oluştuğunda arka planda *kswapd* isimli thread'ler uyandırılarak son zamanlarda en az kullanılan fiziksel sayfaları
+bellekten atarak (ve gerekirse diske geri yazarak) fiziksel RAM'de yer açmaktadır. Ancak sistemin işleyişinin pek
+çok ayrıntısı vardır.
 
 Takas Dosyası (Swap File)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
