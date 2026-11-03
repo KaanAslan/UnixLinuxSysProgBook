@@ -101,7 +101,7 @@ biçimde ilk sayfa ``0``'dan başlatılarak ardışıl biçimde numaralandırıl
 içerisinde bulunur.
 
 Sanal Adresler ve Sayfa Tabloları
-=================================
+---------------------------------
 
 Bir program içerisinde kullanılan yani derleyicinin ürettiği adresler aslında gerçek fiziksel adresler değildir. 
 Bu adreslere *sanal adresler (virtual addresses)* ya da *doğrusal adresler (linear addresses)* denilmektedir. 
@@ -110,7 +110,7 @@ fiziksel adres değildir, sanal bir adrestir. Derleyiciler kodları sanki RAM'de
 Örneğin ``32 bit`` işlemcilerin kullanıldığı bir Linux sisteminde (Windows ve macOS sistemlerinde de benzer) derleyici sanki 
 program 4 GB'lik RAM'de belli bir adresten itibaren tek başına yüklenecekmiş gibi kod üretmektedir. (Bu konunun çeşitli 
 ayrıntıları vardır.) Her program derlendiğinde aynı biçimde kod üretilmektedir. Çünkü derleyicinin ürettiği bu adresler 
-sanal adreslerdir. Peki her program aynı biçimde örneğin RAM'in 4 MB'sinden itibaren ardışıl bir biçimde yüklenecekmiş 
+sanal adreslerdir. Peki her program aynı biçimde örneğin RAM'in ``4 MB``'sinden itibaren ardışıl bir biçimde yüklenecekmiş 
 gibi bir koda sahipse bu programlar nasıl çalışmaktadır?
 
 İşte sayfalama mekanizmasına sahip olan işlemciler aslında *sayfa tablosu (page table)* denilen bir tabloya
@@ -216,7 +216,7 @@ olmak üzere sanal adresi iki parçaya değil, üç parçaya ya da dört parçay
 tablolarının fazla yer kaplaması engellenmektedir.
 
 Sayfa Tablolarının Oluşturulması ve Proseslerarası Geçiş
-=========================================================
+--------------------------------------------------------
 
 Buraya kadar şunları anladık:
 
@@ -331,7 +331,7 @@ denilen bir önbellek mekanizmasını da kullanmaktadır.
 **Yanıt:** Bu durum izleyen başlıklarda ele alınacaktır.
 
 Proseslerin Bellek Alanlarının İzole Edilmesi
-=============================================
+---------------------------------------------
 
 İşletim sistemi her proses için ayrı bir sayfa tablosu oluşturduğu için ve bu sayfa tablosunda aynı sanal
 sayfa numaralarını zaten farklı fiziksel sayfalara yönlendirdiği için aslında hiçbir proses diğerinin fiziksel
@@ -380,35 +380,37 @@ birbirlerinin alanlarına erişemeyecektir. Sayfa tabloları yoluyla proseslerin
 birbirinden izole edilmesi çok sağlam bir koruma oluşturmaktadır.
 
 Sayfa Tabloları Ne Kadar Yer Kaplar?
-====================================
+------------------------------------
 
-Peki sayfa tabloları ne kadar yer kaplamaktadır? 32 bit mimarilerde fiziksel RAM en fazla 4 GB olabilir.
-Proseslerin sanal bellek alanları da ``4 GB``'dir. O halde toplam sayfa sayısı 4GB/4K = 2^32/2^12 = 2^20 = 1 MB
+Peki sayfa tabloları ne kadar yer kaplamaktadır? ``32 bit`` mimarilerde fiziksel RAM en fazla ``4 GB`` olabilir.
+Proseslerin sanal bellek alanları da ``4 GB``'dir. O halde toplam sayfa sayısı ``4GB/4K = 2^32/2^12 = 2^20 = 1 MB``
 olur. Her sayfa tablosu girişi Intel mimarisinde 4 byte'tır. Dolayısıyla yukarıdaki basitleştirilmiş anlatıma
-göre bir prosesin sayfa tablosu 4 MB yer kaplar. Bu alan sayfa tablosu için çok büyüktür. Bu nedenle
+göre bir prosesin sayfa tablosu ``4 MB`` yer kaplar. Bu alan sayfa tablosu için çok büyüktür. Bu nedenle
 işlemcileri tasarlayanlar sayfa tablolarının kapladığı alanı küçültmek için sanal adresleri iki parçaya değil,
-üç ya da dört parçaya ayırma yoluna gitmişlerdir. Gerçekten de örneğin Intel'in 32 bit mimarisinde bir sanal
-adres üç parçaya, 64 bit mimarisinde ise dört parçaya ayrılmaktadır. Bu ayrıntı kursumuzun konusu dışındadır
-ve Derneğimizde *80x86 ve ARM Sembolik Makine Dilleri* kursunda ele alınmaktadır. Biz bu kursumuzda çeşitli
-gösterimlerde sanal adresleri ikiye ayıracağız.
+üç ya da dört parçaya ayırma yoluna gitmişlerdir. Gerçekten de örneğin Intel'in ``32 bit`` mimarisinde bir sanal
+adres üç parçaya, 64 bit mimarisinde ise dört parçaya ayrılmaktadır. Bu ayrıntı kitabımızın konusu dışındadır
+**Linux Kernel - İşletim Sistemlerinin Tasarımı ve Gerçekleştirilmesi** kitabında ve **80X86 ve ARM İşlemcileride 
+Sembolik Makine Dilleri** kurs dokğmanlarında ele alınmaktadır. Biz kitabımızdaki
+çeşitli gösterimlerde ana fikri basitleştirmek için sanal adresleri iki kısma ayıracağız.
 
 64 Bit Sistemlerde Sayfalama
 ----------------------------
 
-Biz yukarıda 32 bit sistemlere göre örnekler verdik. Peki 64 bit sistemlerde durum nasıldır? 64 bit
-sistemlerde fiziksel RAM'in teorik büyüklüğü 2^64 = 16 exabyte olmaktadır. Dolayısıyla proseslerin sanal
+Biz yukarıda ``32 bit`` sistemler için örnekler verdik. Peki 64 bit sistemlerde durum nasıldır? ``64 bit``
+sistemlerde fiziksel RAM'in teorik büyüklüğü ``2^64 = 16 EB`` olmaktadır. Dolayısıyla proseslerin teorik sanal
 bellek alanı da bu kadar olacaktır. Burada eğer sanal adres iki parçaya ayrılırsa sayfa tablolarının aşırı
-büyük yer kaplaması kaçınılmazdır. Bu nedenle 64 bit sistemlerde genellikle işlemcileri tasarlayanlar sanal
-adresleri dört parçaya ayırmaktadır. Bu konu yine kursumuzun kapsamı dışındadır. Ancak 64 bit sistemlerde
+büyük yer kaplaması kaçınılmazdır. Bu nedenle ``64 bit`` sistemlerde genellikle işlemcileri tasarlayanlar sanal
+adresleri dört parçaya ayırmaktadır. Bu konu yine kursumuzun kapsamı dışındadır. Ancak ``64 bit`` sistemlerde
 değişen bir şey yoktur. Program yine çok geniş bir sanal belleğe sanki tek başına yüklenecekmiş gibi
 derlenmektedir. Yine işletim sistemi proses için sayfa tablosu oluşturarak sanal sayfa numaralarını gerçek
-fiziksel sayfa numaralarına yönlendirmektedir. Tabii pek çok işletim sistemi 16 exabyte sanal bellek alanı çok
-büyük olduğu için bunu kısıtlama yoluna da gitmektedir. Örneğin Linux yalnızca 256 TB alanı kullanmaktadır.
-Windows ise yalnızca 16 TB alan kullanır. Bu alanlar bile bugün için çok büyüktür. Ayrıca 64 bit işlemcilerin
-çoğu 16 EB çok büyük bir değer olduğu için 64 bit fiziksel adres alanını desteklememektedir. Aşağıda 64 bit
-Intel işlemcilerinin gerçekte desteklediği fiziksel RAM miktarı bir tablo halinde verilmiştir:
+fiziksel sayfa numaralarına yönlendirmektedir. Tabii pek çok işletim sistemi ``16 EB`` sanal bellek alanı çok
+büyük olduğu için bunu kısıtlama yoluna da gitmektedir. Örneğin ``64 bit`` Linux yalnızca ``256 TB`` alanı kullanmaktadır.
+``64 bit`` Windows eskiden yalnızca ``16 TB`` alan kullanıyordu, 8.1 versiyonuyla ``64 bit`` Windows da tıpkı ``64 bit`` Linux 
+gibi 256 TB alan kullanır hale gelmiştir. Bu alanlar bile bugün için çok büyüktür. Ayrıca ``64 bit`` 
+işlemcilerin çoğu ``16 EB`` çok büyük bir değer olduğu için ``64 bit`` fiziksel adres alanını desteklememektedir. 
+Aşağıda ``64 bit`` Intel işlemcilerinin gerçekte desteklediği fiziksel RAM miktarı bir tablo halinde verilmiştir:
 
-.. list-table:: 64 bit Intel ve AMD işlemcilerinin desteklediği fiziksel RAM miktarı
+.. list-table:: 
    :header-rows: 1
    :widths: 56 22 22
    :align: center
@@ -438,9 +440,9 @@ Intel işlemcilerinin gerçekte desteklediği fiziksel RAM miktarı bir tablo ha
      - 52
      - 4 PiB
 
-64 bit ARM işlemcilerinin desteklediği fiziksel RAM miktarları da şöyledir:
+``64 bit`` ARM işlemcilerinin desteklediği fiziksel RAM miktarları da şöyledir:
 
-.. list-table:: 64 bit ARM işlemcilerinin desteklediği fiziksel RAM miktarı
+.. list-table:: 
    :header-rows: 1
    :widths: 56 22 22
    :align: center
@@ -473,25 +475,19 @@ Intel işlemcilerinin gerçekte desteklediği fiziksel RAM miktarı bir tablo ha
      - 48
      - 256 TiB
 
-Kurs dokümanlarında ``/doc/ebooks`` klasöründe Intel'in, AMD'nin ve ARM işlemcilerinin orijinal dokümanları
-bulundurulmuştur. Sayfa tablolarının gerçek organizasyonu için bu dokümanlara başvurabilirsiniz.
+Sayfalama Mekanizmasının Sağladığı Faydalar Nelerdir?
+-----------------------------------------------------
 
-Sayfalama Mekanizmasının Faydaları
-----------------------------------
+Peki o halde sayfalama (paging) mekanizmasının ne faydası vardır? İşte sayfalama mekanizması iki önemli işfayda sağlamaktadı:
 
-Peki sayfalama (paging) mekanizmasının ne faydası vardır? İşte sayfalama mekanizmasının iki önemli işlevi vardır:
-
-1) Sayfalama mekanizması programların fiziksel RAM'e ardışıl yüklenme zorunluluğunu ortadan kaldırmaktadır.
+| **1.** Sayfalama mekanizması programların fiziksel RAM'e ardışıl yüklenme zorunluluğunu ortadan kaldırmaktadır.
    Böylece *bölünme (fragmentation)* denilen olgunun olumsuz etkisi azaltılır.
 
-2) Sayfalama mekanizması *sanal bellek (virtual memory)* denilen olgunun gerçekleştirimi için gerekmektedir.
-
-Bölünme (Fragmentation)
-~~~~~~~~~~~~~~~~~~~~~~~
+| **2.** Sayfalama mekanizması *sanal bellek (virtual memory)* denilen olgunun gerçekleştirini mümkün kılmaktadır.
 
 Bölünme (fragmentation) bellek yönetimi konusunda önemli bir problemdir. Bir nesnenin belleğe yüklenmesi
 ardışıl bir biçimde yapılırsa zamanla yükleme boşaltma işlemlerinin sonucunda bellekte çok sayıda küçük alan
-oluşmaktadır. Bu küçük alanlar ardışıl olmadığı için genellikle bir işe yaramamaktadır. Küçük alanların
+oluşmaktadır. Bu küçük alanlar ardışıl olmadığı için genellikle bir işe yazaraazlar. Küçük alanların
 toplamı oldukça büyük miktarlara varabilmekte ve toplam belleğin önemli miktarını kaplayabilmektedir.
 Bölünmenin engellenmesi için ardışıl yükleme zorunluluğunun ortadan kaldırılması gerekir. Bu durumda bellek
 bloklara ayrılır. Yüklenecek öğeler bloklara bölünerek ardışıl olmayacak biçimde boş bloklara atanır. Ancak
@@ -499,11 +495,93 @@ nesnenin hangi parçasının hangi bloklarda olduğu da bir biçimde kaydedilir.
 de disk yönetiminde benzer biçimde kullanılmaktadır. Ancak bloklama yöntemiyle bölünme ortadan kaldırılmaya
 çalışıldığında bu sefer başka bir problem ortaya çıkmaktadır. Nesnelerin son bloklarında kullanılmayan alanlar
 kalabilmektedir. Bu da bir çeşit bölünmedir. Bu bölünme durumuna *içsel bölünme (internal fragmentation)*
-denilmektedir. İçsel bölünmede yapılabilecek bir şey yoktur. Ancak içsel bölünmenin etkisi diğerine göre daha
-düşük olmaktadır.
+denilmektedir. İçsel bölünmede yapılabilecek bir şey yoktur. Ancak içsel bölünmenin olumsuz etkisi diğerine 
+göre daha düşük olmaktadır.
 
-Sanal Bellek (Virtual Memory)
------------------------------
+Paylaşılan Bellek Alanları 
+--------------------------
+
+Yukarıda da açıkladığımız gibi işletim sistemi sayfa tabloları yoluyla proseslerin bellek alanlarını tam
+olarak birbirinden izole etmektedir. Dolayısıyla bir proses istese de başka bir prosesin bellek alanına
+erişememektedir. Ancak ismine *paylaşılan bellek alanları (shared memory)* denilen bir teknik ile işletim
+sistemi farklı proseslerin aynı fiziksel sayfaya erişimini sağlayabilmektedir. Şöyle ki: İşletim sistemi iki
+prosesin sayfa tablosunda farklı sanal sayfaları aynı fiziksel sayfaya eşlerse bu iki proses farklı sanal
+adreslerle aslında aynı fiziksel sayfayı görüyor durumda olur. Örneğin:
+
+.. image:: _static/shared-physical-page.png
+   :alt: İki prosesin farklı sanal sayfalarının aynı fiziksel sayfaya eşlenmesi
+   :align: center
+   :width: 65%
+
+Görüldüğü gibi birinci prosesin 988'inci sanal sayfa numarası ikinci prosesin 357'nci sanal sayfa numarasıyla
+aynı fiziksel adrese yönlendirilmiştir. Bu iki proses farklı sanal adreslerle aslında aynı fiziksel sayfaya
+erişecektir.
+
+Sayfa Özellikleri
+-----------------
+
+Aslında sayfa tablolarında her bir sayfanın ayrıca bir de *özellik bilgisi (attribute)* bilgisine sahiptir. Yani sayfa
+tablolarındaki girişlerin (page table entry) daha gerçekçi bir formatı şöyledir:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 50 50
+   :align: center
+
+   * - Sanal Sayfa No
+     - Sayfa Özelliği
+   * - ...
+     - ...
+
+Aslında sayfa tablolarında sanal sayfa numarası tutulmamaktadır. Sayfa girişleri eşit uzunlukta olduğu için 
+zaten sanal sayfa numaralarına indeksten hareketle erişilebilmeketedir.
+
+Bir fiziksel sayfanın erişim bilgisi (yani sayfanın *read-only* mi, *read-write* mı, *executable* mı olduğu
+bilgisi) sayfa özelliğine ilişkin kısımda tutulmaktadır. Ayrıca bir fiziksel sayfa *kullanıcı modu (user
+mode)* ya da *çekirdek modu (kernel mode)* olarak da belirlenebilmektedir. İşletim sistemi prosesin tüm
+fiziksel sayfalarını *kullanıcı modu sayfası* olarak ancak çekirdeğin tüm sayfalarını *çekirdek modu sayfası*
+olarak ayarlamaktadır. Kullanıcı modundaki bir proses yalnızca kullanıcı modu sayfalarına erişebilmektedir.
+Çekirdek modu sayfalarına erişememektedir. Eğer kullanıcı modundaki bir proses çekirdek modu sayfasına erişmek
+isterse işlemci bir *içsel kesme (fault)* oluşturmakta ve işletim sistemi devreye girerek prosesi
+sonlandırmaktadır. Ancak çekirdek modunda çalışan bir kod hem çekirdek modu sayfalarına hem de kullanıcı modu
+sayfalarına erişebilmektedir. Bizim prosesimiz kullanıcı modunda çalışmaktadır. Kullanıcı modundaki prosesler
+bir kullanıcı modundaki sayfaya erişirken işlemci erişim biçimine bakar ve duruma göre yine içsel kesme
+oluşturur. Örneğin kullanıcı modundaki bir proses kullanıcı modu sayfasına yazma yapmak istesin, ancak bu
+sayfa *read-only* işaretlenmiş olsun. İşte bu durumda bir içsel kesme (page fault) oluşturulmaktadır. Bu içsel
+kesme ile işletim sistemi prosesi cezalandırarak sonlandırma yoluna gitmektedir. Ayrıca pek çok işlemci
+ailesinde bir kodun bir fiziksel sayfada çalışabilmesi için o kodun *execute* özelliğine sahip bir fiziksel
+sayfada bulunması gerekmektedir. Bu mekanizma altında örneğin bir proses *execute* olmayan bir fiziksel
+sayfadaki fonksiyonu çağırmak isterse yine işlemci içsel kesme (page fault) oluşturmaktadır. Örneğin C
+derleyicileri string'leri ELF formatında özel bir bölüme (section) yerleştirirler ve işletim sisteminin
+yükleyicisi de (UNIX/Linux sistemlerindeki exec fonksiyonları) bu sayfaları sayfa tablosunda oluştururken bu
+sayfaların özelliklerini *read-only* yaparlar. Böylece biz bir string'i değiştirmek istediğimizde koruma
+mekanizması yüzünden prosesimiz sonlandırılır. Zaten C'de string'lerin güncellenmesi *tanımsız davranış
+(undefined behavior)* kabul edilmektedir. Benzer biçimde derleyiciler genellikle global const nesneleri de
+yine *read-only* bölümlere (sections) yerleştirmektedir. (Ancak yerel const nesneler stack'te olduğu için
+read-only yerleştirilememektedir.) C'de const nesnelerin de güncellenmesinin tanımsız davranış oluşturduğunu
+anımsayınız.
+
+Aşağıdaki programı derleyerek çalıştırmayı deneyiniz. Program çalıştırıldığında *page fault* oluşacak ve
+program sonlandırılacaktır.
+
+.. code-block:: c
+
+   #include <stdio.h>
+
+   const int x = 10;
+
+   int main(void)
+   {
+       char *str = "ankara";
+
+       *str = 'a';     /* program çökecek */
+       puts(s);
+
+       return 0;
+   }
+
+Sanal Bellek
+============
 
 Şimdi de *sanal bellek (virtual memory)* kavramı üzerinde duralım.
 
@@ -578,7 +656,7 @@ edilir. Yapılacak şey sisteme yeni swap alanları eklemektir. Bunun Linux'ta n
 kaynaklardan öğrenebilirsiniz.
 
 Minimum Working Set
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 Peki işletim sistemi programı belleğe yüklerken baştan kaç sayfayı yüklemektedir? İşte buna *minimum working
 set* denilmektedir. İşletim sistemleri genel olarak bir program için en az yüklenebilecek sayfa sayısını
@@ -588,7 +666,7 @@ neredeyse boş bir sayfa tablosuyla yüklenmektedir. İzleyen paragrafta açıkl
 diskten yüklenmektedir.
 
 Sanal Bellek Mekanizmasının Gerçekleştirilmesi: Page Fault
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------
 
 Peki sanal bellek mekanizması nasıl gerçekleştirilmektedir? İşte işlemciler sanal bellek mekanizmasını
 oluşturabilmek için özel bir biçimde tasarlanmıştır. İşlemci sanal adresi fiziksel adrese dönüştürmek için
@@ -658,11 +736,8 @@ O halde sanal bellek mekanizması tipik olarak işlemci ve işletim sistemi tara
    çıkar. Artık işlemci fault oluşturan makine komutuyla çalışmasına devam eder. Ancak sayfa tablosu
    düzeltildiği için bu kez fault oluşturmaz.
 
-Sanal Bellek Yönetimi ve Proseslerarası Haberleşme
-==================================================
-
-İşletim Sisteminin Bellek Yönetimi
-----------------------------------
+Sanal Bellek Yönetimi
+=--------------------
 
 Peki işletim sisteminin *bellek yönetimi (memory management)* kısmını yazanlar hangi bilgileri tutmak
 zorundadır? İşte işletim sistemleri tipik olarak bu mekanizma için şu bilgileri çekirdek alanı içerisinde
@@ -680,8 +755,8 @@ oluşturmak zorundadır:
 
 Bellek yönetimi (memory management) bir işletim sisteminin en önemli ve en karmaşık alt sistemlerinden biridir.
 
-Sanal Belleğin Sağladıkları
----------------------------
+Sanal Belleğin Sağladığı Faydalar
+---------------------------------
 
 Peki sanal bellek toplamda bize ne sağlamaktadır? Sanal bellek mekanizması sayesinde fiziksel bellekte yeterli
 yer olmasa bile çok sayıda büyük program birlikte çalıştırılabilmektedir. Çünkü programların hepsinin fiziksel
@@ -864,87 +939,6 @@ düşünelim. İşlemler sırasıyla şöyle yürütülür:
 
       $ sudo swapon /dev/sdb2
 
-Paylaşılan Bellek Alanları (Shared Memory)
-------------------------------------------
-
-Yukarıda da açıkladığımız gibi işletim sistemi sayfa tabloları yoluyla proseslerin bellek alanlarını tam
-olarak birbirinden izole etmektedir. Dolayısıyla bir proses istese de başka bir prosesin bellek alanına
-erişememektedir. Ancak ismine *paylaşılan bellek alanları (shared memory)* denilen bir teknik ile işletim
-sistemi farklı proseslerin aynı fiziksel sayfaya erişimini sağlayabilmektedir. Şöyle ki: İşletim sistemi iki
-prosesin sayfa tablosunda farklı sanal sayfaları aynı fiziksel sayfaya eşlerse bu iki proses farklı sanal
-adreslerle aslında aynı fiziksel sayfayı görüyor durumda olur. Örneğin:
-
-.. image:: _static/ders43-paylasilan-bellek.png
-   :alt: İki prosesin farklı sanal sayfalarının aynı fiziksel sayfaya eşlenmesi
-   :align: center
-   :width: 85%
-
-Görüldüğü gibi birinci prosesin 988'inci sanal sayfa numarası ikinci prosesin 357'nci sanal sayfa numarasıyla
-aynı fiziksel adrese yönlendirilmiştir. Bu iki proses farklı sanal adreslerle aslında aynı fiziksel sayfaya
-erişecektir.
-
-Sayfa Özellikleri (Page Attributes)
------------------------------------
-
-Aslında sayfa tablolarında her bir sayfanın da ayrıca bir *özellik bilgisi (attribute)* vardır. Yani sayfa
-tablolarındaki girişlerin (page table entry) daha gerçekçi bir formatı şöyledir:
-
-.. list-table:: Sayfa tablosu girişinin daha gerçekçi formatı
-   :header-rows: 1
-   :widths: 34 33 33
-   :align: center
-
-   * - Sanal Sayfa No
-     - Fiziksel Sayfa No
-     - Sayfa Özelliği
-   * - ...
-     - ...
-     - ...
-
-Bir fiziksel sayfanın erişim bilgisi (yani sayfanın *read-only* mi, *read-write* mı, *executable* mı olduğu
-bilgisi) sayfa özelliğine ilişkin kısımda tutulmaktadır. Ayrıca bir fiziksel sayfa *kullanıcı modu (user
-mode)* ya da *çekirdek modu (kernel mode)* olarak da belirlenebilmektedir. İşletim sistemi prosesin tüm
-fiziksel sayfalarını *kullanıcı modu sayfası* olarak ancak çekirdeğin tüm sayfalarını *çekirdek modu sayfası*
-olarak ayarlamaktadır. Kullanıcı modundaki bir proses yalnızca kullanıcı modu sayfalarına erişebilmektedir.
-Çekirdek modu sayfalarına erişememektedir. Eğer kullanıcı modundaki bir proses çekirdek modu sayfasına erişmek
-isterse işlemci bir *içsel kesme (fault)* oluşturmakta ve işletim sistemi devreye girerek prosesi
-sonlandırmaktadır. Ancak çekirdek modunda çalışan bir kod hem çekirdek modu sayfalarına hem de kullanıcı modu
-sayfalarına erişebilmektedir. Bizim prosesimiz kullanıcı modunda çalışmaktadır. Kullanıcı modundaki prosesler
-bir kullanıcı modundaki sayfaya erişirken işlemci erişim biçimine bakar ve duruma göre yine içsel kesme
-oluşturur. Örneğin kullanıcı modundaki bir proses kullanıcı modu sayfasına yazma yapmak istesin, ancak bu
-sayfa *read-only* işaretlenmiş olsun. İşte bu durumda bir içsel kesme (page fault) oluşturulmaktadır. Bu içsel
-kesme ile işletim sistemi prosesi cezalandırarak sonlandırma yoluna gitmektedir. Ayrıca pek çok işlemci
-ailesinde bir kodun bir fiziksel sayfada çalışabilmesi için o kodun *execute* özelliğine sahip bir fiziksel
-sayfada bulunması gerekmektedir. Bu mekanizma altında örneğin bir proses *execute* olmayan bir fiziksel
-sayfadaki fonksiyonu çağırmak isterse yine işlemci içsel kesme (page fault) oluşturmaktadır. Örneğin C
-derleyicileri string'leri ELF formatında özel bir bölüme (section) yerleştirirler ve işletim sisteminin
-yükleyicisi de (UNIX/Linux sistemlerindeki exec fonksiyonları) bu sayfaları sayfa tablosunda oluştururken bu
-sayfaların özelliklerini *read-only* yaparlar. Böylece biz bir string'i değiştirmek istediğimizde koruma
-mekanizması yüzünden prosesimiz sonlandırılır. Zaten C'de string'lerin güncellenmesi *tanımsız davranış
-(undefined behavior)* kabul edilmektedir. Benzer biçimde derleyiciler genellikle global const nesneleri de
-yine *read-only* bölümlere (sections) yerleştirmektedir. (Ancak yerel const nesneler stack'te olduğu için
-read-only yerleştirilememektedir.) C'de const nesnelerin de güncellenmesinin tanımsız davranış oluşturduğunu
-anımsayınız.
-
-Aşağıdaki programı derleyerek çalıştırmayı deneyiniz. Program çalıştırıldığında *page fault* oluşacak ve
-program sonlandırılacaktır.
-
-.. code-block:: c
-
-   #include <stdio.h>
-
-   const int x = 10;
-
-   int main(void)
-   {
-       char *str = "ankara";
-
-       *str = 'a';     /* program çökecek */
-       puts(s);
-
-       return 0;
-   }
-
 Copy-on-Write
 -------------
 
@@ -963,86 +957,3 @@ mmap fonksiyonu ile dosya tabanlı haritalama yaptığı için bunlar ortak fizi
 olurlar.) Copy-on-write mekanizması modern işletim sistemlerinde sistem performansını yükselten önemli bir
 mekanizmadır.
 
-Proseslerarası Haberleşme (Interprocess Communication)
-------------------------------------------------------
-
-Bu bölümde UNIX/Linux sistemlerinde proseslerarası haberleşme (interprocess communication) konusunu ele
-alacağız. Proseslerarası haberleşme oldukça önemli ve ayrıntılı bir konudur.
-
-İşletim sistemleri dünyasında bir prosesin başka bir prosese bilgi göndermesi ve başka bir prosesten bilgi
-almasına *proseslerarası haberleşme (interprocess communication (IPC))* denilmektedir. Burada bilgi gönderip
-almadan kastedilen şey bir grup byte'ın gönderilip alınmasıdır. Proseslerarası haberleşme önemli bir konudur.
-Çünkü sayfa tabloları yoluyla birbirinden izole edilmiş proseslerin başka yöntemlerle birbirleriyle
-haberleşmesi gerekebilmektedir. Bir program başka bir programa bir şeyler gönderebilir, o program da bunları
-işleyebilir. Proseslerarası haberleşmenin en bariz örneği *client-server* sistemlerdir. Bu sistemlerde client
-program server programa bir istek gönderir. Server program da bu isteği yerine getirip sonuçları client
-programa iletir. Client-server tarzda haberleşmenin sağlanabilmesi için proseslerarası haberleşme denilen
-mekanizmanın kullanılması gerekir. Benzer biçimde *dağıtık sistemlerde (distributed systems)* de esas olarak
-proseslerarası haberleşme mekanizmaları kullanılmaktadır.
-
-Proseslerarası haberleşme mekanizmaları iki bölümde ele alınıp incelenmektedir:
-
-1) Aynı makinenin prosesleri arasında haberleşme
-
-2) Farklı makinelerin prosesleri arasında haberleşme
-
-Aynı makinenin prosesleri arasında haberleşme işletim sisteminin sağladığı özel yöntemlerle
-gerçekleştirilmektedir. Farklı makinelerin prosesleri arasında haberleşme için ortak uyulması gereken bazı
-kuralların belirlenmiş olması gerekir. Bu ortak kurallara *protokol (protocol)* denilmektedir. Farklı
-makinelerin prosesleri arasında haberleşme için çeşitli protokol aileleri oluşturulmuştur. Ancak bunlardan en
-yaygın kullanılanı *IP (Internet Protocol)* isimli protokol ailesidir. Biz kursumuzda önce aynı makinenin
-prosesleri arasındaki haberleşme yöntemlerini inceleyeceğiz daha sonra başka bir bölümde farklı makinelerin
-prosesleri arasındaki haberleşme yöntemleri üzerinde duracağız. O bölümde IP protokol ailesini ve TCP/UDP
-haberleşmelerini ayrıntılı bir biçimde ele alacağız.
-
-Aynı makinenin prosesleri arasındaki haberleşmeler işletim sistemine bağlı bir biçimde yani işletim sistemine
-özgü bir biçimde yürütülmektedir. Ancak aynı makinenin prosesleri arasındaki haberleşmeler için işletim
-sistemlerinde birbirine benzer yöntemler kullanılmaktadır. Örneğin *boru (pipe)* haberleşmesi yöntemi
-UNIX/Linux sistemleriyle Windows sistemleri arasında benzer biçimde yürütülmektedir. *Paylaşılan bellek
-alanları (shared memory)* denilen haberleşme yöntemi de yine UNIX/Linux sistemleriyle Windows sistemlerinde
-benzer biçimde uygulanmaktadır. Ancak bazı işletim sistemlerinde o sisteme özgü özel yöntemler de
-bulunabilmektedir. Tabii biz kursumuzda UNIX/Linux sistemlerindeki proseslerarası haberleşme yöntemleri
-üzerinde duracağız.
-
-Proseslerarası haberleşme mekanizmasının iki yönü vardır. Birincisi iki prosesin haberleşeceği bir ortamın
-oluşturulmasıdır. İkincisi ise bu ortamın senkronize bir biçimde kullanılmasıdır. Yani proseslerarası
-haberleşme bir senkronizasyon sağlanarak gerçekleştirilmelidir. Biz bu bölümde sürecin senkronizasyon kısmı
-üzerinde durmayacağız. Thread senkronizasyonu thread'lerin anlatıldığı kısımda ele alınacaktır.
-
-Boru (Pipe) Haberleşmesi
-------------------------
-
-En yaygın kullanılan proseslerarası haberleşme yöntemi *boru (pipe)* haberleşmesi denilen yöntemdir. Boru
-haberleşmesi hem bir ortam sunarken hem de senkronizasyonu kendi içerisinde sağlamaktadır. Bu nedenle boru
-haberleşmesi kolay kullanılabilen bir IPC yöntemidir. Boru haberleşmeleri *isimsiz boru haberleşmeleri* ve
-*isimli boru haberleşmeleri* olmak üzere ikiye ayrılmaktadır. İsimsiz boru haberleşmelerine İngilizce *unnamed
-pipe* ya da *anonymous pipe*, isimli boru haberleşmelerine ise *named pipe* ya da *fifo* denilmektedir. Bu
-kursumuzda önce *isimsiz boru haberleşmesini*, sonra da *isimli boru haberleşmesini* anlatacağız.
-
-Peki boru nedir? Boru aslında FIFO tarzında çalışan bir kuyruk sistemidir. Bu kuyruk sistemi çekirdek
-tarafından çekirdek alanı içerisinde oluşturulmaktadır. Bir proses boruya yazma yapar, diğeri de borudan
-yazılanları okur. Boruya yazılan byte'lar FIFO prensibine göre yazılırlar, böylece borudan okuyan taraf
-olanları yazıldığı sırada okur. Örneğin boruya yazan taraf *ankara* yazısının karakterlerini boruya yazmış
-olsun. Şimdi okuyan taraf önce 'a' byte'ını sonra da sırasıyla 'n', 'k', 'a', 'r' ve 'a' byte'larını borudan
-okur.
-
-.. image:: _static/ders43-boru.png
-   :alt: Boru haberleşmesinde yazan prosesten okuyan prosese FIFO biçiminde veri akışı
-   :align: center
-   :width: 95%
-
-UNIX/Linux sistemlerinde borular birer dosya gibi ele alınmaktadır. Dolayısıyla boruya yazma işlemi *write*
-fonksiyonu ile borudan okuma işlemi ise *read* fonksiyonu ile yapılmaktadır.
-
-Boruların belli bir uzunlukları vardır. Eskiden BSD ve Linux sistemlerinde boru uzunlukları 4096 byte (bir
-sayfa) büyüklüğündeydi. Linux daha sonra default boru uzunluğunu 64K'ya (65536 byte'a (16 sayfaya))
-yükseltmiştir.
-
-UNIX/Linux sistemlerinde borular tek yönlüdür. Bu nedenle proseslerden biri boruya yazma yaparken diğeri
-borudan okuma yapar. (Halbuki örneğin Windows sistemlerinde borular çift yönlüdür.) Borunun tek yönlü olması
-demek iki prosesin de yazdıklarının aynı boruya yazılması demektir. P1 prosesi boruya yazma yapıp yine P1
-prosesi borudan okuma yaparsa kendi yazdığını okur. Bunun da bir anlamı olmaz. Halbuki çift yönlü borularda
-borudan hem okuma hem yazma yapılabilmektedir. Borudan okuma yapıldığında karşı tarafın yazdığı okunur. Ancak
-UNIX/Linux sistemlerindeki yukarıda da belirttiğimiz gibi borular tek yönlüdür. Dolayısıyla haberleşmede bir
-taraf yazma yaparken diğer taraf okuma yapmalıdır. Eğer borularla karşılıklı okuma yazma yapılmak isteniyorsa
-iki boru kullanılmalıdır.

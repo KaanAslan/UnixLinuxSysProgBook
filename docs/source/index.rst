@@ -53,5 +53,6 @@ Okuyucunun C programlama diline hâkim olduğu varsayılmaktadır.
    fileaccessdetails
    timesharing
    pagingvirtualmemory
+   ipc
    
    

@@ -4,7 +4,7 @@ Standart C Kütüpahnesinin Uyguladığı Dosya Tamponlama Mekanizması
 
 Bu bölümde standart C'deki dosya fonksiyonlarının tamponlama mekanizması üzerinde duracağız.
 
-C'nin prototipleri ``<stdio.h>`` içerisinde bulunan ve başı "f" ile başlayan dosya fonksiyonları aslında
+C'nin prototipleri ``<stdio.h>`` içerisinde bulunan ve başı ``f`` ile başlayan dosya fonksiyonları aslında
 birer *sarma fonksiyon (wrapper function)* gibidir. Biz bu fonksiyonları kullandığımızda arka planda bu
 fonksiyonlar UNIX/Linux ve macOS sistemlerinde POSIX fonksiyonlarını, Windows sistemlerinde ise Windows
 API fonksiyonlarını çağırmaktadır. Tabii bu fonksiyonlar da aslında ilgili sistemdeki sistem fonksiyonlarını
@@ -13,7 +13,7 @@ API fonksiyonlarını çağırmaktadır. Tabii bu fonksiyonlar da aslında ilgil
 
 .. figure:: _static/user-kernel-mode-switch.png
     :align: center
-    :width: 80%
+    :width: 85%
 
 ``fopen`` fonksiyonu bize ``FILE *`` türünden bir *dosya bilgi göstericisi (stream)* vermektedir. Aslında
 ``FILE`` bir ``typedef`` ismidir ve bir yapı belirtmektedir:
