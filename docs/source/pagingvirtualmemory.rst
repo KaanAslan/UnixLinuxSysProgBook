@@ -207,7 +207,7 @@ Burada ``0x06F14678`` adresi ``foo`` fonksiyonunun sanal bellek adresidir. Derle
    06F146      Sanal Sayfa No (hex)
    678         Sayfa Offset'i (hex)
 
-Sonra sayfa tablosuna gider ve 0x06F146 sayfasının hangi fiziksel sayfaya yönlendirildiğini belirler. Bu
+Sonra sayfa tablosuna gider ve ``0x06F146`` sayfasının hangi fiziksel sayfaya yönlendirildiğini belirler. Bu
 fiziksel sayfanın hex olarak ``0x7C45`` olduğunu düşünelim. O zaman işlemcinin erişeceği fiziksel adres ``0x7C45000
 + 0x678`` hex adresi olacaktır.
 
@@ -220,13 +220,13 @@ Sayfa Tablolarının Oluşturulması ve Proseslerarası Geçiş
 
 Buraya kadar şunları anladık:
 
-- Derleyici 32 bit bir sistemde sanki program ``4 GB``'lik bir fiziksel RAM'de tek başına belli bir adresten
+- Derleyici ``32 bit`` bir sistemde sanki program ``4 GB``'lik bir fiziksel RAM'de tek başına belli bir adresten
   itibaren yüklenerek çalıştırılacakmış gibi bir kod üretmektedir.
 
 - İşlemci kodu çalıştırırken her bellek erişiminde sayfa tablosuna başvurup aslında o sanal adresleri fiziksel
   adreslere dönüştürmektedir.
 
-Tabii biz yukarıdaki örnekleri basit olsun diye 32 bit işlemcilere yönelik verdik. 64 bit işlemcilerde de
+Tabii biz yukarıdaki örnekleri basit olsun diye ``32 bit`` işlemcilere yönelik verdik. ``64 bit`` işlemcilerde de
 çalışma biçimi aynıdır. Yukarıda da belirttiğimiz gibi aslında işlemciler sanal adresleri iki parçaya değil üç
 ya da dört parçaya bölmektedir.
 
@@ -322,7 +322,7 @@ fiziksel adrese dönüştürülmek zorundadır.
 
 **Yanıt:** Teorik olarak sayfalama mekanizması işlemcinin çalışmasını yavaşlatabilir. Ancak donanımsal 
 olarak sayfalama mekanizması iyi bir biçimde oluşturulduğu için buradaki hız kaybı önemsenecek ölçüde değildir. 
-Ayrıca işlemciler sayfa tablosuna erişimi azaltmak için zaten onun bazı bölümlerini kendi içlerindeki bir önbellek (cache) 
+Ayrıca işlemciler sayfa tablosuna erişimi azaltmak için zaten onun bazı bölümlerini kendi içlerindeki bir önbellek (*cache*) 
 sisteminde tutabilmektedir. Ayrıca sayfa girişlerine hızlı erişim için işlemciler *TLB (Translation Lookaside Buffer)* 
 denilen bir önbellek mekanizmasını da kullanmaktadır.
 
@@ -384,19 +384,19 @@ Sayfa Tabloları Ne Kadar Yer Kaplar?
 
 Peki sayfa tabloları ne kadar yer kaplamaktadır? ``32 bit`` mimarilerde fiziksel RAM en fazla ``4 GB`` olabilir.
 Proseslerin sanal bellek alanları da ``4 GB``'dir. O halde toplam sayfa sayısı ``4GB/4K = 2^32/2^12 = 2^20 = 1 MB``
-olur. Her sayfa tablosu girişi Intel mimarisinde 4 byte'tır. Dolayısıyla yukarıdaki basitleştirilmiş anlatıma
+olur. Her sayfa tablosu girişi Intel mimarisinde ``4 byte``'tır. Dolayısıyla yukarıdaki basitleştirilmiş anlatıma
 göre bir prosesin sayfa tablosu ``4 MB`` yer kaplar. Bu alan sayfa tablosu için çok büyüktür. Bu nedenle
 işlemcileri tasarlayanlar sayfa tablolarının kapladığı alanı küçültmek için sanal adresleri iki parçaya değil,
 üç ya da dört parçaya ayırma yoluna gitmişlerdir. Gerçekten de örneğin Intel'in ``32 bit`` mimarisinde bir sanal
 adres üç parçaya, 64 bit mimarisinde ise dört parçaya ayrılmaktadır. Bu ayrıntı kitabımızın konusu dışındadır
 **Linux Kernel - İşletim Sistemlerinin Tasarımı ve Gerçekleştirilmesi** kitabında ve **80X86 ve ARM İşlemcileride 
-Sembolik Makine Dilleri** kurs dokğmanlarında ele alınmaktadır. Biz kitabımızdaki
-çeşitli gösterimlerde ana fikri basitleştirmek için sanal adresleri iki kısma ayıracağız.
+Sembolik Makine Dilleri** kurs notlarında ele alınmaktadır. Biz kitabımızdaki çeşitli gösterimlerde ana fikri 
+basitleştirmek için sanal adresleri iki kısma ayıracağız.
 
 64 Bit Sistemlerde Sayfalama
 ----------------------------
 
-Biz yukarıda ``32 bit`` sistemler için örnekler verdik. Peki 64 bit sistemlerde durum nasıldır? ``64 bit``
+Biz yukarıda ``32 bit`` sistemler için örnekler verdik. Peki ``64 bit`` sistemlerde durum nasıldır? ``64 bit``
 sistemlerde fiziksel RAM'in teorik büyüklüğü ``2^64 = 16 EB`` olmaktadır. Dolayısıyla proseslerin teorik sanal
 bellek alanı da bu kadar olacaktır. Burada eğer sanal adres iki parçaya ayrılırsa sayfa tablolarının aşırı
 büyük yer kaplaması kaçınılmazdır. Bu nedenle ``64 bit`` sistemlerde genellikle işlemcileri tasarlayanlar sanal
@@ -406,7 +406,7 @@ derlenmektedir. Yine işletim sistemi proses için sayfa tablosu oluşturarak sa
 fiziksel sayfa numaralarına yönlendirmektedir. Tabii pek çok işletim sistemi ``16 EB`` sanal bellek alanı çok
 büyük olduğu için bunu kısıtlama yoluna da gitmektedir. Örneğin ``64 bit`` Linux yalnızca ``256 TB`` alanı kullanmaktadır.
 ``64 bit`` Windows eskiden yalnızca ``16 TB`` alan kullanıyordu, 8.1 versiyonuyla ``64 bit`` Windows da tıpkı ``64 bit`` Linux 
-gibi 256 TB alan kullanır hale gelmiştir. Bu alanlar bile bugün için çok büyüktür. Ayrıca ``64 bit`` 
+gibi ``256 TB`` alan kullanır hale gelmiştir. Bu alanlar bile bugün için çok büyüktür. Ayrıca ``64 bit`` 
 işlemcilerin çoğu ``16 EB`` çok büyük bir değer olduğu için ``64 bit`` fiziksel adres alanını desteklememektedir. 
 Aşağıda ``64 bit`` Intel işlemcilerinin gerçekte desteklediği fiziksel RAM miktarı bir tablo halinde verilmiştir:
 
@@ -773,7 +773,7 @@ sonlandırılır. Örneğin Linux çekirdekleri her prosesin kullandığı sanal
 *maple ağacı* denilen bir ver yapısı içerisinde kaydetmektedir. Böylece bir *sayfa hatası* oluştuğunda erişilmek istenen
 adresin geçerli bir adres olup olmadığını çekirdek hızlı bir biçimde tespit edebilmektedir.
 
-O halde sanal bellek mekanizması tipik olarak işlemci ve işletim sistemi tarafından tipik olarak şöyle gerçekleştirilmektedir:
+O halde sanal bellek mekanizması tipik işlemci ve işletim sistemi tarafından tipik olarak şöyle gerçekleştirilmektedir:
 
 | **1.** Proses bir sanal adrese erişmeye çalışır.
 | **2.** İşlemci sanal adresi parçalarına ayırır ve sayfa tablosuna başvurur.
@@ -821,37 +821,37 @@ Sayfalama ve sanal bellek mekanizmasında işletim sistemi de o anda sanal belle
 zorundadır. Peki işletim sisteminin kodları sayfa tablosunda sanal belleğin neresindedir? İşte genellikle
 işletim sistemi tasarımcıları sanal bellek alanını *kullanıcı alanı (user space)* ve *çekirdek alanı (kernel
 space)* biçiminde ikiye ayırmaktadır. *Kullanıcı alanı* genellikle sanal bellek alanının düşük anlamlı
-kısmında, çekirdek alanı ise yüksek anlamlı kısmında bulundurulur. Örneğin 32 bit Linux sistemleri 4 GB'lik
+kısmında, çekirdek alanı ise yüksek anlamlı kısmında bulundurulur. Örneğin ``32 bit`` Linux sistemleri `4 GB``'lik
 sanal bellek alanını şöyle ayırmıştır:
 
 .. image:: _static/ders43-sanal-bellek-32bit.png
    :alt: 32 bit Linux sistemlerinde sanal bellek alanının kullanıcı ve çekirdek alanı olarak ayrılması
    :align: center
-   :width: 60%
+   :width: 50%
 
-Bu durumda 32 bit Linux sistemlerinde bir programın kullanabileceği maksimum sanal bellek 3 GB'dir.
-(Windows'ta 2 GB kullanıcı alanı için, 2 GB da çekirdek space için ayrılmaktadır.) 64 bit Linux sistemlerinde
+Bu durumda ``32 bit`` Linux sistemlerinde bir programın kullanabileceği maksimum sanal bellek ``3 GB``'dir.
+(Windows'ta ``2 GB`` kullanıcı alanı için, ``2 GB`` da çekirdek space için ayrılmaktadır.) ``64 bit`` Linux sistemlerinde
 ise prosesin sanal bellek alanı şöyle organize edilmiştir:
 
 .. image:: _static/ders43-sanal-bellek-64bit.png
    :alt: 64 bit Linux sistemlerinde sanal bellek alanının organizasyonu
    :align: center
-   :width: 70%
+   :width: 60%
 
-Görüldüğü gibi 64 bit sistemlerde teorik sanal bellek 16 EB olduğu halde 64 bit Linux sistemleri yalnızca 256
-TB sanal belleğe izin vermektedir.
+Görüldüğü gibi 64 bit sistemlerde teorik sanal bellek ``16 EB`` olduğu halde ``64 bit`` Linux sistemleri yalnızca ``256
+TB`` sanal belleğe izin vermektedir.
 
 Proseslerin sayfa tablolarında çekirdek alanının içeriği hep aynıdır. Yani bağlamsal geçiş yapılsa bile
 çekirdek kodları hep aynı sanal adreslerde bulunmaktadır. Böylece proses çalışırken bir sistem fonksiyonu
 çağrıldığında sistem fonksiyonu her proseste hep aynı sanal adreste bulunur.
 
 Peki biz bir program içerisinde yüksek miktarda dinamik tahsisat yaptığımızda ne olur? Linux sistemlerinde
-malloc fonksiyonu brk ya da sbrk denilen sistem fonksiyonunu çağırabilmektedir. Eğer tahsis edilen alan 128
-MB'tan büyükse malloc fonksiyonu doğrudan mmap fonksiyonunu çağırmaktadır. Ancak arka planda sanal bellek
+``malloc`` fonksiyonu ``brk`` ya da ``sbrk`` denilen sistem fonksiyonunu çağırabilmektedir. Eğer tahsis edilen alan ``128
+MB``'den büyükse ``malloc`` fonksiyonu doğrudan ``mmap`` fonksiyonunu çağırmaktadır. Ancak arka planda sanal bellek
 bakımından şunlar gerçekleşir:
 
 - İşletim sistemi malloc ile tahsis edilen alanı sayfa tablosunda oluşturur. Oluştururken de tahsis edilen
-  alanın toplam takas (swap) alanından küçük olduğunu garanti etmeye çalışır. Çünkü malloc ile tahsis edilen
+  alanın toplam takas (swap) alanından küçük olduğunu garanti etmeye çalışır. Çünkü ``malloc`` ile tahsis edilen
   alan eninde sonunda takas dosyası içerisinde bulundurulacaktır.
 
 - İşletim sistemi takas dosyasının boyutu yeterliyse tahsisatı kabul etmektedir. Ancak sistemden sisteme
@@ -859,14 +859,15 @@ bakımından şunlar gerçekleşir:
   dosyasında o anda tahsisat yapılırsa bu durumda takas alanı ciddi biçimde azalacak ve belki de başka
   prosesler artık aynı tahsisatı yapamayacaktır. Ancak işletim sistemi takas dosyasında tahsisatı henüz
   yapmayabilir. Bu işlemi dinamik alan kullanıldığında yapabilir. Linux sistemleri bu yola başvurmaktadır.
-  Literatürde dinamik alan için takas dosyasında baştan yer ayrılmasına *alanın commit edilmesi*
+  Diinamik alan için takas dosyasında baştan yer ayrılmasına işletim sistemleri dünyasında *alanın commit edilmesi*
   denilmektedir.
 
-Aşağıdaki 3 GB RAM olan 2 GB takas alanına sahip 64 bit Linux sisteminde 5 GB alan dinamik olarak tahsis
+Aşağıdaki ``3 GB`` RAM olan ``2 GB`` takas alanına sahip ``64 bit`` Linux sisteminde ``5 GB`` alan dinamik olarak tahsis
 edilmek istenmiştir. Burada tahsisat başarılı gibi gözükse de tahsis edilen alan kullanılırken takas alanı
-yetersiz kalacak ve proses sonlandırılacaktır.
+yetersiz kalacak ve proses sonlandırılacaktır. Bu süreçlerin ayrıntıları **Linux Kernel - İşletim Sistmlerinin Tasarımı ve
+Gerçekleştirilmesi** kitabımızda ele alınmaktadır.
 
-O halde 64 bit Linux sistemlerinde biz teorik olarak her biri 128 TB olan onlarca programı bir arada
+O halde ``64 bit`` Linux sistemlerinde biz teorik olarak her biri ``128 TB`` olan onlarca programı bir arada
 çalıştırabiliriz. Ancak bunun için takas alanımızın da yeterli büyüklükte diskte oluşturulmuş olması gerekir.
 Takas alanının yetersizliği durumunda bir sinyal ile proses sonlandırılmaktadır.
 
@@ -897,15 +898,15 @@ Takas alanının yetersizliği durumunda bir sinyal ile proses sonlandırılmakt
        return 0;
    }
 
-Linux'ta Takas Alanının Büyütülmesi
------------------------------------
+Linux'ta Takas Alanlarının Büyütülmesi
+--------------------------------------
 
 Peki Linux'ta takas alanını nasıl büyütebiliriz? Linux'ta disk bölümleri (disk partitions) de normal dosyalar
-da takas alanı olarak kullanılabilmektedir. Bir dosyayı swap alanına dahil etmek için sırasıyla şu işlemler
+da takas alanı olarak kullanılabilmektedir. Bir dosyayı takas alanına dahil etmek için sırasıyla şu işlemler
 yapılmalıdır:
 
-1) Önce dosya içi sıfırlarla dolu bir biçimde oluşturulmalıdır. Dosyanın kök dizide oluşturulması, kullanıcı
-   ID'sinin grup ID'sinin root olması güvenli bir durumdur. Ayrıca yalnızca sahibinin (yani root prosesinin)
+| **1.** Önce dosya içi sıfırlarla dolu bir biçimde oluşturulmalıdır. Dosyanın kök dizide oluşturulması, kullanıcı
+   ID'sinin ve grup ID'sinin root yapılması güvenli bir durumdur. Ayrıca yalnızca sahibinin (yani ``root`` prosesinin)
    dosyadan okuma ve yazma yapmasına izin verilmelidir. Boş bir dosya kabuk üzerinde *dd* komutuyla ya da
    *fallocate* komutuyla oluşturulabilir. Örneğin:
 
@@ -928,7 +929,7 @@ yapılmalıdır:
       $ ls -l /extra-swapfile
       -rw-r--r-- 1 root root 4294967296 Eki 20 11:46 /extra-swapfile
 
-   Şimdi bu dosyanın erişim haklarını bizim değiştirmemiz uygun olur:
+  Dosyanın erişim haklarını şöyle değiştirebiliriz:
 
    .. code-block:: console
 
@@ -936,14 +937,14 @@ yapılmalıdır:
       $ ls -l /extra-swapfile
       -rw------- 1 root root 4294967296 Eki 20 11:46 /extra-swapfile
 
-2) Takas dosyalarının başında bir başlık dosyasının bulunması gerekir. Bu başlık dosyası *mkswap* programı
+| **2.** Takas dosyalarının başında bir başlık dosyasının bulunması gerekir. Bu başlık dosyası *mkswap* programı
    tarafından oluşturulmaktadır:
 
    .. code-block:: console
 
       $ sudo mkswap /extra-swapfile
 
-3) Artık dosyayı çekirdeğin kullanabilmesi için sisteme dahil etmemiz gerekir. Bu işlem *swapon* programıyla
+| **3.** Artık dosyayı çekirdeğin kullanabilmesi için onu sisteme dahil etmemiz gerekir. Bu işlem *swapon* programıyla
    yapılmaktadır:
 
    .. code-block:: console
@@ -961,21 +962,21 @@ dosyayı da takas dosyası olarak görürüz:
    /extra-swapfile         file            4194300         0       -3
 
 Linux dağıtımları kurulum sırasında zaten bir takas alanını sizin için oluşturmaktadır. Eğer siz kurulum
-sırasında bir *takas disk bölümü* oluşturursanız kurulum bu disk bölümünü de takas alanı olarak
-kullanmaktadır. Bazı dağıtımlarda bu soru kurulumu yapan kişiye açıkça sorulmaktadır. Daha sonra bir takas
+sırasında bir *takas disk bölümü* oluşturursanız kurulum bu disk bölümünü de takas alanı olarak kullanmaktadır. 
+Bazı dağıtımlarda bu soru kurulumu yapan kişiye açıkça da sorulabilmektedir. Tabii daha sonra bir takas
 disk bölümü oluşturursanız onu da yukarıdakine benzer bir biçimde takas alanlarına dahil edebilirsiniz.
 Örneğin *fdisk* komutu ile diskte ``/dev/sda2`` aygıtı altında bir takas disk bölümü oluşturduğumuzu
 düşünelim. İşlemler sırasıyla şöyle yürütülür:
 
-1) Yine mkswap programı ile disk bölümü sanki bir dosyaymış gibi onun başında bir başlık oluşturulur:
+| **1.** Yine mkswap programı ile disk bölümü sanki bir dosyaymış gibi onun başında bir başlık oluşturulur:
 
    .. code-block:: console
 
       $ sudo mkswap -L swap-part /dev/sda2
 
-   Buradaki -L isteğe bağlı olarak takas disk bölümüne bir etiket iliştirmek için kullanılmaktadır.
+   Buradaki ``-L`` seçeneği isteğe bağlı olarak takas disk bölümüne bir etiket iliştirmek için kullanılmaktadır.
 
-2) Yine *swapon* programı ile takas disk bölümü sisteme dahil edilir:
+| **2.** Yine *swapon* programı ile takas disk bölümü sisteme dahil edilir:
 
    .. code-block:: console
 
@@ -984,18 +985,17 @@ düşünelim. İşlemler sırasıyla şöyle yürütülür:
 Copy-on-Write Mekaniaması
 -------------------------
 
-fork işleminden sonra üst prosesin sayfa tablosuyla alt prosesin sayfa tablosu başlangıçta aynıdır. (Linux'ta
-bazı ayrıntılar vardır.) Yani iki proses de aslında aynı fiziksel sayfaları kullanmaktadır. İşletim sistemi bu
-fiziksel sayfaları *read-only* olarak işaretler. Böylece proseslerden biri bu sayfaya yazma yaptığında *page
-fault* oluşur. Bunun sonucunda işletim sistemi devreye girer ve iki fiziksel sayfayı birbirinden ayırır. Bu
-sürece copy-on-write denilmektedir. Görüldüğü gibi üst proses ile alt proses mümkün olduğunca aynı fiziksel
-sayfaları kullanmakta, ancak yazma yapıldığında bunlar ayrıştırılmaktadır. Örneğin programın makine kodlarının
-bulunduğu kısma (*.text* bölümüne) yazma yapılmaz. Bu kısım hem üst proseste hem de alt proseste aynı fiziksel
-sayfaları kullanmaktadır. Aynı durum bir programı ikinci kez çalıştırdığımızda da benzer biçimde oluşmaktadır.
-Örneğin *sample* programını iki kez çalıştıralım. İşletim sistemi mümkün olduğunca bu iki programın fiziksel
-sayfalarını ortak kullanmaktadır. Ancak değişiklik yapıldığında copy-on-write mekanizması yoluyla bunları
-birbirinden ayırmaktadır. (Aynı programın birden fazla kez çalıştırılması durumunda aslında işletim sistemi
-mmap fonksiyonu ile dosya tabanlı haritalama yaptığı için bunlar ortak fiziksel sayfaları kullanıyor durumda
-olurlar.) Copy-on-write mekanizması modern işletim sistemlerinde sistem performansını yükselten önemli bir
-mekanizmadır.
+``fork`` işleminden sonra üst prosesin sayfa tablosuyla alt prosesin sayfa tablosu kabaca başlangıçta aynıdır. 
+Yani iki proses de aslında aynı fiziksel sayfaları kullanmaktadır. İşletim sistemi bu fiziksel sayfaları *read-only* 
+olarak işaretler. Böylece proseslerden biri bu sayfaya yazma yaptığında *sayfa hatası (page fault)* oluşur. Bunun 
+sonucunda işletim sistemi devreye girer ve iki fiziksel sayfayı birbirinden ayırır. Bu sürece *copy-on-write* denilmektedir. 
+Görüldüğü gibi üst proses ile alt proses mümkün olduğunca aynı fiziksel sayfaları kullanmakta, ancak yazma yapıldığında 
+bunlar birbirinden ayrıştırılmaktadır. Örneğin programın makine kodlarının bulunduğu kısma (*.text* bölümüne) yazma 
+yapılmaz. Bu kısım hem üst proseste hem de alt proseste aynı fiziksel sayfaları kullanmaktadır. Aynı durum bir programı 
+ikinci kez çalıştırdığımızda da benzer biçimde oluşmaktadır. Örneğin *sample* programını iki kez çalıştıralım. İşletim 
+sistemi mümkün olduğunca bu iki programın fiziksel sayfalarını ortak kullanmaktadır. Ancak değişiklik yapıldığında 
+*copy-on-write* mekanizması yoluyla bunları birbirinden ayırmaktadır. (Aynı programın birden fazla kez çalıştırılması 
+durumunda aslında işletim sistemi ``mmap`` fonksiyonu ile dosya tabanlı haritalama yaptığı için bunlar ortak fiziksel 
+sayfaları kullanıyor durumda olurlar.) ``Copy-on-write`` modern işletim sistemlerinde sistem performansını yükselten 
+önemli bir mekanizmadır.
 
