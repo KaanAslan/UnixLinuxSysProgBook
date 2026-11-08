@@ -580,7 +580,7 @@ program sonlandırılacaktır.
        return 0;
    }
 
-Aşağıda kafanızda bir fikir oluşsun diye 32 bit Intel işlemcilerindeki bir sayfa girişinin gerçek formatını
+Aşağıda kafanızda bir fikir oluşsun diye ``32 bit`` Intel işlemcilerindeki bir sayfa girişinin gerçek formatını
 veriyoruz:
 
 .. figure:: _static/x86-pte-flags.png
@@ -672,7 +672,7 @@ bellekten atarak (ve gerekirse diske geri yazarak) fiziksel RAM'de yer açmaktad
 Takas Dosyaları
 ---------------
 
-İşletim sistemi programın RAM'de olmayan bir sayfasını fiziksel RAM'e yüklemek istesin (swap-in). RAM'in de 
+İşletim sistemi programın RAM'de olmayan bir sayfasını fiziksel RAM'e yüklemek istesin (*swap-in*). RAM'in de 
 tıka basa dolu olduğunu düşünelim. Bu durumda işletim sistemi RAM'den bazı sayfaları atacaktır. RAM'den sayfa 
 atılacağı zaman ya atılacak sayfa üzerinde daha önce yazma işlemleri yapıldıysa ne olacaktır? İşte içeriği
 değiştirilmiş olan bir sayfanın RAM'den atılması sırasında mecburen o sayfanın diskte saklanması gerekir.

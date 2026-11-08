@@ -1589,3 +1589,169 @@ ek grupları da alt prosese aktarılmaktadır. Yani örneğin biz kabuk üzerind
 çalıştırdığımızda kabuk prosesinin ek grupları bizim prosesimize kabuğun uyguladığı ``fork`` sonucunda
 aktarılmış olacaktır. Tabii kabuk prosesinin de ek grupları aslında ``login`` programı tarafından
 ``/etc/group`` dosyasına başvurularak ``setgroups`` fonksiyonuyla set edilmektedir.
+
+fcntl Fonksiyonu
+================
+
+Şimdi ``fcntl`` isimli POSIX fonksiyonu üzerinde duracağız. ``fcntl`` zaten açılmış olan bir dosyanın çeşitli açım
+özelliklerini değiştirmek için kullanılmaktadır. ``fcntl`` fonksiyonu sayesinde biz ``open`` fonksiyonu ile açım
+sırasında belirlediğimiz bazı açış bayraklarını daha sonra değiştirebilmekteyiz. ``fcntl`` fonksiyonu aynı zamanda
+``open`` fonksiyonu kullanılmadan yaratılmış olan betimleyicilerin özelliklerini değiştirmekte de
+kullanılabilmektedir. Örneğin ``pipe`` fonksiyonu isimsiz boruyu yarattıktan sonra bize iki betimleyici
+vermektedir. Bu iki betimleyiciyi ``open`` fonksiyonuyla biz açmadığımız için onun bazı özelliklerini ancak
+``fcntl`` fonksiyonu ile set edebiliriz. ``fcntl`` fonksiyonu yalnızca betimleyici bayraklarının set edilmesi için
+değil onların elde edilmesi için (get edilmesi için) de kullanılmaktadır. Biz daha önce close on exec bayrağını set
+etmek için ``fcntl`` fonksiyonunu zaten kullanmıştık. Ancak orada fonksiyonun genel tanıtımını yapmamıştık.
+
+``fcntl`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <fcntl.h>
+
+    int fcntl(int fd, int cmd, ...);
+
+Fonksiyonun birinci parametresi bayrakları set ya da get edilecek betimleyicinin numarasını almaktadır. İkinci
+parametre ne yapılacağını belirtmektedir. Bu parametreye önceden belirlenmiş sembolik sabitlerle define edilmiş bazı
+değerler girilmektedir. Fonksiyon get etme amacıyla kullanılıyorsa iki argümanla çağrılmaktadır. Ancak set etme
+amacıyla kullanılıyorsa üç argümanla çağrılmaktadır. Fonksiyon başarı durumunda eğer get amaçlı kullanıldıysa
+ilgili get edilen değere, eğer set amaçlı kullanıldıysa ``-1`` dışındaki herhangi bir değere ve başarısızlık
+durumunda ise ``-1`` değerine geri dönmektedir. Tabii eğer fonksiyon get amaçlı kullanılıyorsa ve betimleyici ile
+komut parametresi doğru bir biçimde verilmişse fonksiyonun başarısız olma olasılığı yoktur.
+
+Fonksiyonun ikinci parametresi ``F_GETFL`` ve ``F_SETFL`` biçiminde girilirse bu durumda fonksiyon *dosya durum
+bayraklarını (file status flags)* ve *erişim modunu (access modes)* get ve set etmektedir. Dosya durum bayrakları
+(file status flags) şunlardır:
+
+.. code-block:: text
+
+    O_APPEND
+    O_DSYNC
+    O_NONBLOCK
+    O_RSYNC
+    O_SYNC
+
+Biz bu bayraklardan yalnızca ``O_APPEND`` bayrağını ``open`` fonksiyonunu anlatırken açıklamıştık. Dosya erişim
+modları da şunlardan oluşmaktadır:
+
+.. code-block:: text
+
+    O_EXEC
+    O_RDONLY
+    O_RDWR
+    O_SEARCH
+    O_WRONLY
+
+Programcı dosya durum bayraklarını ``F_GETFL`` ile elde edip fonksiyonun geri dönüş değerini dosya durum
+bayraklarıyla bit AND işlemine sokarak ilgili bayrağın set edilip edilmediğini anlayabilir. Örneğin:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFL);
+    if (result & O_APPEND) {
+        /* O_APPEND bayrağı set edilmiş */
+    }
+
+Eğer programcı dosya erişim modlarını elde etmek istiyorsa erişim modları ile bit AND işlemini kullanmamalıdır.
+Bunun için önce fonksiyonun geri dönüş değeri ``O_ACCMODE`` değeri ile bit AND işlemine sokulup erişim modlarıyla
+``==`` karşılaştırması yapılmalıdır. Örneğin biz dosyanın ``O_RDWR`` modunda açılıp açılmadığını anlamak
+isteyelim. Bu işlemi şöyle yapmamalıyız:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFL);
+    if (result & O_RDWR) {        /* dikkat! hatalı kullanım */
+        ...
+    }
+
+Bu işlemin şöyle yapılması gerekir:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFL);
+    if ((result & O_ACCMODE) == O_RDWR) {        /* doğru kullanım */
+        /* O_RDWR bayrağı set edilmiş */
+    }
+
+Şimdi ``F_SETFL`` komutuyla ``O_NONBLOCK`` bayrağını set etmek isteyelim. İşlemi şöyle yapabiliriz:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFL);
+    if (fcntl(fd, F_SETFL, result|O_NONBLOCK) == -1)
+        exit_sys("fcntl");
+
+``F_SETFL`` işleminde hem dosya durum bayraklarının hem de erişim modunun set edilmeye çalışıldığına dikkat ediniz.
+Diğer bayraklara dokunmadan yalnızca ``O_NONBLOCK`` bayrağının set edilmesi için önce get işleminin yapılması
+gerekir. Şimdi de ``O_NONBLOCK`` bayrağını clear edelim:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFL);
+    if (fcntl(fd, F_SETFL, result & ~O_NONBLOCK) == -1)
+        exit_sys("fcntl");
+
+``fcntl`` fonksiyonunda ``F_GETFD`` ve ``F_SETFD`` komut kodları *dosya betimleyici bayraklarını* get ve set
+etmekte kullanılmaktadır. POSIX standartları dosya betimleyici bayrağı olarak yalnızca tek bir bayrak
+tanımlamıştır. Bu bayrak ``FD_CLOEXEC`` bayrağıdır. Dolayısıyla biz bu komut kodu ile yalnızca dosyanın
+*close-on-exec* bayrağını get ve set edebiliriz. Biz de zaten daha önce dosyanın close-on-exec bayrağını alıp set
+etmiştik. Dosyanın close-on-exec bayrağı şöyle alınabilir:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFD);
+    if (result & FD_CLOEXEC) {
+        /* close on exec bayrağı set edilmiş durumda */
+    }
+
+Dosyanın close-on-exec bayrağını şöyle set edebiliriz:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFD);
+    if (fcntl(fd, F_SETFD, result | FD_CLOEXEC) == -1)
+        exit_sys("fcntl");
+
+Dosyanın close-on-exec bayrağını şöyle clear edebiliriz:
+
+.. code-block:: c
+
+    result = fcntl(fd, F_GETFD);
+    if (fcntl(fd, F_SETFD, result & ~FD_CLOEXEC) == -1)
+        exit_sys("fcntl");
+
+Biz dosya betimleyicisini çiftlemek için daha önce ``dup`` ve ``dup2`` fonksiyonlarını kullanmıştık. Aslında dosya
+betimleyicilerinin çiftlenmesi ``fcntl`` fonksiyonuyla da yapılabilmektedir. Bunun için ``fcntl`` fonksiyonunda
+komut kodu olarak ``F_DUPFD`` kullanılır. Bu komut kodunda üçüncü parametre de girilmelidir. Fonksiyon üçüncü
+parametrede belirtilen betimleyici değerine eşit ya da ondan büyük olan en düşük boş betimleyiciyi bize verir. Bu
+bakımdan ``fcntl`` ile dosya betimleyicisinin çiftlenmesi ``dup`` ve ``dup2`` fonksiyonlarından farklıdır.
+Anımsanacağı gibi ``dup`` fonksiyonu bize ilk boş betimleyiciyi, ``dup2`` fonksiyonu ise ikinci parametresiyle
+belirttiğimiz betimleyiciyi vermektedir. Oysa ``fcntl`` fonksiyonu ``F_DUPFD`` komut koduyla bize belli bir
+değerden büyük en düşük betimleyici verir. Örneğin:
+
+.. code-block:: c
+
+    if ((fd2 = fcntl(fd, F_DUPFD, 50)) == -1)
+        exit_sys("fcntl");
+
+Burada ``fd``'nin çiftlenmiş betimleyicisi ``50`` ya da ilk büyük betimleyicidir. O halde ``fcntl`` ile ``dup``
+fonksiyonunun eşdeğeri şöyledir:
+
+.. code-block:: c
+
+    if ((fd2 = fcntl(fd, F_DUPFD, 0)) == -1)    /* dup ile eşdeğer */
+        exit_sys("fcntl");
+
+Ayrıca ``fcntl`` fonksiyonunun ``F_DUPFD_CLOEXEC`` biçiminde bir komut daha vardır. Bu komut kodu hem ``F_DUPFD``
+hem de close on exec bayrağının set edilmesini birlikte yapmaktadır. Yani özetle bu komut kodu hem dosya
+betimleyicisini çiftler hem de çiftlenmiş olan yeni betimleyicinin close on exec bayrağını set eder. Örneğin:
+
+.. code-block:: c
+
+    if ((fd2 = fcntl(fd, F_DUPFD_CLOEXEC, 0)) == -1)
+        exit_sys("fcntl");
+
+``fd2`` betimleyicisinin aynı zamanda close on exec bayrağı set edilmiştir.
+
+``fcntl`` fonksiyonunun diğer komut kodları dosya kilitleme gibi özel bazı konulara ilişkindir. Bu bayraklar o
+konuların anlatıldığı bölümde ele alınmaktadır.

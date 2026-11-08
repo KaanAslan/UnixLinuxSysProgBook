@@ -4,7 +4,7 @@
 
 .. rst-class:: lead
 
-   Bu kitap **Kaan ASLAN** tarafından *C ve Sistem Programcıları Derneği*'nde verilen **UNIX/Linux Sistem Programlama** 
+   Bu kitap **Kaan ASLAN** tarafından onun *C ve Sistem Programcıları Derneği*'nde verdiği **UNIX/Linux Sistem Programlama** 
    kursundaki kurs notları temel alınarak oluşturulmuştur. 
    
    Kitaptaki içerik belli bir kaynak referans alınarak oluşturulmamıştır ve içeriğin oluşturulmasında yapay zeka araçlarından 
