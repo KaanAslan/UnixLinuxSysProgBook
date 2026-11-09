@@ -397,32 +397,30 @@ haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
    }
 
 Peki isimsiz boru haberleşmesinde neden okuyan taraf yazma betimleyicisini, yazan taraf da okuma
-betimleyicisini kapatmaktadır? İşte read fonksiyonunun 0 ile geri dönmesi için boruya yazma potansiyelinde
+betimleyicisini kapatmaktadır? İşte ``read`` fonksiyonunun ``0`` ile geri dönmesi için boruya yazma potansiyelinde
 olan tek bir betimleyicinin bulunuyor olması gerekir. Eğer okuyan taraf yazma betimleyicisini kapatmazsa yazan
 taraf yazma betimleyicisini kapatsa bile boruya hala yazma potansiyelinde olan bir betimleyici kaldığı için
-read fonksiyonu 0 ile geri dönmeyecektir. Bu durumda haberleşmenin sonlandırılması sorunlu hale gelecektir.
+``read`` fonksiyonu ``0`` ile geri dönmeyecektir. Bu durumda haberleşmenin sonlandırılması sorunlu hale gelecektir.
 Yazan tarafın okuma betimleyicisini kapatmasının diğer durumdaki gibi kritik bir önemi yoktur. Ancak
 kullanılmayan betimleyicilerin kapatılması her zaman iyi bir tekniktir.
 
-Üst ve Alt Prosesler Arasında Haberleşme
-----------------------------------------
-
-Üst ve alt prosesler arasında haberleşme yapmak kişilere biraz tuhaf gelebilmektedir. Çünkü fork işleminden
+Üst ve alt prosesler arasında haberleşme yapmak kişilere biraz tuhaf gelebilmektedir. Çünkü ``fork`` işleminden
 sonra zaten her iki kod da programı yazan kişi tarafından yazılmıştır. Ancak üst ve alt prosesler arasında
-boru haberleşmelerinin gerektiği önemli durumlar vardır.
+boru haberleşmelerinin gerektiği önemli durumlar vardır. İzleyen paragraflarda bunun gerekliliğini siz de 
+anlayacaksınız.
 
-Eskiden thread'ler yokken bir işi daha hızlı yapmak için prosesler kullanılıyordu. Üst proses fork yapıp alt
+Eskiden thread'ler yokken bir işi daha hızlı yapmak için prosesler kullanılıyordu. Üst proses ``fork`` yapıp alt
 prosesle koordineli bir biçimde işleri paylaşıyordu. O günlerde bu koordinasyonun sağlanması için üst ve alt
 prosesler arasında haberleşme de gerekiyordu. Thread'lerden sonra artık bu tür işlemler prosesler yerine
 thread'lerle yapılmaya başlanmıştır.
 
-Üst ve alt prosesler arasında exec sonrasında da haberleşmeler yapılabilmektedir. Tabii bu durumda exec
-yapılan alt prosesin exec sonrasında boru betimleyicilerinin numaralarını biliyor olması gerekir. Ancak stdin,
-stdout ve stderr dosyalarının betimleyicileri sabit olduğuna göre exec sonrasında haberleşme bu betimleyiciler
+Üst ve alt prosesler arasında ``exec`` sonrasında da haberleşmeler yapılabilmektedir. Tabii bu durumda ``exec``
+yapılan alt prosesin ``exec`` sonrasında boru betimleyicilerinin numaralarını biliyor olması gerekir. Ancak ``stdin``,
+``stdout`` ve ``stderr`` dosyalarının betimleyicileri sabit olduğuna göre ``exec`` sonrasında haberleşme bu betimleyiciler
 yoluyla yapılabilmektedir.
 
-Kabuğun Boru İşlemi ve mypipe Programı
---------------------------------------
+Kabuğun Boru İşleminin Örnek Gerçekleştirimi 
+--------------------------------------------
 
 Artık kabuk programının boru işlemini nasıl yaptığını anlayabiliriz. Örneğin aşağıdaki gibi bir kabuk komutu
 verilmiş olsun:
@@ -431,27 +429,28 @@ verilmiş olsun:
 
    $ ls -l | wc
 
-Burada *ls* programının stdout dosyasına yazdıklarını *wc* programı stdin dosyasından okumaktadır. Kabuk bu
+Burada *ls* programının ``stdout`` dosyasına yazdıklarını *wc* programı ``stdin`` dosyasından okumaktadır. Kabuk bu
 işlemi tipik olarak şöyle yapmaktadır:
 
-1) Kabuk önce pipe fonksiyonuyla isimsiz boruyu yaratır.
+| **1.** Kabuk önce ``pipe`` fonksiyonuyla isimsiz boruyu yaratır.
 
-2) Kabuk *ls* programını çalıştırmak için fork yapar. Böylece isimsiz boru betimleyicileri alt prosese
-   geçirilmiştir. Bundan sonra kabuk alt prosesin 1 numaralı betimleyicisini yazma amaçlı boruya
+| **2.**  Kabuk *ls* programını çalıştırmak için ``fork`` yapar. Böylece isimsiz boru betimleyicileri alt prosese
+   geçirilmiştir. Bundan sonra kabuk alt prosesin ``1`` numaralı betimleyicisini yazma amaçlı boruya
    yönlendirmektedir. Bundan sonra kabuk *ls* programını çalıştırmak için exec uygular. Artık *ls* programının
-   stdout dosyasına yazdıkları aslında boruya yazılacaktır.
+   ``stdout`` dosyasına yazdıkları aslında boruya yazılacaktır.
 
-3) Kabuk bu kez *wc* programı için fork uygular. Benzer biçimde alt prosesin bu kez 0 numaralı betimleyicisini
-   boruya yönlendirir. Bundan sonra kabuk *wc* programı için exec uygular. Artık *wc* programının stdin
-   dosyasından okudukları aslında borudan okunacaktır.
+| **3.** Kabuk bu kez *wc* programı için ``fork`` uygular. Benzer biçimde alt prosesin bu kez ``0`` numaralı
+   betimleyicisini boruya yönlendirir. Bundan sonra kabuk *wc* programı için ``exec`` uygular. Artık *wc*
+   programının ``stdin`` dosyasından okudukları aslında borudan okunacaktır.
 
-4) Bu süreç içerisinde kullanılmayan betimleyiciler kapatılır. Yalnızca boruya yazma ve borudan okuma
+| **4.**  Bu süreç içerisinde kullanılmayan betimleyiciler kapatılır. Yalnızca boruya yazma ve borudan okuma
    potansiyeline sahip olan tek bir betimleyici bırakılır.
 
-5) Boru haberleşmesinde önce yazan tarafın boruyu kapatması gerektiğini söylemiştik. Zaten *wc* programı
-   sürekli stdin dosyasından okuma yaptığına göre karşı taraf boruyu kapatınca okuma döngüsünden çıkacaktır.
+| **5.**  Boru haberleşmesinde önce yazan tarafın boruyu kapatması gerektiğini söylemiştik. Zaten *wc* programı
+   sürekli ``stdin`` dosyasından okuma yaptığına göre karşı taraf boruyu kapatınca okuma döngüsünden
+   çıkacaktır.
 
-6) Kabuk wait fonksiyonlarıyla alt proseslerin sonlanmasını bekler.
+| **6.**  Kabuk ``wait`` fonksiyonlarıyla alt proseslerin sonlanmasını bekler.
 
 Şimdi kabuğun yaptığı bu yönlendirmeyi yapan bir programı biz yazalım. Programımızın ismi *mypipe* olsun.
 Program şöyle kullanılacaktır:
@@ -460,14 +459,14 @@ Program şöyle kullanılacaktır:
 
    $ ./mypipe "prog1 arg1 arg2 ... | prog2 arg1 arg2 ..."
 
-Program buradaki *|* sembolünün yerini bulur. Sonra bunun iki tarafını strtok ile parse ederek iki ayrı
-gösterici dizisine yerleştirir. Sonra üst proses pipe fonksiyonuyla boruyu yaratır. Soldaki ve sağdaki
-programlar için fork işlemi yapar. Soldaki programı henüz exec ile çalıştırmadan o alt prosesin 1 numaralı
-betimleyicisini boruya yönlendirir. Benzer biçimde sağdaki programı henüz çalıştırmadan o prosesin de 0
-numaralı betimleyicisini boruya yönlendirir. Sonra da exec işlemlerini uygular. Bu süreç içerisinde
+Program buradaki ``|'`` karakterinin yerini bulur. Sonra bunun iki tarafını ``strtok`` ile parse ederek iki ayrı
+gösterici dizisine yerleştirir. Sonra üst proses ``pipe`` fonksiyonuyla boruyu yaratır. Soldaki ve sağdaki
+programlar için ``fork`` işlemi yapar. Soldaki programı henüz ``exec`` ile çalıştırmadan o alt prosesin ``1``
+numaralı betimleyicisini boruya yönlendirir. Benzer biçimde sağdaki programı henüz çalıştırmadan o prosesin de
+``0`` numaralı betimleyicisini boruya yönlendirir. Sonra da exec işlemlerini uygular. Bu süreç içerisinde
 kullanılmayan betimleyicileri de kapatmaktadır.
 
-Biz aşağıdaki örneğimizde önce komut satırı argümanını parse_args fonksiyonuyla '|' karakterinden parse ettik:
+Biz aşağıdaki örneğimizde önce komut satırı argümanını ``parse_args`` fonksiyonuyla  ``|`` karakterinden parse ettik:
 
 .. code-block:: c
 
