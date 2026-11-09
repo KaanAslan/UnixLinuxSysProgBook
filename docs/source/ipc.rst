@@ -463,7 +463,7 @@ Program buradaki ``|'`` karakterinin yerini bulur. Sonra bunun iki tarafını ``
 gösterici dizisine yerleştirir. Sonra üst proses ``pipe`` fonksiyonuyla boruyu yaratır. Soldaki ve sağdaki
 programlar için ``fork`` işlemi yapar. Soldaki programı henüz ``exec`` ile çalıştırmadan o alt prosesin ``1``
 numaralı betimleyicisini boruya yönlendirir. Benzer biçimde sağdaki programı henüz çalıştırmadan o prosesin de
-``0`` numaralı betimleyicisini boruya yönlendirir. Sonra da exec işlemlerini uygular. Bu süreç içerisinde
+``0`` numaralı betimleyicisini boruya yönlendirir. Sonra da ``exec`` işlemlerini uygular. Bu süreç içerisinde
 kullanılmayan betimleyicileri de kapatmaktadır.
 
 Biz aşağıdaki örneğimizde önce komut satırı argümanını ``parse_args`` fonksiyonuyla  ``|`` karakterinden parse ettik:
@@ -507,7 +507,7 @@ Biz aşağıdaki örneğimizde önce komut satırı argümanını ``parse_args``
        return 0;
    }
 
-Burada fonksiyon komut satırı argümanını '|' karakterinden parse edip onun bileşenlerini pipe_args isimli bir
+Burada fonksiyon komut satırı argümanını ``'|'`` karakterinden parse edip onun bileşenlerini ``pipe_args`` isimli bir
 yapı nesnesine yerleştirdik. Programda bundan sonra isimsiz boruyu yaratıp yukarıdaki işlemleri uyguladık:
 
 .. code-block:: c
@@ -555,7 +555,8 @@ yapı nesnesine yerleştirdik. Programda bundan sonra isimsiz boruyu yaratıp yu
    close(pipefds[0]);
    close(pipefds[1]);
 
-Programda boruya yazma ve borudan okuma yapma potansiyelinde yalnızca birer betimleyici bırakıldığına dikkat ediniz.
+Programda boruya yazma ve borudan okuma yapma potansiyelinde yalnızca birer betimleyici bırakıldığına dikkat ediniz. Aşağıda
+programı bir bütün olarak veriyoruz:
 
 .. code-block:: c
 
@@ -676,4 +677,30 @@ Programda boruya yazma ve borudan okuma yapma potansiyelinde yalnızca birer bet
        perror(msg);
        exit(EXIT_FAILURE);
    }
+
+popen ve pclose Fonksiyonları
+-----------------------------
+
+İsimsiz borularla ilgili ``popen`` isimli ilginç bir yardımcı POSIX fonksiyonu da vardır. ``popen`` fonksiyonu bir
+boru yaratır, sonra kabuk programını interaktif olmayan bir biçimde (``-c`` seçeneği ile) çalıştırır. Sonra da kabuk
+programının ``stdin`` ya da ``stdout`` betimleyicilerini bu yarattığı boruya yönlendirir. Borunun diğer ucunu da
+``fdopen`` fonksiyonundan faydalanarak bir dosya bilgi göstericisine (stream) dönüştürüp bize verir. Fonksiyonun
+prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <stdio.h>
+
+    FILE *popen(const char *command, const char *mode);
+
+Fonksiyonun birinci parametresi çalıştırılacak kabuk komutunu belirtmektedir. İkinci parametre ``"r"`` ya da ``"w"``
+biçiminde girilebilir. ``'r'`` ve ``'w'`` karakterlerinin yanına ``'e'`` karakteri de getirilebilmektedir. Eğer bu
+parametre ``"r"`` girilirse kabuk komutunun ``stdout`` dosyası boruya yönlendirilir. Borunun okuma ucu da bize
+verilir. Yani bu durumda bize verilen dosyadan okuma yaptığımızda aslında kabuk komutunun ``stdout`` dosyasına
+yazdıklarını okumuş oluruz. Eğer ikinci parametre ``"w"`` olarak girilirse kabuk komutunun ``stdin`` dosyası boruya
+yönlendirilir. Bu durumda bize verilen dosyaya yazma yaptığımızda aslında boruya yazma yapmış oluruz. Kabukta
+çalıştırdığımız program da bunu ``stdin`` dosyasından okuyacaktır. Fonksiyon başarısızlık durumunda ``NULL`` adrese
+geri dönmektedir. Açış modundaki ``'w'`` ve ``'r'`` karakterlerinin yanına getirilebilen ``'e'`` karakteri bize
+verilen dosya bilgi göstericisine ilişkin dosya betimleyicisinin close-on-exec bayrağının set edileceğini
+belirtmektedir.
 
