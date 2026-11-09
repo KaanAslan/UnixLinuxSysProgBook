@@ -44,108 +44,104 @@ oluşturulmasıdır. İkincisi ise bu ortamın senkronize bir biçimde kullanıl
 haberleşme bir senkronizasyon sağlanarak gerçekleştirilmelidir. Biz bu bölümde sürecin senkronizasyon kısmı
 üzerinde durmayacağız. Thread senkronizasyonu thread'lerin anlatıldığı kısımda ele alınacaktır.
 
-Boru (Pipe) Haberleşmesi
-------------------------
+Proseslerarası haberleşme için İngilizce yaygın biçimde *IPC* kısaltması kullanılmaktadır. Biz de kitabımızda 
+bazen bu kısaltmayı kullanacağız. 
+
+Boru Haberleşmesi
+=================
 
 En yaygın kullanılan proseslerarası haberleşme yöntemi *boru (pipe)* haberleşmesi denilen yöntemdir. Boru
 haberleşmesi hem bir ortam sunarken hem de senkronizasyonu kendi içerisinde sağlamaktadır. Bu nedenle boru
 haberleşmesi kolay kullanılabilen bir IPC yöntemidir. Boru haberleşmeleri *isimsiz boru haberleşmeleri* ve
 *isimli boru haberleşmeleri* olmak üzere ikiye ayrılmaktadır. İsimsiz boru haberleşmelerine İngilizce *unnamed
-pipe* ya da *anonymous pipe*, isimli boru haberleşmelerine ise *named pipe* ya da *fifo* denilmektedir. Bu
-kursumuzda önce *isimsiz boru haberleşmesini*, sonra da *isimli boru haberleşmesini* anlatacağız.
+pipe* ya da *anonymous pipe*, isimli boru haberleşmelerine ise *named pipe* ya da *fifo* denilmektedir. Biz
+kitabımızda önce *isimsiz boru haberleşmesini*, sonra da *isimli boru haberleşmesini* anlatacağız.
 
-Peki boru nedir? Boru aslında FIFO tarzında çalışan bir kuyruk sistemidir. Bu kuyruk sistemi çekirdek
-tarafından çekirdek alanı içerisinde oluşturulmaktadır. Bir proses boruya yazma yapar, diğeri de borudan
+Peki boru nedir? Boru aslında FIFO prensibiyle çalışan bir kuyruk sistemidir. Bu kuyruk sistemi çekirdek
+tarafından çekirdek alanı içerisinde oluşturulmaktadır. Bir proses boruya yazar, diğeri de borudan
 yazılanları okur. Boruya yazılan byte'lar FIFO prensibine göre yazılırlar, böylece borudan okuyan taraf
-olanları yazıldığı sırada okur. Örneğin boruya yazan taraf *ankara* yazısının karakterlerini boruya yazmış
-olsun. Şimdi okuyan taraf önce 'a' byte'ını sonra da sırasıyla 'n', 'k', 'a', 'r' ve 'a' byte'larını borudan
-okur.
+olanları yazıldığı sırada okur. Örneğin boruya yazan taraf ``ankara`` yazısının karakterlerini (byte'larını) 
+boruya yazmış olsun. Şimdi okuyan taraf önce ``'a'`` byte'ını sonra da sırasıyla ``'n'``, ``'k'``, ``'a'``, 
+``'r'`` ve ``'a'`` byte'larını borudan okur.
 
-.. image:: _static/ders43-boru.png
+.. image:: _static/pipe-fifo.png
    :alt: Boru haberleşmesinde yazan prosesten okuyan prosese FIFO biçiminde veri akışı
    :align: center
-   :width: 95%
+   :width: 70%
 
-UNIX/Linux sistemlerinde borular birer dosya gibi ele alınmaktadır. Dolayısıyla boruya yazma işlemi *write*
-fonksiyonu ile borudan okuma işlemi ise *read* fonksiyonu ile yapılmaktadır.
+UNIX/Linux sistemlerinde borular birer dosya gibi ele alınmaktadır. Dolayısıyla boruya yazma işlemi ``write``
+fonksiyonu ile borudan okuma işlemi ise ``read`` fonksiyonu ile yapılmaktadır.
 
 Boruların belli bir uzunlukları vardır. Eskiden BSD ve Linux sistemlerinde boru uzunlukları 4096 byte (bir
-sayfa) büyüklüğündeydi. Linux daha sonra default boru uzunluğunu 64K'ya (65536 byte'a (16 sayfaya))
+sayfa) büyüklüğündeydi. Linux daha sonra varsayılan boru uzunluğunu 64K'ya (65536 byte'a (16 sayfaya))
 yükseltmiştir.
 
-UNIX/Linux sistemlerinde borular tek yönlüdür. Bu nedenle proseslerden biri boruya yazma yaparken diğeri
-borudan okuma yapar. (Halbuki örneğin Windows sistemlerinde borular çift yönlüdür.) Borunun tek yönlü olması
-demek iki prosesin de yazdıklarının aynı boruya yazılması demektir. P1 prosesi boruya yazma yapıp yine P1
-prosesi borudan okuma yaparsa kendi yazdığını okur. Bunun da bir anlamı olmaz. Halbuki çift yönlü borularda
-borudan hem okuma hem yazma yapılabilmektedir. Borudan okuma yapıldığında karşı tarafın yazdığı okunur. Ancak
-UNIX/Linux sistemlerindeki yukarıda da belirttiğimiz gibi borular tek yönlüdür. Dolayısıyla haberleşmede bir
-taraf yazma yaparken diğer taraf okuma yapmalıdır. Eğer borularla karşılıklı okuma yazma yapılmak isteniyorsa
-iki boru kullanılmalıdır.
+UNIX/Linux sistemlerinde borular tek yönlüdür. Bu nedenle proseslerden biri boruya yazma yaparken diğeri borudan
+okuma yapar. Borunun tek yönlü olması iki prosesin de yazdıklarının aynı boruya yazılması anlamına gelmektedir. Yani 
+örneğin P prosesi boruya yazma yapıp yine P prosesi borudan okuma yaparsa kendi yazdığını okur. Bunun da bir anlamı olmaz.
+Halbuki çift yönlü borularda borudan hem okuma hem yazma yapılabilmektedir. Borudan okuma yapıldığında karşı
+tarafın yazdığı okunmaktadır. Ancak UNIX/Linux sistemlerinde yukarıda da belirttiğimiz gibi borular tek yönlüdür.
+Dolayısıyla haberleşmede bir taraf yazma yaparken diğer taraf okuma yapmalıdır. Eğer borularla karşılıklı okuma
+yazma yapılmak isteniyorsa iki boru kullanılmalıdır.
 
-İsimsiz Boru Haberleşmesi (Unnamed Pipe)
-========================================
+Boruya Yazma
+------------
 
-Boruya Yazma ve Borudan Okuma
------------------------------
+Borular dosyalar gibi kullanılmaktadır. Borulardan okuma ``read`` fonksiyonu ile borulara yazma da ``write``
+fonksiyonu ile yapılmaktadır. Borulara ``write`` fonksiyonu ile yazma yapılırken yazılmak istenen byte kadar
+boruda boş yer yoksa ``write`` işlemi blokeye yol açar ve boruda yazılmak istenen miktar kadar boş alan oluşana
+kadar ``write`` çağrısını yapan thread blokede bekletilir. Örneğin biz boruya ``50`` byte yazmak isteyelim. Eğer 
+boruda en az ``50`` byte'lık boş yer varsa biz bloke olmadan bu işlemi yaparız ve ``write`` fonksiyonu ``50`` değeri 
+ile geri döner. Ancak boruda örneğin ``40`` byte boş yer varsa bu durumda ``write`` fonksiyonu boruda ``50`` byte'lık 
+yer açılana kadar blokede bekler. Boruda ``50`` byte'lık yer açıldığında bu ``50`` byte'ı boruya yazar ve ``50``
+değeri ile geri döner. Böylece bir proses sürekli boruya yazma yapar ancak karşı taraf borudan okuma yapmazsa boru 
+dolar en sonunda ``write`` fonksiyonu blokede bekler. Karşı taraf borudan okuma yaptığında boruda yer açılacaktır.
 
-Boruya Yazma (write)
-~~~~~~~~~~~~~~~~~~~~
-
-Borular dosyalar gibi kullanılmaktadır. Borulardan okuma read fonksiyonu ile borulara yazma da write
-fonksiyonu ile yapılmaktadır. Borulara write fonksiyonu ile yazma yapılırken yazılmak istenen byte kadar
-boruda boş yer yoksa write işlemi blokeye yol açar ve boruda yazılmak istenen miktar kadar boş alan oluşana
-kadar ilgili thread blokede bekletilir. Örneğin biz boruya 50 byte yazmak isteyelim. Eğer boruda en az 50
-byte'lık boş yer varsa biz bloke olmadan bu işlemi yaparız ve write fonksiyonu 50 değeri ile geri döner. Ancak
-boruda örneğin 40 byte boş yer varsa bu durumda write fonksiyonu boruda 50 byte'lık yer açılana kadar blokede
-bekler. Boruda 50 byte'lık yer açıldığında bu 50 byte'ı boruya yazar ve 50 değeri ile geri döner. Böylece bir
-proses sürekli boruya yazma yapar ancak karşı taraf borudan okuma yapmazsa boru dolar en sonunda write
-fonksiyonu blokede bekler. Karşı taraf borudan okuma yaptığında boruda yer açılmaktadır.
-
-Borulara yazma işlemi atomik düzeyde yapılmaktadır. Atomik yazma demekle *sanki yazma işleminin tek hamlede
-araya hiçbir akış girmeden yapılması* kastedilmektedir. Örneğin write fonksiyonu ile boruya 50 byte yazılmak
-istendiğinde bu 50 byte tek hamlede araya kimse girmeden yazılmaktadır. Atomik işlemlerde dıştaki gözlemci bir
-olayı ya olmamış görür ya da olmuş görür. Olayı bir süreç içerisinde gerçekleşiyormuş gibi görmez. Bu
+Borulara yazma işlemi atomik düzeyde yapılmaktadır. Atomik yazma demekle "sanki yazma işleminin tek hamlede
+araya hiçbir akış girmeden yapılması" kastedilmektedir. Örneğin ``write`` fonksiyonu ile boruya ``50`` byte yazılmak
+istendiğinde bu ``50`` byte tek hamlede araya kimse girmeden yazılmaktadır. Atomik işlemlerde dıştaki gözlemci bir
+olayı ya olmuş görür ya da olmamış görür. Olayı bir süreç içerisinde gerçekleşiyormuş gibi görmez. Bu
 atomiklikten dolayı farklı prosesler aynı boruya aynı anda yazma yapsalar bile bu yazılanlar iç içe
-geçmemektedir. Ancak borularda PIPE_BUF denilen bir sembolik sabit değeri vardır. Eğer iki prosesten en az
-biri bu PIPE_BUF değerinden daha yüksek miktarda byte'ı boruya yazmak isterse bu durumda iç içe geçme
-oluşabilir. Yani PIPE_BUF değerinden daha fazla bir değerin boruya yazılması atomik değildir. Birden fazla
-prosesin aynı boruya aynı zamanda yazma yapması durumunda iç içe geçmenin olmaması için yazılanların PIPE_BUF
-sembolik sabitinden daha küçük ya da ona eşit olması gerekir. PIPE_BUF pek çok sistemde (Linux'ta da böyle)
-4096 değerindedir. Burada önemli bir nokta şudur: Biz PIPE_BUF değerinden daha fazla byte'ı boruya yazmak
+geçmemektedir. Ancak borularda ``PIPE_BUF`` denilen bir sembolik sabit değeri vardır. Eğer iki prosesten en az
+biri bu ``PIPE_BUF`` değerinden daha yüksek miktarda byte'ı boruya yazmak isterse bu durumda iç içe geçme
+oluşabilir. Yani ``PIPE_BUF`` değerinden daha fazla bir değerin boruya yazılması atomik değildir. Birden fazla
+prosesin aynı boruya aynı zamanda yazma yapması durumunda iç içe geçmenin olmaması için yazılanların ``PIPE_BUF``
+değerinden daha küçük ya da ona eşit olması gerekir. ``PIPE_BUF`` pek çok sistemde (Linux'ta da böyle)
+``4096`` değerindedir. Burada önemli bir nokta şudur: Biz ``PIPE_BUF`` değerinden daha fazla byte'ı boruya yazmak
 istediğimizde yine tüm bilgi boruya yazılana kadar bloke oluşmaktadır. Ancak bu durumda iç içe geçmeme garanti
-edilememektedir. PIPE_BUF değerinin borunun uzunluğunu belirtmediğine, atomik yazma için bir sınır değer
+edilememektedir. ``PIPE_BUF`` değerinin borunun uzunluğunu belirtmediğine, atomik yazma için bir sınır değer
 belirttiğine dikkat ediniz. Yazan taraf borunun uzunluğundan fazla bilgiyi boruya yazmaya çalışabilir. Bu
 durum geçerlidir, yine tüm bilgi boruya yazılana kadar bloke oluşmaktadır.
 
-Normal olarak borulara yazma yaparken write fonksiyonu tüm byte'lar yazılana kadar bloke oluşturduğuna göre
-write fonksiyonunun yazılmak istenen byte sayısı ile geri dönmesi beklenir. Gerçekten de hemen her zaman böyle
-olmaktadır. Ancak write fonksiyonu ile boruya yazma yapılırken bir sinyal oluşursa bu durumda POSIX
-standartları kısmi yazma yapılabileceğini söylemektedir. Ancak Linux sistemlerinde kısmi yazma yapılmamaktadır
-bu durumda write fonksiyonu boruya hiçbir şey yazmadan başarısız olur ve -1 değeri ile geri döner. errno
-değişkeni de EINTR değeriyle set edilir. Linux sistemlerinde yine write fonksiyonu boruda yeterince yer yoksa
-ve blokeye yol açmışsa sinyal oluştuğunda boruya bir şey yazmadan -1 ile geri dönmektedir. (Yani blokeli boru
+Normal olarak borulara yazma yaparken ``write`` fonksiyonu tüm byte'lar yazılana kadar bloke oluşturduğuna göre
+``write`` fonksiyonunun yazılmak istenen byte sayısı ile geri dönmesi beklenir. Gerçekten de hemen her zaman böyle
+olmaktadır. Ancak ``write`` fonksiyonu ile boruya yazma yapılırken bir sinyal oluşursa bu durumda POSIX
+standartları kısmi yazma yapılabileceğini söylemektedir. Ancak Linux sistemlerinde kısmi yazma yapılmamaktadır.
+Bu durumda ``write`` fonksiyonu boruya hiçbir şey yazmadan başarısız olur ve ``-1`` değeri ile geri döner. ``errno``
+değişkeni de ``EINTR`` değeriyle set edilir. Linux sistemlerinde yine ``write`` fonksiyonu boruda yeterince yer yoksa
+ve blokeye yol açmışsa sinyal oluştuğunda boruya bir şey yazmadan ``-1`` ile geri dönmektedir. (Yani blokeli boru
 yazımlarında POSIX standartlarına göre kısmi yazım söz konusu olabilirse de Linux sistemlerinde *kısmi yazım
 (partial write)* işlemi yapılmamaktadır.)
 
-Boruya 0 byte yazılmak istenirse bu durum POSIX standartlarında *belirsiz (unspecified)* bırakılmıştır. Ancak
-pek çok UNIX türevi sistem (Linux'ta da böyle) 0 byte yazma durumunda boruya bir şey yazmamakta basit bazı
-kontroller yapıp write fonksiyonunu sonlandırmaktadır. Eğer bu kontrollerde bir sorun yoksa write fonksiyonu 0
+Boruya ``0`` byte yazılmak istenirse bu durum POSIX standartlarında *belirsiz (unspecified)* bırakılmıştır. Ancak
+pek çok UNIX türevi sistem (Linux'ta da böyle) ``0`` byte yazma durumunda boruya bir şey yazmamakta basit bazı
+kontroller yapıp ``write`` fonksiyonunu sonlandırmaktadır. Eğer bu kontrollerde bir sorun yoksa ``write`` fonksiyonu ``0``
 ile geri dönmektedir.
 
-Borudan Okuma (read)
-~~~~~~~~~~~~~~~~~~~~
+Borudan Okuma 
+-------------
 
-read fonksiyonu ile borudan okuma yapılırken read fonksiyonu eğer boru tamamen boşsa en az 1 byte boruda olana
-kadar blokeye yol açar. Ancak boruda en az 1 byte bilgi varsa read fonksiyonu okuyabildiği kadar byte'ı okur,
-blokeye yol açmadan hemen okuyabildiği byte sayısı ile geri döner. Yani read tüm byte'lar okunana kadar değil,
-en az bir byte okunana kadar beklemeye yol açmaktadır. Bu bakımdan write fonksiyonu gibi davranmamaktadır.
-Örneğin biz borudan 50 byte okumak isteyelim. Ancak boruda 10 byte bulunuyor olsun. read fonksiyonu 50 byte
-okunana kadar beklemez. O 10 byte'ı okur, 10 değeri ile geri döner. Ancak boru tamamen boşsa read fonksiyonu
-en az 1 byte boruya yazılana kadar blokede bekleyecektir. Örneğin biz borudan 50 byte okumak isteyelim. Ancak
-boruda hiç byte olmasın. Bu durumda read fonksiyonu blokede bekler. O sırada bir proses boruya 10 byte yazmış
-olsun. Şimdi read fonksiyonu bu 10 byte'ı alarak işlemini sonlandırır ve 10 değeri ile geri döner. read
+``read`` fonksiyonu ile borudan okuma yapılırken ``read``` fonksiyonu eğer boru tamamen boşsa en az ``1`` byte boruda olana
+kadar blokeye yol açar. Ancak boruda en az ``1`` byte bilgi varsa ``read`` fonksiyonu okuyabildiği kadar byte'ı okur,
+blokeye yol açmadan hemen okuyabildiği byte sayısı ile geri döner. Yani ``read`` fonksiyonu tüm byte'lar okunana kadar değil,
+en az ``1`` byte okunana kadar beklemeye yol açmaktadır. Bu bakımdan ``write`` fonksiyonu gibi davranmamaktadır.
+Örneğin biz borudan ``50`` byte okumak isteyelim. Ancak boruda ``10`` byte bulunuyor olsun. ``read`` fonksiyonu ``50`` byte
+okunana kadar beklemez. O ``10`` byte'ı okur, ``10`` değeri ile geri döner. Ancak boru tamamen boşsa ``read`` fonksiyonu
+en az ``1`` byte boruya yazılana kadar blokede bekleyecektir. Örneğin biz borudan ``50`` byte okumak isteyelim. Ancak
+boruda hiç byte olmasın. Bu durumda ``read`` fonksiyonu blokede bekler. O sırada bir proses boruya ``10`` byte yazmış
+olsun. Şimdi ``read`` fonksiyonu bu ``10`` byte'ı alarak işlemini sonlandırır ve ``10`` değeri ile geri döner. ``read``
 fonksiyonu ile borudan okuma yapılırken sinyal oluştuğunda POSIX standartları boruda okunmak istenen byte
-kadar bilgi olsa bile POSIX standartları kısmi okuma (partial read) yapılabileceğini belirtmektedir. Ancak
+kadar bilgi olsa bile POSIX standartları kısmi okuma (partial ``read``) yapılabileceğini belirtmektedir. Ancak
 Linux gibi pek çok UNIX türevi sistemde bu tür durumlarda kısmi okuma yapılmamaktadır. (Yani çekirdek sinyali
 okuma işleminden sonra devreye sokmaktadır.)
 
@@ -153,27 +149,27 @@ Boru Haberleşmesinin Sonlandırılması
 ------------------------------------
 
 Peki boru haberleşmesi nasıl sonlandırılmaktadır? Boruyu kesinlikle önce yazan tarafın kapatması gerekir. Bu
-durumda okuyan taraf önce boruda kalanları okur. Artık boruda okunacak bir şey kalmamışsa ve yazan taraf da
-boruyu kapatmışsa read fonksiyonu 0 değeri ile geri döner. Yukarıda da belirttiğimiz gibi normalde read
+durumda okuyan taraf boruda kalanları okur. Artık boruda okunacak bir şey kalmamışsa ve yazan taraf da
+boruyu kapatmışsa ``read`` fonksiyonu ``0`` değeri ile geri döner. Yukarıda da belirttiğimiz gibi normalde ``read``
 fonksiyonu boruda hiç bilgi yoksa blokede beklemektedir. Ancak eğer boruya yazma potansiyelinde olan hiçbir
-betimleyici kalmadıysa bu durumda read fonksiyonu bloke olmadan 0 ile geri döner. O halde sonlandırma şöyle
-yapılmalıdır: Önce yazan taraf boruyu kapatır. Sonra okuyan taraf boruda kalanları okur ve read fonksiyonu 0
+betimleyici kalmadıysa bu durumda ``read`` fonksiyonu bloke olmadan ``0`` ile geri döner. O halde sonlandırma şöyle
+yapılmalıdır: Önce yazan taraf boruyu kapatır. Sonra okuyan taraf boruda kalanları okur ve ``read`` fonksiyonu ``0``
 ile geri döndüğünde okuyan taraf da boruyu kapatır.
 
 Boru haberleşmesinde eğer boruyu yanlış bir biçimde önce okuyan taraf kapatırsa yazan taraf boruya yazma
-yaptığında SIGPIPE isimli bir sinyal oluşmaktadır. Bu sinyal de prosesin sonlanmasına yol açacaktır. Yani
-okuma tarafı kapatılmış bir boruya yazma yapmak normal bir durum değildir. Ancak yazma tarafı kapatılmış bir
-borudan okuma yapmaya çalışmak normal bir durumdur. Yukarıda da belirttiğimiz gibi bu durumda read fonksiyonu
-boruda bir şey kalmadıysa 0 ile geri dönecektir.
+yaptığında ``SIGPIPE`` isimli bir sinyal oluşmaktadır. Bu sinyal de eğer ele alınmadıysa prosesin sonlanmasına yol 
+açacaktır. Yani okuma tarafı kapatılmış bir boruya yazma yapmak normal bir durum değildir. Ancak yazma tarafı kapatılmış bir
+borudan okuma yapmaya çalışmak normal bir durumdur. Yukarıda da belirttiğimiz gibi bu durumda ``read`` fonksiyonu
+boruda bir şey kalmadıysa ``0``, ile geri dönecektir.
 
-İsimsiz Boru Haberleşmesinin Aşamaları
---------------------------------------
+İsimsiz Boru Haberleşmesi
+=========================
 
-İsimsiz boru haberleşmesi yalnızca üst ve alt proseslerarasında yapılabilen bir haberleşmedir. İsimsiz boru
+İsimsiz boru haberleşmesi yalnızca üst ve alt prosesler arasında yapılabilen bir haberleşmedir. İsimsiz boru
 haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
 
-1) Üst proses henüz fork ile alt prosesi yaratmadan önce pipe isimli POSIX fonksiyonu ile isimsiz boruyu
-   yaratmalıdır. pipe fonksiyonunun prototipi şöyledir:
+| **1.** Üst proses henüz ``fork`` ile alt prosesi yaratmadan önce ``pipe`` isimli POSIX fonksiyonu ile isimsiz boruyu
+   yaratmalıdır. ``pipe`` fonksiyonunun prototipi şöyledir:
 
    .. code-block:: c
 
@@ -181,37 +177,36 @@ haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
 
       int pipe(int pipefd[2]);
 
-   pipe fonksiyonu int türden bir dizinin başlangıç adresini parametre olarak alır. (Prototipteki dekleratör
-   bir gösterici dekleratörüdür. Bunun bu biçimde belirtilmesinin nedeni fonksiyonun iki elemanlı int bir
-   dizinin başlangıç adresini aldığını vurgulamak içindir.) pipe fonksiyonu boruyu yaratır. Borudan okuma
-   yapmak ve boruya yazma yapmak için iki dosya betimleyicisi oluşturur. O betimleyicilerin numaralarını da
-   bizim fonksiyona geçirdiğimiz iki elemanlı int diziye yerleştirir. Dizinin ilk elemanına borudan okuma
-   yapmak için kullanılacak betimleyiciyi, ikinci elemanına ise boruya yazma yapmak için kullanılacak
-   betimleyiciyi yerleştirmektedir. Tabii bu betimleyiciler dosya betimleyici tablosunda tahsis edilmiş
-   durumdadır. Bu betimleyicilerin gösterdiği dosya nesneleri boruya erişmek için gereken bilgileri
-   tutmaktadır. Bize verilen dizinin ilk elemanına yerleştirilen betimleyici read-only, dizinin ikinci
-   elemanına yerleştirilen betimleyici ise write-only bir betimleyicidir. Yani biz ilk betimleyici ile
-   yalnızca read işlemi ikinci betimleyici ile yalnızca write işlemi yapabiliriz. pipe fonksiyonunun dosya
-   betimleyici tablosundaki en düşük numaralı boş betimleyicileri vereceği POSIX standartlarında garanti
-   edilmiştir. Ancak pipe fonksiyonunun verdiği iki betimleyicinin hangisinin düşük numaralı betimleyici
-   olacağının bir garantisi yoktur. Örneğin:
+   ``pipe`` fonksiyonu ``int`` türden bir dizinin başlangıç adresini parametre olarak alır. (Prototipteki dekleratör
+   bir gösterici dekleratörüdür. Bunun bu biçimde belirtilmesinin nedeni fonksiyonun iki elemanlı ``int`` türden bir
+   dizinin başlangıç adresini aldığını vurgulamak içindir.) ``pipe`` fonksiyonu boruyu yaratır. Borudan okuma yapmak
+   ve boruya yazma yapmak için iki dosya betimleyicisi oluşturur. O betimleyicilerin numaralarını da bizim fonksiyona
+   geçirdiğimiz iki elemanlı ``int`` diziye yerleştirir. Dizinin ilk elemanına borudan okuma yapmak için kullanılacak
+   betimleyiciyi, ikinci elemanına ise boruya yazma yapmak için kullanılacak betimleyiciyi yerleştirmektedir. Tabii bu
+   betimleyiciler dosya betimleyici tablosunda tahsis edilmiş durumdadır. Bu betimleyicilerin gösterdiği dosya
+   nesneleri boruya erişmek için gereken bilgileri tutmaktadır. Bize verilen dizinin ilk elemanına yerleştirilen
+   betimleyici read-only, dizinin ikinci elemanına yerleştirilen betimleyici ise write-only bir betimleyicidir. Yani
+   biz ilk betimleyici ile yalnızca ``read`` işlemi, ikinci betimleyici ile yalnızca ``write`` işlemi yapabiliriz.
+   ``pipe`` fonksiyonunun dosya betimleyici tablosundaki en düşük numaralı boş betimleyicileri vereceği POSIX
+   standartlarında garanti edilmiştir. Ancak ``pipe`` fonksiyonunun verdiği iki betimleyicinin hangisinin düşük
+   numaralı betimleyici olacağı hakkında kesin bir belirlemede bulunulmamıştır. . Örneğin:
 
    .. code-block:: c
 
       int pipefds[2];
-       /* ... */
+      /* ... */
 
       if (pipe(pipefds) == -1)
           exit_sys("pipe");
 
    Oluşan durumu aşağıdaki şekille betimleyebiliriz:
 
-   .. image:: _static/ders44-pipe-sonrasi.png
+   .. image:: _static/pipe-fd-table.png
       :alt: pipe fonksiyonu çağrıldıktan sonra dosya betimleyici tablosu, dosya nesneleri ve boru
       :align: center
-      :width: 80%
+      :width: 50%
 
-2) Boru yaratıldıktan sonra üst prosesin fork işlemi ile alt prosesi yaratması gerekir. Anımsanacağı gibi fork
+| **2.** Boru yaratıldıktan sonra üst prosesin fork işlemi ile alt prosesi yaratması gerekir. Anımsanacağı gibi ``fork``
    işlemiyle birlikte üst prosesteki tüm betimleyiciler alt proseste de aynı değerlerle aynı dosya nesnelerini
    gösterir biçimde oluşturulmaktadır. Yani artık üst ve alt prosesler aynı numaralı betimleyicilerle boruya
    erişebilir durumda olur. Örneğin:
@@ -237,13 +232,13 @@ haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
 
    Oluşan durumu aşağıdaki şekille betimleyebiliriz:
 
-   .. image:: _static/ders44-fork-sonrasi.png
+   .. image:: _static/pipe-fd-tables-fork.png
       :alt: fork işleminden sonra üst ve alt prosesin betimleyicilerinin aynı dosya nesnelerini göstermesi
       :align: center
-      :width: 100%
+      :width: 70%
 
-3) Artık üst ve alt prosesler arasında haberleşme için bir karar verilmelidir. Kim yazacak kim okuyacaktır?
-   Bundan sonra boruya yazma ve okuma potansiyelinde olan birer betimleyici bırakılmalıdır. Yani yazan taraf
+| **3.** Artık üst ve alt prosesler arasında haberleşme için bir karar verilmelidir. Kim yazacak kim okuyacaktır?
+   Bundan sonra boruya yazma ve borudan okuma potansiyelinde olan birer betimleyici bırakılmalıdır. Yani yazan taraf
    okuma betimleyicisini, okuyan taraf yazma betimleyicisini kapatmalıdır. Örneğin üst proses boruya yazma
    yapacak olsun, alt proses borudan okuma yapacak olsun:
 
@@ -272,15 +267,47 @@ haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
    borudan okuma yapma potansiyelinde ve boruya yazma potansiyelinde tek bir betimleyici vardır. Oluşan durumu
    aşağıdaki şekille betimleyebiliriz:
 
-   .. image:: _static/ders44-kapatma-sonrasi.png
+   .. image:: _static/pipe-fd-tables-closed.png
       :alt: Üst proses okuma, alt proses yazma betimleyicisini kapattıktan sonraki durum
       :align: center
-      :width: 100%
+      :width: 75%
 
-4) Artık okuma ve yazma işlemleri read ve write fonksiyonlarıyla gerçekleştirilebilir. Örneğin:
+| **4.** Artık okuma ve yazma işlemleri read ve write fonksiyonlarıyla gerçekleştirilebilir. Örneğin:
 
-5) Haberleşmeyi sonlandırmak için yazan taraf boruyu kapatır. Okuyan taraf önce boruda kalanları okur, sonra
-   read fonksiyonu 0 ile geri döner. Böylece okuyan taraf da boruyu kapatır. Örneğin:
+.. code-block:: c
+
+    int pipefds[2];
+    pid_t pid;
+    /* ... */
+
+    if (pipe(pipefds) == -1)
+        exit_sys("pipe");
+
+    if ((pid = fork()) == -1)
+        exit_sys("fork");
+
+    if (pid != 0) {         /* parent process */
+        close(pipefds[0]);
+
+        for (int i = 0; i < 100000; ++i)
+            if (write(pipefds[1], &i, sizeof(int)) == -1)
+                exit_sys("write");
+        /* ... */
+    }
+    else {                  /* child process */
+        int val;
+
+        close(pipefds[1]);
+        for (int i = 0; i < 100000; ++i) {
+            if (read(pipefds[0], &val, sizeof(int)) == -1)
+                exit_sys("read");
+            printf("%d\n", val);
+        }
+        /* ... */
+    }
+
+| **5.** Haberleşmeyi sonlandırmak için yazan taraf boruyu kapatır. Okuyan taraf önce boruda kalanları okur, sonra
+   ``read`` fonksiyonu ``0`` ile geri döner. Böylece okuyan taraf da boruyu kapatır. Örneğin:
 
    .. code-block:: c
 
@@ -304,7 +331,7 @@ haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
           if (wait(NULL) == -1)
               exit_sys("wait");
       }
-      else  {                 /* child process */
+      else {                 /* child process */
           int val;
 
           close(pipefds[1]);
@@ -368,9 +395,6 @@ haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
        perror(msg);
        exit(EXIT_FAILURE);
    }
-
-Kullanılmayan Betimleyicilerin Kapatılma Nedeni
------------------------------------------------
 
 Peki isimsiz boru haberleşmesinde neden okuyan taraf yazma betimleyicisini, yazan taraf da okuma
 betimleyicisini kapatmaktadır? İşte read fonksiyonunun 0 ile geri dönmesi için boruya yazma potansiyelinde
