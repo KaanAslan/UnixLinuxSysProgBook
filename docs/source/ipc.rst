@@ -163,7 +163,7 @@ borudan okuma yapmaya çalışmak normal bir durumdur. Yukarıda da belirttiğim
 boruda bir şey kalmadıysa ``0``, ile geri dönecektir.
 
 İsimsiz Boru Haberleşmesi
-=========================
+-------------------------
 
 İsimsiz boru haberleşmesi yalnızca üst ve alt prosesler arasında yapılabilen bir haberleşmedir. İsimsiz boru
 haberleşmesi tipik olarak şu aşamalardan geçilerek gerçekleştirilir:
@@ -420,7 +420,7 @@ yapılan alt prosesin ``exec`` sonrasında boru betimleyicilerinin numaraların�
 yoluyla yapılabilmektedir.
 
 Kabuğun Boru İşleminin Örnek Gerçekleştirimi 
---------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Artık kabuk programının boru işlemini nasıl yaptığını anlayabiliriz. Örneğin aşağıdaki gibi bir kabuk komutu
 verilmiş olsun:
@@ -679,12 +679,12 @@ programı bir bütün olarak veriyoruz:
    }
 
 popen ve pclose Fonksiyonları
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 İsimsiz borularla ilgili ``popen`` isimli ilginç bir yardımcı POSIX fonksiyonu da vardır. ``popen`` fonksiyonu bir
 boru yaratır, sonra kabuk programını interaktif olmayan bir biçimde (``-c`` seçeneği ile) çalıştırır. Sonra da kabuk
 programının ``stdin`` ya da ``stdout`` betimleyicilerini bu yarattığı boruya yönlendirir. Borunun diğer ucunu da
-``fdopen`` fonksiyonundan faydalanarak bir dosya bilgi göstericisine (stream) dönüştürüp bize verir. Fonksiyonun
+``fdopen`` fonksiyonundan faydalanarak bir dosya bilgi göstericisine (*stream*) dönüştürüp bize verir. Fonksiyonun
 prototipi şöyledir:
 
 .. code-block:: c
@@ -810,7 +810,7 @@ geri dönüş değeri genellikle kontrol edilmemektedir.
        exit(EXIT_FAILURE);
    }
 
-Aşağıdaki örnekte popen fonksiyonu ``"w"`` mod parametresiyle çağrılmıştır. Bu durumda bizim dosyaya yazdıklarımız
+Aşağıdaki örnekte ``popen`` fonksiyonu ``"w"`` mod argümanıyla çağrılmıştır. Bu durumda bizim dosyaya yazdıklarımız
 aslında boruya yazılacak ve *wc* programı da ``stdin`` yerine borudan okuma yapacaktır.
 
 .. code-block:: c
@@ -834,29 +834,29 @@ aslında boruya yazılacak ve *wc* programı da ``stdin`` yerine borudan okuma y
 
        return 0;
    }
-
+ 
    void exit_sys(const char *msg)
    {
        perror(msg);
        exit(EXIT_FAILURE);
    }
 
-popen fonksiyonu ile aldığımız dosya bilgi göstericisinin (stream) tamponlu çalıştığına dikkat ediniz.
+``popen`` fonksiyonu ile aldığımız dosya bilgi göstericisinin (*stream*) tamponlu çalıştığına dikkat ediniz.
 Dolayısıyla yazdığımız şeyler önce tampona aktarılıp oradan boruya aktarılacaktır. Uygulamaya göre gerekirse
-fflush ile tamponu tazeleyebilirsiniz.
+``fflush`` ile tamponu tazeleyebilirsiniz.
 
-İsimli Boru Haberleşmesi (Named Pipe, FIFO)
--------------------------------------------
+İsimli Boru Haberleşmesi 
+------------------------
 
 Şimdi de isimli boruların nasıl kullanıldığını görelim. İsimsiz borular yalnızca üst ve alt prosesler
 arasındaki haberleşmelerde kullanılmaktadır. Halbuki isimli borular herhangi iki proses arasında haberleşmede
 kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan geçilerek yapılır:
 
-1) Önce *boru dosyası* ya da *fifo dosyası* denilen özel bir dosyanın yaratılması gerekir. Boru dosyaları "*ls
-   -l*" komutunda *p* dosya türü ile gösterilmektedir. Boru dosyaları gerçek disk dosyaları değildir. Yalnızca
-   bir dizin girişi içerirler. Bunların diskte bir içerik olarak karşılıkları yoktur. Bu nedenle boru
-   dosyaları hep 0 uzunlukta görüntülenmektedir. Boru dosyaları open fonksiyonuyla yaratılmaz. Bunları
-   yaratmak için mkfifo isimli POSIX fonksiyonu kullanılmaktadır. mkfifo fonksiyonunun prototipi şöyledir:
+| **1.** Önce "*boru dosyası* ya da *fifo dosyası*" denilen özel bir dosyanın yaratılması gerekir. Boru dosyaları *ls
+   -l* komutunda ``p`` dosya türü ile gösterilmektedir. Boru dosyaları gerçek birer disk dosyası belirtmezler. Yalnızca
+   bir dizin girişine ve bir de *inode* elemanına sahiptirler. Yani bunların içerikleri için diskte bir yer ayrılmamaktadır. 
+   Bu nedenle boru dosyaları hep ``0`` uzunlukta görüntülenmektedir. Boru dosyaları ``open`` fonksiyonuyla yaratılmaz. Bunları
+   yaratmak için ``mkfifo`` isimli POSIX fonksiyonu kullanılmaktadır. ``mkfifo`` fonksiyonunun prototipi şöyledir:
 
    .. code-block:: c
 
@@ -865,21 +865,21 @@ kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan 
       int mkfifo(const char *path, mode_t mode);
 
    Fonksiyonun birinci parametresi yaratılacak boru dosyasının yol ifadesini, ikinci parametresi ise erişim
-   haklarını almaktadır. Bu erişim hakları yine prosesin umask değeri ile maskelenmektedir. Fonksiyon başarı
-   durumunda 0 başarısızlık durumunda -1 değerine geri dönmektedir. Örneğin:
+   haklarını almaktadır. Bu erişim hakları yine prosesin ``umask`` değeri ile maskelenmektedir. Fonksiyon başarı
+   durumunda ``0`` başarısızlık durumunda ``-1`` değerine geri dönmektedir. Örneğin:
 
    .. code-block:: c
 
       if (mkfifo("testfifo", S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH) == -1)
           exit_sys("mkfifo");
 
-   Boru dosyaları komut satırından mkfifo isimli kabuk komutuyla yaratılabilmektedir. Örneğin:
+   Boru dosyaları komut satırından *mkfifo* isimli kabuk komutuyla da yaratılabilmektedir. Örneğin:
 
    .. code-block:: console
 
       $ mkfifo myfifo
 
-   Erişim hakları -m seçeneği ile verilebilir. Örneğin:
+   Erişim hakları ``-m`` seçeneği ile verilebilir. Örneğin:
 
    .. code-block:: console
 
@@ -887,9 +887,9 @@ kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan 
 
    Tabii komut uygulanırken kabuğun umask değeri etkili olmamaktadır.
 
-2) Boruya yazma yapan proses boruyu O_WRONLY modunda, borudan okuma yapan proses ise boruyu O_RDONLY modunda
-   açar. İsimli boru dosyasının O_RDWR modunda açılması POSIX standartlarında *tanımsız (undefined)* olarak
-   belirtilmiştir. Ancak Linux boru dosyalarının O_RDWR modunda açılmasına izin vermektedir. Örneğin:
+| **2.** Boruya yazan proses boruyu ``O_WRONLY`` modunda, borudan okuma yapan proses ise boruyu ``O_RDONLY`` modunda
+   açar. İsimli boru dosyasının ``O_RDWR`` modunda açılması POSIX standartlarında *tanımsız (undefined)* olarak
+   belirtilmiştir. Ancak Linux boru dosyalarının ``O_RDWR`` modunda açılmasına izin vermektedir. Örneğin:
 
    .. code-block:: c
 
@@ -903,28 +903,28 @@ kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan 
       if ((fd = open("myfifo", O_RDONLY)) == -1)
           exit_sys("open");
 
-   Bir proses isimli boruyu O_WRONLY modunda açmışsa başka bir proses boruyu O_RDONLY (ya da Linux'ta O_RDWR
-   modunda) açana kadar open blokede beklemektedir. Benzer biçimde bir proses boruyu O_RDONLY modunda açmışsa
-   diğer bir proses boruyu O_WRONLY (ya da Linux'ta O_RDWR modunda) açana kadar open fonksiyonu blokede
-   bekler. Linux'ta boru O_RDWR modunda açılmışsa bloke oluşmaz. Ancak bu modda açım genel olarak uygun
+   Bir proses isimli boruyu ``O_WRONLY`` modunda açmışsa başka bir proses boruyu ``O_RDONLY`` (ya da Linux'ta ``O_RDWR``
+   modunda) açana kadar ``open`` blokede beklemektedir. Benzer biçimde bir proses boruyu ``O_RDONLY`` modunda açmışsa
+   diğer bir proses boruyu ``O_WRONLY`` (ya da Linux'ta ``O_RDWR`` modunda) açana kadar ``open`` fonksiyonu blokede
+   bekler. Linux'ta boru ``O_RDWR`` modunda açılmışsa bloke oluşmaz. Ancak bu modda açım genel olarak uygun
    değildir ve yukarıda belirttiğimiz gibi POSIX standartları bunu *tanımsız (undefined)* olarak ele
-   almaktadır. open fonksiyonunun dosya betimleyici tablosundaki boş olan en düşük betimleyiciyi verdiğini
+   almaktadır. ``open`` fonksiyonunun dosya betimleyici tablosundaki boş olan en düşük betimleyiciyi verdiğini
    anımsayınız.
 
-3) Artık haberleşecek iki proses de boruyu açmıştır. Haberleşme write ve read fonksiyonlarıyla yukarıda
-   belirtildiği gibi yapılır. Yani artık buradaki haberleşmenin isimsiz boru haberleşmesinden bir farkı
-   yoktur. write ve read fonksiyonları tamamen isimsiz boru haberleşmesinde olduğu gibi davranmaktadır. Boruyu
-   O_WRONLY modunda açan prosesin write fonksiyonu ile boruya yazdıklarını boruyu O_RDONLY modunda açan proses
-   read fonksiyonuyla okuyacaktır.
+| **3.** Artık haberleşecek iki proses de boruyu açmıştır. Haberleşme ``write`` ve ``read`` fonksiyonlarıyla yukarıda
+   belirtildiği gibi yapılır. Yani artık buradaki haberleşmenin isimsiz boru haberleşmesinden bir farkı yoktur.
+   ``write`` ve ``read`` fonksiyonları tamamen isimsiz boru haberleşmesinde olduğu gibi davranmaktadır. Boruyu
+   ``O_WRONLY`` modunda açan prosesin ``write`` fonksiyonu ile boruya yazdıklarını boruyu ``O_RDONLY`` modunda açan
+   proses ``read`` fonksiyonuyla okuyacaktır.
 
-4) Haberleşmenin sonunda yine yazan taraf boruyu kapatır, okuyan tarafın read fonksiyonu 0 ile geri döner.
+| **4.**  Haberleşmenin sonunda yine yazan taraf boruyu kapatır, okuyan tarafın ``read`` fonksiyonu ``0`` ile geri döner.
    Böylece okuyan taraf da boruyu kapatır. İsimli boruyu kullanan hiçbir betimleyici kalmadığında isimli
    borunun içi silinmektedir. Örneğin isimli boruyu iki proses de açmış olsun. Birinin yazdığını diğerinin
    okuduğunu varsayalım. Yazan taraf boruyu kapattıktan sonra okuyan taraf borudakilerin hepsini okumadan
    boruyu kapatırsa boru içinde kalan bilgiler silinmektedir. Borudaki bilgilerin prosesler boruyu kapattıktan
    sonra saklanmadığına dikkat ediniz.
 
-5) Eğer boru dosyası proseslerden biri tarafından mkfifo fonksiyonuyla yaratılmışsa unlink ya da remove
+| **5.**  Eğer boru dosyası proseslerden biri tarafından ``mkfifo`` fonksiyonuyla yaratılmışsa ``unlink`` ya da ``remove``
    fonksiyonuyla yine ilgili proses tarafından silinebilir. Eğer boru komut satırından *mkfifo* komutuyla
    yaratılmışsa bu durumda yine komut satırından *rm* komutu ile silme yapılabilir. Tabii boru dosyası başka
    bir haberleşme için de kullanılacaksa silinmeden de bekletilebilir. Örneğin:
@@ -953,8 +953,9 @@ Programları derleyip ayrı terminallerden çalıştırabilirsiniz:
    $ ./pipe-read
    $ ./pipe-write
 
+``pipe-write.c``
+
 .. code-block:: c
-   :caption: pipe-write.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -983,8 +984,9 @@ Programları derleyip ayrı terminallerden çalıştırabilirsiniz:
        exit(EXIT_FAILURE);
    }
 
+``pipe-read.c``
+
 .. code-block:: c
-   :caption: pipe-read.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1017,13 +1019,11 @@ Programları derleyip ayrı terminallerden çalıştırabilirsiniz:
        exit(EXIT_FAILURE);
    }
 
-mkfifo Komutunun Yazımı
-~~~~~~~~~~~~~~~~~~~~~~~
+Aşağıda da *mkfifo* komutunun yazımına örnek verilmiştir.
 
-Aşağıda da mkfifo komutunun yazımına örnek verilmiştir.
+``mymkfifo.c``
 
 .. code-block:: c
-   :caption: mymkfifo.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1100,21 +1100,19 @@ Aşağıda da mkfifo komutunun yazımına örnek verilmiştir.
        exit(EXIT_FAILURE);
    }
 
-Klavyeden Alınan Yazının Borudan Aktarılması
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Aşağıdaki örnekte *prog1* programı zaten komut satırında yaratılmış olan ``mypipe`` dosyasına yazma yapıp,
-*prog2* programı da bu borudan okuma yapmaktadır. *prog1* programı klavyeden (stdin dosyasından) bir yazı
+*prog2* programı da bu borudan okuma yapmaktadır. *prog1* programı klavyeden (``stdin`` dosyasından) bir yazı
 alır. Bu yazıyı borudan *prog2* programına yollar. Ancak bu örnekte prog2 programı borudan ne kadar bilgi
-okuyacağını bilmemektedir. Dolayısıyla 4096 byte kadar bilgiyi okumak ister. Tabii read fonksiyonu borudan
+okuyacağını bilmemektedir. Dolayısıyla 4096 byte kadar bilgiyi okumak ister. Tabii ``read`` fonksiyonu borudan
 okuma yaparken 4096 byte okunana kadar blokeye yol açmaz. Okuyabildiği kadar bilgiyi okur okuyabildiği byte
-sayısına geri döner. Yani böylece prog2 programındaki read fonksiyonu karşı tarafın atomik bir biçimde boruya
-yazdığı kadar bilgiyi okumaktadır. Haberleşme *prog1* programının klavyeden (stdin dosyasından) *quit*
-okumasıyla sonlanmaktadır. Bu durumda *prog1* döngüden çıkar ve boruyu kapatır. *prog2*'de ise read fonksiyonu
-0 ile geri döner. Böylece *prog2* de döngüden çıkar ve boruyu kapatır.
+sayısına geri döner. Yani böylece prog2 programındaki ``read`` fonksiyonu karşı tarafın atomik bir biçimde boruya
+yazdığı kadar bilgiyi okumaktadır. Haberleşme *prog1* programının klavyeden (``stdin`` dosyasından) *quit*
+okumasıyla sonlanmaktadır. Bu durumda *prog1* döngüden çıkar ve boruyu kapatır. *prog2*'de ise ``read`` fonksiyonu
+``0`` ile geri döner. Böylece *prog2* de döngüden çıkar ve boruyu kapatır.
+
+``prog1.c```
 
 .. code-block:: c
-   :caption: prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1161,8 +1159,9 @@ okumasıyla sonlanmaktadır. Bu durumda *prog1* döngüden çıkar ve boruyu kap
        exit(EXIT_FAILURE);
    }
 
+``prog2.c ```
+
 .. code-block:: c
-   :caption: prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1200,25 +1199,23 @@ okumasıyla sonlanmaktadır. Bu durumda *prog1* döngüden çıkar ve boruyu kap
        exit(EXIT_FAILURE);
    }
 
-İsimli Borularla Haberleşme ve İstemci-Sunucu Uygulaması
-========================================================
-
 Boru Dosyasının Silinmesi
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yukarıda da belirttiğimiz gibi boru dosyası haberleşecek proseslerden biri tarafından yaratılabilir. Bu
 durumda bu boru dosyasının onu yaratan proses tarafından silinmesi uygun olur. Fakat boru dosyalarının
 dışarıdan yaratılması çoğu kez tercih edilmektedir. Çünkü bu durumda iki programın çalıştırma sırasının bir
 önemi olmaktadır. Halbuki boru dosyası dışarıda yaratılırsa programların çalıştırma sıralarının bir önemi
-olmaz. Anımsanacağı gibi UNIX/Linux sistemlerinde bir dosya remove ya da unlink fonksiyonu ile silindiğinde
+olmaz. Anımsanacağı gibi UNIX/Linux sistemlerinde bir dosya ``remove`` ya da ``unlink`` fonksiyonu ile silindiğinde
 açık betimleyiciler normal olarak çalışmaya devam eder. Son betimleyici kapatıldığında dosya gerçek anlamda
 silinmektedir. Aynı durum boru dosyaları için de geçerlidir.
 
-Aşağıdaki örnekte *prog1* programı isimli boruyu mkfifo fonksiyonuyla yaratmış ve sonlanmadan önce unlink
+Aşağıdaki örnekte *prog1* programı isimli boruyu ``mkfifo`` fonksiyonuyla yaratmış ve sonlanmadan önce ``unlink``
 fonksiyonu ile boruyu silmiştir.
 
+``prog1.c```
+
 .. code-block:: c
-   :caption: prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1272,8 +1269,9 @@ fonksiyonu ile boruyu silmiştir.
        exit(EXIT_FAILURE);
    }
 
+``prog2.c```
+
 .. code-block:: c
-   :caption: prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1312,7 +1310,7 @@ fonksiyonu ile boruyu silmiştir.
    }
 
 Stream Tarzı Haberleşme ve Değişken Uzunlukta Kayıtlar
-------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Borular stream (akış, pınar) tarzı bir haberleşme ortamı oluşturmaktadır. Stream tarzı haberleşme demekle
 gönderenin gönderdiklerinin alıcı tarafından istenilen miktarda byte biçiminde elde edilebilmesi
@@ -1327,22 +1325,23 @@ nasıl birbirinden ayrıştıracaktır? İşte bu tür durumlarda iki yöntem ak
    boruya yazar. Okuyan taraf da önce uzunluğu okur sonra o uzunluk kadar yeniden okuma yapar. Bu yöntem etkin
    ve çoğu zaman tercih edilen yöntemdir.
 
-2) Yazan taraf kayıtların sonuna özel bir byte yerleştirir. (Örneğin kayıtlar yazılar biçimindeyse '\\n' gibi
+2) Yazan taraf kayıtların sonuna özel bir byte yerleştirir. (Örneğin kayıtlar yazılar biçimindeyse ``'\n'`` gibi
    bir karakter yerleştirilebilir.) Böylece okuyan taraf o özel byte'ı görene kadar okuma yapabilir. Buradaki
-   problem bu özel byte'ın okuyan taraf tarafından nasıl tespit edileceğidir. read fonksiyonu ile sürekli 1
+   problem bu özel byte'ın okuyan taraf tarafından nasıl tespit edileceğidir. ``read`` fonksiyonu ile sürekli 1
    byte okumak etkin bir yöntem değildir. O zaman bir blok bilginin okunup bir tampona yerleştirilmesi ve o
    tampondan akıllıca kontrol yapılması yoluna gidilir. Buna benzer yazısal aktarımlarda bazen programcılar
-   kaydın sonuna '\\n' karakterini yerleştirip boru betimleyicisinden fdopen fonksiyonu ile dosya bilgi
-   gösterici (stream) elde edip fgets gibi bir fonksiyonla okuma yapma yoluna gidebilmektedir. Ne de olsa
-   fgets tamponlu biçimde çalıştığı için bizim yapmamız gerekenleri kendisi yapmaktadır. Tabii aslında önce
-   boruyu açıp sonra fdopen fonksiyonunu kullanmak yerine doğrudan fopen fonksiyonuyla da boru açılabilir.
+   kaydın sonuna ``'\n'`` karakterini yerleştirip boru betimleyicisinden ``fdopen`` fonksiyonu ile dosya bilgi
+   gösterici (stream) elde edip ``fgets`` gibi bir fonksiyonla okuma yapma yoluna gidebilmektedir. Ne de olsa
+   ``fgets`` tamponlu biçimde çalıştığı için bizim yapmamız gerekenleri kendisi yapmaktadır. Tabii aslında önce
+   boruyu açıp sonra ``fdopen`` fonksiyonunu kullanmak yerine doğrudan ``fopen`` fonksiyonuyla da boru açılabilir.
 
-Aşağıdaki örnekte *prog1* programı bir dizin'in yol ifadesini komut satırı argümanıyla almış o dizindeki
+Aşağıdaki örnekte *prog1* programı bir dizinin yol ifadesini komut satırı argümanıyla almış o dizindeki
 dosyaları elde edip önce onların uzunluklarını sonra da isimlerini boruya yazmıştır. Okuyan taraf da (prog2
 programı) önce uzunluğu sonra içeriği okuyup kayıtları birbirinden ayırabilmiştir.
 
+``prog1.c``
+
 .. code-block:: c
-   :caption: prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1395,8 +1394,9 @@ programı) önce uzunluğu sonra içeriği okuyup kayıtları birbirinden ayıra
        exit(EXIT_FAILURE);
    }
 
+``prog2.c``
+
 .. code-block:: c
-   :caption: prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1439,29 +1439,27 @@ programı) önce uzunluğu sonra içeriği okuyup kayıtları birbirinden ayıra
        exit(EXIT_FAILURE);
    }
 
-Sonlandırıcı Karakter Yöntemi
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Aşağıdaki örnekte ise yukarıda belirttiğimiz yöntemlerin ikincisi kullanılmıştır. Yani her kayıttan sonra özel
-bir sonlandırıcı karakter boruya eklenmiştir. Biz burada sonlandırıcı karakter için '\\0' değil '\\n'
-karakterini tercih ettik. Çünkü C'de '\\0' görene kadar okuma yapan standart bir fonksiyon yoktur. Halbuki
-'\\n' görene kadar okuma yapan fgets gibi bir standart fonksiyon vardır. Aşağıdaki program hakkında şu özet
+bir sonlandırıcı karakter boruya eklenmiştir. Biz burada sonlandırıcı karakter için ``'\0'`` değil ``'\n'``
+karakterini tercih ettik. Çünkü C'de ``'\0'`` görene kadar okuma yapan standart bir fonksiyon yoktur. Halbuki
+``'\n'`` görene kadar okuma yapan ``fgets`` gibi bir standart fonksiyon vardır. Aşağıdaki program hakkında şu özet
 açıklamaları yapmak istiyoruz:
 
-- Boruya yazan taraf dosya ismini boruya yazdıktan sonra '\\n' karakterini de sonlandırıcı oluşturmak amacıyla
+- Boruya yazan taraf dosya ismini boruya yazdıktan sonra ``'\n'`` karakterini de sonlandırıcı oluşturmak amacıyla
   boruya yazmıştır.
 
-- Okuyan taraf tek tek karakterleri read fonksiyonuyla borudan okumak yerine standart fgets fonksiyonundan
-  faydalanmıştır. Tabii bunun için boruyu açtıktan sonra fdopen fonksiyonuyla ondan bir stream elde etmiştir.
-  Şüphesiz bu tür durumlarda boru doğrudan fopen fonksiyonuyla da açılabilir. fopen fonksiyonuyla açım
+- Okuyan taraf tek tek karakterleri ``read`` fonksiyonuyla borudan okumak yerine standart ``fgets`` fonksiyonundan
+  faydalanmıştır. Tabii bunun için boruyu açtıktan sonra ``fdopen`` fonksiyonuyla ondan bir stream elde etmiştir.
+  Şüphesiz bu tür durumlarda boru doğrudan ``fopen`` fonksiyonuyla da açılabilir. ``fopen`` fonksiyonuyla açım
   alternatifi ``prog3.c`` dosyasında verilmiştir.
 
-- Yazan taraf boruyu kapattığında fgets fonksiyonu NULL adresle geri dönecektir. Anımsanacağı gibi fgets en az
-  bir byte okursa ikinci parametresi ile belirtilen adrese, hiç byte okuyamadan EOF ile karşılaşırsa ya da bir
-  IO hatası oluşursa NULL adrese geri dönmektedir.
+- Yazan taraf boruyu kapattığında ``fgets`` fonksiyonu ``NULL`` adresle geri dönecektir. Anımsanacağı gibi ``fgets`` en
+  az bir byte okursa ikinci parametresi ile belirtilen adrese, hiç byte okuyamadan ``EOF`` ile karşılaşırsa ya da bir IO
+  hatası oluşursa ``NULL`` adrese geri dönmektedir.
+
+``prog1.c``
 
 .. code-block:: c
-   :caption: prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1513,8 +1511,9 @@ açıklamaları yapmak istiyoruz:
        exit(EXIT_FAILURE);
    }
 
+``prog2.c``
+
 .. code-block:: c
-   :caption: prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1558,8 +1557,9 @@ açıklamaları yapmak istiyoruz:
        exit(EXIT_FAILURE);
    }
 
+``prog3.c``
+
 .. code-block:: c
-   :caption: prog3.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -1597,8 +1597,8 @@ açıklamaları yapmak istiyoruz:
        exit(EXIT_FAILURE);
    }
 
-İstemci-Sunucu (Client-Server) Mimarisi
----------------------------------------
+İstemci-Sunucu Mimarisi
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Haberleşmede en çok karşılaşılan tasarım mimarisi istemci-sunucu (client-server) mimaridir. Genellikle
 *istemci-sunucu* denildiğinde konu TCP/IP soket haberleşmesi ile ilişkilendirilmektedir. Ancak istemci-sunucu
@@ -1640,7 +1640,7 @@ gerekir. O halde şunlar söylenebilir:
   *map* ya da *unordered_map* isimli sınıflar bu iş için idealdir.
 
 İsimli Borularla İstemci-Sunucu Örneği
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Aşağıdaki isimli borular kullanılarak bir istemci-sunucu haberleşme örneği verilmiştir. Programla ilgili bazı
 açıklamaları veriyoruz:
@@ -1674,8 +1674,8 @@ açıklamaları veriyoruz:
      DISCONNECT
      CMD <kabuk komutu>
 
-  Burada CMD istemcinin sunucuya işlettireceği kabuk komutunu belirtmektedir. Yani sunucu istemcinin
-  gönderdiği kabuk komutunu işletir. Onun sonucunu (yani onun stdout dosyasına yazdıklarını) istemciye yollar.
+  Burada ``CMD`` istemcinin sunucuya işlettireceği kabuk komutunu belirtmektedir. Yani sunucu istemcinin
+  gönderdiği kabuk komutunu işletir. Onun sonucunu (yani onun ``stdout`` dosyasına yazdıklarını) istemciye yollar.
 
 - Sunucu programın istemci programa gönderdiği mesajlar da şunlardır:
 
@@ -1687,11 +1687,12 @@ açıklamaları veriyoruz:
 
 - İstemcinin bağlantıyı sonlandırması şöyle bir el sıkışmayla sağlanmıştır:
 
-  1) Önce istemci sunucuya DISCONNECT_REQUESTED mesajını gönderir.
+  1) Önce istemci sunucuya ``DISCONNECT_REQUEST`` mesajını gönderir.
 
-  2) Sonra sunucu bu mesajı alınca eğer bağlantının kopartılmasını kabul ederse DISCONNECT_ACCEPTED mesajını gönderir.
+  2) Sonra sunucu bu mesajı alınca eğer bağlantının kopartılmasını kabul ederse ``DISCONNECT_ACCEPTED`` mesajını
+     gönderir.
 
-  3) İstemci son olarak sunucuya DISCONNECT mesajını göndererek el sıkışmayı sonlandırır.
+  3) İstemci son olarak sunucuya ``DISCONNECT`` mesajını göndererek el sıkışmayı sonlandırır.
 
 - İstemci program bir komut satırı oluşturup komutların kullanıcı tarafından uygulanmasını sağlamaktadır.
   Ancak bağlantının sonlandırılması bir dizi el sıkışma gerektirdiği için *quit* komutu sırasında
@@ -1740,10 +1741,10 @@ Bundan sonra artık istemci programda "*CMD kabuk_komutu*" biçiminde komutlar g
    -rw-r--r-- 1 kaan study  1059 Kas  5 11:30 dirprog1.c
    ....
 
-Burada sunucu bu komutu işletip komutun stdout dosyasına yazdıklarını istemci için boruya yazmaktadır. İstemci
+Burada sunucu bu komutu işletip komutun ``stdout`` dosyasına yazdıklarını istemci için boruya yazmaktadır. İstemci
 de borudan komutun çıktısını okumaktadır. Yani kabuk komutunu aslında sunucu çalıştırıp, sonuçları istemciye
 göndermektedir. Bu size *telnet* gibi *ssh* gibi sunucu programlarının nasıl yazıldığı hakkında bir fikir
-verebilir. Örneğimizde komutun çıktısının elde edilmesi daha önce görmüş olduğumuz popen fonksiyonu yoluyla
+verebilir. Örneğimizde komutun çıktısının elde edilmesi daha önce görmüş olduğumuz ``popen`` fonksiyonu yoluyla
 yapılmıştır:
 
 .. code-block:: c
@@ -1772,9 +1773,9 @@ yapılmıştır:
        return 0;
    }
 
-Burada görüldüğü gibi istemciden alınan kabuk komutu popen fonksiyonu yoluyla kabuğa işlettirilip kabuğun
-stdout dosyasına yazdıkları elde edilerek istemciye gönderilmiştir. Örneğimizde popen fonksiyonunu
-kullandığımız için kabuk komutunun stderr dosyasına yazdığı hatayı sunucu istemciye yollayamamaktadır. Bunu
+Burada görüldüğü gibi istemciden alınan kabuk komutu ``popen`` fonksiyonu yoluyla kabuğa işlettirilip kabuğun
+``stdout`` dosyasına yazdıkları elde edilerek istemciye gönderilmiştir. Örneğimizde ``popen`` fonksiyonunu
+kullandığımız için kabuk komutunun ``stderr`` dosyasına yazdığı hatayı sunucu istemciye yollayamamaktadır. Bunu
 sağlamak için istemcinin kabuk komutunun sonuna *2>&1* yazısını da eklemesi gerekir. Örneğin:
 
 .. code-block:: console
@@ -2300,7 +2301,7 @@ Tabii sunucu bu mesajın sonuna *2>&1* yazısını kendisi de ekleyebilirdi.
    }
 
 Kabuk Yönlendirmesi ve İsimli Borular
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``mypipe`` bir isimli boru dosyası olsun. Aşağıdaki gibi bir işlem yapsak ne olur?
 
@@ -2308,15 +2309,14 @@ Kabuk Yönlendirmesi ve İsimli Borular
 
    $ ls > mypipe
 
-Bu durumda kabuk programı IO yönlendirmesi yapmak için ``mypipe`` dosyasını O_WRONLY modunda open fonksiyonu
+Bu durumda kabuk programı IO yönlendirmesi yapmak için ``mypipe`` dosyasını ``O_WRONLY`` modunda ``open`` fonksiyonu
 ile açmak isteyecektir. Ancak ``mypipe`` boru dosyası olduğu için açım sırasında bloke oluşacaktır. Peki bu
-blokeden nasıl kurtulunabilir? Tabii başka bir terminalden boru bu kez O_RDONLY modda açılarak. Örneğin:
+blokeden nasıl kurtulunabilir? Tabii başka bir terminalden boru bu kez ``O_RDONLY`` modda açılarak. Örneğin:
 
 .. code-block:: console
 
    $ cat < mypipe
 
-Burada yine kabuk programı ``mypipe`` dosyasını yönlendirme için O_RDONLY modda açacaktır. Bu durumda diğer
+Burada yine kabuk programı ``mypipe`` dosyasını yönlendirme için ``O_RDONLY`` modda açacaktır. Bu durumda diğer
 kabuk prosesi blokeden kurtulacaktır. Böylece *ls* programının boruya yazdıklarını *cat* programı borudan
 okuyacaktır.
-
