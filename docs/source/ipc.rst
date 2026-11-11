@@ -1618,7 +1618,7 @@ borularla sunucu programa iletmesine gerek yoktur. İstemci programlar ortak tek
 isteklerini sunucu programa iletebilirler. Bu durumda sunucu program da belli uzunluktaki kayıtları okuyarak
 istekleri elde eder. O isteklerin hangi istemciden geldiğini mesajın içerisinden öğrenebilir. Ancak sunucu
 programın isteğin yanıtını tek bir boruyla istemci programlara iletmesi mümkün değildir. Çünkü aynı borudan
-birden fazla istemci okuma yapmak isterse bunlardan yalnızca bir tanesi boruya gelen şeyi okur, bu da mesajın
+birden fazla istemci okuma yapmak isterse bunlardan yalnızca bir tanesi boruya geleni okur, bu da mesajın
 muhatabı olan istemci olmayabilir. Bu nedenle mecburen her istemci için farklı bir borunun kullanılması
 gerekir. O halde şunlar söylenebilir:
 
