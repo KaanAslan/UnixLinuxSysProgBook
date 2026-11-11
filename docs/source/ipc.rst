@@ -84,9 +84,6 @@ tarafın yazdığı okunmaktadır. Ancak UNIX/Linux sistemlerinde yukarıda da b
 Dolayısıyla haberleşmede bir taraf yazma yaparken diğer taraf okuma yapmalıdır. Eğer borularla karşılıklı okuma
 yazma yapılmak isteniyorsa iki boru kullanılmalıdır.
 
-Boruya Yazma
-------------
-
 Borular dosyalar gibi kullanılmaktadır. Borulardan okuma ``read`` fonksiyonu ile borulara yazma da ``write``
 fonksiyonu ile yapılmaktadır. Borulara ``write`` fonksiyonu ile yazma yapılırken yazılmak istenen byte kadar
 boruda boş yer yoksa ``write`` işlemi blokeye yol açar ve boruda yazılmak istenen miktar kadar boş alan oluşana
@@ -128,9 +125,6 @@ pek çok UNIX türevi sistem (Linux'ta da böyle) ``0`` byte yazma durumunda bor
 kontroller yapıp ``write`` fonksiyonunu sonlandırmaktadır. Eğer bu kontrollerde bir sorun yoksa ``write`` fonksiyonu ``0``
 ile geri dönmektedir.
 
-Borudan Okuma 
--------------
-
 ``read`` fonksiyonu ile borudan okuma yapılırken ``read``` fonksiyonu eğer boru tamamen boşsa en az ``1`` byte boruda olana
 kadar blokeye yol açar. Ancak boruda en az ``1`` byte bilgi varsa ``read`` fonksiyonu okuyabildiği kadar byte'ı okur,
 blokeye yol açmadan hemen okuyabildiği byte sayısı ile geri döner. Yani ``read`` fonksiyonu tüm byte'lar okunana kadar değil,
@@ -144,9 +138,6 @@ fonksiyonu ile borudan okuma yapılırken sinyal oluştuğunda POSIX standartlar
 kadar bilgi olsa bile POSIX standartları kısmi okuma (partial ``read``) yapılabileceğini belirtmektedir. Ancak
 Linux gibi pek çok UNIX türevi sistemde bu tür durumlarda kısmi okuma yapılmamaktadır. (Yani çekirdek sinyali
 okuma işleminden sonra devreye sokmaktadır.)
-
-Boru Haberleşmesinin Sonlandırılması
-------------------------------------
 
 Peki boru haberleşmesi nasıl sonlandırılmaktadır? Boruyu kesinlikle önce yazan tarafın kapatması gerekir. Bu
 durumda okuyan taraf boruda kalanları okur. Artık boruda okunacak bir şey kalmamışsa ve yazan taraf da
@@ -2320,3 +2311,4 @@ blokeden nasıl kurtulunabilir? Tabii başka bir terminalden boru bu kez ``O_RDO
 Burada yine kabuk programı ``mypipe`` dosyasını yönlendirme için ``O_RDONLY`` modda açacaktır. Bu durumda diğer
 kabuk prosesi blokeden kurtulacaktır. Böylece *ls* programının boruya yazdıklarını *cat* programı borudan
 okuyacaktır.
+
