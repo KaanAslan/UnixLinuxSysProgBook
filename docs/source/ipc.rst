@@ -702,38 +702,7 @@ yönlendirilir. Bu durumda bize verilen dosyaya yazma yaptığımızda aslında 
 çalıştırdığımız program da bunu ``stdin`` dosyasından okuyacaktır. Fonksiyon başarısızlık durumunda ``NULL`` adrese
 geri dönmektedir. Açış modundaki ``'w'`` ve ``'r'`` karakterlerinin yanına getirilebilen ``'e'`` karakteri bize
 verilen dosya bilgi göstericisine ilişkin dosya betimleyicisinin close-on-exec bayrağının set edileceğini
-belirtmektedir.
-
-popen Fonksiyonu ve İsimli Boru Haberleşmesi
-============================================
-
-popen ve pclose Fonksiyonları
------------------------------
-
-İsimsiz borularla ilgili popen isimli ilginç bir yardımcı POSIX fonksiyonu da vardır. popen fonksiyonu bir
-boru yaratır, sonra kabuk programını interaktif olmayan bir biçimde (-c seçeneği ile) çalıştırır. Sonra da
-kabuk programının stdin ya da stdout betimleyicilerini bu yarattığı boruya yönlendirir. Borunun diğer ucunu da
-fdopen fonksiyonundan faydalanarak bir dosya bilgi göstericisine (stream) dönüştürüp bize verir. Fonksiyonun
-prototipi şöyledir:
-
-.. code-block:: c
-
-   #include <stdio.h>
-
-   FILE *popen(const char *command, const char *mode);
-
-Fonksiyonun birinci parametresi çalıştırılacak kabuk komutunu belirtmektedir. İkinci parametre *r* ya da *w*
-biçiminde girilebilir. 'r' ve 'w' karakterlerinin yanına 'e' karakteri de getirilebilmektedir. Eğer bu
-parametre *r* girilirse kabuk komutunun stdout dosyası boruya yönlendirilir. Borunun okuma ucu da bize
-verilir. Yani bu durumda bize verilen dosyadan okuma yaptığımızda aslında kabuk komutunun stdout dosyasına
-yazdıklarını okumuş oluruz. Eğer ikinci parametre *w* olarak girilirse kabuk komutunun stdin dosyası boruya
-yönlendirilir. Bu durumda bize verilen dosyaya yazma yaptığımızda aslında boruya yazma yapmış oluruz. Kabukta
-çalıştırdığımız program da bunu stdin dosyasından okuyacaktır. Fonksiyon başarısızlık durumunda NULL adrese
-geri dönmektedir. Açış modundaki 'w' ve 'r' karakterlerinin yanına getirilebilen 'e' karakteri bize verilen
-dosya bilgi göstericisine ilişkin dosya betimleyicisinin *close-on-exec bayrağının* set edileceğini
-belirtmektedir.
-
-Örneğin:
+belirtmektedir. Örneğin:
 
 .. code-block:: c
 
@@ -744,21 +713,21 @@ belirtmektedir.
        exit_sys("open");
 
 Burada "*ls -l*" kabuk komutu çalıştırılmış ve komutun stdout dosyasına yazdıkları boruya yönlendirilmiştir.
-Borunun okuma ucu da bize C'den kullanabileceğimiz dosya bilgi göstericisi olarak verilmiştir. Biz bize
-verilen dosya bilgi göstericisini kullanarak dosyadan okuma yaparsak aslında borudan okuma yapmış oluruz.
+Borunun okuma ucu da bize C'den kullanabileceğimiz dosya bilgi göstericisi olarak verilmiştir. Biz verilen 
+dosya bilgi göstericisini kullanarak dosyadan okuma yaparsak aslında borudan okuma yapmış oluruz.
 Dolayısıyla çalıştırdığımız kabuk komutunun stdout dosyasına yazdıklarını elde ederiz. Bunu şekilsel olarak
 şöyle de gösterebiliriz:
 
-.. image:: _static/ders45-popen.png
+.. image:: _static/popen-pipe.png
    :alt: popen fonksiyonunda kabuk komutunun stdout dosyasının boruya yönlendirilmesi
    :align: center
-   :width: 70%
+   :width: 50%
 
-Tabii aslında popen fonksiyonu "*ls -l*" komutunun değil kabuk için yaratılan prosesin stdout dosya
+Tabii aslında popen fonksiyonu "*ls -l*" komutunun değil kabuk için yaratılan prosesin ``stdout`` dosya
 betimleyicisini boruya yönlendirmektedir. Zaten kabuğun betimleyicileri kabuk tarafından çalıştırılan programa
 da geçirilmektedir.
 
-popen ile yaratılmış olan boru ve dosya bilgi göstericisi pclose fonksiyonu ile yok edilmektedir. pclose
+``popen`` ile yaratılmış olan boru ve dosya bilgi göstericisi ``pclose`` fonksiyonu ile yok edilmektedir. ``pclose``
 fonksiyonunun prototipi de şöyledir:
 
 .. code-block:: c
@@ -767,12 +736,12 @@ fonksiyonunun prototipi de şöyledir:
 
    int pclose(FILE *stream);
 
-Fonksiyon dosya bilgi göstericisini parametre olarak alır ve daha önce yapılan işlemleri sonlandırır. pclose
-fonksiyonu aynı zamanda wait işlemini de uygulamaktadır. Yani fonksiyon ilgili kabuk komutu bitene kadar bloke
-oluşturmaktadır. Fonksiyon başarı durumunda çalıştırdığı kabuk programının wait fonksiyonu ile elde edilen
-durum bilgisine, başarısızlık durumunda -1 değerine geri dönmektedir. Kabuk programlarının interaktif olmayan
-modda çalıştırdıkları programın durum koduyla (yani wait fonksiyonlarından elde edilen değerleri kastediyoruz)
-sonlandığını anımsayınız. pclose kontrolü şöyle yapılabilir:
+Fonksiyon dosya bilgi göstericisini parametre olarak alır ve daha önce yapılan işlemleri sonlandırır. ``pclose``
+fonksiyonu aynı zamanda ``wait`` işlemini de uygulamaktadır. Yani fonksiyon ilgili kabuk komutu bitene kadar bloke
+oluşturmaktadır. Fonksiyon başarı durumunda çalıştırdığı kabuk programının ``wait`` fonksiyonu ile elde edilen
+durum (*status*) bilgisine, başarısızlık durumunda ``-1`` değerine geri dönmektedir. Kabuk programlarının interaktif olmayan
+modda çalıştırdıkları programın durum koduyla (yani ``wait`` fonksiyonlarından elde edilen değerleri kastediyoruz)
+sonlandığını anımsayınız. ``pclose`` kontrolü şöyle yapılabilir:
 
 .. code-block:: c
 
@@ -789,14 +758,14 @@ Ancak eğer programcı çalıştırmış olduğu programın da başarısını di
    if (WIFEXITED(status))
        printf("Shell exit status: %d\n", WEXITSTATUS(status));
    else
-       printf("shell abnormally terminated!...\n");
+       printf("command abnormally terminated!...\n");
 
-Burada bir noktaya dikkatinizi çekmek istiyoruz. popen fonksiyonu *r* ile kullanıldığında kabuk için
-oluşturulan prosesin yalnızca stdout dosyasını (yani 1 numaralı betimleyicisini) boruya yönlendirmektedir. Bu
+Burada bir noktaya dikkatinizi çekmek istiyoruz. ``popen`` fonksiyonu ``"r"`` ile kullanıldığında kabuk için
+oluşturulan prosesin yalnızca ``stdout`` dosyasını (yani ``1`` numaralı betimleyicisini) boruya yönlendirmektedir. Bu
 durumda örneğin çalıştırılmasını istediğimiz kabuk komutunda bir hata oluşursa bu hataya ilişkin mesajı elde
-edemeyiz. Maalesef popen fonksiyonunda bunu sağlamanın bir yolu yoktur. Pratik bir çözüm olarak kabuk
-komutunun sonuna *2>&1* eklenebilir. Bu sayede kabuk komutu çalıştırırken zaten kendisi stdout dosyasını
-stderr dosyasını da stdout dosyasına yönlendirecektir. Örneğin:
+edemeyiz. Maalesef ``popen`` fonksiyonunda bunu sağlamanın bir yolu yoktur. Pratik bir çözüm olarak kabuk
+komutunun sonuna ``2>&1`` eklenebilir. Bu sayede kabuk komutu çalıştırırken zaten kendisi ``stdout`` dosyasını
+stderr dosyasını da ``stdout`` dosyasına yönlendirecektir. Örneğin:
 
 .. code-block:: c
 
@@ -806,8 +775,8 @@ stderr dosyasını da stdout dosyasına yönlendirecektir. Örneğin:
    if ((f = popen("cat xxxxx 2>&1", "r")) == NULL)
        exit_sys("open");
 
-Aşağıdaki programda "*ls -l*" komutu çalıştırılıp onun çıktısı elde edilmiştir. Programda pclose fonksiyonunun
-geri dönüş değerinin alınıp kontrol edilmesine genellikle gerek yoktur.
+Aşağıdaki programda "*ls -l*" komutu çalıştırılıp onun çıktısı elde edilmiştir. Programda ``pclose`` fonksiyonunun
+geri dönüş değeri genellikle kontrol edilmemektedir. 
 
 .. code-block:: c
 
@@ -827,7 +796,7 @@ geri dönüş değerinin alınıp kontrol edilmesine genellikle gerek yoktur.
        while ((ch = fgetc(f)) != EOF)
            putchar(ch);
 
-       if ((status = pclose(f)) == -1)
+       if (pclose(f) == -1)
            exit_sys("pclose");
 
        pclose(f);
@@ -841,8 +810,8 @@ geri dönüş değerinin alınıp kontrol edilmesine genellikle gerek yoktur.
        exit(EXIT_FAILURE);
    }
 
-Aşağıdaki örnekte popen fonksiyonu *w* mod parametresiyle çağrılmıştır. Bu durumda bizim dosyaya yazdıklarımız
-aslında boruya yazılacak ve *wc* programı da stdin yerine borudan okuma yapacaktır.
+Aşağıdaki örnekte popen fonksiyonu ``"w"`` mod parametresiyle çağrılmıştır. Bu durumda bizim dosyaya yazdıklarımız
+aslında boruya yazılacak ve *wc* programı da ``stdin`` yerine borudan okuma yapacaktır.
 
 .. code-block:: c
 
@@ -854,7 +823,6 @@ aslında boruya yazılacak ve *wc* programı da stdin yerine borudan okuma yapac
    int main(void)
    {
        FILE *f;
-       int ch;
 
        if ((f = popen("wc", "w")) == NULL)
            exit_sys("popen");
