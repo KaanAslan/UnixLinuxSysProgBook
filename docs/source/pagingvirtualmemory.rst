@@ -827,7 +827,7 @@ sanal bellek alanını şöyle ayırmıştır:
 .. image:: _static/ders43-sanal-bellek-32bit.png
    :alt: 32 bit Linux sistemlerinde sanal bellek alanının kullanıcı ve çekirdek alanı olarak ayrılması
    :align: center
-   :width: 50%
+   :width: 29%
 
 Bu durumda ``32 bit`` Linux sistemlerinde bir programın kullanabileceği maksimum sanal bellek ``3 GB``'dir.
 (Windows'ta ``2 GB`` kullanıcı alanı için, ``2 GB`` da çekirdek space için ayrılmaktadır.) ``64 bit`` Linux sistemlerinde
@@ -836,7 +836,7 @@ ise prosesin sanal bellek alanı şöyle organize edilmiştir:
 .. image:: _static/ders43-sanal-bellek-64bit.png
    :alt: 64 bit Linux sistemlerinde sanal bellek alanının organizasyonu
    :align: center
-   :width: 60%
+   :width: 35%
 
 Görüldüğü gibi 64 bit sistemlerde teorik sanal bellek ``16 EB`` olduğu halde ``64 bit`` Linux sistemleri yalnızca ``256
 TB`` sanal belleğe izin vermektedir.
