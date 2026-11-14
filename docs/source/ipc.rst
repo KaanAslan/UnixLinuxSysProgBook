@@ -2312,3 +2312,1771 @@ Burada yine kabuk programı ``mypipe`` dosyasını yönlendirme için ``O_RDONLY
 kabuk prosesi blokeden kurtulacaktır. Böylece *ls* programının boruya yazdıklarını *cat* programı borudan
 okuyacaktır.
 
+
+Blokesiz IO ve Sistem 5 (XSI) Mesaj Kuyrukları
+==============================================
+
+Blokesiz IO İşlemleri (O_NONBLOCK)
+----------------------------------
+
+Bir dosyayı (boru dosyaları da diğer aygıt sürücü dosyaları da dahil olmak üzere) açarken kullanılan
+bayraklardan biri de ``O_NONBLOCK`` bayrağıdır. Bu bayrağın normal disk dosyalarında (regular file) bir etkisi
+yoktur. Ancak uzun süre beklemeye yol açabilen borularda, soketlerde ve özel bazı aygıt sürücülerde bu bayrak
+önemli bir işlevselliğe sahiptir. Bu bayrağın sağladığı işlevselliğe *blokesiz IO işlemleri (Non-blocking IO)*
+denilmektedir.
+
+Blokesiz IO işlemlerinin temel fikri şudur: Bazı aygıtlardan ve kaynaklardan okuma yazma yapılırken uzun süre
+beklemeye yol açabilecek bir bloke durumu oluşabilmektedir. Örneğin biz bir borudan okuma yapmak isteyelim.
+Ancak boruda hiç byte olmasın. Bu durumda read fonksiyonu blokeye yol açacak ve boruya bilgi gelene kadar
+program akışı kesilecektir. İşte blokesiz IO işlemlerinde eğer ilgili işlem blokeye yol açabilecekse bloke
+oluşmamaktadır. Bu durumda read ve write fonksiyonları başarısızlıkla geri dönmekte ve errno değeri EAGAIN
+denilen özel bir değerle set edilmektedir. Örneğin biz içerisinde hiç byte olmayan bir borudan read fonksiyonu
+ile 10 byte okumak isteyelim. Eğer boru varsayılan durumda olduğu gibi *blokeli modda* ise read fonksiyonu
+karşı taraf en az 1 byte boruya yazana kadar blokede kalır. Ancak eğer blokesiz modda çalışıyorsa bu durumda
+read fonksiyonu bloke olmaz, -1 değeriyle geri döner ve errno değeri EAGAIN ile set edilir. Böylece programcı
+arka planda *mademki boruda bir şey yok o zaman ben de başka bir şey yapayım* diyebilmektedir. Aynı durum
+write sırasında da benzer biçimde gerçekleşmektedir. Örneğin blokesiz modda biz bir boruya write işlemi yapmak
+isteyelim ancak boruda yazacağımız byte miktarı kadar boş yer olmasın. İşte bu durumda write fonksiyonu -1 ile
+geri döner ve errno değeri EAGAIN değeriyle set edilir. Blokesiz modda işlemler blokeli moddaki işlemlere göre
+oldukça seyrek kullanılmaktadır.
+
+İsimli boru dosyaları open fonksiyonuyla ``O_NONBLOCK`` bayrağı kullanılarak açılırken artık open fonksiyonunda
+bloke oluşmamaktadır. Anımsanacağı gibi blokesiz modda open fonksiyonu karşı taraf boruyu ters modda açana
+kadar bloke oluşturuyordu. Blokesiz modda isimli boru açılırken aşağıdaki iki duruma dikkat edilmelidir:
+
+1) open fonksiyonunda proses isimli boruyu ``O_RDONLY|O_NONBLOCK`` bayraklarıyla açmaya çalıştığında bloke
+   oluşmaz, ancak read işlemi yapıldığında boruya yazma potansiyelinde olan hiçbir betimleyici yoksa read
+   fonksiyonu 0 ile geri döner.
+
+2) İsimli borularda proses boruyu ``O_WRONLY|O_NONBLOCK`` bayraklarıyla açmaya çalıştığında bloke oluşmaz, ancak
+   karşı taraf boruyu henüz okuma amaçlı açmamışsa (yani borunun okuma ucu henüz yoksa) open başarısız olur.
+   Bu durumda open fonksiyonu errno değerini ENXIO ile set etmektedir. Bu errno değerinin yazısı "No such
+   device or address" biçimindedir.
+
+İsimli borularda iki taraf da boruyu ``O_NONBLOCK`` bayrağı ile açarsa yukarıda anlattığımız nedenden dolayı
+senkronizasyona dikkat etmek gerekir. Bu tür durumlarda işlemleri kolaylaştırmak için isimli borular blokeli
+modda açılıp (``O_NONBLOCK`` kullanılmadan) sonrasında fcntl fonksiyonu ile blokesiz moda geçilebilir.
+
+Prosesler biri boruyu blokeli modda diğeri blokesiz modda açabilir. Bu da herhangi bir soruna yol açmaz.
+
+İsimsiz boruları open fonksiyonuyla biz açmadığımız için onları pipe fonksiyonuyla yarattığımız için onların
+``O_NONBLOCK`` bayraklarını ancak fcntl fonksiyonu ile set edebiliriz. Örneğin:
+
+.. code-block:: c
+
+   int pipefds[2];
+   /* ... */
+
+   if (pipe(pipefds) == -1)
+       exit_sys("pipe");
+
+   if (fcntl(pipefds[0], F_SETFL, fcntl(pipefds[0], F_GETFL) | O_NONBLOCK) == -1)
+       exit_sys("fcntl");
+
+   if (fcntl(pipefds[1], F_SETFL, fcntl(pipefds[1], F_GETFL) | O_NONBLOCK) == -1)
+       exit_sys("fcntl");
+
+İsimsiz Borularda Blokesiz IO Örneği
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aşağıda isimsiz borularda blokesiz IO örneği verilmiştir. Bu örnekte borular blokesiz moda sokulmuş sonra read
+ve write işlemleri başarısız olduğunda errno değerine bakılmıştır. Eğer başarısızlığın nedeni blokesiz IO
+yüzündense errno değişkeni ``EAGAIN`` özel değerine set edileceği için bu sırada prosesler arka planda başka
+işlemler yapmıştır. Örnekte kasten üst proseste biraz bekleme yaptık. Dolayısıyla program çalıştırıldığında
+alt proses read işleminde blokesiz IO yüzünden başarısız olup birtakım arka plan işlemleri yapacaktır.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <errno.h>
+   #include <fcntl.h>
+   #include <unistd.h>
+   #include <sys/wait.h>
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int pipefds[2];
+       pid_t pid;
+       ssize_t result;
+       int i, val;
+
+       if (pipe(pipefds) == -1)
+           exit_sys("pipe");
+
+       if ((pid = fork()) == -1)
+           exit_sys("fork");
+
+       if (fcntl(pipefds[0], F_SETFL, fcntl(pipefds[0], F_GETFL)|O_NONBLOCK) == -1)
+           exit_sys("fcntl");
+
+       if (fcntl(pipefds[1], F_SETFL, fcntl(pipefds[1], F_GETFL)|O_NONBLOCK) == -1)
+           exit_sys("fcntl");
+
+       if (pid != 0) {     /* parent writes */
+           close(pipefds[0]);
+           sleep(1);
+
+           i = 0;
+           while (i < 100000) {
+               if (write(pipefds[1], &i, sizeof(int)) == -1) {
+                   if (errno == EAGAIN) {
+                       printf("parent background processing...\n");
+                       continue;
+                   }
+               }
+               ++i;
+           }
+           close(pipefds[1]);
+           if (waitpid(pid, NULL, 0) == -1)
+               exit_sys("waitpid");
+
+       }
+       else {              /* child reads */
+           close(pipefds[1]);
+           for (;;) {
+               if ((result = read(pipefds[0], &val, sizeof(int))) == -1) {
+                   if (errno == EAGAIN) {
+                       printf("child background processing...\n");
+                       continue;
+                   }
+               }
+               else if (result == 0)
+                   break;
+               printf("%d\n", val);
+           }
+           close(pipefds[0]);
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+İsimli Borularda Blokesiz IO Örneği
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aşağıda isimli boruların blokesiz modda kullanımına bir örnek verilmiştir. Burada ``mypipe`` isimli borusunun
+dışarıda yaratılmış olması gerekir. İki proses de boruyu önce blokeli modda açmış sonra fcntl fonksiyonu ile
+blokesiz moda geçmiştir. Yukarıda da belirttiğimiz gibi open fonksiyonu ile ``O_NONBLOCK`` bayrağı kullanılarak
+isimli boruların blokesiz modda açılması sırasında senkronizasyona dikkat edilmesi gerekir. Halbuki önce iki
+prosesin open fonksiyonu ile boruları blokeli modda açıp sonra fcntl fonksiyonu ile blokesiz moda geçirmesi bu
+senkronizasyon problemini bertaraf etmektedir.
+
+.. code-block:: c
+   :caption: proc1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <errno.h>
+   #include <fcntl.h>
+   #include <unistd.h>
+
+   #define BUFFER_SIZE        4096
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int fdpipe;
+       int i;
+
+       if ((fdpipe = open("mypipe", O_WRONLY)) == -1)
+           exit_sys("open");
+
+       if (fcntl(fdpipe, F_SETFL, fcntl(fdpipe, F_GETFL)|O_NONBLOCK) == -1)
+           exit_sys("fcntl");
+
+       i = 0;
+       while (i < 100000) {
+           if (write(fdpipe, &i, sizeof(int)) == -1)
+               if (errno == EAGAIN) {
+                   printf("parent background processing...\n");
+                   continue;
+               }
+               else
+                   exit_sys("write");
+           ++i;
+       }
+
+       close(fdpipe);
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: proc2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <errno.h>
+   #include <fcntl.h>
+   #include <unistd.h>
+
+   #define BUFFER_SIZE        4096
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int fdpipe;
+       ssize_t result;
+       int val;
+
+       if ((fdpipe = open("mypipe", O_RDONLY)) == -1)
+           exit_sys("open");
+
+       if (fcntl(fdpipe, F_SETFL, fcntl(fdpipe, F_GETFL)|O_NONBLOCK) == -1)
+           exit_sys("fcntl");
+
+       while ((result = read(fdpipe, &val, sizeof(int))) != 0) {
+               if (result == -1)
+                   if (errno == EAGAIN) {
+                       printf("child background processing...\n");
+                         continue;
+                   }
+                   else
+                       exit_sys("read");
+               printf("%d\n", val);
+           }
+
+       close(fdpipe);
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+POSIX Uyum Kategorileri ve Marjin Kodlar
+----------------------------------------
+
+Aslında POSIX standartları çeşitli uyum kategorilerini içermektedir. Yani POSIX standardını destekleyen
+sistemler onun bazı uyum kategorilerini destekleyip bazılarını desteklemiyor olabilirler. En önemli uyum
+kategorisi *XSI (X/Open ya da Open Group anlamına gelmektedir)* kategorisidir. Bu uyum kategorisi X/Open
+denilen ya da yeni ismi ile *Single Unix Specification* denilen uyum kategorisini anlatır. POSIX
+standartlarında bir fonksiyonda bu XSI ibaresi bulunursa *fonksiyon eğer ilgili işletim sistemi bu uyum
+kategorisini destekliyorsa bu fonksiyon olmalıdır* anlamına gelmektedir. POSIX standartlarındaki bu tür
+ibarelere *marjin kodlar (margin codes)* da denilmektedir. Güncel POSIX standartlarındaki marjin kodlar
+şunlardır:
+
+.. list-table:: POSIX marjin kodları
+   :header-rows: 1
+   :widths: 10 40 50
+   :align: center
+
+   * - Kod
+     - Seçenek
+     - Makro
+   * - ADV
+     - Advisory Information
+     - ``_POSIX_ADVISORY_INFO``
+   * - CPT
+     - Process CPU-Time Clocks
+     - ``_POSIX_CPUTIME``
+   * - FSC
+     - File Synchronization
+     - ``_POSIX_FSYNC``
+   * - IP6
+     - IPv6
+     - ``_POSIX_IPV6``
+   * - ML
+     - Process Memory Locking
+     - ``_POSIX_MEMLOCK``
+   * - MLR
+     - Range Memory Locking
+     - ``_POSIX_MEMLOCK_RANGE``
+   * - MSG
+     - Message Passing
+     - ``_POSIX_MESSAGE_PASSING``
+   * - PS
+     - Process Scheduling
+     - ``_POSIX_PRIORITY_SCHEDULING``
+   * - RS
+     - Raw Sockets
+     - ``_POSIX_RAW_SOCKETS``
+   * - SHM
+     - Shared Memory Objects
+     - ``_POSIX_SHARED_MEMORY_OBJECTS``
+   * - SIO
+     - Synchronized Input and Output
+     - ``_POSIX_SYNCHRONIZED_IO``
+   * - SPN
+     - Spawn
+     - ``_POSIX_SPAWN``
+   * - TSA
+     - Thread Stack Address Attribute
+     - ``_POSIX_THREAD_ATTR_STACKADDR``
+   * - TSS
+     - Thread Stack Size Attribute
+     - ``_POSIX_THREAD_ATTR_STACKSIZE``
+   * - XSI
+     - X/Open System Interfaces
+     - ``_XOPEN_UNIX``
+
+Bir işletim sisteminin resmi olarak UNIX türevi sertifikasını alması için XSI uyum kategorisini desteklemesi
+zorunlu tutulmuştur. Biz kursumuzda POSIX standartları demekle tüm bu uyum kategorilerini içerecek biçimde bu
+terimi kullanıyoruz. Halbuki yukarıda da belirtildiği gibi bazı uyum kategorileri dışlanarak da POSIX
+standartları desteklenebilmektedir. POSIX standartlarında, fonksiyonların yanında bu uyum kategorileri
+belirtilmiştir.
+
+UNIX/Linux Sistemlerinde IPC Nesneleri
+--------------------------------------
+
+Şimdi de boruların dışında UNIX/Linux sistemlerindeki aynı makinenin prosesleri arasında haberleşmede
+kullanılan diğer proseslerarası haberleşme yöntemlerini ele alacağız.
+
+UNIX/Linux dünyasında *IPC fonksiyonları* demekle geleneksel olarak *mesaj kuyrukları, paylaşılan bellek
+alanları ve semaphore'lar* anlaşılmaktadır. *IPC fonksiyonları* yerine *IPC nesneleri* terimi de
+kullanılabilmektedir. Borular tipik bir IPC mekanizması olduğu halde bu dünyada IPC fonksiyonları denildiğinde
+borular anlaşılmamaktadır. (Semaphore'lar senkronizasyon konusu ile ilgilidir. Ancak bir anlamda IPC konusuyla
+da ilgilidir. Biz semaphore'ları *thread'lerin anlatıldığı* bölümde ele alacağız.)
+
+UNIX/Linux dünyasında boruların dışında üç IPC mekanizması vardır:
+
+- Mesaj kuyrukları (message queues)
+
+- Paylaşılan Bellek Alanları (shared memories)
+
+- Semaphore'lar (semaphores)
+
+Yukarıda da belirttiğimiz gibi borular birer IPC mekanizması olduğu halde UNIX/Linux dünyasında genellikle IPC
+konusunun dışında ele alınmaktadır.
+
+UNIX/Linux dünyasında IPC mekanizması (onların terimi ile) için iki farklı arayüz (fonksiyon grubu) kullanılmaktadır:
+
+1) Eskiden beri var olan geniş bir taşınabilirliğe sahip olan ismine *Sistem 5 IPC fonksiyonları* ya da *XSI
+   IPC fonksiyonları* denilen klasik IPC fonksiyonları.
+
+2) 1990'lı yılların ortalarında *Real Time Extensions* eklemeleriyle POSIX dünyasına katılan ismine *POSIX IPC
+   fonksiyonları* denilen yeni ve daha modern IPC fonksiyonları.
+
+Her ne kadar ikinci grup fonksiyonlara *POSIX IPC fonksiyonları* deniliyorsa da her iki fonksiyon grubu da
+POSIX standartlarında bulunmaktadır. Klasik IPC fonksiyonlarının yanında XSI uyum kategorisine ilişkin marjin
+kod yerleştirilmiştir.
+
+Her iki arayüzdeki fonksiyonların parametrik yapıları ve isimleri o arayüze uygun biçimde belirlenmiştir. Bu
+nedenle örneğin Sistem 5 (XSI) ve POSIX IPC fonksiyonlarının isimlendirmeleri ve kullanımları kendi aralarında
+birbirine benzerdir. Aşağıda her iki arayüzdeki yaratıcı fonksiyonların isimleri verilmiştir:
+
+.. list-table:: Yaratıcı IPC fonksiyonları
+   :header-rows: 1
+   :widths: 50 50
+   :align: center
+
+   * - Sistem 5 IPC Fonksiyonları
+     - POSIX IPC Fonksiyonları
+   * - msgget (mesaj kuyruğu)
+     - mq_open (mesaj kuyruğu)
+   * - shmget (paylaşılan bellek alanları)
+     - shm_open (paylaşılan bellek alanları)
+   * - semget (semaphore'lar)
+     - sem_open (semaphore'lar)
+
+Peki mademki klasik (Sistem 5) IPC nesneleri 70'lerden beri kullanılmaktadır ve oldukça taşınabilir
+durumdadır. O halde neden 90'lı yıllarda yeni bir arayüz gereksinimi duyulmuştur? İşte bunun nedeni klasik IPC
+nesnelerinin genel tasarımında olan bazı problemlerdir. POSIX IPC fonksiyonlarıyla bu problem giderilmeye
+çalışılmıştır. POSIX IPC fonksiyonları Linux çekirdeğine çok sonraları eklenmiştir. Hala bazı UNIX türevi
+sistemlerde (örneğin macOS ve OpenBSD gibi) bu fonksiyonlar tam desteklenmemektedir. Yani POSIX IPC nesneleri
+taşınabilirlik konusunda daha problemlidir. Gerçi seneler içerisinde bu IPC nesneleri daha çok sistem
+tarafından desteklenmiştir ve bugünlerde bu taşınabilirlik problemi büyük ölçüde ortadan kalkmıştır.
+
+Bu IPC mekanizmalarının incelenmesi işlemi iki biçimde yapılabilir. Önce Klasik Sistem 5 IPC fonksiyonları
+görülüp sonra bunların POSIX IPC karşılıkları incelenebilir ya da her IPC mekanizmasının klasik Sistem 5 ve
+POSIX karşılıkları paralel biçimde incelenebilir. Biz bu kursumuzda ikinci yöntemi izleyeceğiz.
+
+Peki biz programcı olarak hangi grup IPC fonksiyonlarını kullanmalıyız? İşte bu iki grubun birbirlerine göre
+amaca yönelik bazı avantajları ve dezavantajları söz konusu olmaktadır. Ancak artık programcıların özel bir
+durum yoksa modern POSIX IPC fonksiyonlarını tercih etmesi daha uygundur. Sizler de özel bir durum yoksa
+modern POSIX IPC fonksiyonlarını tercih etmelisiniz.
+
+Stream Tabanlı ve Mesaj Tabanlı Haberleşme
+------------------------------------------
+
+Haberleşmeler biçimsel olarak *stream tabanlı* ve *mesaj tabanlı* olmak üzere ikiye ayrılmaktadır. Stream
+tabanlı haberleşme denildiğinde yazan tarafın tek bir hamlede (örneğin write ile) yazdığını okuyan tarafın tek
+hamlede (tek bir read ile) okumasının zorunlu olmadığı kastedilmektedir. Örneğin bir proses tek hamlede
+haberleşme kanalına 100 byte göndermiş olabilir. Stream tabanlı haberleşmede okuma yapan taraf bu 100 byte'ı
+tek hamlede değil birden fazla okuma yaparak elde edebilir. Yani stream tabanlı haberleşmede okuyan taraf
+haberleşme kanalından istediği kadar byte okuyabilmektedir. Burada *stream* terimi *dere, pınar, su akışı*
+anlamlarından hareketle uydurulmuştur. Mesaj tabanlı haberleşmelerde ise gönderen taraf bir grup byte'ı mesaj
+adı altında tek hamlede gönderir. Okuyan taraf bunu tek hamlede okumak zorundadır. Örneğin yazan taraf mesaj
+adı altında haberleşme kanalına 100 byte göndermiş olabilir. Bu 100 byte'lık paketi diğer taraf parça parça
+okuyamaz. Tek hamlede okumak zorundadır. Yani okuyan taraf bu paketi ya okumaz ya da okursa hepsini okur.
+
+Boru haberleşmesi *stream tabanlı* haberleşmeye tipik bir örnektir. Örneğin biz boruya 100 byte yazdığımızda
+okuyan taraf bu 100 byte'ı tek hamlede okumak zorunda değildir. Örneğin bunu 10'ar byte 10'ar byte okuyabilir.
+Oysa mesaj kuyruklarında kuyruğa yazan taraf *mesaj* adı altında bir grup byte'ı bir paket olarak yazar.
+Okuyan taraf da bunu paket olarak tek hamlede okur.
+
+IP protokol ailesinde TCP denilen aktarım (transport) katmanı protokolü stream tabanlıdır. Yani TCP
+haberleşmesi boru haberleşmesine benzemektedir. Bu protokol ailesindeki UDP protokolü ise mesaj tabanlıdır.
+Protokol ailelerinde mesaj yerine gönderilen ve alınan paketlere *datagram* denilmektedir.
+
+Klasik Sistem 5 (XSI) IPC Nesnelerinin Temel Özellikleri
+--------------------------------------------------------
+
+Konuya başlamadan önce klasik System 5 (XSI) IPC nesnelerinin bazı temel özelliklerinden bahsetmek istiyoruz.
+
+Klasik Sistem 5 (XSI) IPC mekanizmasında iki farklı prosesin aynı IPC nesnesi üzerinde anlaşabilmesi için
+*anahtar (key)* ve *id* kavramları kullanılmaktadır. Bu arayüzlerde ``xxxget`` fonksiyonlarına programcı bir
+anahtar verir. Bu anahtar sayısal bir değerdir. İki proses aynı anahtarı verirse aynı nesneyi kullanırlar. Bu
+``xxxget`` fonksiyonları verilen anahtara ilişkin bir ID geri döndürmektedir. Bu ID değeri aslında diğer
+fonksiyonlarda handle olarak kullanılmaktadır. Buradaki bir problem verilen anahtarın tesadüfen sistemdeki
+başka bir prosesin kullandığı anahtarla çakışabilmesidir. Bunun için bazı kontrollerin yapılması
+gerekebilmektedir. ``xxxget`` fonksiyonlarının verdiği ID değerleri sistem genelinde *tek (unique)* bir değerdir.
+Yani aslında bu ID değeri, diğer prosese proseslerarası haberleşme yöntemleriyle gönderilse diğer proses hiç
+``xxxget`` işlemi yapmadan doğrudan bu ID değerini kullanabilir. Başka bir deyişle birden fazla proses ``xxxget``
+fonksiyonlarında aynı anahtarı verdiklerinde aslında aynı ID'yi elde etmektedir.
+
+Klasik Sistem 5 (XSI) IPC mekanizmasında ``xxxget`` fonksiyonlarında kullanılan anahtarlar aslında IPC nesnesinin
+türüne göre ayrı bir isim alanındadır. Yani örneğin 12345 gibi bir anahtar paylaşılan bellek alanları için
+ayrı bir anahtar, mesaj kuyrukları için ayrı bir anahtar durumundadır.
+
+Klasik Sistem 5 IPC nesneleri yaratıldıktan sonra ``xxxctl`` fonksiyonu ile yok edilene kadar ya da sistem reboot
+edilene kadar yaşamaktadır. Bu duruma bu terminolojide *çekirdek kalıcılığı (kernel persistency)*
+denilmektedir. Halbuki örneğin borular öyle değildir. Bir isimli boru yaratılmış ve bir proses onu açıp onun
+içerisine bir şeyler yazmış olsun. Prosesler boruyu kapatınca artık borunun içerisindekiler yok olur. Halbuki
+klasik Sistem 5 IPC nesnelerinde bir proses IPC nesnesini silmedikten sonra reboot edilene kadar nesnenin
+içerisindeki bilgiler kalmaya devam etmektedir.
+
+Sistem 5 (XSI) Mesaj Kuyrukları
+-------------------------------
+
+System 5 (XSI) IPC mekanizması hakkında temel bazı bilgileri verdikten sonra şimdi mesaj kuyruklarının bu
+arayüzde kullanımını ele alalım.
+
+Klasik Sistem 5 (XSI) mesaj kuyruklarında dört fonksiyon vardır: ``msgget``, ``msgsnd``, ``msgrcv`` ve ``msgctl``
+fonksiyonları. ``msgget`` fonksiyonu mesaj kuyruğunu yaratır ya da yaratılmış olanı açar. ``msgget`` fonksiyonunu ``open``
+fonksiyonuna benzetebiliriz. Mesaj kuyruğuna bir grup byte'ı mesaj olarak yerleştirmek için msgsnd fonksiyonu,
+mesaj kuyruğundan mesaj almak için ``msgrcv`` fonksiyonu ve mesaj kuyruğu üzerinde silme de dahil olmak üzere bazı
+diğer işlemleri yapabilmek için ``msgctl`` fonksiyonu kullanılmaktadır.
+
+msgget Fonksiyonu
+~~~~~~~~~~~~~~~~~
+
+Klasik Sistem 5 mesaj kuyrukları ``msgget`` fonksiyonuyla yaratılabilir ya da zaten var olan mesaj kuyrukları
+``msgget`` fonksiyonuyla kullanım için açılabilir. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <sys/msg.h>
+
+   int msgget(key_t key, int msgflg);
+
+Fonksiyonun birinci parametresi tamsayı biçiminde bir anahtar belirtmektedir. ``key_t`` türü POSIX standartlarına
+göre herhangi bir aritmetik tür (tamsayı ve gerçek sayı türleri kastediliyor) olacak biçimde typedef edilmiş
+olmalıdır. Linux'ta ``key_t`` türü int olarak typedef edilmiştir.
+
+Fonksiyonun ikinci parametresinde şu bayraklar kullanılabilir:
+
+``IPC_CREAT``: Burada ilgili anahtara ilişkin bir mesaj kuyruğu varsa olan mesaj kuyruğu açılır ancak yoksa
+yeni bir mesaj kuyruğu yaratılır. Buradaki semantik open fonksiyonundaki O_CREAT semantiğine benzemektedir.
+
+``IPC_EXCL``: Bu bayrak tek başına değil ``IPC_CREAT`` ile birlikte ``IPC_CREAT|IPC_EXCL`` biçiminde kullanılabilir.
+Semantik ``open`` fonksiyonundaki ``O_EXCL`` bayrağındaki gibidir. Yani daha önce başka kişiler tarafından aynı
+anahtara ilişkin bir mesaj kuyruğu zaten yaratılmışsa ``msgget`` fonksiyonu bu durumda başarısız olur ve ``errno``
+değişkeni ``EEXIST`` ile set edilir.
+
+Eğer ``IPC_CREAT`` kullanılmazsa zaten var olan anahtara ilişkin mesaj kuyruğunun açılmak istendiği
+anlaşılmaktadır. Bu parametre 0 olarak da girilebilir. Buradaki sembolik sabitler ``<sys/ipc.h>`` dosyası
+içerisinde define edilmiştir. Ancak POSIX standartları ``<sys/ipc.h>`` dosyasının içerisindeki sembolik sabitlerin
+ve tür tanımlamalarının aynı zamanda ``<sys/msg.h>``, ``<sys/shm.h>`` ve ``<sys/sem.h>`` dosyalarında da bulunduğunu
+belirtmektedir. Yani bu dosyalardan birini include etmişseniz ``<sys/ipc.h>`` dosyasını include etmeyebilirsiniz.
+Ancak ``<sys/ipc.h>`` dosyasında olup da bu dosyalarda olmayan öğeler de bulunmaktadır.
+
+Eğer mesaj kuyruğunun yaratılma olasılığı varsa (yani ``IPC_CREAT`` bayrağı belirtilmişse) aynı zamanda
+oluşturulacak mesaj kuyruğu için erişim haklarının da programcı tarafından belirtilmesi gerekir. Mesaj
+kuyrukları bir dosya olmasa da sanki dosya gibi erişim haklarına sahiptir. Dolayısıyla erişim hakları için
+yine ``<sys/stat.h>`` içerisindeki ``S_IXXX`` sembolik sabitleri ya da bunların sayısal değerleri kullanılır. Bu
+erişim haklarının ``IPC_CREAT`` ve ``IPC_EXCL`` ile bitsel OR işlemine sokulması gerekmektedir. Örneğin:
+
+.. code-block:: c
+
+   msgid = msgget(0x12345, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+
+Anımsanacağı gibi POSIX 2008 standardı ile bu S_IXXX sembolik sabitlerine sayısal değerler de karşılık
+getirilmişti. O halde POSIX 2008 ve sonrasında bu işlemi şöyle de yapabiliriz:
+
+.. code-block:: c
+
+   msgid = msgget(0x12345, IPC_CREAT|0644);
+
+Tabii anahtara ilişkin mesaj kuyruğu zaten varsa buradaki erişim haklarının ve ``O_CREAT`` bayrağının hiçbir
+etkisi yoktur. Erişim hakları, nesne gerçekten yaratılacaksa kullanılmaktadır.
+
+``msgget`` fonksiyonunda (diğer ``xxxget`` fonksiyonlarında da böyle) birinci parametre olan anahtar ``IPC_PRIVATE``
+olarak girilirse bu durumda kullanılmayan bir anahtar oluşturulup mesaj kuyruğu yaratılır. ``msgget`` fonksiyonu
+da bu mesaj kuyruğunun ID değerine geri döner. Örneğin:
+
+.. code-block:: c
+
+   msgid = msgget(IPC_PRIVATE, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+
+Burada olmayan bir anahtardan hareketle mesaj kuyruğu yaratıldığı için bir çakışma söz konusu olmayacaktır.
+Tabii bu durumda bu ID değerinin (anahtarı bilmiyoruz) diğer prosese aktarılması gerekmektedir. Bu aktarım da
+olsa olsa komut satırı argümanıyla ya da başka bir proseslerarası haberleşme yöntemiyle olabilir. ``IPC_PRIVATE``
+anahtarı makul gibi gözükse de genel olarak kullanışsızdır.
+
+Bir program mesaj kuyruğunu yaratıp sonlanabilir. Bu durumda yukarıda da belirttiğimiz gibi mesaj kuyruğu
+yaratılmış biçimde kalmaya devam eder. Ta ki ``msgctl`` fonksiyonu ile silinene kadar ya da sistem reboot edilene
+kadar.
+
+``msgget`` fonksiyonu başarı durumunda yaratılan ya da zaten var olan mesaj kuyruğunun id değerine, başarısızlık
+durumunda ``-1`` değerine geri dönmektedir. ``errno`` değişkeni uygun biçimde set edilmektedir.
+
+Aşağıdaki örnekte program belli bir anahtar kullanarak klasik Sistem 5 (XSI) mesaj kuyruğunu yaratmıştır. Aynı
+anahtarı kullanan başka bir proses aynı mesaj kuyruğunu açabilir. Bu durumda aynı anahtarı kullanan
+proseslerin hepsi aynı ID'yi elde eder.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x12345678
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       printf("Ok\n");
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+ipcs Komutu ve proc Dosya Sistemi
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+O anda yaratılmış olan klasik Sistem 5 (XSI) IPC nesnelerini (mesaj kuyrukları, paylaşılan bellek alanları ve
+semaphore'lar) komut satırından görüntülemek için ``ipcs`` isimli komut kullanılmaktadır. Örneğin:
+
+.. code-block:: console
+
+   $ ipcs
+
+   ------ İleti Kuyrukları --------
+   anahtar    iltkiml    sahibi     izinler    kull-bayt    ileti-sayısı
+   0x12345678 1          kaan       644        0            0
+
+   ----- Paylaşımlı Bellek Bölütleri -----
+   anahtar    shmid      sahibi     izinler    bayt       ekSayısı durum
+   0x00000000 65558      kaan       600        524288     2          hedef
+   0x00000000 23         kaan       600        1048576    2          hedef
+   0x00000000 28         kaan       600        4194304    2          hedef
+   0x00000000 34         kaan       600        524288     2          hedef
+   0x00000000 37         kaan       600        67108864   2          hedef
+   0x00000000 65578      kaan       606        10782720   2          hedef
+   0x00000000 65579      kaan       606        10782720   2          hedef
+
+   ------ Semafor Dizileri ------
+   anahtar    semkiml    sahibi     izinler    semSayısı
+
+Bu komut anahtarları hex sistemde yazdırmaktadır. Tabii bizim anahtarları hex olarak vermemize gerek yoktur.
+``ipcs`` komutu default olarak tüm IPC nesnelerini görüntülemektedir. Ancak ``-q`` komut satırı argümanıyla yalnızca
+mesaj kuyrukları, ``-m`` komutuyla yalnızca paylaşılan bellek alanları ve ``-s`` komutuyla da yalnızca semaphore
+nesneleri görüntülenebilir. Örneğin:
+
+.. code-block:: console
+
+   $ ipcs -q
+
+   ------ İleti Kuyrukları --------
+   anahtar    iltkiml    sahibi     izinler    kull-bayt    ileti-sayısı
+   0x12345678 1          kaan       644        0            0
+
+Aslında Linux çekirdeği IPC nesneleri yaratıldığında onların bilgilerini *proc* dosya sisteminde
+``/proc/sysvipc`` dizini içerisinde ``msg``, ``sem``, ``shm`` dosyalarının içerisine yazmaktadır. ``ipcs``
+komutu da zaten bu dosyaların içindekilerini görüntülemektedir. Örneğin:
+
+.. code-block:: console
+
+   $ cat /proc/sysvipc/msg
+       key      msqid perms  cbytes   qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime
+   305419896          1   644       0      0     0     0  1000  1000  1000  1000          0          0 1794308050
+
+*proc* dosya sistemi bellekte oluşturulan, çekirdek tarafından bir dosya sistemi gibi sürekli güncellenen ve
+çekirdeğin yaptığı önemli işlemleri dış dünyaya bildirmek amacıyla kullanılan özel bir dosya sistemidir.
+Kursumuzda *proc* dosya sistemi ileride ayrı bir bölümde ele alınacaktır. *proc* dosya sisteminde bazı
+dosyalar yazılabilir durumda da olabilmektedir. Bu durumda bu dosyalara yazma yapıldığında çekirdeğin bazı
+ayarları da değiştirilmiş olmaktadır.
+
+Sistem 5 (XSI) Mesaj Kuyrukları: ``msgsnd``, ``msgrcv``, ``ftok`` ve ``msgctl``
+===============================================================================
+
+Mesaj Gönderme: ``msgsnd`` Fonksiyonu
+-------------------------------------
+
+Mesaj kuyruğu haberleşmesinde proseslerden biri mesajı gönderir, diğer, mesajı alır. Tabii aslında gönderen
+taraf ve alan taraf birden fazla da olabilir. Mesaj kuyruğuna bir mesaj göndermek için ``msgsnd`` POSIX
+fonksiyonu kullanılmaktadır. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <sys/msg.h>
+
+   int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);
+
+Fonksiyonun birinci parametresi mesaj kuyruğunun ``msgget`` fonksiyonundan elde edilen ID değeridir. (Tabii
+yukarıda da belirttiğimiz gibi ID değerleri sistem genelinde tektir (unique). Dolayısıyla proses mesaj
+kuyruğunun ID değerini biliyorsa anahtardan hareketle ID elde etmek zorunda değildir.) Fonksiyonun ikinci ve
+üçüncü parametreleri mesajı oluşturan byte yığınının adresini ve uzunluğunu almaktadır. Son parametre
+``IPC_NOWAIT`` ya da 0 geçilebilir. Normal olarak mesaj kuyruğu doluysa (mesaj kuyruğunun bazı limitleri
+vardır) ``msgsnd`` bloke oluşturmaktadır. Eğer mesaj kuyruğu dolu olduğu halde bloke oluşmasın isteniyorsa
+(yani blokesiz işlem yapılmak isteniyorsa) bu durumda fonksiyonun son parametresine ``IPC_NOWAIT`` özel değeri
+geçirilir. Eğer bu değer geçilmeyecekse bu parametre 0 olarak girilebilir. (Sistem 5 mesaj kuyruklarında
+blokesiz işlem yapmak için ``O_NONBLOCK`` gibi bir bayrakla değil, ``IPC_NOWAIT`` bayrağı kullanılmaktadır.)
+
+Fonksiyonun ikinci parametresine, mesajı oluşturan byte topluluğunun adresinin girileceğini belirtmiştik.
+Üçüncü parametre de mesaj uzunluğunu belirtmekteydi. İşte mesaj aslında şöyle oluşturulmak zorundadır: Mesajın
+başında ``long`` bir alan olmalıdır. Bu ``long`` alan mesajın türünü (önceliğini de diyebiliriz)
+belirtmektedir. Bu mesaj türü 0'dan büyük pozitif bir değer biçiminde girilmelidir. Bu ``long`` alandan sonra
+mesajın byte'ları gelmelidir. Bu ``long`` alan ile mesaj byte'ları ardışıl olmalıdır. Bunu sağlamak için
+programcı tipik olarak bir yapı oluşturur. Örneğin:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[1024];
+   };
+
+   struct MSG msg;
+
+Burada yapının ``msg`` elemanı (yani ``long`` kısımdan sonra gelen kısmını temsil eden kısım) için 1024 byte
+yer ayrılmıştır. Gönderilecek mesaj 1024 byte'tan daha kısa ise burada gereksiz boş alan kalır. 1024'ten daha
+yüksek bir mesajı bu yapıya yerleştiremeyiz. Bu sorun için ilk akla gelen yöntem yapının mesaj uzunluğuna
+bağlı olarak dinamik bir biçimde tahsis edilmesidir. Tabii ``long`` alandan sonraki adresi pratik bir biçimde
+elde edebilmemiz için yine ``long`` alandan sonra 1 byte uzunlukta bir dizi bulundurabiliriz:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[1];
+   };
+
+C99 ile birlikte bir yapının son elemanı dizi ise o dizi elemanında uzunluk belirtilmeyebilir. Buna C
+standartlarında *flexible array member* denilmektedir. Örneğin:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[];
+   };
+
+Burada ``msg`` elemanı yapıda yer kaplamamaktadır. Yalnızca bir yer tutucudur, ``mtype`` elemanından sonraki
+adresi belirtmektedir.
+
+Şimdi mesajın n byte uzunlukta olduğunu tespit etmiş olalım (kontroller koddan kaldırılmıştır):
+
+.. code-block:: c
+
+   struct MSG *msg;
+
+   msg = (struct MSG *)malloc(sizeof(long) + n)
+   msg->mtype = 1;
+   memcpy(msg->msg, mesage_content);
+   ...
+   free(msg);
+
+Tabii bu işlem biraz zahmetlidir. Bu nedenle genellikle programcılar baştan maksimum mesaj uzunluğunu tespit
+edip buna uygun bir yapı tanımlarlar. Örneğin kullanılacak maksimum mesaj uzunluğu 8192 olsun:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[8192];
+   };
+
+``msgsnd`` fonksiyonundaki üçüncü parametre olan mesaj uzunluğuna mesajın başındaki ``long`` alan dahil
+değildir. Yalnızca mesajın kendi uzunluğu dahildir. Yani ``msgsnd`` fonksiyonunu kullanırken biz mesaj
+uzunluğu olarak gerçek mesajın uzunluğunu veririz.
+
+Peki mesajın türü ne anlamına gelmektedir? Mesajın türü iki nedenden dolayı kullanılmaktadır:
+
+1) Mesajı alan taraf belirli bir türe ilişkin mesajları alabilir. Örneğin alan taraf türü 10 olan mesajları
+   alırsa kuyruktaki diğer mesajları pas geçer ve ilk 10 türüne sahip olan mesajı alır. Bu da istemci-sunucu
+   tarzı uygulamalarda tek bir mesaj kuyruğunun kullanılmasını mümkün hale getirmektedir.
+
+2) Mesajın türü istenirse *öncelik kuyruğu (priority queue)* gibi de kullanılmaktadır.
+
+Mesaj kuyruklarının tıpkı borularda olduğu gibi belli bir limiti vardır. Bu limite gelindiğinde ``msgsnd``
+fonksiyonu eğer son parametresinde ``IPC_NOWAIT`` belirtilmemişse bloke olur ve mesaj kuyruğunda yer açılana
+kadar blokede kalır. Böylece tıpkı borularda olduğu gibi bir senkronizasyon da sağlanmış olmaktadır. Ancak
+``msgsnd`` fonksiyonunun son parametresi ``IPC_NOWAIT`` girilirse ve bu durumda mesaj kuyruğunun limiti de
+dolmuşsa ``msgsnd`` fonksiyonu blokeye yol açmaz -1 değeri ile geri döner ve ``errno`` değişkeni de ``EAGAIN``
+değeriyle set edilir.
+
+``msgsnd`` fonksiyonu başarı durumunda 0 değeri ile başarısızlık durumunda -1 değeri ile geri dönmektedir.
+Mesaj kuyruğu doluysa ve bloke oluşmuşsa zaten fonksiyon henüz geri dönmemektedir. Örneğin:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[1024];
+   };
+   int msgid;
+   struct MSG msg;
+   /* ... */
+
+   if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+       exit_sys("msgget");
+
+   msg.mtype = 1;
+   strcpy(msg.msg, "this is a test");
+
+   if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+       exit_sys("msgget");
+
+Aşağıdaki programda 1000000 tane ``int`` değer mesaj kuyruğuna bir mesaj biçiminde ``msgsnd`` fonksiyonuyla
+yazılmak istenmiştir. Tabii mesaj kuyruğunun limitleri dolacağı için bu mesajların hepsi kuyruğa
+yazılamayacaktır. Dolayısıyla ``IPC_NOWAIT`` parametresi de geçilmediğine göre bloke oluşacaktır. Bu programda
+mesaj türü (yapının ``mtype`` alanı) 1 olarak alınmıştır. Mesaj türü zaten 0 olamaz. Eğer mesaj türüyle
+programcı ilgilenmeyecekse onu herhangi bir değerde tutabilir.
+
+.. code-block:: c
+   :caption: msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       int val;
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (int i = 0; i < 1000000; ++i) {
+           msg.mtype = 1;
+           msg.val = i;
+
+           if (msgsnd(msgid, &msg, sizeof(int), 0) == -1)
+               exit_sys("msgsnd");
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+Mesaj Alma: ``msgrcv`` Fonksiyonu
+---------------------------------
+
+Klasik Sistem 5 (XSI) mesaj kuyruklarından mesaj okumak için ``msgrcv`` fonksiyonu kullanılmaktadır.
+Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <sys/msg.h>
+
+   ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);
+
+Fonksiyonun birinci parametresi mesaj kuyruğunun ID'sini belirtmektedir. Fonksiyonun ikinci ve üçüncü
+parametreleri kuyruktan alınan mesajın yerleştirileceği alanın adresini ve uzunluğunu almaktadır. Yine buraya
+geçirilecek adresin ilk byte'larında ``long`` bir alan bulunmalıdır. Mesaj bu ``long`` alandan sonraki yere
+yerleştirilir. Dolayısıyla programcı genellikle yine ikinci parametreye geçirilecek adresi bir yapı olarak
+oluşturur. Örneğin:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[8192];
+   };
+
+   struct MSG msg;
+
+Burada fonksiyonun ikinci parametresine bu yapı nesnesinin adresi geçirilir. Fonksiyon kuyruktaki mesajın
+türünü ve içeriğini bu yapıya yerleştirecektir. Fonksiyonun üçüncü parametresinde belirtilen uzunluk ``long``
+alandan sonraki gerçek mesajın uzunluğudur. Örneğin:
+
+.. code-block:: c
+
+   result = msgrcv(msgid, &msg, 8192, ...);
+
+Fonksiyonun dördüncü parametresi hangi türe ilişkin mesajların alınacağını belirtmektedir. Kuyrukta farklı tür
+numaralarına (``mtype``) sahip mesajlar bir arada bulunuyor olabilir. Dördüncü parametre bunların alınış
+biçimini belirtmektedir. Bu parametre 0 olarak girilirse bu durumda ``msgrcv`` kuyruktaki tür değeri ne olursa
+olsun ilk mesajı alır. (0 değerinin geçerli bir tür değeri belirtmediğine dikkat ediniz.) Eğer bu parametreye
+biz 0'dan büyük bir değer girersek bu durumda o tür değerine sahip ilk mesaj kuyruktan alınır. Örneğin biz bu
+parametreye 100 girmiş olalım. Kuyrukta da 100 tür değerine sahip kuyruğun farklı yerlerinde 4 tane mesaj
+olsun. Biz bu durumda 100 tür değerine sahip kuyrukta en öndeki (yani ilk gönderilen) mesajı alırız. Bu sayede
+biz kuyrukta belli bir tür değerine ilişkin mesajları elde edebilmekteyiz. Eğer bu parametre negatif bir değer
+olarak girilirse bu durumda bu negatif değerin mutlak değerine eşit ya da ondan küçük olan en küçük mesaj tür
+değerine sahip kuyruktaki ilk mesaj elde edilir. Yani bu durumda kuyruk sistemi *öncelik kuyruğu (priority
+queue)* gibi çalışmaktadır. Örneğin kuyruktaki mesajların mesaj tür değerleri şöyle olsun:
+
+.. code-block:: text
+
+   20 5 30 2 8 40
+
+Şimdi biz ``msgrcv`` fonksiyonunu bir döngü içerisinde dördüncü parametresi -10 olacak biçimde çağırmış
+olalım. -10 değerinin mutlak değeri 10'dur. 10'dan küçük ya da 10'a eşit olan en küçük tür değerine sahip olan
+mesaj 2 tür değerine sahip mesajdır. O halde kuyruktan önce bu mesaj alınacaktır. Sonra 5 tür değerine sahip
+olan mesaj, sonra da 8 tür değerine sahip olan mesaj alınacaktır. Sonra koşula uygun kuyrukta mesaj
+kalmayacağına göre ``msgrcv`` artık bloke olacaktır. Fonksiyonun dördüncü parametresi negatif girildiğinde,
+artık kuyruğun adeta bir öncelik kuyruğu gibi çalıştığına dikkat ediniz. Ancak burada mesaj türü değeri küçük
+olanlar daha öncelikli kabul edilmektedir.
+
+``msgrcv`` fonksiyonunun son parametresi (``msgflg``) mesajın alımına ilişkin bazı özellikleri belirtmektedir.
+POSIX standartlarına göre buradaki bayrak değerleri iki bayraktan oluşabilir (bu iki bayrak birlikte de
+kullanılabilir):
+
+``IPC_NOWAIT``: Bu durumda blokesiz alım yapılmaktadır. Yani kuyrukta uygun mesaj yoksa ``msgrcv`` başarısız
+olur ve -1 değeri ile geri döner, ``errno`` değeri ``EAGAIN`` olarak set edilir.
+
+``MSG_NOERROR``: Normal olarak alınan mesajın uzunluğu ``msgrcv`` fonksiyonunun üçüncü parametresinde
+belirtilen tampon uzunluğundan büyükse ``msgrcv`` başarısız olur ve ``errno`` değeri ``E2BIG`` değeri ile set
+edilir. Ancak son parametrede ``MSG_NOERROR`` bayrağı kullanılırsa bu durumda ``msgrcv`` başarılı olur ancak
+kuyruktaki mesaj kırpılarak verdiğimiz tampona yerleştirilir.
+
+Programcı son parametre için özel bir bayrak belirlemek istemiyorsa bu parametreyi 0 olarak geçebilir. Bu
+durumda ``msgrcv`` kuyrukta ilgilenilen mesaj türüne ilişkin mesaj yoksa blokede bekleyecektir.
+
+``msgrcv`` fonksiyonu başarı durumunda okunan mesajın byte uzunluğu ile başarısızlık durumunda -1 ile geri
+dönmektedir. Okunan mesajın byte uzunluğuna ``long`` alan dahil değildir.
+
+Burada özellikle bir noktayı vurgulamak istiyoruz: Klasik Sistem 5 mesaj kuyruklarında karşı tarafın mesaj
+kuyruğunu kapatması diye bir durum yoktur. Dolayısıyla borularda olduğu gibi 0 byte okunana kadar yinelenen
+bir döngü oluşturulamamaktadır.
+
+Örneğin:
+
+.. code-block:: c
+
+   struct MSG {
+       long mtype;
+       char msg[1024];
+   };
+
+   int msgid;
+   struct MSG msg;
+   ssize_t result;
+   /* ... */
+
+   if ((result = msgrcv(msgid, &msg, 1024, 0, 0)) == -1)
+       exit_sys("msgrcv");
+
+Burada fonksiyonun dördüncü parametresine (``msgtyp``) 0 geçilmiştir. Bu 0 değeri *herhangi bir tür değerine
+sahip ilk mesajı al* anlamına gelmektedir. Son parametrede bayrak belirtilmemiştir. ``msgrcv`` mesaj kuyruğu
+boşsa blokede bekleyecektir.
+
+Sürekli Mesaj Okuyan Programlar
+-------------------------------
+
+Mesaj kuyruğundan sürekli mesaj okuyan programları yazarken dikkat ediniz. Çünkü bu programlar kuyrukta uygun
+mesaj olmadığı zaman blokeye yol açmaktadır. Örneğin:
+
+.. code-block:: c
+
+   for (;;) {
+       if (msgrcv(msgid, &msg, sizeof(int), 0, 0) == -1)
+           exit_sys("msgrcv");
+
+       printf("Message type: %ld\n", msg.mtype);
+       printf("Message content: %d\n", msg.msg);
+   }
+
+Burada ``msgrcv`` kuyruktaki mesajları alıp bitirdikten sonra artık kuyrukta mesaj yoksa bloke oluşacaktır.
+Peki bu durumda bu program nasıl döngüden çıkacaktır? Tabii en normal durum kuyruktan alınan mesajın incelenip
+özel bir mesaja göre döngüden çıkmak olabilir. Eğer kuyruktaki tüm mesajların alınıp döngüden çıkılması
+isteniyorsa bu durumda blokesiz okuma yoluna gidilebilir. Örneğin:
+
+.. code-block:: c
+
+   while (msgrcv(msgid, &msg, sizeof(int), 0, IPC_NOWAIT) != -1) {
+       printf("Message type: %ld\n", msg.mtype);
+       printf("Message content: %d\n", msg.val);
+   }
+   if (errno != EAGAIN)
+       exit_sys("msgrcv");
+
+Aşağıdaki programda ``msg-prog1.c`` programı 100000 tane ``int`` değeri mesaj kuyruğuna bir mesaj biçiminde
+``msgsnd`` fonksiyonuyla yazmaktadır. Bu mesajlar ``msg-prog2.c`` programı tarafından alınmaktadır.
+
+.. code-block:: c
+   :caption: msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       int val;
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (int i = 0; i < 100000; ++i) {
+           msg.mtype = 1;
+           msg.val = i;
+
+           if (msgsnd(msgid, &msg, sizeof(int), 0) == -1)
+               exit_sys("msgsnd");
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: msg-prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       int val;
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           if (msgrcv(msgid, &msg, sizeof(int), 0, 0) == -1)
+               exit_sys("msgrcv");
+
+           if (msg.val == 100000)
+               break;
+           printf("Message type: %ld\n", msg.mtype);
+           printf("Message content: %d\n", msg.val);
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+Yazı Aktarımı Örneği
+~~~~~~~~~~~~~~~~~~~~
+
+Aşağıdaki örnekte ``prog1.c`` programı klavyeden (``stdin`` dosyasından) alınan yazıları sonunda null karakter
+dahil olmak üzere mesaj kuyruğuna yazmaktadır. Klavyeden *quit* girildiğinde bu mesaj da mesaj kuyruğuna
+yazılır ve ``prog1.c`` programı sonlanır. ``prog2.c`` programı da kuyruktan mesajları alarak onları ekrana
+(``stdout`` dosyasına) yazdırmaktadır. Programlarda yine mesajın tür değeri kullanılmamaktadır, 1 biçiminde
+kodlanmıştır.
+
+.. code-block:: c
+   :caption: msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+       char *str;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       msg.mtype = 1;
+       for (;;) {
+           printf("Message text:");
+           fflush(stdout);
+
+           if (fgets(msg.buf, 8192, stdin) == NULL)
+               continue;
+           if ((str = strchr(msg.buf, '\n')) != NULL)
+               *str = '\0';
+
+           if (msgsnd(msgid, &msg, strlen(msg.buf) + 1, 0) == -1)
+               exit_sys("msgsnd");
+           if (!strcmp(msg.buf, "quit"))
+               break;
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: msg-prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           if (msgrcv(msgid, &msg, 8192, 0, 0) == -1)
+               exit_sys("msgrcv");
+
+           if (!strcmp(msg.buf, "quit"))
+               break;
+
+           printf("Message text: %s\n", msg.buf);
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+Mesaj Türüne Göre Öncelikli Alım Örneği
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aşağıdaki örnekte ``msg-prog1.c`` programı döngü içerisinde önce mesaj tür değerini sonra da mesaj yazısını
+alıp kuyruğa yollamıştır. ``msg-prog2.c`` ise ``msgrcv`` fonksiyonuyla dördüncü parametrede -100 geçilerek en
+düşük mesaj tür değeri önce alınacak biçimde mesajları kuyruktan almıştır. Bu örnekte önce *msg-prog1*
+programını çalıştırınız. *quit* mesajına düşük bir öncelik (yüksek değer) veriniz. Sonra *prog2* programını
+çalıştırarak sonuçları gözden geçiriniz. Örneğin önce *msg-prog1* programında aşağıdaki girişleri yapmış
+olalım:
+
+.. code-block:: text
+
+   Message type:10
+   Message text:ankara
+   Message type:8
+   Message text:izmir
+   Message type:12
+   Message text:adana
+   Message type:1
+   Message text:samsun
+   Message type:100
+   Message text:quit
+
+Sonra *msg-prog2* programını çalıştıralım. Ekranda şunları göreceğiz:
+
+.. code-block:: text
+
+   Message type: 1 Message text: samsun
+   Message type: 8 Message text: izmir
+   Message type: 10 Message text: ankara
+   Message type: 12 Message text: adana
+
+Görüldüğü gibi *msg-prog2* kuyruktan mesajları sırasıyla değil, öncelik değerine göre almıştır.
+
+.. code-block:: c
+   :caption: msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+   void clear_stdin(void);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+       char *str;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           printf("Message type:");
+           scanf("%ld", &msg.mtype);
+
+           clear_stdin();
+
+           printf("Message text:");
+           fflush(stdout);
+
+           if (fgets(msg.buf, 8192, stdin) == NULL)
+               continue;
+           if ((str = strchr(msg.buf, '\n')) != NULL)
+               *str = '\0';
+
+           if (msgsnd(msgid, &msg, strlen(msg.buf) + 1, 0) == -1)
+               exit_sys("msgsnd");
+           if (!strcmp(msg.buf, "quit"))
+               break;
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+   void clear_stdin(void)
+   {
+       while (getchar() != '\n')
+           ;
+   }
+
+.. code-block:: c
+   :caption: msg-prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY        0x1234567
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           if (msgrcv(msgid, &msg, 8192, -100, 0) == -1)
+               exit_sys("msgrcv");
+
+           if (!strcmp(msg.buf, "quit"))
+               break;
+
+           printf("Message type: %ld Message text: %s\n", msg.mtype, msg.buf);
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+Mesaj Kuyruklarıyla İstemci-Sunucu Haberleşmesi
+-----------------------------------------------
+
+Mesajların tür değerinin kullanıldığı tipik örnekler istemci-sunucu tarzı haberleşme örnekleridir. Şimdi mesaj
+kuyrukları kullanılarak istemci-sunucu tarzı bir haberleşme yapmak isteyelim. Bu haberleşmede istemcilerin
+sunucudan istekte bulunması için tek bir mesaj kuyruğu yeterlidir. Benzer biçimde sunucunun da istemcilere
+yanıtı geri döndürmesi için toplamda tek bir mesaj kuyruğu yeterlidir. (Anımsanacağı isimli borularda, sunucu
+yanıtları iletirken mecburen her istemci için ayrı bir isimli boru kullanıyordu.) Haberleşmenin sistematiği
+şöyle olabilir:
+
+- İstemci programlar kendi proses ID'lerini mesaj tür bilgisi olarak kullanıp mesajı önceden belirlenmiş mesaj
+  kuyruğuna gönderir. Bu mesaj kuyruğuna *sunucu mesaj kuyruğu* diyelim.
+
+- Sunucu program sunucu mesaj kuyruğundan sıradaki mesajı okur. (``msgrcv`` fonksiyonunun dördüncü parametresi
+  0 olarak girilirse kuyruktan sıradaki mesajlar okunmaktadır.) Bunun hangi istemciden geldiğini anlar. İşlemi
+  yapar, işlemin sonucunu *istemci mesaj kuyruğu* diye isimlendirdiğimiz mesaj kuyruğuna bir mesaj olarak
+  yollar. Ancak yolladığı mesajın tür değeri istemcinin proses ID değeridir.
+
+- Mesajı gönderen istemci program, istemci mesaj kuyruğundan mesaj tür bilgisi kendi proses ID'si olacak
+  biçimde ``msgrcv`` fonksiyonu ile yanıtı elde eder.
+
+Burada da görüldüğü gibi istemci programların hepsi ortak bir mesaj kuyruğundan sunucu yanıtlarını
+alabilmektedir. Eğer mesaj kuyruğunun böyle bir tür değeri olmasaydı ve mesaj kuyruğundan belli bir tür
+değerine ilişkin mesaj okunamasaydı bu durum mümkün olamazdı.
+
+Tek Mesaj Kuyruğu Kullanımının Sakıncaları
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aslında klasik Sistem 5 (XSI) mesaj kuyruklarıyla istemci-sunucu haberleşme programı yazılırken tek bir mesaj
+kuyruğu da kullanılabilir. Örneğin bu durumda istemciler yine kendi proses ID'lerini mesaj tür değeri yaparak
+kuyruğa sunucu için mesaj bırakır. Sunucu da mesajı işledikten sonra bu kez yanıtı ilgili prosesin ID'sini
+mesaj tür bilgisi yaparak kuyruğa yazar. İstemci de kuyruktan kendi mesaj tür bilgisiyle okuma yapabilir.
+Ancak tek bir kuyruğun kullanılması aslında iyi bir yöntem değildir. Bu durum haberleşmeyi çok kırılgan hale
+getirmektedir. Şöyle ki:
+
+- Bu durum *kilitlenme (deadlock)* denilen soruna kolaylıkla yol açabilmektedir. Mesaj kuyruklarının bir
+  kapasitesi vardır. Kuyruk dolduğunda blokeli yazmalarda kuyruğa mesaj yazacak taraf bloke olmaktadır. Bu
+  senaryoda sunucu bir istemcinin isteğini karşılamak için mesaj kuyruğuna yanıt mesajını yazacağı zaman diğer
+  istemciler istek yaparak mesaj kuyruğunu doldurmuş olabilir. Bu durumda ne istemciler kuyruğa mesaj
+  yazabilir ne de sunucu herhangi bir yanıtı kuyruğa yazabilir. İşte bu durum tipik bir *kilitlenme
+  (deadlock)* durumudur.
+
+- Bu modelde istemci ilk kez sunucuya kendi proses ID'si ile mesaj gönderirken aynı proses ID ile kuyruktan
+  mesaj almaya çalışacağı için kendi yazdığı mesajı da alabilir. Tabii bunu engellemenin çeşitli yolları da
+  vardır. Örneğin böylesi bir durumda sunucu elde ettiği proses ID'nin başına bir bilgi ekleyebilir. İstemci
+  de okumasını buna göre yapabilir. Ancak bu çözüm de meşgul bir döngü oluşturabilecektir.
+
+- Bu model, kilitlenme durumu aşılsa bile yavaşlık oluşturacaktır. Çünkü kuyrukların bir kapasitesi vardır. Bu
+  kapasite dolduğunda blokeler haberleşmeyi yavaşlatacaktır.
+
+İlk açıkladığımız, iki kuyruklu model her ne kadar *kilitlenmeye daha dirençliyse de* yine kırılgan bir yapı
+oluşmaktadır. Şöyle ki, belli bir istemci kuyruktan bilgi okumazsa (kasten bunu yapabilir ama istemci programı
+da biz yazıyorsak bunu kasten yapmayız) kuyruk dolabilir yine bir kilitlenme oluşabilir. Tabii istemci program
+neden kuyruktan mesaj okumayacaktır? İstemci program da bizim tarafımızdan yazıldığına göre genellikle böyle
+bir durum söz konusu olmaz. Ancak istemci programların başka yerlerinde yanlış bir teknik kullanılması
+nedeniyle bir bloke oluşsa onlar mesajlarını kuyruktan alamayabilirler. Bu durum diğer istemcileri olumsuz
+etkileyebilir.
+
+O halde mesaj kuyruklarıyla istemci-sunucu haberleşme daha sağlam bir biçimde yapılacaksa yine her istemci
+için ayrı bir mesaj kuyruğunun oluşturulması yoluna gidilebilir.
+
+0 Byte'lık Mesajlar
+-------------------
+
+Aslında mesaj kuyruklarına 0 byte'lık mesajlar da gönderilebilmektedir. Bu durumda kuyruğa yine mesaj yazılır.
+Mesajın tür değeri yine 0 byte'lık mesajı gönderen kişinin belirlediği tür değeri olarak mesajı okuyan proses
+tarafından elde edilmektedir. Yani 0 byte'lık mesajlar yine kuyruğa bir mesaj gibi yazılmaktadır. Bu tür
+mesajların uzunluğu çekirdek tarafından 1 byte mesajlarmış gibi ele alınmaktadır. Peki 0 byte'lık mesajlar
+neden gönderilebilir? İşte genellikle 0 byte uzunluğunda mesajlar *haberleşmeyi sonlandırmak amacıyla*
+gönderilmektedir. Tabii bazen gönderilecek mesaj gerçekten Yani bir taraf haberleşmeyi sonlandırmak
+istediğinde 0 byte uzunluğunda mesaj gönderebilir, diğer taraf da 0 byte uzunluğundaki mesajı aldığında
+haberleşmenin sonlandırılmak istendiğini anlayabilir. Buradaki semantiğin boru haberleşmesinin sonlandırılma
+biçimine benzediğine dikkat ediniz.
+
+Aşağıdaki örnekte *msg-prog1* programı klavyeden (``stdin`` dosyasından) aldığı yazıyı mesaj kuyruğuna
+yazmakta, *msg-prog2* programı da bunu mesaj kuyruğundan okumaktadır. İletişim sonlandırılacağı zaman
+*msg-prog1* kuyruğa 0 uzunlukta özel bir mesaj tür değeri olan ``QUIT_MSG`` mesajını bırakır. prog2'de bu özel
+mesaj tür değerini aldığında işlemini sonlandırmaktadır. Tabii aslında sonlandırma mesajını gönderen tarafın
+(*msg-prog1*) özel bir tür değeriyle göndermesine gerek de yoktur. Alan taraf (*msg-prog2*) zaten ``msgrcv``
+fonksiyonunda 0 ile geri dönüldüğünde de döngüsünü sonlandırabilir.
+
+.. code-block:: c
+   :caption: msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY             0x1234567
+   #define NORMAL_MSG          1
+   #define QUIT_MSG            2
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+       char *str;
+       size_t len;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           printf("Message text:");
+           fflush(stdout);
+
+           if (fgets(msg.buf, 8192, stdin) == NULL)
+               continue;
+           if ((str = strchr(msg.buf, '\n')) != NULL)
+               *str = '\0';
+
+           if (!strcmp(msg.buf, "quit")) {
+               msg.mtype = QUIT_MSG;
+               len = 0;
+           }
+           else {
+               msg.mtype = NORMAL_MSG;
+               len = strlen(msg.buf) + 1;
+           }
+
+           if (msgsnd(msgid, &msg, len, 0) == -1)
+               exit_sys("msgsnd");
+
+           if (msg.mtype == QUIT_MSG)
+               break;
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: msg-prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+
+   #define MSG_KEY             0x1234567
+   #define NORMAL_MSG          1
+   #define QUIT_MSG            2
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+
+       if ((msgid = msgget(MSG_KEY, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           if (msgrcv(msgid, &msg, 8192, 0, 0) == -1)
+               exit_sys("msgrcv");
+
+           if (msg.mtype == QUIT_MSG)
+               break;
+
+           printf("Message type: %ld Message text: %s\n", msg.mtype, msg.buf);
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+``ftok`` Fonksiyonu
+-------------------
+
+Sistem 5 (XSI) IPC nesnelerinin önemli sorunlarından biri bunların anahtar (key) değerlerinin bir çakışma
+yaratabilmesidir. Yani bizim belirlediğimiz anahtara ilişkin bir mesaj kuyruğu başkaları tarafından yaratılmış
+olabilir. Bu tür durumlarda anahtar yerine ``IPC_PRIVATE`` özel değerinin kullanılabileceğini belirtmiştik.
+Ancak bu durumda da elde edilen ID değerinin diğer prosese iletilmesi gerekmekteydi. İşte anahtar çakışmasını
+azaltmak için ve sayısal anahtar yerine isimsel anahtar kullanımını mümkün hale getirmek için ``ftok`` isimli
+bir POSIX fonksiyonundan faydalanılmaktadır. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <sys/ipc.h>
+
+   key_t ftok(const char *path, int id);
+
+Fonksiyonun birinci parametresi bir dosyanın yol ifadesini almaktadır. İkinci parametre kombine edilecek
+değeri belirtir. İkinci parametrenin yalnızca düşük anlamlı bir byte'ı kombine işleminde kullanılmaktadır. Bu
+parametrenin düşük anlamlı byte'ının 0 olmaması gerekir. Fonksiyon eğer biz ona aynı yol ifadesini ve aynı ID
+değerini verirsek bize aynı geri dönüş değerini verir. Eğer biz ona farklı bir yol ifadesi ve/veya farklı bir
+ID verirsek o bize başka bir geri dönüş değeri verir. Fonksiyonun amacı, Sistem 5 (XSI) IPC nesneleri için bir
+yol ifadesinden hareketle bir anahtar değerin sistem genelinde tek olacak biçimde (unique) oluşturulmasıdır.
+Böylece her proses anahtar üretmekte bu ``ftok`` fonksiyonunu kullanırsa ve ``ftok`` fonksiyonuna kendisine
+ilişkin bir yol ifadesi ve ID değeri verirse sistem genelinde çakışma olmaz.
+
+Her ne kadar ``ftok`` fonksiyonu sistem genelinde bir anahtar çakışmasını engellemek için düşünülmüşse de
+maalesef böyle bir garantinin verilmesi mümkün değildir. Dosyanın yol ifadesi ve ID değerinden hareketle bir
+tamsayı değerin (``key_t`` değerinin) sistem genelinde tek olacak biçimde üretilmesi mümkün değildir.
+Standartlar bile bunu garanti altına almamaktadır. Yani iki program farklı yol ifadesi ve ID değeri verdiğinde
+bile aynı anahtar değerini elde edebilir (her ne kadar bu olasılık çok düşükse de). *glibc* kütüphanesindeki
+``ftok`` fonksiyonu dosyanın inode numarasını, dosyanın içinde bulunduğu aygıtın numarasını ve bizim
+verdiğimiz ID değerini kombine ederek bir değer üretmektedir. (Farklı dosya sistemlerindeki dosyaların inode
+numaraları aynı olabilmektedir. Bu nedenle *glibc* gerçekleştiriminde dosyanın içinde bulunduğu aygıtın
+numarası da işin içine sokulmaktadır.) Ancak bu üretim bile çakışmama olasılığını teorik olarak
+sıfırlayamamaktadır. Ayrıca ``ftok`` fonksiyonunu kullanırken dosyayı silip aynı isimle yeniden yaratırsak
+dosyanın inode numarası değişebileceğinden dolayı aynı değeri elde edemeyebiliriz. Tabii ``ftok`` fonksiyonuna
+verilen yol ifadesi bir dizine de ilişkin olabilir. Programcı haberleşmek amacıyla başkalarının erişemeyeceği
+bir dosya ya da dizine ilişkin yol ifadesini kullanırsa çakışma olasılığını azaltabilir. ``ftok``
+fonksiyonunda ikinci parametrenin 0 geçilmemesi gerektiğini belirtmiştik. POSIX standartları eğer ikinci
+parametre 0 geçilirse *belirsiz (unspecified) bir durumun* oluşacağını belirtmektedir. ``IPC_PRIVATE``
+sembolik sabiti genellikle 0 biçiminde define edilmektedir. Böylesi bir durumda teorik çakışma söz konusu
+olabilmektedir.
+
+``ftok`` fonksiyonu başarı durumunda ürettiği anahtar değerine, başarısızlık durumunda -1 değerine geri
+dönmektedir.
+
+Örneğin:
+
+.. code-block:: c
+
+   key_t key;
+   int msgid;
+   /* ... */
+
+   if ((key = ftok(".", 'x')) == -1)
+       exit_sys("ftok");
+
+   if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+       exit_sys("msgget");
+
+Peki ``ftok`` fonksiyonu farklı yol ifadeleri ve/veya ID'ler için farklı anahtar değeri üretmeyi garanti
+edemiyorsa bu fonksiyonun kullanımının anlamı var mıdır? Aslında bu soruya *yoktur* yanıtını verebiliriz.
+Ancak ``ftok`` fonksiyonundan hedeflenen şeylerden biri de anahtarın yazısal hale getirilmesidir. Fakat ne
+olursa olsun ``ftok`` fonksiyonunun verdiği değer programcının uyduracağı sayısal anahtar değerinden daha iyi
+olma eğilimindedir (tabii herkesin ``ftok`` kullandığını varsayıyoruz).
+
+Aşağıda ``ftok`` kullanımına bir örnek verilmiştir. İki program da aynı yol ifadesi ve aynı ``ftok`` ID'si ile
+``ftok`` uygulamış ve aynı değeri elde etmiştir.
+
+.. code-block:: c
+   :caption: msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+   #include <sys/ipc.h>
+
+   #define KEY_NAME            "/home/kaan"
+   #define KEY_ID              123
+   #define NORMAL_MSG          1
+   #define QUIT_MSG            2
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+       char *str;
+       size_t len;
+       key_t key;
+
+       if ((key = ftok(KEY_NAME, KEY_ID)) == -1)
+           exit_sys("ftok");
+
+       if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           printf("Message text:");
+           fflush(stdout);
+
+           if (fgets(msg.buf, 8192, stdin) == NULL)
+               continue;
+           if ((str = strchr(msg.buf, '\n')) != NULL)
+               *str = '\0';
+
+           if (!strcmp(msg.buf, "quit")) {
+               msg.mtype = QUIT_MSG;
+               len = 0;
+           }
+           else {
+               msg.mtype = NORMAL_MSG;
+               len = strlen(msg.buf) + 1;
+           }
+
+           if (msgsnd(msgid, &msg, len, 0) == -1)
+               exit_sys("msgsnd");
+
+           if (msg.mtype == QUIT_MSG)
+               break;
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+   #include <sys/ipc.h>
+
+   #define KEY_NAME            "/home/kaan"
+   #define KEY_ID                123
+   #define NORMAL_MSG            1
+   #define QUIT_MSG              2
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+       key_t key;
+
+       if ((key = ftok(KEY_NAME, KEY_ID)) == -1)
+           exit_sys("ftok");
+
+       if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       for (;;) {
+           if (msgrcv(msgid, &msg, 8192, 0, 0) == -1)
+               exit_sys("msgrcv");
+
+           if (msg.mtype == QUIT_MSG)
+               break;
+
+           printf("Message type: %ld Message text: %s\n", msg.mtype, msg.buf);
+       }
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+Mesaj Kuyruklarının Kapasite Limitleri
+--------------------------------------
+
+Mesaj kuyruklarının sistemlerde o sisteme özgü çeşitli kapasite limitleri söz konusu olabilmektedir. POSIX
+standartları bu kapasite limitleri konusunda bir açıklama yapmamıştır. Ancak Linux sistemlerinde çekirdek
+mesaj kuyrukları için üç kapasite limiti belirlemektedir:
+
+1) ``MSGMAX`` Limiti: Bu limit bir mesaj kuyruğuna yazılabilecek mesajın, mesaj tür değeri haricindeki
+   kısmının maksimum byte uzunluğudur. Herhangi bir proses, bu değerden fazla uzunluğa sahip bir mesajı
+   kuyruğa yerleştirememektedir. Linux sistemlerinde bu değer default olarak şimdilik 8192'dir. Bu değer
+   *proc* dosya sisteminde ``/proc/sys/kernel/msgmax`` dosyasında belirtilmektedir:
+
+   .. code-block:: console
+
+      $ cat /proc/sys/kernel/msgmax
+      8192
+
+   Bu değer bu dosyanın içeriği değiştirilerek değiştirilebilmektedir. Ancak bunu yapabilmek için prosesin
+   uygun önceliğe sahip olması (proses ID'sinin 0 olması) gerekir. Örneğin:
+
+   .. code-block:: console
+
+      $  echo 16384 | sudo tee /proc/sys/kernel/msgmax
+      [sudo] kaan için parola:
+      16384
+
+2) ``MSGMNI`` (Maximum Number of ID): Bu limit tüm sistemde yaratılacak farklı mesaj kuyruklarının maksimum
+   sayısını belirtmektedir. Bu sayı ``/proc/sys/kernel/msgmni`` dosyasından elde edilebilir. Linux
+   sistemlerinde bunun default değeri şimdilik 32000'dir. Bu değer de benzer biçimde değiştirilebilmektedir.
+
+3) ``MSGMNB`` (Maximum Number of Bytes): Bu değer bir mesaj kuyruğundaki mesajın tür değeri dışındaki tüm
+   mesajlarının toplam maximum byte sayısıdır. ``msgsnd`` fonksiyonu bu değer aşıldığında blokeli işlemlerde
+   bloke olur. Bu değer ``/proc/sys/kernel/msgmnb`` dosyasından elde edilebilir. Linux sistemlerinde bu değer
+   varsayılan durumda şimdilik 16384'tür. Yani ``msgsnd`` fonksiyonu bu değer aşıldığında bloke olur.
+
+Buradaki limit değerler çekirdek parametreleriyle ya da çekirdek derlenirken konfigürasyon parametreleriyle
+değiştirilebilmektedir.
+
+``msgctl`` Fonksiyonu
+---------------------
+
+Klasik Sistem 5 (XSI) mesaj kuyruklarına ilişkin bazı kontrol işlemleri ``msgctl`` isimli POSIX fonksiyonu ile
+yapılmaktadır. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <sys/msg.h>
+
+   int msgctl(int msqid, int cmd, struct msqid_ds *buf);
+
+Fonksiyonun birinci parametresi mesaj kuyruğunun ID değerini almaktadır. İkinci parametre uygulanacak işlemi
+belirtir. Bu uygulanacak işlem şunlardan biri olabilir:
+
+.. code-block:: text
+
+   IPC_STAT
+   IPC_SET
+   IPC_RMID
+
+Fonksiyonun üçüncü parametresi ``msqid_ds`` isimli yapı nesnesinin adresini almaktadır. Bu yapı
+``<sys/msg.h>`` içerisinde tanımlanmıştır. POSIX bu yapının yalnızca olması zorunlu elemanlarını belirtmiştir.
+Linux sistemlerinde yapı şöyle tanımlanmıştır:
+
+.. code-block:: c
+
+   struct msqid_ds {
+       struct ipc_perm msg_perm;       /* Ownership and permissions */
+       time_t          msg_stime;      /* Time of last msgsnd(2) */
+       time_t          msg_rtime;      /* Time of last msgrcv(2) */
+       time_t          msg_ctime;      /* Time of creation or last
+                                       modification by msgctl() */
+       unsigned long   msg_cbytes;     /* # of bytes in queue */
+       msgqnum_t       msg_qnum;       /* # number of messages in queue */
+       msglen_t        msg_qbytes;     /* Maximum # of bytes in queue */
+       pid_t           msg_lspid;      /* PID of last msgsnd(2) */
+       pid_t           msg_lrpid;      /* PID of last msgrcv(2) */
+   };
+
+Yapının ``msg_perm`` elemanı ``ipc_perm`` isimli yapı türünden nesnedir. ``ipc_perm`` yapısı da şöyle
+tanımlanmıştır:
+
+.. code-block:: c
+
+   struct ipc_perm {
+       uid_t uid;                      /* Effective UID of owner */
+       gid_t gid;                      /* Effective GID of owner */
+       uid_t cuid;                     /* Effective UID of creator */
+       gid_t cgid;                     /* Effective GID of creator */
+       unsigned short mode;            /* Permissions */
+   };
+
+Buradaki ``uid`` ve ``gid`` elemanları mesaj kuyruğunun sahibi olan, ``cuid`` ve ``cgid`` elemanları ise mesaj
+kuyruğunu ilk yaratan prosesin etkin kullanıcı ve etkin grup ID'sini belirtmektedir. Normal olarak ``uid`` ve
+``gid`` elemanları ``cuid`` ve ``cgid`` elemanlarıyla aynı değerdedir. Ancak daha sonra ``msgctl`` fonksiyonu
+ile bu değerler değiştirilebilmektedir. Yapının ``uid`` ve ``gid`` elemanları mesaj kuyruğuna erişim sırasında
+çekirdek tarafından sanki dosya erişimlerindeki dosya kullanıcı ID'si ve grup ID'si gibi kontrol test işlemine
+sokulmaktadır. Yapının ``mode`` elemanı da mesaj kuyruğunun erişim haklarını belirtmektedir. ``msqid_ds``
+yapısının ``msg_stime``, ``msg_rtime`` ve ``msg_ctime`` elemanları mesaj kuyruğuna en son yapılan ``msgsnd``,
+``msgrcv`` ve ``msgctl`` işlemlerinin zamanlarını belirtmektedir. Yapının ``msg_cbytes`` elemanı (POSIX
+standartlarında bu eleman belirtilmemiştir, ancak Linux sistemlerinde bulunmaktadır) mesaj kuyruğundaki tüm
+mesajların tür değeri haricindeki kısımlarının byte uzunluğunu belirtmektedir. Yapının ``msg_qnum`` elemanı
+ise mesaj kuyruğundaki o anda bulunan mesaj sayısını belirtir. Yapının ``msg_qbytes`` elemanı mesaj kuyruğunun
+tutabileceği mesaj tür değeri haricindeki kısımların toplam byte sayısını belirtmektedir. Bu değer, mesaj
+kuyruğu yaratılırken Linux sistemlerinde ``MSGMNB`` değeri olarak yapıya aktarılmaktadır. Yapının
+``msg_lspid`` ve ``msg_lrpid`` elemanları sırasıyla kuyruğa son ``msgsnd`` yapan prosesin ID değerini ve
+kuyruktan son ``msgrcv`` yapan prosesin ID değerini belirtmektedir. Yapı tanımlamasındaki ``msgqnum_t`` ve
+``msglen_t`` tür isimleri ``<sys/msg.h>`` içerisinde işaretsiz bir tamsayı türü olarak (ama en azından
+``unsigned short`` uzunlukta) typedef edilmiş olmak zorundadır.
+
+Bizim mesaj kuyruğuna mesaj yazabilmemiz için mesaj kuyruğuna *w* hakkına, mesaj kuyruğundan mesaj
+okuyabilmemiz için ise *r* hakkına sahip olmamız gerekir. Buradaki erişim kontrolü tıpkı dosyalarda olduğu
+gibi yapılmaktadır. Ancak *owner* kontrolü burada ``msqid_ds`` yapısının ``msg_perm`` yapı elemanının ``uid``
+elemanı ile ve *group* kontrolü ise aynı yapının ``gid`` elemanı ile belirlenmektedir. Normal olarak yukarıda
+da belirttiğimiz gibi mesaj kuyruğu yaratıldığında ``ipc_perm`` yapısının ``uid`` ve ``gid`` elemanları
+``cuid`` ve ``cgid`` elemanlarıyla aynı değerdedir. Ancak daha sonra izleyen paragraflarda ele alacağımız
+üzere ``IPC_SET`` işlemi ile bunlar farklılaşabilirler. Tabii mesaj kuyruğunun yaratıcısına ilişkin ``cuid``
+ve ``cgid`` değerleri değiştirilememektedir.
+
+Fonksiyon başarı durumunda 0 değeri ile başarısızlık durumunda -1 değeri ile geri dönmektedir.
