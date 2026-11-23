@@ -1300,8 +1300,8 @@ fonksiyonu ile boruyu silmiştir.
        exit(EXIT_FAILURE);
    }
 
-Stream Tarzı Haberleşme ve Değişken Uzunlukta Mesajlar
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Stream Tabanlı Haberleşme ve Değişken Uzunlukta Mesajlar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Borular stream (*stream* sözcüğü "akarsu, pınar, akıntı" gibi anlamlara geliyor) tarzı bir haberleşme ortamı oluşturmaktadır. 
 Stream tarzı haberleşme denildiğinde gönderenin gönderdiklerinin alıcı tarafından istenilen miktarda byte okumalarıyla 
@@ -2626,35 +2626,48 @@ amaca yönelik bazı avantajları ve dezavantajları söz konusu olmaktadır. An
 durum yoksa modern POSIX IPC fonksiyonlarını tercih etmesi daha uygundur. Sizler de özel bir durum yoksa
 modern POSIX IPC fonksiyonlarını tercih etmelisiniz.
 
-Stream Tabanlı ve Mesaj Tabanlı Haberleşme
-------------------------------------------
+Mesaj Kuyrukları
+================
 
-Haberleşmeler biçimsel olarak *stream tabanlı* ve *mesaj tabanlı* olmak üzere ikiye ayrılmaktadır. Stream
-tabanlı haberleşme denildiğinde yazan tarafın tek bir hamlede (örneğin write ile) yazdığını okuyan tarafın tek
-hamlede (tek bir read ile) okumasının zorunlu olmadığı kastedilmektedir. Örneğin bir proses tek hamlede
-haberleşme kanalına 100 byte göndermiş olabilir. Stream tabanlı haberleşmede okuma yapan taraf bu 100 byte'ı
-tek hamlede değil birden fazla okuma yaparak elde edebilir. Yani stream tabanlı haberleşmede okuyan taraf
-haberleşme kanalından istediği kadar byte okuyabilmektedir. Burada *stream* terimi *dere, pınar, su akışı*
-anlamlarından hareketle uydurulmuştur. Mesaj tabanlı haberleşmelerde ise gönderen taraf bir grup byte'ı mesaj
-adı altında tek hamlede gönderir. Okuyan taraf bunu tek hamlede okumak zorundadır. Örneğin yazan taraf mesaj
-adı altında haberleşme kanalına 100 byte göndermiş olabilir. Bu 100 byte'lık paketi diğer taraf parça parça
-okuyamaz. Tek hamlede okumak zorundadır. Yani okuyan taraf bu paketi ya okumaz ya da okursa hepsini okur.
+Mesaj kuyrukları paket tabanlı bir proseslerarası haberleşme yöntemidir. Mesaj kuyrukları adeta boru haberleşmesinin 
+paket tabanlı bir biçimi gibidir. Bu bölümde klasik Sistem V ve POSIX mesaj kuyruklarını eele alacağız.
 
-Boru haberleşmesi *stream tabanlı* haberleşmeye tipik bir örnektir. Örneğin biz boruya 100 byte yazdığımızda
-okuyan taraf bu 100 byte'ı tek hamlede okumak zorunda değildir. Örneğin bunu 10'ar byte 10'ar byte okuyabilir.
-Oysa mesaj kuyruklarında kuyruğa yazan taraf *mesaj* adı altında bir grup byte'ı bir paket olarak yazar.
-Okuyan taraf da bunu paket olarak tek hamlede okur.
+Paket Tabanlı Haberleşme
+------------------------
 
-IP protokol ailesinde TCP denilen aktarım (transport) katmanı protokolü stream tabanlıdır. Yani TCP
-haberleşmesi boru haberleşmesine benzemektedir. Bu protokol ailesindeki UDP protokolü ise mesaj tabanlıdır.
-Protokol ailelerinde mesaj yerine gönderilen ve alınan paketlere *datagram* denilmektedir.
+Haberleşmeler biçimsel olarak *stream tabanlı* ve *paket tabanlı* olmak üzere ikiye ayrılmaktadır. Stream 
+tabanlı haberleşme hakkında açıklamalar yapmıştık. Anımsayacağınız gibi stream tabanlı haberleşme denildiğinde 
+yazan tarafın tek bir hamlede (örneğin tek bir ``write`` ile) yazdığını okuyan tarafın tek hamlede (tek bir read ile) 
+okumasının zorunlu olmadığı kastediliyordu. Örneğin bir proses tek hamlede haberleşme kanalına ``100`` byte göndermiş 
+olabilir. Stream tabanlı haberleşmede okuma yapan taraf bu ``100`` byte'ı tek hamlede değil birden fazla okuma 
+yaparak elde edebilir. Yani stream tabanlı haberleşmede okuyan taraf haberleşme kanalından istediği kadar byte 
+okuyabilmektedir. 
 
-Klasik Sistem V (XSI) IPC Nesnelerinin Temel Özellikleri
---------------------------------------------------------
+Paket tabanlı haberleşmelerde ise gönderen taraf bir grup byte'ı paket adı altında tek hamlede gönderir. Okuyan 
+taraf bunu tek hamlede okumak zorundadır. Örneğin yazan taraf paket adı altında haberleşme kanalına ``100`` byte göndermiş 
+olabilir. Bu ``100`` byte'lık paketi diğer taraf parça parça okuyamaz. Tek hamlede okumak zorundadır. Yani okuyan taraf 
+bu paketi ya okumaz ya da okursa hepsini okur. Paket tabanlı haberleşmedeki byte topluluklarını anlatan paket terimi 
+yerine bağlama göre *datagram* ya da *mesaj* terimleri de kullanılabilmektedir.
+
+Boru haberleşmesi stream tabanlı haberleşmeye tipik bir örnektir. Biz boruya ``100`` byte yazdığımızda okuyan taraf bu 
+``100`` byte'ı tek hamlede okumak zorunda değildir. Örneğin bunu ``10``'ar byte ``10``'ar byte okuyabilir. Oysa mesaj 
+kuyruklarında kuyruğa yazan taraf *mesaj* adı altında bir grup byte'ı bir paket olarak yazar. Okuyan taraf da bunu 
+paket olarak tek hamlede okur.
+
+Örneğin IP protokol ailesinde TCP denilen aktarım (transport) katmanı protokolü stream tabanlıdır. Yani TCP
+haberleşmesi boru haberleşmesine benzemektedir. Bu protokol ailesindeki UDP protokolü ise paket tabanlıdır.
+IP Protokol ailesinde *paket* terimi yerine *datagram* terimi kullanılmaktadır. 
+
+
+Mesaj kuyrukları paket tabanlı bir proseslerarası haberleşme yöntemidir. Mesaj kuyrukları adeta boru haberleşmesinin 
+paket tabanlı bir biçimi gibidir. Bu bölümde klasik Sistem V ve POSIX mesaj kuyruklarını ele alacağız.
+
+Sistem V (XSI) Mesaj Kuyrukları
+-------------------------------
 
 Konuya başlamadan önce klasik System V (XSI) IPC nesnelerinin bazı temel özelliklerinden bahsetmek istiyoruz.
 
-Klasik Sistem V (XSI) IPC mekanizmasında iki farklı prosesin aynı IPC nesnesi üzerinde anlaşabilmesi için
+Klasik sistem V (XSI) IPC mekanizmasında iki farklı prosesin aynı IPC nesnesi üzerinde anlaşabilmesi için
 *anahtar (key)* ve *id* kavramları kullanılmaktadır. Bu arayüzlerde ``xxxget`` fonksiyonlarına programcı bir
 anahtar verir. Bu anahtar sayısal bir değerdir. İki proses aynı anahtarı verirse aynı nesneyi kullanırlar. Bu
 ``xxxget`` fonksiyonları verilen anahtara ilişkin bir ID geri döndürmektedir. Bu ID değeri aslında diğer
@@ -2675,9 +2688,6 @@ denilmektedir. Halbuki örneğin borular öyle değildir. Bir isimli boru yarat�
 içerisine bir şeyler yazmış olsun. Prosesler boruyu kapatınca artık borunun içerisindekiler yok olur. Halbuki
 klasik Sistem V IPC nesnelerinde bir proses IPC nesnesini silmedikten sonra reboot edilene kadar nesnenin
 içerisindeki bilgiler kalmaya devam etmektedir.
-
-Sistem V (XSI) Mesaj Kuyrukları
--------------------------------
 
 System V (XSI) IPC mekanizması hakkında temel bazı bilgileri verdikten sonra şimdi mesaj kuyruklarının bu
 arayüzde kullanımını ele alalım.
