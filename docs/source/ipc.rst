@@ -1300,7 +1300,7 @@ fonksiyonu ile boruyu silmiştir.
        exit(EXIT_FAILURE);
    }
 
-Stream Tarzı Haberleşme ve Değişken Uzunlukta Kayıtlar
+Stream Tarzı Haberleşme ve Değişken Uzunlukta Mesajlar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Borular stream (*stream* sözcüğü "akarsu, pınar, akıntı" gibi anlamlara geliyor) tarzı bir haberleşme ortamı oluşturmaktadır. 
@@ -1308,27 +1308,27 @@ Stream tarzı haberleşme denildiğinde gönderenin gönderdiklerinin alıcı ta
 elde edilebilmesi kastedilmekteedir. Örneğin stream tabanlı haberleşmede gönderen taraf 100 byte göndermiş olsun. Alıcı taraf 
 bunu parça parça okuyabilir.
 
-Stream tabanlı haberleşmelerde önemli problemlerden biri de *değişken uzunlukta kayıtların* aktarımıdır. Yani
-örneğin boruya yazan taraf farklı uzunluklarda kayıtları boruya yazsa, okuyan taraf bu yazılanları
+Stream tabanlı haberleşmelerde önemli problemlerden biri de *değişken uzunlukta mesajların* aktarımıdır. Yani
+örneğin boruya yazan taraf farklı uzunluklarda mesajları boruya yazsa, okuyan taraf bu yazılanları
 nasıl birbirinden ayrıştıracaktır? İşte bu tür durumlarda iki yöntem akla gelmektedir:
 
-| **1**. Yazan taraf önce değişken uzunluktaki kaydın byte miktarını boruya yazar, sonra değişken uzunluktaki kaydı
+| **1**. Yazan taraf önce değişken uzunluktaki mesajın byte miktarını boruya yazar, sonra değişken uzunluktaki mesajı
    boruya yazar. Okuyan taraf da önce uzunluğu okur sonra o uzunluk kadar yeniden okuma yapar. Bu yöntem etkin
    ve çoğu zaman tercih edilen yöntemdir.
 
-| **2.** Yazan taraf kayıtların sonuna özel bir sonlandırıcı byte yerleştirir. (Örneğin kayıtlar yazılar biçimindeyse ``'\n'`` gibi
+| **2.** Yazan taraf mesajların sonuna özel bir sonlandırıcı byte yerleştirir. (Örneğin mesajlar yazısal biçimdeyse ``'\n'`` gibi
    bir karakter yerleştirilebilir.) Böylece okuyan taraf o özel byte'ı görene kadar okuma yapabilir. Buradaki
    problem bu özel byte'ın okuyan taraf tarafından nasıl tespit edileceğidir. ``read`` fonksiyonu ile sürekli 1
    byte okumak etkin bir yöntem değildir. O zaman bir blok bilginin okunup bir tampona yerleştirilmesi ve o
    tampondan akıllıca kontrol yapılması yoluna gidilebilir. Buna benzer yazısal aktarımlarda bazen programcılar
-   kaydın sonuna ``'\n'`` karakterini yerleştirip boru betimleyicisinden ``fdopen`` fonksiyonu ile dosya bilgi
+   mesajın sonuna ``'\n'`` karakterini yerleştirip boru betimleyicisinden ``fdopen`` fonksiyonu ile dosya bilgi
    gösterici elde edip ``fgets`` gibi bir fonksiyonla okuma yapma yoluna gidebilmektedir. Ne de olsa `fgets`` tamponlu 
    biçimde çalıştığı için bizim yapmamız gerekenleri kendisi yapmaktadır. Tabii aslında önce boruyu açıp sonra ``fdopen`` 
    fonksiyonunu kullanmak yerine doğrudan ``fopen`` fonksiyonuyla da boru açılabilir.
 
 Aşağıdaki örnekte *prog1* programı bir dizinin yol ifadesini komut satırı argümanıyla almış o dizindeki
 dosyaları elde edip önce onların uzunluklarını sonra da isimlerini boruya yazmıştır. Okuyan taraf da (*prog2*
-programı) önce uzunluğu sonra içeriği okuyup kayıtları birbirinden ayırabilmiştir.
+programı) önce uzunluğu sonra içeriği okuyup mesajları birbirinden ayırabilmiştir.
 
 ``prog1.c``
 
@@ -1430,7 +1430,7 @@ programı) önce uzunluğu sonra içeriği okuyup kayıtları birbirinden ayıra
        exit(EXIT_FAILURE);
    }
 
-Aşağıdaki örnekte ise yukarıda belirttiğimiz yöntemlerin ikincisi kullanılmıştır. Yani her kayıttan sonra özel
+Aşağıdaki örnekte ise yukarıda belirttiğimiz yöntemlerin ikincisi kullanılmıştır. Yani her mesajdan sonra özel
 bir sonlandırıcı karakter boruya eklenmiştir. Biz burada sonlandırıcı karakter için ``'\0'`` değil ``'\n'``
 karakterini tercih ettik. Çünkü C'de ``'\0'`` görene kadar okuma yapan standart bir fonksiyon yoktur. Halbuki
 ``'\n'`` görene kadar okuma yapan ``fgets`` gibi bir standart fonksiyon vardır. Aşağıdaki program hakkında şu özet
@@ -2558,141 +2558,67 @@ başarısız olup birtakım arka plan işlemleri yapacaktır.
        exit(EXIT_FAILURE);
    }
 
-POSIX Uyum Kategorileri ve Marjin Kodlar
-----------------------------------------
-
-Aslında POSIX standartları çeşitli uyum kategorilerini içermektedir. Yani POSIX standardını destekleyen
-sistemler onun bazı uyum kategorilerini destekleyip bazılarını desteklemiyor olabilirler. En önemli uyum
-kategorisi *XSI (X/Open ya da Open Group anlamına gelmektedir)* kategorisidir. Bu uyum kategorisi X/Open
-denilen ya da yeni ismi ile *Single Unix Specification* denilen uyum kategorisini anlatır. POSIX
-standartlarında bir fonksiyonda bu XSI ibaresi bulunursa *fonksiyon eğer ilgili işletim sistemi bu uyum
-kategorisini destekliyorsa bu fonksiyon olmalıdır* anlamına gelmektedir. POSIX standartlarındaki bu tür
-ibarelere *marjin kodlar (margin codes)* da denilmektedir. Güncel POSIX standartlarındaki marjin kodlar
-şunlardır:
-
-.. list-table:: POSIX marjin kodları
-   :header-rows: 1
-   :widths: 10 40 50
-   :align: center
-
-   * - Kod
-     - Seçenek
-     - Makro
-   * - ADV
-     - Advisory Information
-     - ``_POSIX_ADVISORY_INFO``
-   * - CPT
-     - Process CPU-Time Clocks
-     - ``_POSIX_CPUTIME``
-   * - FSC
-     - File Synchronization
-     - ``_POSIX_FSYNC``
-   * - IP6
-     - IPv6
-     - ``_POSIX_IPV6``
-   * - ML
-     - Process Memory Locking
-     - ``_POSIX_MEMLOCK``
-   * - MLR
-     - Range Memory Locking
-     - ``_POSIX_MEMLOCK_RANGE``
-   * - MSG
-     - Message Passing
-     - ``_POSIX_MESSAGE_PASSING``
-   * - PS
-     - Process Scheduling
-     - ``_POSIX_PRIORITY_SCHEDULING``
-   * - RS
-     - Raw Sockets
-     - ``_POSIX_RAW_SOCKETS``
-   * - SHM
-     - Shared Memory Objects
-     - ``_POSIX_SHARED_MEMORY_OBJECTS``
-   * - SIO
-     - Synchronized Input and Output
-     - ``_POSIX_SYNCHRONIZED_IO``
-   * - SPN
-     - Spawn
-     - ``_POSIX_SPAWN``
-   * - TSA
-     - Thread Stack Address Attribute
-     - ``_POSIX_THREAD_ATTR_STACKADDR``
-   * - TSS
-     - Thread Stack Size Attribute
-     - ``_POSIX_THREAD_ATTR_STACKSIZE``
-   * - XSI
-     - X/Open System Interfaces
-     - ``_XOPEN_UNIX``
-
-Bir işletim sisteminin resmi olarak UNIX türevi sertifikasını alması için XSI uyum kategorisini desteklemesi
-zorunlu tutulmuştur. Biz kursumuzda POSIX standartları demekle tüm bu uyum kategorilerini içerecek biçimde bu
-terimi kullanıyoruz. Halbuki yukarıda da belirtildiği gibi bazı uyum kategorileri dışlanarak da POSIX
-standartları desteklenebilmektedir. POSIX standartlarında, fonksiyonların yanında bu uyum kategorileri
-belirtilmiştir.
-
 UNIX/Linux Sistemlerinde IPC Nesneleri
---------------------------------------
+======================================
 
 Şimdi de boruların dışında UNIX/Linux sistemlerindeki aynı makinenin prosesleri arasında haberleşmede
 kullanılan diğer proseslerarası haberleşme yöntemlerini ele alacağız.
 
-UNIX/Linux dünyasında *IPC fonksiyonları* demekle geleneksel olarak *mesaj kuyrukları, paylaşılan bellek
-alanları ve semaphore'lar* anlaşılmaktadır. *IPC fonksiyonları* yerine *IPC nesneleri* terimi de
-kullanılabilmektedir. Borular tipik bir IPC mekanizması olduğu halde bu dünyada IPC fonksiyonları denildiğinde
-borular anlaşılmamaktadır. (Semaphore'lar senkronizasyon konusu ile ilgilidir. Ancak bir anlamda IPC konusuyla
-da ilgilidir. Biz semaphore'ları *thread'lerin anlatıldığı* bölümde ele alacağız.)
+UNIX/Linux dünyasında *IPC fonksiyonları* denildiğinde geleneksel olarak *mesaj kuyrukları*, *paylaşılan bellek alanları*,  
+ve *semaphore'lar* anlaşılmaktadır. *IPC fonksiyonları* yerine *IPC nesneleri* terimi de kullanılabilmektedir. Borular 
+IPC mekanizması oluşturdukları halde UNIX/Linux dünyasında IPC fonksiyonları denildiğinde borular anlaşılmamaktadır. 
+Semaphore'lar senkronizasyon konusu ile ilgilidir. Ancak bir anlamda IPC mekanizması ile de ilişkilidir. Biz semaphore'ları 
+thread'lerin anlatıldığı bölümde ele alacağız.
 
-UNIX/Linux dünyasında boruların dışında üç IPC mekanizması vardır:
+Yukarıda da belirttiğimiz gibi UNIX/Linux dünyasında boruların dışında üç IPC mekanizması vardır:
 
-- Mesaj kuyrukları (message queues)
+- **Mesaj kuyrukları (message queues)**
+- **Paylaşılan Bellek Alanları (shared memories)**
+- **Semaphore'lar (semaphores)**
 
-- Paylaşılan Bellek Alanları (shared memories)
+UNIX/Linux dünyasında IPC mekanizması için iki farklı arayüz (fonksiyon grubu) kullanılmaktadır:
 
-- Semaphore'lar (semaphores)
-
-Yukarıda da belirttiğimiz gibi borular birer IPC mekanizması olduğu halde UNIX/Linux dünyasında genellikle IPC
-konusunun dışında ele alınmaktadır.
-
-UNIX/Linux dünyasında IPC mekanizması (onların terimi ile) için iki farklı arayüz (fonksiyon grubu) kullanılmaktadır:
-
-1) Eskiden beri var olan geniş bir taşınabilirliğe sahip olan ismine *Sistem 5 IPC fonksiyonları* ya da *XSI
+| **1.** Eskiden beri var olan geniş bir taşınabilirliğe sahip olan ismine *Sistem V IPC fonksiyonları* ya da *XSI
    IPC fonksiyonları* denilen klasik IPC fonksiyonları.
 
-2) 1990'lı yılların ortalarında *Real Time Extensions* eklemeleriyle POSIX dünyasına katılan ismine *POSIX IPC
+| **2.** 1990'lı yılların ortalarında *Real Time Extensions* eklemeleriyle POSIX dünyasına katılan ismine *POSIX IPC
    fonksiyonları* denilen yeni ve daha modern IPC fonksiyonları.
 
 Her ne kadar ikinci grup fonksiyonlara *POSIX IPC fonksiyonları* deniliyorsa da her iki fonksiyon grubu da
-POSIX standartlarında bulunmaktadır. Klasik IPC fonksiyonlarının yanında XSI uyum kategorisine ilişkin marjin
-kod yerleştirilmiştir.
+POSIX standartlarında bulunmaktadır. Klasik (XSI) IPC fonksiyonlarının yanında XSI uyum kategorisine ilişkin marjin
+kodlar yerleştirilmiştir.
 
 Her iki arayüzdeki fonksiyonların parametrik yapıları ve isimleri o arayüze uygun biçimde belirlenmiştir. Bu
-nedenle örneğin Sistem 5 (XSI) ve POSIX IPC fonksiyonlarının isimlendirmeleri ve kullanımları kendi aralarında
-birbirine benzerdir. Aşağıda her iki arayüzdeki yaratıcı fonksiyonların isimleri verilmiştir:
+nedenle örneğin Sistem V (XSI) ve POSIX IPC fonksiyonlarının isimlendirmeleri ve kullanımları kendi aralarında
+birbirine benzerdir. Aşağıda isimsel benzerliğin kavranması için her iki arayüzdeki yaratıcı fonksiyonların isimleri 
+verilmiştir:
 
-.. list-table:: Yaratıcı IPC fonksiyonları
+.. list-table:: 
    :header-rows: 1
    :widths: 50 50
    :align: center
 
-   * - Sistem 5 IPC Fonksiyonları
+   * - Sistem V IPC Fonksiyonları
      - POSIX IPC Fonksiyonları
-   * - msgget (mesaj kuyruğu)
-     - mq_open (mesaj kuyruğu)
-   * - shmget (paylaşılan bellek alanları)
-     - shm_open (paylaşılan bellek alanları)
-   * - semget (semaphore'lar)
-     - sem_open (semaphore'lar)
+   * - ``msgget`` (mesaj kuyruğu)
+     - ``mq_open`` (mesaj kuyruğu)
+   * - ``shmget`` (paylaşılan bellek alanları)
+     - ``shm_open`` (paylaşılan bellek alanları)
+   * - ``semget`` (semaphore'lar)
+     - ``sem_open`` (semaphore'lar)
 
-Peki mademki klasik (Sistem 5) IPC nesneleri 70'lerden beri kullanılmaktadır ve oldukça taşınabilir
-durumdadır. O halde neden 90'lı yıllarda yeni bir arayüz gereksinimi duyulmuştur? İşte bunun nedeni klasik IPC
-nesnelerinin genel tasarımında olan bazı problemlerdir. POSIX IPC fonksiyonlarıyla bu problem giderilmeye
-çalışılmıştır. POSIX IPC fonksiyonları Linux çekirdeğine çok sonraları eklenmiştir. Hala bazı UNIX türevi
-sistemlerde (örneğin macOS ve OpenBSD gibi) bu fonksiyonlar tam desteklenmemektedir. Yani POSIX IPC nesneleri
-taşınabilirlik konusunda daha problemlidir. Gerçi seneler içerisinde bu IPC nesneleri daha çok sistem
-tarafından desteklenmiştir ve bugünlerde bu taşınabilirlik problemi büyük ölçüde ortadan kalkmıştır.
+Peki mademki klasik (Sistem V) IPC nesneleri 70'lerden beri kullanılmaktadır ve oldukça taşınabilir
+durumdadır. O halde neden 90'lı yıllarda yeni bir arayüze gereksinim duyulmuştur? İşte bunun nedeni klasik IPC
+nesnelerinin genel tasarımında olan bazı sorunlardır. POSIX IPC fonksiyonlarıyla bu sorunlar giderilmeye
+çalışılmıştır. 
 
-Bu IPC mekanizmalarının incelenmesi işlemi iki biçimde yapılabilir. Önce Klasik Sistem 5 IPC fonksiyonları
-görülüp sonra bunların POSIX IPC karşılıkları incelenebilir ya da her IPC mekanizmasının klasik Sistem 5 ve
+POSIX IPC fonksiyonları Linux çekirdeğine çok sonraları eklenmiştir. Hala bazı UNIX türevi sistemlerde (örneğin 
+macOS ve OpenBSD gibi) bu fonksiyonlar tam desteklenmemektedir. Yani POSIX IPC nesneleri taşınabilirlik konusunda daha 
+problemlidir. Gerçi seneler içerisinde bu IPC nesneleri daha çok sistem tarafından desteklenmiştir ve bugünlerde bu 
+taşınabilirlik problemi büyük ölçüde ortadan kalkmıştır.
+
+UNIX/Linux dünyasındaki IPC mekanizmalarının incelenmesi süreci iki biçimde yürütülebilir. Önce klasik Sistem V IPC 
+fonksiyonları görülüp sonra bunların POSIX IPC karşılıkları incelenebilir ya da her IPC mekanizmasının klasik Sistem V ve
 POSIX karşılıkları paralel biçimde incelenebilir. Biz bu kursumuzda ikinci yöntemi izleyeceğiz.
 
 Peki biz programcı olarak hangi grup IPC fonksiyonlarını kullanmalıyız? İşte bu iki grubun birbirlerine göre
@@ -2723,12 +2649,12 @@ IP protokol ailesinde TCP denilen aktarım (transport) katmanı protokolü strea
 haberleşmesi boru haberleşmesine benzemektedir. Bu protokol ailesindeki UDP protokolü ise mesaj tabanlıdır.
 Protokol ailelerinde mesaj yerine gönderilen ve alınan paketlere *datagram* denilmektedir.
 
-Klasik Sistem 5 (XSI) IPC Nesnelerinin Temel Özellikleri
+Klasik Sistem V (XSI) IPC Nesnelerinin Temel Özellikleri
 --------------------------------------------------------
 
-Konuya başlamadan önce klasik System 5 (XSI) IPC nesnelerinin bazı temel özelliklerinden bahsetmek istiyoruz.
+Konuya başlamadan önce klasik System V (XSI) IPC nesnelerinin bazı temel özelliklerinden bahsetmek istiyoruz.
 
-Klasik Sistem 5 (XSI) IPC mekanizmasında iki farklı prosesin aynı IPC nesnesi üzerinde anlaşabilmesi için
+Klasik Sistem V (XSI) IPC mekanizmasında iki farklı prosesin aynı IPC nesnesi üzerinde anlaşabilmesi için
 *anahtar (key)* ve *id* kavramları kullanılmaktadır. Bu arayüzlerde ``xxxget`` fonksiyonlarına programcı bir
 anahtar verir. Bu anahtar sayısal bir değerdir. İki proses aynı anahtarı verirse aynı nesneyi kullanırlar. Bu
 ``xxxget`` fonksiyonları verilen anahtara ilişkin bir ID geri döndürmektedir. Bu ID değeri aslında diğer
@@ -2739,24 +2665,24 @@ Yani aslında bu ID değeri, diğer prosese proseslerarası haberleşme yönteml
 ``xxxget`` işlemi yapmadan doğrudan bu ID değerini kullanabilir. Başka bir deyişle birden fazla proses ``xxxget``
 fonksiyonlarında aynı anahtarı verdiklerinde aslında aynı ID'yi elde etmektedir.
 
-Klasik Sistem 5 (XSI) IPC mekanizmasında ``xxxget`` fonksiyonlarında kullanılan anahtarlar aslında IPC nesnesinin
+Klasik Sistem V (XSI) IPC mekanizmasında ``xxxget`` fonksiyonlarında kullanılan anahtarlar aslında IPC nesnesinin
 türüne göre ayrı bir isim alanındadır. Yani örneğin 12345 gibi bir anahtar paylaşılan bellek alanları için
 ayrı bir anahtar, mesaj kuyrukları için ayrı bir anahtar durumundadır.
 
-Klasik Sistem 5 IPC nesneleri yaratıldıktan sonra ``xxxctl`` fonksiyonu ile yok edilene kadar ya da sistem reboot
+Klasik Sistem V IPC nesneleri yaratıldıktan sonra ``xxxctl`` fonksiyonu ile yok edilene kadar ya da sistem reboot
 edilene kadar yaşamaktadır. Bu duruma bu terminolojide *çekirdek kalıcılığı (kernel persistency)*
 denilmektedir. Halbuki örneğin borular öyle değildir. Bir isimli boru yaratılmış ve bir proses onu açıp onun
 içerisine bir şeyler yazmış olsun. Prosesler boruyu kapatınca artık borunun içerisindekiler yok olur. Halbuki
-klasik Sistem 5 IPC nesnelerinde bir proses IPC nesnesini silmedikten sonra reboot edilene kadar nesnenin
+klasik Sistem V IPC nesnelerinde bir proses IPC nesnesini silmedikten sonra reboot edilene kadar nesnenin
 içerisindeki bilgiler kalmaya devam etmektedir.
 
-Sistem 5 (XSI) Mesaj Kuyrukları
+Sistem V (XSI) Mesaj Kuyrukları
 -------------------------------
 
-System 5 (XSI) IPC mekanizması hakkında temel bazı bilgileri verdikten sonra şimdi mesaj kuyruklarının bu
+System V (XSI) IPC mekanizması hakkında temel bazı bilgileri verdikten sonra şimdi mesaj kuyruklarının bu
 arayüzde kullanımını ele alalım.
 
-Klasik Sistem 5 (XSI) mesaj kuyruklarında dört fonksiyon vardır: ``msgget``, ``msgsnd``, ``msgrcv`` ve ``msgctl``
+Klasik Sistem V (XSI) mesaj kuyruklarında dört fonksiyon vardır: ``msgget``, ``msgsnd``, ``msgrcv`` ve ``msgctl``
 fonksiyonları. ``msgget`` fonksiyonu mesaj kuyruğunu yaratır ya da yaratılmış olanı açar. ``msgget`` fonksiyonunu ``open``
 fonksiyonuna benzetebiliriz. Mesaj kuyruğuna bir grup byte'ı mesaj olarak yerleştirmek için msgsnd fonksiyonu,
 mesaj kuyruğundan mesaj almak için ``msgrcv`` fonksiyonu ve mesaj kuyruğu üzerinde silme de dahil olmak üzere bazı
@@ -2765,7 +2691,7 @@ diğer işlemleri yapabilmek için ``msgctl`` fonksiyonu kullanılmaktadır.
 msgget Fonksiyonu
 ~~~~~~~~~~~~~~~~~
 
-Klasik Sistem 5 mesaj kuyrukları ``msgget`` fonksiyonuyla yaratılabilir ya da zaten var olan mesaj kuyrukları
+Klasik Sistem V mesaj kuyrukları ``msgget`` fonksiyonuyla yaratılabilir ya da zaten var olan mesaj kuyrukları
 ``msgget`` fonksiyonuyla kullanım için açılabilir. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
@@ -2835,7 +2761,7 @@ kadar.
 ``msgget`` fonksiyonu başarı durumunda yaratılan ya da zaten var olan mesaj kuyruğunun id değerine, başarısızlık
 durumunda ``-1`` değerine geri dönmektedir. ``errno`` değişkeni uygun biçimde set edilmektedir.
 
-Aşağıdaki örnekte program belli bir anahtar kullanarak klasik Sistem 5 (XSI) mesaj kuyruğunu yaratmıştır. Aynı
+Aşağıdaki örnekte program belli bir anahtar kullanarak klasik Sistem V (XSI) mesaj kuyruğunu yaratmıştır. Aynı
 anahtarı kullanan başka bir proses aynı mesaj kuyruğunu açabilir. Bu durumda aynı anahtarı kullanan
 proseslerin hepsi aynı ID'yi elde eder.
 
@@ -2871,7 +2797,7 @@ proseslerin hepsi aynı ID'yi elde eder.
 ipcs Komutu ve proc Dosya Sistemi
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-O anda yaratılmış olan klasik Sistem 5 (XSI) IPC nesnelerini (mesaj kuyrukları, paylaşılan bellek alanları ve
+O anda yaratılmış olan klasik Sistem V (XSI) IPC nesnelerini (mesaj kuyrukları, paylaşılan bellek alanları ve
 semaphore'lar) komut satırından görüntülemek için ``ipcs`` isimli komut kullanılmaktadır. Örneğin:
 
 .. code-block:: console
@@ -2924,7 +2850,7 @@ Kursumuzda *proc* dosya sistemi ileride ayrı bir bölümde ele alınacaktır. *
 dosyalar yazılabilir durumda da olabilmektedir. Bu durumda bu dosyalara yazma yapıldığında çekirdeğin bazı
 ayarları da değiştirilmiş olmaktadır.
 
-Sistem 5 (XSI) Mesaj Kuyrukları: ``msgsnd``, ``msgrcv``, ``ftok`` ve ``msgctl``
+Sistem V (XSI) Mesaj Kuyrukları: ``msgsnd``, ``msgrcv``, ``ftok`` ve ``msgctl``
 ===============================================================================
 
 Mesaj Gönderme: ``msgsnd`` Fonksiyonu
@@ -2947,7 +2873,7 @@ kuyruğunun ID değerini biliyorsa anahtardan hareketle ID elde etmek zorunda de
 ``IPC_NOWAIT`` ya da 0 geçilebilir. Normal olarak mesaj kuyruğu doluysa (mesaj kuyruğunun bazı limitleri
 vardır) ``msgsnd`` bloke oluşturmaktadır. Eğer mesaj kuyruğu dolu olduğu halde bloke oluşmasın isteniyorsa
 (yani blokesiz işlem yapılmak isteniyorsa) bu durumda fonksiyonun son parametresine ``IPC_NOWAIT`` özel değeri
-geçirilir. Eğer bu değer geçilmeyecekse bu parametre 0 olarak girilebilir. (Sistem 5 mesaj kuyruklarında
+geçirilir. Eğer bu değer geçilmeyecekse bu parametre 0 olarak girilebilir. (Sistem V mesaj kuyruklarında
 blokesiz işlem yapmak için ``O_NONBLOCK`` gibi bir bayrakla değil, ``IPC_NOWAIT`` bayrağı kullanılmaktadır.)
 
 Fonksiyonun ikinci parametresine, mesajı oluşturan byte topluluğunun adresinin girileceğini belirtmiştik.
@@ -3106,7 +3032,7 @@ programcı ilgilenmeyecekse onu herhangi bir değerde tutabilir.
 Mesaj Alma: ``msgrcv`` Fonksiyonu
 ---------------------------------
 
-Klasik Sistem 5 (XSI) mesaj kuyruklarından mesaj okumak için ``msgrcv`` fonksiyonu kullanılmaktadır.
+Klasik Sistem V (XSI) mesaj kuyruklarından mesaj okumak için ``msgrcv`` fonksiyonu kullanılmaktadır.
 Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c
@@ -3180,7 +3106,7 @@ durumda ``msgrcv`` kuyrukta ilgilenilen mesaj türüne ilişkin mesaj yoksa blok
 ``msgrcv`` fonksiyonu başarı durumunda okunan mesajın byte uzunluğu ile başarısızlık durumunda -1 ile geri
 dönmektedir. Okunan mesajın byte uzunluğuna ``long`` alan dahil değildir.
 
-Burada özellikle bir noktayı vurgulamak istiyoruz: Klasik Sistem 5 mesaj kuyruklarında karşı tarafın mesaj
+Burada özellikle bir noktayı vurgulamak istiyoruz: Klasik Sistem V mesaj kuyruklarında karşı tarafın mesaj
 kuyruğunu kapatması diye bir durum yoktur. Dolayısıyla borularda olduğu gibi 0 byte okunana kadar yinelenen
 bir döngü oluşturulamamaktadır.
 
@@ -3600,7 +3526,7 @@ değerine ilişkin mesaj okunamasaydı bu durum mümkün olamazdı.
 Tek Mesaj Kuyruğu Kullanımının Sakıncaları
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Aslında klasik Sistem 5 (XSI) mesaj kuyruklarıyla istemci-sunucu haberleşme programı yazılırken tek bir mesaj
+Aslında klasik Sistem V (XSI) mesaj kuyruklarıyla istemci-sunucu haberleşme programı yazılırken tek bir mesaj
 kuyruğu da kullanılabilir. Örneğin bu durumda istemciler yine kendi proses ID'lerini mesaj tür değeri yaparak
 kuyruğa sunucu için mesaj bırakır. Sunucu da mesajı işledikten sonra bu kez yanıtı ilgili prosesin ID'sini
 mesaj tür bilgisi yaparak kuyruğa yazar. İstemci de kuyruktan kendi mesaj tür bilgisiyle okuma yapabilir.
@@ -3767,7 +3693,7 @@ fonksiyonunda 0 ile geri dönüldüğünde de döngüsünü sonlandırabilir.
 ``ftok`` Fonksiyonu
 -------------------
 
-Sistem 5 (XSI) IPC nesnelerinin önemli sorunlarından biri bunların anahtar (key) değerlerinin bir çakışma
+Sistem V (XSI) IPC nesnelerinin önemli sorunlarından biri bunların anahtar (key) değerlerinin bir çakışma
 yaratabilmesidir. Yani bizim belirlediğimiz anahtara ilişkin bir mesaj kuyruğu başkaları tarafından yaratılmış
 olabilir. Bu tür durumlarda anahtar yerine ``IPC_PRIVATE`` özel değerinin kullanılabileceğini belirtmiştik.
 Ancak bu durumda da elde edilen ID değerinin diğer prosese iletilmesi gerekmekteydi. İşte anahtar çakışmasını
@@ -3784,7 +3710,7 @@ Fonksiyonun birinci parametresi bir dosyanın yol ifadesini almaktadır. İkinci
 değeri belirtir. İkinci parametrenin yalnızca düşük anlamlı bir byte'ı kombine işleminde kullanılmaktadır. Bu
 parametrenin düşük anlamlı byte'ının 0 olmaması gerekir. Fonksiyon eğer biz ona aynı yol ifadesini ve aynı ID
 değerini verirsek bize aynı geri dönüş değerini verir. Eğer biz ona farklı bir yol ifadesi ve/veya farklı bir
-ID verirsek o bize başka bir geri dönüş değeri verir. Fonksiyonun amacı, Sistem 5 (XSI) IPC nesneleri için bir
+ID verirsek o bize başka bir geri dönüş değeri verir. Fonksiyonun amacı, Sistem V (XSI) IPC nesneleri için bir
 yol ifadesinden hareketle bir anahtar değerin sistem genelinde tek olacak biçimde (unique) oluşturulmasıdır.
 Böylece her proses anahtar üretmekte bu ``ftok`` fonksiyonunu kullanırsa ve ``ftok`` fonksiyonuna kendisine
 ilişkin bir yol ifadesi ve ID değeri verirse sistem genelinde çakışma olmaz.
@@ -3997,7 +3923,7 @@ değiştirilebilmektedir.
 ``msgctl`` Fonksiyonu
 ---------------------
 
-Klasik Sistem 5 (XSI) mesaj kuyruklarına ilişkin bazı kontrol işlemleri ``msgctl`` isimli POSIX fonksiyonu ile
+Klasik Sistem V (XSI) mesaj kuyruklarına ilişkin bazı kontrol işlemleri ``msgctl`` isimli POSIX fonksiyonu ile
 yapılmaktadır. Fonksiyonun prototipi şöyledir:
 
 .. code-block:: c

@@ -1146,6 +1146,73 @@ Internet'ten Open Group'un web sitesinden erişilebilir:
 
 https://pubs.opengroup.org/onlinepubs/9799919799/
 
+Aslında POSIX standartları çeşitli uyum kategorilerini içermektedir. Yani POSIX standardını destekleyen sistemler onun 
+bazı uyum kategorilerini destekleyip bazılarını desteklemiyor olabilirler. En önemli uyum kategorisi *XSI (X/Open ya da 
+Open Group anlamına gelmektedir)* kategorisidir. Bu uyum kategorisi *X/Open* denilen ya da yeni ismi ile *Single Unix 
+Specification* denilen uyum kategorisini anlatır. POSIX standartlarında bir fonksiyonda bu XSI ibaresi bulunursa "fonksiyon
+eğer ilgili işletim sistemi bu uyum kategorisini destekliyorsa bu fonksiyon olmalıdır" anlamına gelmektedir. POSIX 
+standartlarındaki bu tür ibarelere "marjin kodlar (margin codes)" da denilmektedir. Güncel POSIX standartlarındaki marjin
+kodlar şunlardır:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 40 50
+   :align: center
+
+   * - Kod
+     - Seçenek
+     - Makro
+   * - ADV
+     - Advisory Information
+     - ``_POSIX_ADVISORY_INFO``
+   * - CPT
+     - Process CPU-Time Clocks
+     - ``_POSIX_CPUTIME``
+   * - FSC
+     - File Synchronization
+     - ``_POSIX_FSYNC``
+   * - IP6
+     - IPv6
+     - ``_POSIX_IPV6``
+   * - ML
+     - Process Memory Locking
+     - ``_POSIX_MEMLOCK``
+   * - MLR
+     - Range Memory Locking
+     - ``_POSIX_MEMLOCK_RANGE``
+   * - MSG
+     - Message Passing
+     - ``_POSIX_MESSAGE_PASSING``
+   * - PS
+     - Process Scheduling
+     - ``_POSIX_PRIORITY_SCHEDULING``
+   * - RS
+     - Raw Sockets
+     - ``_POSIX_RAW_SOCKETS``
+   * - SHM
+     - Shared Memory Objects
+     - ``_POSIX_SHARED_MEMORY_OBJECTS``
+   * - SIO
+     - Synchronized Input and Output
+     - ``_POSIX_SYNCHRONIZED_IO``
+   * - SPN
+     - Spawn
+     - ``_POSIX_SPAWN``
+   * - TSA
+     - Thread Stack Address Attribute
+     - ``_POSIX_THREAD_ATTR_STACKADDR``
+   * - TSS
+     - Thread Stack Size Attribute
+     - ``_POSIX_THREAD_ATTR_STACKSIZE``
+   * - XSI
+     - X/Open System Interfaces
+     - ``_XOPEN_UNIX``
+
+Bir işletim sisteminin resmi olarak UNIX türevi sertifikasını alması için XSI uyum kategorisini desteklemesi zorunlu tutulmuştur. 
+Biz kursumuzda POSIX standartları demekle tüm bu uyum kategorilerini içerecek biçimde bu terimi kullanacaız. Halbuki 
+yukarıda da belirtildiği gibi bazı uyum kategorileri dışlanarak da POSIX standartları desteklenebilmektedir. POSIX 
+standartlarında, fonksiyonların yanında bu uyum kategorileri belirtilmiştir. 
+
 GNU Projesi, Özgür Yazılım ve Açık Kaynak Akımları
 ==================================================
 
