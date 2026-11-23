@@ -2677,23 +2677,22 @@ Yani aslında bu ID değerleri diğer proseslere proseslerarası haberleşme yö
 ``xxxget`` işlemi yapmadan bu ID değerlerini doğrudan kullanabilmektedir. Başka bir deyişle birden fazla proses ``xxxget``
 fonksiyonlarında aynı anahtarı verdiğinde aslında aynı ID'yi elde etmektedir.
 
-Klasik Sistem V (XSI) IPC mekanizmasında ``xxxget`` fonksiyonlarında kullanılan anahtarlar aslında IPC nesnesinin
-türüne göre ayrı bir isim alanındadır. Yani örneğin 12345 gibi bir anahtar paylaşılan bellek alanları için
-ayrı bir anahtar, mesaj kuyrukları için ayrı bir anahtar durumundadır.
+Klasik Sistem V (XSI) IPC mekanizmasında ``xxxget`` fonksiyonlarında kullanılan anahtarlar IPC nesnesinin türüne 
+göre ayrı bir isim alanındadır. Yani örneğin `12345`` gibi bir anahtar paylaşılan bellek alanları için ayrı bir anahtar, 
+mesaj kuyrukları için ayrı bir anahtar durumundadır.
 
-Klasik Sistem V IPC nesneleri yaratıldıktan sonra ``xxxctl`` fonksiyonu ile yok edilene kadar ya da sistem reboot
-edilene kadar yaşamaktadır. Bu duruma bu terminolojide *çekirdek kalıcılığı (kernel persistency)*
-denilmektedir. Halbuki örneğin borular öyle değildir. Bir isimli boru yaratılmış ve bir proses onu açıp onun
-içerisine bir şeyler yazmış olsun. Prosesler boruyu kapatınca artık borunun içerisindekiler yok olur. Halbuki
-klasik Sistem V IPC nesnelerinde bir proses IPC nesnesini silmedikten sonra reboot edilene kadar nesnenin
-içerisindeki bilgiler kalmaya devam etmektedir.
+Klasik Sistem V IPC nesneleri yaratıldıktan sonra yok edilene kadar ya da sistem reboot edilene kadar yaşamaktadır. 
+Bu duruma bu terminolojide *çekirdek kalıcılığı (kernel persistency)* denilmektedir. Halbuki örneğin borular öyle değildir. 
+Bir isimli boru yaratılmış ve bir proses onu açıp onun içerisine bir şeyler yazmış olsun. Prosesler boruyu kapatınca artık 
+borunun içerisindekiler yok olur. Halbuki klasik Sistem V IPC nesnelerinde bir proses IPC nesnesini silmedikten sonra 
+sistem reboot edilene kadar nesnenin içerisindeki bilgiler kalmaya devam etmektedir.
 
 System V (XSI) IPC mekanizması hakkında temel bazı bilgileri verdikten sonra şimdi mesaj kuyruklarının bu
 arayüzde kullanımını ele alalım.
 
 Klasik Sistem V (XSI) mesaj kuyruklarında dört fonksiyon vardır: ``msgget``, ``msgsnd``, ``msgrcv`` ve ``msgctl``
 fonksiyonları. ``msgget`` fonksiyonu mesaj kuyruğunu yaratır ya da yaratılmış olanı açar. ``msgget`` fonksiyonunu ``open``
-fonksiyonuna benzetebiliriz. Mesaj kuyruğuna bir grup byte'ı mesaj olarak yerleştirmek için msgsnd fonksiyonu,
+fonksiyonuna benzetebiliriz. Mesaj kuyruğuna bir grup byte'ı mesaj olarak yerleştirmek için ``msgsnd`` fonksiyonu,
 mesaj kuyruğundan mesaj almak için ``msgrcv`` fonksiyonu ve mesaj kuyruğu üzerinde silme de dahil olmak üzere bazı
 diğer işlemleri yapabilmek için ``msgctl`` fonksiyonu kullanılmaktadır.
 
