@@ -410,8 +410,8 @@ yapılan alt prosesin ``exec`` sonrasında boru betimleyicilerinin numaraların�
 ``stdout`` ve ``stderr`` dosyalarının betimleyicileri sabit olduğuna göre ``exec`` sonrasında haberleşme bu betimleyiciler
 yoluyla yapılabilmektedir.
 
-Kabuğun Boru İşleminin Örnek Gerçekleştirimi 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kabuğun Sağladığı Boru İşleminin Örnek Gerçekleştirimi 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Artık kabuk programının boru işlemini nasıl yaptığını anlayabiliriz. Örneğin aşağıdaki gibi bir kabuk komutu
 verilmiş olsun:
@@ -843,11 +843,11 @@ Dolayısıyla yazdığımız şeyler önce tampona aktarılıp oradan boruya akt
 arasındaki haberleşmelerde kullanılmaktadır. Halbuki isimli borular herhangi iki proses arasında haberleşmede
 kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan geçilerek yapılır:
 
-| **1.** Önce "*boru dosyası* ya da *fifo dosyası*" denilen özel bir dosyanın yaratılması gerekir. Boru dosyaları *ls
+| **1.** Önce *boru dosyası* ya da *fifo dosyası* denilen özel bir dosyanın yaratılması gerekir. Boru dosyaları *ls
    -l* komutunda ``p`` dosya türü ile gösterilmektedir. Boru dosyaları gerçek birer disk dosyası belirtmezler. Yalnızca
    bir dizin girişine ve bir de *inode* elemanına sahiptirler. Yani bunların içerikleri için diskte bir yer ayrılmamaktadır. 
-   Bu nedenle boru dosyaları hep ``0`` uzunlukta görüntülenmektedir. Boru dosyaları ``open`` fonksiyonuyla yaratılmaz. Bunları
-   yaratmak için ``mkfifo`` isimli POSIX fonksiyonu kullanılmaktadır. ``mkfifo`` fonksiyonunun prototipi şöyledir:
+   Bu nedenle boru dosyaları hep ``0`` uzunlukta görüntülenmektedir. Boru dosyaları ``open`` fonksiyonuyla değil ``mkfifo`` 
+   isimli POSIX fonksiyonuyla yaratılmaktadır. ``mkfifo`` fonksiyonunun prototipi şöyledir:
 
    .. code-block:: c
 
@@ -857,14 +857,15 @@ kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan 
 
    Fonksiyonun birinci parametresi yaratılacak boru dosyasının yol ifadesini, ikinci parametresi ise erişim
    haklarını almaktadır. Bu erişim hakları yine prosesin ``umask`` değeri ile maskelenmektedir. Fonksiyon başarı
-   durumunda ``0`` başarısızlık durumunda ``-1`` değerine geri dönmektedir. Örneğin:
+   durumunda ``0`` değerine başarısızlık durumunda ``-1`` değerine geri dönmektedir. Örneğin:
 
    .. code-block:: c
 
       if (mkfifo("testfifo", S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH) == -1)
           exit_sys("mkfifo");
 
-   Boru dosyaları komut satırından *mkfifo* isimli kabuk komutuyla da yaratılabilmektedir. Örneğin:
+   Boru dosyaları komut satırından *mkfifo* isimli kabuk komutuyla da yaratılabilmektedir. Tabii bu kabuk komutu da 
+   ``mkfifo`` fonksiyonu kullanılarak yazılmıştır. Örneğin:
 
    .. code-block:: console
 
@@ -876,7 +877,7 @@ kullanılabilmektedir. İsimli boru haberleşmesi tipik olarak şu aşamalardan 
 
       $ mkfifo -m 666 myfifo
 
-   Tabii komut uygulanırken kabuğun umask değeri etkili olmamaktadır.
+   Tabii komut uygulanırken artık kabuğun ``umask`` değeri etkili olmamaktadır.
 
 | **2.** Boruya yazan proses boruyu ``O_WRONLY`` modunda, borudan okuma yapan proses ise boruyu ``O_RDONLY`` modunda
    açar. İsimli boru dosyasının ``O_RDWR`` modunda açılması POSIX standartlarında *tanımsız (undefined)* olarak
@@ -1150,7 +1151,7 @@ okumasıyla sonlanmaktadır. Bu durumda *prog1* döngüden çıkar ve boruyu kap
        exit(EXIT_FAILURE);
    }
 
-``prog2.c ```
+``prog2.c``
 
 .. code-block:: c
 
@@ -1193,13 +1194,12 @@ okumasıyla sonlanmaktadır. Bu durumda *prog1* döngüden çıkar ve boruyu kap
 Boru Dosyasının Silinmesi
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yukarıda da belirttiğimiz gibi boru dosyası haberleşecek proseslerden biri tarafından yaratılabilir. Bu
-durumda bu boru dosyasının onu yaratan proses tarafından silinmesi uygun olur. Fakat boru dosyalarının
-dışarıdan yaratılması çoğu kez tercih edilmektedir. Çünkü bu durumda iki programın çalıştırma sırasının bir
-önemi olmaktadır. Halbuki boru dosyası dışarıda yaratılırsa programların çalıştırma sıralarının bir önemi
-olmaz. Anımsanacağı gibi UNIX/Linux sistemlerinde bir dosya ``remove`` ya da ``unlink`` fonksiyonu ile silindiğinde
-açık betimleyiciler normal olarak çalışmaya devam eder. Son betimleyici kapatıldığında dosya gerçek anlamda
-silinmektedir. Aynı durum boru dosyaları için de geçerlidir.
+Yukarıda da belirttiğimiz gibi isimli boru dosyası haberleşecek proseslerden biri tarafından yaratılabilir. Bu
+durumda silme işlemi onu yaratan proses tarafından yapılabilir. Anımsanacağı gibi UNIX/Linux sistemlerinde bir dosya 
+``remove`` ya da ``unlink`` fonksiyonu ile silindiğinde dizin girişi hemen silinmekle birlikte açık betimleyicilerle 
+çalışmaya devam edilebilmektedir. Son betimleyici kapatıldığında dosya gerçek anlamda silinmektedir. Bu durum boru 
+dosyaları için de geçerlidir. Fakat genellikle uygulamalarda boru dosyaları haberleşecek proseslerden biri tarafından 
+değil haberleşmeden önce dışarıdan yaratılmaktadır. Çünkü bu durumda iki programın çalıştırma sırasının bir önemi olmaz.
 
 Aşağıdaki örnekte *prog1* programı isimli boruyu ``mkfifo`` fonksiyonuyla yaratmış ve sonlanmadan önce ``unlink``
 fonksiyonu ile boruyu silmiştir.
@@ -1303,31 +1303,31 @@ fonksiyonu ile boruyu silmiştir.
 Stream Tarzı Haberleşme ve Değişken Uzunlukta Kayıtlar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Borular stream (akış, pınar) tarzı bir haberleşme ortamı oluşturmaktadır. Stream tarzı haberleşme demekle
-gönderenin gönderdiklerinin alıcı tarafından istenilen miktarda byte biçiminde elde edilebilmesi
-anlaşılmaktadır. Örneğin stream tabanlı haberleşmede gönderen taraf 100 byte göndermiş olsun. Alıcı taraf bunu
-parça parça okuyabilir.
+Borular stream (*stream* sözcüğü "akarsu, pınar, akıntı" gibi anlamlara geliyor) tarzı bir haberleşme ortamı oluşturmaktadır. 
+Stream tarzı haberleşme denildiğinde gönderenin gönderdiklerinin alıcı tarafından istenilen miktarda byte okumalarıyla 
+elde edilebilmesi kastedilmekteedir. Örneğin stream tabanlı haberleşmede gönderen taraf 100 byte göndermiş olsun. Alıcı taraf 
+bunu parça parça okuyabilir.
 
 Stream tabanlı haberleşmelerde önemli problemlerden biri de *değişken uzunlukta kayıtların* aktarımıdır. Yani
-örneğin boruya yazan taraf sürekli farklı uzunluklarda kayıtları boruya yazsa, okuyan taraf bu yazılanları
+örneğin boruya yazan taraf farklı uzunluklarda kayıtları boruya yazsa, okuyan taraf bu yazılanları
 nasıl birbirinden ayrıştıracaktır? İşte bu tür durumlarda iki yöntem akla gelmektedir:
 
-1) Yazan taraf önce değişken uzunluktaki kaydın byte miktarını boruya yazar, sonra değişken uzunluktaki kaydı
+| **1**. Yazan taraf önce değişken uzunluktaki kaydın byte miktarını boruya yazar, sonra değişken uzunluktaki kaydı
    boruya yazar. Okuyan taraf da önce uzunluğu okur sonra o uzunluk kadar yeniden okuma yapar. Bu yöntem etkin
    ve çoğu zaman tercih edilen yöntemdir.
 
-2) Yazan taraf kayıtların sonuna özel bir byte yerleştirir. (Örneğin kayıtlar yazılar biçimindeyse ``'\n'`` gibi
+| **2.** Yazan taraf kayıtların sonuna özel bir sonlandırıcı byte yerleştirir. (Örneğin kayıtlar yazılar biçimindeyse ``'\n'`` gibi
    bir karakter yerleştirilebilir.) Böylece okuyan taraf o özel byte'ı görene kadar okuma yapabilir. Buradaki
    problem bu özel byte'ın okuyan taraf tarafından nasıl tespit edileceğidir. ``read`` fonksiyonu ile sürekli 1
    byte okumak etkin bir yöntem değildir. O zaman bir blok bilginin okunup bir tampona yerleştirilmesi ve o
-   tampondan akıllıca kontrol yapılması yoluna gidilir. Buna benzer yazısal aktarımlarda bazen programcılar
+   tampondan akıllıca kontrol yapılması yoluna gidilebilir. Buna benzer yazısal aktarımlarda bazen programcılar
    kaydın sonuna ``'\n'`` karakterini yerleştirip boru betimleyicisinden ``fdopen`` fonksiyonu ile dosya bilgi
-   gösterici (stream) elde edip ``fgets`` gibi bir fonksiyonla okuma yapma yoluna gidebilmektedir. Ne de olsa
-   ``fgets`` tamponlu biçimde çalıştığı için bizim yapmamız gerekenleri kendisi yapmaktadır. Tabii aslında önce
-   boruyu açıp sonra ``fdopen`` fonksiyonunu kullanmak yerine doğrudan ``fopen`` fonksiyonuyla da boru açılabilir.
+   gösterici elde edip ``fgets`` gibi bir fonksiyonla okuma yapma yoluna gidebilmektedir. Ne de olsa `fgets`` tamponlu 
+   biçimde çalıştığı için bizim yapmamız gerekenleri kendisi yapmaktadır. Tabii aslında önce boruyu açıp sonra ``fdopen`` 
+   fonksiyonunu kullanmak yerine doğrudan ``fopen`` fonksiyonuyla da boru açılabilir.
 
 Aşağıdaki örnekte *prog1* programı bir dizinin yol ifadesini komut satırı argümanıyla almış o dizindeki
-dosyaları elde edip önce onların uzunluklarını sonra da isimlerini boruya yazmıştır. Okuyan taraf da (prog2
+dosyaları elde edip önce onların uzunluklarını sonra da isimlerini boruya yazmıştır. Okuyan taraf da (*prog2*
 programı) önce uzunluğu sonra içeriği okuyup kayıtları birbirinden ayırabilmiştir.
 
 ``prog1.c``
@@ -1440,13 +1440,16 @@ açıklamaları yapmak istiyoruz:
   boruya yazmıştır.
 
 - Okuyan taraf tek tek karakterleri ``read`` fonksiyonuyla borudan okumak yerine standart ``fgets`` fonksiyonundan
-  faydalanmıştır. Tabii bunun için boruyu açtıktan sonra ``fdopen`` fonksiyonuyla ondan bir stream elde etmiştir.
+  faydalanmıştır. Tabii bunun için boruyu açtıktan sonra ``fdopen`` fonksiyonuyla ondan bir dosya bilgi göstericisi elde etmiştir.
   Şüphesiz bu tür durumlarda boru doğrudan ``fopen`` fonksiyonuyla da açılabilir. ``fopen`` fonksiyonuyla açım
   alternatifi ``prog3.c`` dosyasında verilmiştir.
 
 - Yazan taraf boruyu kapattığında ``fgets`` fonksiyonu ``NULL`` adresle geri dönecektir. Anımsanacağı gibi ``fgets`` en
   az bir byte okursa ikinci parametresi ile belirtilen adrese, hiç byte okuyamadan ``EOF`` ile karşılaşırsa ya da bir IO
   hatası oluşursa ``NULL`` adrese geri dönmektedir.
+
+- Okuma işlemini yapan program doğrudan boru dosyasını fopen fonksiyonuyla da açabilir. *prog3.c* programında bu 
+  yöntem kullanılmıştır. 
 
 ``prog1.c``
 
@@ -1588,18 +1591,18 @@ açıklamaları yapmak istiyoruz:
        exit(EXIT_FAILURE);
    }
 
-İstemci-Sunucu Mimarisi
-~~~~~~~~~~~~~~~~~~~~~~~
+İsimli Borularla İstemci-Sunucu Haberleşmesi
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Haberleşmede en çok karşılaşılan tasarım mimarisi istemci-sunucu (client-server) mimaridir. Genellikle
+Haberleşmede en çok karşılaşılan tasarım mimarilerinden biri *istemci-sunucu (client-server)* mimaridir. Genellikle
 *istemci-sunucu* denildiğinde konu TCP/IP soket haberleşmesi ile ilişkilendirilmektedir. Ancak istemci-sunucu
-haberleşmesi aslında genel bir konudur. Haberleşmedeki ortam değişebilir. Haberleşecek birimler aynı makinenin
+haberleşmesi aslında genel bir yöntemdir. Haberleşmedeki ortam değişebilir. Haberleşecek birimler aynı makinenin
 prosesleri olabildiği gibi farklı makinelerin prosesleri de olabilmektedir. İşte istemci-sunucu haberleşmesi
 aynı makinenin prosesleri arasında borular kullanılarak da gerçekleştirilebilmektedir. İstemci-sunucu
-haberleşme modelinde haberleşmede iki program söz konusudur: İstemci (client) program ve sunucu (server)
-program. Burada asıl işi yapan program sunucu (server) programdır. İstemci (client) program sunucudan istekte
+haberleşme modelinde haberleşmede iki ayrı program söz konusudur: *İstemci (client)* program ve *sunucu (server)*
+program. Burada asıl işi sunucu (server) program ypmaktadır. İstemci (client) program sunucudan istekte
 bulunur. Sunucu program da bu isteği karşılar. İstemci program istekte bulunurken sunucu programa *mesaj* adı
-altında bir bilgi gönderir. Sunucu program da istemci için bir isteği gerçekleştirdikten sonra yine mesaj adı
+altında bir bilgi gönderir. Sunucu program da istemci için bir isteği gerçekleştirdikten sonra ona yine mesaj adı
 altında istemciye yapılan işlemin sonucunu belirten bir bilgi göndermektedir.
 
 İstemci-sunucu tarzı haberleşme yukarıda da belirttiğimiz gibi en çok TCP/IP protokolü ile yapılıyor olsa da
@@ -1608,38 +1611,35 @@ bir istemci-sunucu uygulama yapmak için kaç boruya ihtiyaç vardır? İstemci 
 borularla sunucu programa iletmesine gerek yoktur. İstemci programlar ortak tek bir boru kullanarak
 isteklerini sunucu programa iletebilirler. Bu durumda sunucu program da belli uzunluktaki kayıtları okuyarak
 istekleri elde eder. O isteklerin hangi istemciden geldiğini mesajın içerisinden öğrenebilir. Ancak sunucu
-programın isteğin yanıtını tek bir boruyla istemci programlara iletmesi mümkün değildir. Çünkü aynı borudan
+programın isteklerin yanıtlarını tek bir boruyla istemci programlara iletmesi mümkün değildir. Çünkü aynı borudan
 birden fazla istemci okuma yapmak isterse bunlardan yalnızca bir tanesi boruya geleni okur, bu da mesajın
 muhatabı olan istemci olmayabilir. Bu nedenle mecburen her istemci için farklı bir borunun kullanılması
 gerekir. O halde şunlar söylenebilir:
 
-- İstemci programlar tek ve ortak bir boru ile sunucu programa istekte bulunurlar. Bu borunun işin başında
+- İstemci programlar tek ve ortak bir boru ile sunucu programdan istekte bulunurlar. Bu borunun işin başında
   yaratılmış olması uygundur.
 
-- Sunucu program da her istemci için farklı bir boru ile istemciye işlemin sonucunu gönderir. Sunucunun
-  istemciye mesaj gönderdiği o istemciye özgü boruların istemci tarafından yaratılması ancak *CONNECT*
-  mesajında sunucu programa iletilmesi daha uygun bir çözümdür. Bu boru yine *DISCONNECT* mesajı sonrasında
-  istemci program tarafından yok edilir.
+- Sunucu program da her istemci için farklı bir boru ile istemciye işlemin sonucunu gönderir. İstemciye özgü 
+  boru istemci tarafından yaratılabilir ve ismi bağlantı kurulduğunda (*CONNECT* gibi bir mesajda) sunucuya 
+  gönderilebilir. Bu boru bağlantı sonlandırılırken (*DISCONNECT* gibi bir mesajda) istemci program tarafından 
+  yok edilebilir.
 
 - Sunucu programın kendisine bağlanmış olan tüm istemcilerin bilgilerini tutması gerekir. İstemcileri
-  birbirinden ayıran *sistem genelinde tek olan (unique)* bir değerin ID olarak belirlenmesi uygundur. Bunun
-  için akla gelen ilk şey proses ID'lerin kullanılmasıdır. Bu durumda sunucu program bir ID'ye göre istemci
-  bilgilerine hızlı erişim sağlamalıdır. Bunun için en uygun veri yapısı şüphesiz *hash tablolarıdır (hash
-  tables)*. Ancak bilindiği gibi hash tablolarına ilişkin fonksiyonlar C'nin standart kütüphanesinde
-  bulunmamaktadır. Halbuki nesne yönelimli dillerin neredeyse hemen hepsinde *sözlük (dictionary)* veri yapısı
-  denilen bu veri yapıları o dillerin standart kütüphanelerinde hazır biçimde bulunmaktadır. Örneğin C++'taki
-  *map* ya da *unordered_map* isimli sınıflar bu iş için idealdir.
-
-İsimli Borularla İstemci-Sunucu Örneği
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  birbirinden ayıran sistem genelinde tek olan (*unique*) bir değerin ID olarak belirlenmesi uygundur. Bunun
+  için akla gelen ilk şey proses ID'lerin kullanılmasıdır. Bu durumda sunucu program ID'ler yoluyla göre istemci
+  bilgilerine hızlı erişim sağlamalıdır. Bunun için en uygun veri yapısı şüphesiz hash tablolarıdır (*hash
+  tables*). Ancak bilindiği gibi hash tablolarına ilişkin C'de standart bir soyut veri yapısı bulunmamaktadır. 
+  Halbuki nesne yönelimli dillerin neredeyse hemen hepsinde *sözlük (dictionary)* denilen bu veri yapıları o dillerin 
+  standart kütüphanelerinde hazır biçimde bulunmaktadır. Örneğin C++'taki *map* ya da *unordered_map* isimli sınıf
+  şablonları bu iş için idealdir.
 
 Aşağıdaki isimli borular kullanılarak bir istemci-sunucu haberleşme örneği verilmiştir. Programla ilgili bazı
 açıklamaları veriyoruz:
 
-- Programda istemcilerin sunucuya mesaj göndermesi için kullandıkları borunun işin başında ``serverpipe``
+- Programda istemcilerin sunucuya mesaj gönderebilmesi gereken borunun işin başında ``serverpipe``
   ismiyle yaratılmış olması gerekmektedir.
 
-- İstemci ile sunucu arasındaki haberleşmeler yazısal biçimde şöyle yapılmaktadır. Gönderilen mesajların genel
+- İstemci ile sunucu arasındaki haberleşmeler yazısal biçimde yapılmaktadır. Gönderilen mesajların genel
   biçimi şöyledir:
 
   *KOMUT <parametrik bilgiler>*
@@ -2311,7 +2311,6 @@ blokeden nasıl kurtulunabilir? Tabii başka bir terminalden boru bu kez ``O_RDO
 Burada yine kabuk programı ``mypipe`` dosyasını yönlendirme için ``O_RDONLY`` modda açacaktır. Bu durumda diğer
 kabuk prosesi blokeden kurtulacaktır. Böylece *ls* programının boruya yazdıklarını *cat* programı borudan
 okuyacaktır.
-
 
 Blokesiz IO ve Sistem 5 (XSI) Mesaj Kuyrukları
 ==============================================
