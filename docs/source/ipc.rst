@@ -2658,7 +2658,6 @@ paket olarak tek hamlede okur.
 haberleşmesi boru haberleşmesine benzemektedir. Bu protokol ailesindeki UDP protokolü ise paket tabanlıdır.
 IP Protokol ailesinde *paket* terimi yerine *datagram* terimi kullanılmaktadır. 
 
-
 Mesaj kuyrukları paket tabanlı bir proseslerarası haberleşme yöntemidir. Mesaj kuyrukları adeta boru haberleşmesinin 
 paket tabanlı bir biçimi gibidir. Bu bölümde klasik Sistem V ve POSIX mesaj kuyruklarını ele alacağız.
 
@@ -2669,14 +2668,14 @@ Konuya başlamadan önce klasik System V (XSI) IPC nesnelerinin bazı temel öze
 
 Klasik sistem V (XSI) IPC mekanizmasında iki farklı prosesin aynı IPC nesnesi üzerinde anlaşabilmesi için
 *anahtar (key)* ve *id* kavramları kullanılmaktadır. Bu arayüzlerde ``xxxget`` fonksiyonlarına programcı bir
-anahtar verir. Bu anahtar sayısal bir değerdir. İki proses aynı anahtarı verirse aynı nesneyi kullanırlar. Bu
-``xxxget`` fonksiyonları verilen anahtara ilişkin bir ID geri döndürmektedir. Bu ID değeri aslında diğer
-fonksiyonlarda handle olarak kullanılmaktadır. Buradaki bir problem verilen anahtarın tesadüfen sistemdeki
-başka bir prosesin kullandığı anahtarla çakışabilmesidir. Bunun için bazı kontrollerin yapılması
-gerekebilmektedir. ``xxxget`` fonksiyonlarının verdiği ID değerleri sistem genelinde *tek (unique)* bir değerdir.
-Yani aslında bu ID değeri, diğer prosese proseslerarası haberleşme yöntemleriyle gönderilse diğer proses hiç
-``xxxget`` işlemi yapmadan doğrudan bu ID değerini kullanabilir. Başka bir deyişle birden fazla proses ``xxxget``
-fonksiyonlarında aynı anahtarı verdiklerinde aslında aynı ID'yi elde etmektedir.
+anahtar verir. Bu anahtar sayısal bir değerdir. İki proses (daha fazla da olabilir) aynı anahtarı verirse aynı 
+nesneyi kullanır. Bu ``xxxget`` fonksiyonları verilen anahtara ilişkin bir ID değeri geri döndürmektedir. Bu ID değeri 
+aslında diğer fonksiyonlarda *handle* olarak kullanılmaktadır. Buradaki bir sorun verilen anahtarın tesadüfen 
+sistemdeki başka bir prosesin kullandığı anahtarla çakışabilmesidir. Bunun için bazı kontrollerin yapılması
+gerekebilmektedir. ``xxxget`` fonksiyonlarının verdiği ID değerleri sistem genelinde *tek (unique)* olan değerlerdir. 
+Yani aslında bu ID değerleri diğer proseslere proseslerarası haberleşme yöntemleriyle gönderilse diğer prosesler hiç
+``xxxget`` işlemi yapmadan bu ID değerlerini doğrudan kullanabilmektedir. Başka bir deyişle birden fazla proses ``xxxget``
+fonksiyonlarında aynı anahtarı verdiğinde aslında aynı ID'yi elde etmektedir.
 
 Klasik Sistem V (XSI) IPC mekanizmasında ``xxxget`` fonksiyonlarında kullanılan anahtarlar aslında IPC nesnesinin
 türüne göre ayrı bir isim alanındadır. Yani örneğin 12345 gibi bir anahtar paylaşılan bellek alanları için
