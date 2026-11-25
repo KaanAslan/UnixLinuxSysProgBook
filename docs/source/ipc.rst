@@ -3516,10 +3516,10 @@ Buradaki semantiğin boru haberleşmesinin sonlandırılma sürecine benzediğin
 
 Aşağıdaki örnekte *msg-prog1* programı klavyeden (``stdin`` dosyasından) aldığı yazıyı mesaj kuyruğuna
 yazmakta, *msg-prog2* programı da bunu mesaj kuyruğundan okumaktadır. İletişim sonlandırılacağı zaman
-*msg-prog1* kuyruğa ``0`` uzunlukta özel bir mesaj tür değeri olan ``QUIT_MSG`` mesajını bırakır. *msg-prog2*'de bu özel
-mesaj tür değerini aldığında işlemini sonlandırmaktadır. Tabii aslında sonlandırma mesajını gönderen tarafın
-(*msg-prog1*) özel bir tür değeriyle göndermesine gerek de yoktur. Alan taraf (*msg-prog2*) zaten ``msgrcv``
-fonksiyonunda 0 ile geri dönüldüğünde de döngüsünü sonlandırabilir.
+*msg-prog1* kuyruğa ``0`` uzunlukta tür değeri ``QUIT_MSG`` olan mesajı bırakır. *msg-prog2*'de bu özel
+tür değerini aldığında işlemini sonlandırmaktadır. Tabii aslında sonlandırma mesajını gönderen tarafın
+(*msg-prog1*) mesajı özel bir tür değeriyle göndermesine gerek de yoktur. Alan taraf (*msg-prog2*) zaten ``msgrcv``
+fonksiyonundan ``0`` ile geri dönüldüğünde mesaj döngüsünü sonlandırabilir.
 
 ``msg-prog1.c``
 
@@ -3586,8 +3586,9 @@ fonksiyonunda 0 ile geri dönüldüğünde de döngüsünü sonlandırabilir.
        exit(EXIT_FAILURE);
    }
 
+``msg-prog2.c``
+
 .. code-block:: c
-   :caption: msg-prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3636,7 +3637,7 @@ fonksiyonunda 0 ile geri dönüldüğünde de döngüsünü sonlandırabilir.
 ``ftok`` Fonksiyonu
 -------------------
 
-Sistem V (XSI) IPC nesnelerinin önemli sorunlarından biri bunların anahtar (key) değerlerinin bir çakışma
+Sistem V (XSI) IPC nesnelerinin önemli sorunlarından biri bunların anahtar (*key*) değerlerinin bir çakışma
 yaratabilmesidir. Yani bizim belirlediğimiz anahtara ilişkin bir mesaj kuyruğu başkaları tarafından yaratılmış
 olabilir. Bu tür durumlarda anahtar yerine ``IPC_PRIVATE`` özel değerinin kullanılabileceğini belirtmiştik.
 Ancak bu durumda da elde edilen ID değerinin diğer prosese iletilmesi gerekmekteydi. İşte anahtar çakışmasını
@@ -3649,34 +3650,33 @@ bir POSIX fonksiyonundan faydalanılmaktadır. Fonksiyonun prototipi şöyledir:
 
    key_t ftok(const char *path, int id);
 
-Fonksiyonun birinci parametresi bir dosyanın yol ifadesini almaktadır. İkinci parametre kombine edilecek
-değeri belirtir. İkinci parametrenin yalnızca düşük anlamlı bir byte'ı kombine işleminde kullanılmaktadır. Bu
-parametrenin düşük anlamlı byte'ının 0 olmaması gerekir. Fonksiyon eğer biz ona aynı yol ifadesini ve aynı ID
+Fonksiyonun birinci parametresi bir dosyanın yol ifadesini almaktadır. İkinci parametresi ise kombine edilecek
+değeri belirtirtmektedir. İkinci parametrenin yalnızca düşük anlamlı bir byte'ı kombine işleminde kullanılmaktadır. Bu
+parametrenin düşük anlamlı byte'ının ``0`` olmaması gerekir. Fonksiyon eğer biz ona aynı yol ifadesini ve aynı id
 değerini verirsek bize aynı geri dönüş değerini verir. Eğer biz ona farklı bir yol ifadesi ve/veya farklı bir
-ID verirsek o bize başka bir geri dönüş değeri verir. Fonksiyonun amacı, Sistem V (XSI) IPC nesneleri için bir
-yol ifadesinden hareketle bir anahtar değerin sistem genelinde tek olacak biçimde (unique) oluşturulmasıdır.
+id değeri verirsek o bize başka bir geri dönüş değeri verir. Fonksiyonun amacı, Sistem V (XSI) IPC nesneleri için bir
+yol ifadesinden hareketle bir anahtar değerin sistem genelinde tek (*unique*) olacak biçimde  oluşturulmasıdır.
 Böylece her proses anahtar üretmekte bu ``ftok`` fonksiyonunu kullanırsa ve ``ftok`` fonksiyonuna kendisine
-ilişkin bir yol ifadesi ve ID değeri verirse sistem genelinde çakışma olmaz.
+ilişkin bir yol ifadesi ve id değeri verirse sistem genelinde çakışma olmaz.
 
 Her ne kadar ``ftok`` fonksiyonu sistem genelinde bir anahtar çakışmasını engellemek için düşünülmüşse de
-maalesef böyle bir garantinin verilmesi mümkün değildir. Dosyanın yol ifadesi ve ID değerinden hareketle bir
-tamsayı değerin (``key_t`` değerinin) sistem genelinde tek olacak biçimde üretilmesi mümkün değildir.
-Standartlar bile bunu garanti altına almamaktadır. Yani iki program farklı yol ifadesi ve ID değeri verdiğinde
+maalesef böyle bir garantinin verilmesi mümkün değildir. Dosyanın yol ifadesi ve id değerinden hareketle bir
+değerin (``key_t`` değerinin) sistem genelinde tek olacak biçimde üretilmesi mümkün değildir. Standartlar da 
+bunu garanti etmemektedir. Yani iki program farklı yol ifadesi ve id değeri verdiğinde
 bile aynı anahtar değerini elde edebilir (her ne kadar bu olasılık çok düşükse de). *glibc* kütüphanesindeki
 ``ftok`` fonksiyonu dosyanın inode numarasını, dosyanın içinde bulunduğu aygıtın numarasını ve bizim
-verdiğimiz ID değerini kombine ederek bir değer üretmektedir. (Farklı dosya sistemlerindeki dosyaların inode
+verdiğimiz id değerini kombine ederek bir değer üretmektedir. (Farklı dosya sistemlerindeki dosyaların inode
 numaraları aynı olabilmektedir. Bu nedenle *glibc* gerçekleştiriminde dosyanın içinde bulunduğu aygıtın
-numarası da işin içine sokulmaktadır.) Ancak bu üretim bile çakışmama olasılığını teorik olarak
-sıfırlayamamaktadır. Ayrıca ``ftok`` fonksiyonunu kullanırken dosyayı silip aynı isimle yeniden yaratırsak
-dosyanın inode numarası değişebileceğinden dolayı aynı değeri elde edemeyebiliriz. Tabii ``ftok`` fonksiyonuna
-verilen yol ifadesi bir dizine de ilişkin olabilir. Programcı haberleşmek amacıyla başkalarının erişemeyeceği
-bir dosya ya da dizine ilişkin yol ifadesini kullanırsa çakışma olasılığını azaltabilir. ``ftok``
-fonksiyonunda ikinci parametrenin 0 geçilmemesi gerektiğini belirtmiştik. POSIX standartları eğer ikinci
-parametre 0 geçilirse *belirsiz (unspecified) bir durumun* oluşacağını belirtmektedir. ``IPC_PRIVATE``
-sembolik sabiti genellikle 0 biçiminde define edilmektedir. Böylesi bir durumda teorik çakışma söz konusu
-olabilmektedir.
+numarası da işin içine sokulmaktadır.) Ancak bu üretim bile çakışmama olasılığını teorik olarak sıfırlayamamaktadır. 
+Ayrıca ``ftok`` fonksiyonunu kullanırken dosya silinip aynı isimle yeniden yaratılırsa dosyanın inode numarası 
+değişebileceğinden dolayı aynı değer elde edilemeyebilecektir. Tabii ``ftok`` fonksiyonuna verilen yol ifadesi bir 
+dizine de ilişkin olabilir. Programcı haberleşmek amacıyla başkalarının erişemeyeceği bir dosya ya da dizine 
+ilişkin yol ifadesini kullanırsa çakışma olasılığını azaltabilir. ``ftok`` fonksiyonunda ikinci parametrenin ``0`` 
+geçilmemesi gerektiğini belirtmiştik. POSIX standartları eğer ikinci parametre ``0`` geçilirse *belirsiz (unspecified) bir durumun* 
+oluşacağını belirtmektedir. ``IPC_PRIVATE`` sembolik sabiti genellikle ``0`` biçiminde define edilmektedir. Böylesi bir 
+durumda teorik çakışma söz konusu olabilmektedir.
 
-``ftok`` fonksiyonu başarı durumunda ürettiği anahtar değerine, başarısızlık durumunda -1 değerine geri
+``ftok`` fonksiyonu başarı durumunda ürettiği anahtar değerine, başarısızlık durumunda ``-1`` değerine geri
 dönmektedir.
 
 Örneğin:
@@ -3693,17 +3693,18 @@ dönmektedir.
    if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
        exit_sys("msgget");
 
-Peki ``ftok`` fonksiyonu farklı yol ifadeleri ve/veya ID'ler için farklı anahtar değeri üretmeyi garanti
-edemiyorsa bu fonksiyonun kullanımının anlamı var mıdır? Aslında bu soruya *yoktur* yanıtını verebiliriz.
+Peki ``ftok`` fonksiyonu farklı yol ifadeleri ve/veya id'ler için farklı anahtar değeri üretmeyi garanti
+edemiyorsa bu fonksiyonun kullanımının anlamı var mıdır? Aslında bu soruya "yoktur" yanıtını verebiliriz.
 Ancak ``ftok`` fonksiyonundan hedeflenen şeylerden biri de anahtarın yazısal hale getirilmesidir. Fakat ne
 olursa olsun ``ftok`` fonksiyonunun verdiği değer programcının uyduracağı sayısal anahtar değerinden daha iyi
 olma eğilimindedir (tabii herkesin ``ftok`` kullandığını varsayıyoruz).
 
-Aşağıda ``ftok`` kullanımına bir örnek verilmiştir. İki program da aynı yol ifadesi ve aynı ``ftok`` ID'si ile
+Aşağıda ``ftok`` kullanımına bir örnek verilmiştir. İki program da aynı yol ifadesi ve aynı ``ftok`` id'si ile
 ``ftok`` uygulamış ve aynı değeri elde etmiştir.
 
+``msg-prog1.c``
+
 .. code-block:: c
-   :caption: msg-prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3772,8 +3773,9 @@ Aşağıda ``ftok`` kullanımına bir örnek verilmiştir. İki program da aynı
        exit(EXIT_FAILURE);
    }
 
+``msg-prog2.c``
+
 .. code-block:: c
-   :caption: prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3782,7 +3784,7 @@ Aşağıda ``ftok`` kullanımına bir örnek verilmiştir. İki program da aynı
    #include <sys/msg.h>
    #include <sys/ipc.h>
 
-   #define KEY_NAME            "/home/kaan"
+   #define KEY_NAME              "/home/kaan"
    #define KEY_ID                123
    #define NORMAL_MSG            1
    #define QUIT_MSG              2
@@ -3828,13 +3830,13 @@ Aşağıda ``ftok`` kullanımına bir örnek verilmiştir. İki program da aynı
 Mesaj Kuyruklarının Kapasite Limitleri
 --------------------------------------
 
-Mesaj kuyruklarının sistemlerde o sisteme özgü çeşitli kapasite limitleri söz konusu olabilmektedir. POSIX
-standartları bu kapasite limitleri konusunda bir açıklama yapmamıştır. Ancak Linux sistemlerinde çekirdek
-mesaj kuyrukları için üç kapasite limiti belirlemektedir:
+Mesaj kuyrukları üzerinde sisteme özgü bir biçimde kapasite limitleri uygulanabilmektedir. POSIX standartları 
+bu kapasite limitleri konusunda bir açıklama yapmamıştır. Ancak Linux sistemlerinde çekirdek mesaj kuyrukları 
+için üç kapasite limiti belirlemektedir:
 
-1) ``MSGMAX`` Limiti: Bu limit bir mesaj kuyruğuna yazılabilecek mesajın, mesaj tür değeri haricindeki
+1) ``MSGMAX`` Limiti: Bu limit bir mesaj kuyruğuna yazılabilecek mesajın, tür değeri haricindeki 
    kısmının maksimum byte uzunluğudur. Herhangi bir proses, bu değerden fazla uzunluğa sahip bir mesajı
-   kuyruğa yerleştirememektedir. Linux sistemlerinde bu değer default olarak şimdilik 8192'dir. Bu değer
+   kuyruğa yerleştirememektedir. Linux sistemlerinde bu değer varsayılan olarak şimdilik 8192'dir. Bu değer
    *proc* dosya sisteminde ``/proc/sys/kernel/msgmax`` dosyasında belirtilmektedir:
 
    .. code-block:: console
@@ -3842,8 +3844,8 @@ mesaj kuyrukları için üç kapasite limiti belirlemektedir:
       $ cat /proc/sys/kernel/msgmax
       8192
 
-   Bu değer bu dosyanın içeriği değiştirilerek değiştirilebilmektedir. Ancak bunu yapabilmek için prosesin
-   uygun önceliğe sahip olması (proses ID'sinin 0 olması) gerekir. Örneğin:
+   Bu değer bu dosya yoluyla değiştirilebilmektedir. Ancak bunu yapabilmek için prosesin uygun önceliğe sahip olması 
+   (örneğin proses ID'sinin ``0`` olması) gerekir. Örneğin:
 
    .. code-block:: console
 
@@ -3853,7 +3855,7 @@ mesaj kuyrukları için üç kapasite limiti belirlemektedir:
 
 2) ``MSGMNI`` (Maximum Number of ID): Bu limit tüm sistemde yaratılacak farklı mesaj kuyruklarının maksimum
    sayısını belirtmektedir. Bu sayı ``/proc/sys/kernel/msgmni`` dosyasından elde edilebilir. Linux
-   sistemlerinde bunun default değeri şimdilik 32000'dir. Bu değer de benzer biçimde değiştirilebilmektedir.
+   sistemlerinde bu değer varsayılan durumda şimdilik 32000'dir. Bu değer de benzer biçimde değiştirilebilmektedir.
 
 3) ``MSGMNB`` (Maximum Number of Bytes): Bu değer bir mesaj kuyruğundaki mesajın tür değeri dışındaki tüm
    mesajlarının toplam maximum byte sayısıdır. ``msgsnd`` fonksiyonu bu değer aşıldığında blokeli işlemlerde
@@ -3864,10 +3866,10 @@ Buradaki limit değerler çekirdek parametreleriyle ya da çekirdek derlenirken 
 değiştirilebilmektedir.
 
 ipcs Komutu
-~~~~~~~~~~~
+-----------
 
-O anda yaratılmış olan klasik Sistem V (XSI) IPC nesnelerini (mesaj kuyrukları, paylaşılan bellek alanları ve
-semaphore'lar) komut satırından görüntülemek için ``ipcs`` isimli komut kullanılmaktadır. Örneğin:
+Sistemde yaratılmış olan tüm klasik Sistem V (XSI) IPC nesnelerinin (mesaj kuyruklarının, paylaşılan bellek alanlarının ve
+semaphore'ların) komut satırından görüntülenmesi için ``ipcs`` isimli komut kullanılmaktadır. Örneğin:
 
 .. code-block:: console
 
@@ -3891,7 +3893,7 @@ semaphore'lar) komut satırından görüntülemek için ``ipcs`` isimli komut ku
    anahtar    semkiml    sahibi     izinler    semSayısı
 
 Bu komut anahtarları hex sistemde yazdırmaktadır. Tabii bizim anahtarları hex olarak vermemize gerek yoktur.
-``ipcs`` komutu default olarak tüm IPC nesnelerini görüntülemektedir. Ancak ``-q`` komut satırı argümanıyla yalnızca
+``ipcs`` komutu varsayılan durumda tüm IPC nesnelerini görüntülemektedir. Ancak ``-q`` komut satırı argümanıyla yalnızca
 mesaj kuyrukları, ``-m`` komutuyla yalnızca paylaşılan bellek alanları ve ``-s`` komutuyla da yalnızca semaphore
 nesneleri görüntülenebilir. Örneğin:
 
