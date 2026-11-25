@@ -3893,7 +3893,7 @@ semaphore'ların) komut satırından görüntülenmesi için ``ipcs`` isimli kom
    anahtar    semkiml    sahibi     izinler    semSayısı
 
 Bu komut anahtarları hex sistemde yazdırmaktadır. Tabii bizim anahtarları hex olarak vermemize gerek yoktur.
-``ipcs`` komutu varsayılan durumda tüm IPC nesnelerini görüntülemektedir. Ancak ``-q`` komut satırı argümanıyla yalnızca
+``ipcs`` komutu varsayılan durumda tüm IPC nesnelerini görüntüler. Ancak ``-q`` komut satırı argümanıyla yalnızca
 mesaj kuyrukları, ``-m`` komutuyla yalnızca paylaşılan bellek alanları ve ``-s`` komutuyla da yalnızca semaphore
 nesneleri görüntülenebilir. Örneğin:
 
@@ -3917,9 +3917,9 @@ komutu da zaten bu dosyaların içindekilerini görüntülemektedir. Örneğin:
 
 *proc* dosya sistemi bellekte oluşturulan, çekirdek tarafından bir dosya sistemi gibi sürekli güncellenen ve
 çekirdeğin yaptığı önemli işlemleri dış dünyaya bildirmek amacıyla kullanılan özel bir dosya sistemidir.
-Kursumuzda *proc* dosya sistemi ileride ayrı bir bölümde ele alınacaktır. *proc* dosya sisteminde bazı
-dosyalar yazılabilir durumda da olabilmektedir. Bu durumda bu dosyalara yazma yapıldığında çekirdeğin bazı
-ayarları da değiştirilmiş olmaktadır.
+(Aslında *proc* dosya sistemindeki dosya içerikleri talep edildiğinde oluşturulmaktadır. Kursumuzda *proc* dosya sistemi 
+ileride ayrı bir bölümde ele alınacaktır.) *proc* dosya sisteminde bazı dosyalar yazılabilir durumda da olabilmektedir. 
+Bu durumda bu dosyalara yazma yapıldığında çekirdeğin bazı ayarları da değiştirilmiş olur.
 
 ``msgctl`` Fonksiyonu
 ---------------------
@@ -3933,10 +3933,10 @@ yapılmaktadır. Fonksiyonun prototipi şöyledir:
 
    int msgctl(int msqid, int cmd, struct msqid_ds *buf);
 
-Fonksiyonun birinci parametresi mesaj kuyruğunun ID değerini almaktadır. İkinci parametre uygulanacak işlemi
-belirtir. Bu uygulanacak işlem şunlardan biri olabilir:
+Fonksiyonun birinci parametresi mesaj kuyruğunun ID değerini almaktadır. İkinci parametresi uygulanacak işlemi
+belirtir. Uygulanacak işlem şunlardan biri olabilir:
 
-.. code-block:: text
+.. code-block:: c
 
    IPC_STAT
    IPC_SET
