@@ -1204,7 +1204,7 @@ değil haberleşmeden önce dışarıdan yaratılmaktadır. Çünkü bu durumda 
 Aşağıdaki örnekte *prog1* programı isimli boruyu ``mkfifo`` fonksiyonuyla yaratmış ve sonlanmadan önce ``unlink``
 fonksiyonu ile boruyu silmiştir.
 
-``prog1.c```
+``prog1.c``
 
 .. code-block:: c
 
@@ -1260,7 +1260,7 @@ fonksiyonu ile boruyu silmiştir.
        exit(EXIT_FAILURE);
    }
 
-``prog2.c```
+``prog2.c``
 
 .. code-block:: c
 
@@ -1442,7 +1442,7 @@ açıklamaları yapmak istiyoruz:
 - Okuyan taraf tek tek karakterleri ``read`` fonksiyonuyla borudan okumak yerine standart ``fgets`` fonksiyonundan
   faydalanmıştır. Tabii bunun için boruyu açtıktan sonra ``fdopen`` fonksiyonuyla ondan bir dosya bilgi göstericisi elde etmiştir.
   Şüphesiz bu tür durumlarda boru doğrudan ``fopen`` fonksiyonuyla da açılabilir. ``fopen`` fonksiyonuyla açım
-  alternatifi ``prog3.c`` dosyasında verilmiştir.
+  alternatifi *prog3.c* dosyasında verilmiştir.
 
 - Yazan taraf boruyu kapattığında ``fgets`` fonksiyonu ``NULL`` adresle geri dönecektir. Anımsanacağı gibi ``fgets`` en
   az bir byte okursa ikinci parametresi ile belirtilen adrese, hiç byte okuyamadan ``EOF`` ile karşılaşırsa ya da bir IO
@@ -1774,7 +1774,7 @@ sağlamak için istemcinin kabuk komutunun sonuna *2>&1* yönlendirme ifadesinin
 
 Tabii sunucu bu mesajın sonuna *2>&1* yazısını kendisi de ekleyebilirdi.
 
-``pipe-server.c```
+``pipe-server.c``
 
 .. code-block:: c
 
@@ -2937,8 +2937,9 @@ yazılamayacaktır. Dolayısıyla ``IPC_NOWAIT`` parametresi de geçilmediği i�
 mesaj türü (yapının ``mtype`` alanı) ``1`` olarak alınmıştır. Mesaj türü zaten ``0`` olamaz. Eğer mesaj türüyle
 programcı ilgilenmeyecekse onu herhangi bir değerde tutabilir.
 
+``msg-prog1.c``
+
 .. code-block:: c
-   :caption: msg-prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -2980,7 +2981,7 @@ programcı ilgilenmeyecekse onu herhangi bir değerde tutabilir.
    }
 
 msgrcv Fonksiyonu
----------------------
+-----------------
 
 Klasik Sistem V (XSI) mesaj kuyruklarından mesaj okumak için ``msgrcv`` fonksiyonu kullanılmaktadır.
 Fonksiyonun prototipi şöyledir:
@@ -3108,8 +3109,8 @@ da gidilebilir. Örneğin:
    if (errno != EAGAIN)
        exit_sys("msgrcv");
 
-Aşağıdaki programda ``msg-prog1.c`` programı ``100000`` tane ``int`` değeri mesaj kuyruğuna bir mesaj biçiminde
-``msgsnd`` fonksiyonuyla yazmaktadır. Bu mesajlar ``msg-prog2.c`` programı tarafından alınmaktadır.
+Aşağıdaki proörnekte *msg-prog1* programı ``100000`` tane ``int`` değeri mesaj kuyruğuna bir mesaj biçiminde
+``msgsnd`` fonksiyonuyla yazmaktadır. Bu mesajlar *msg-prog2* programı tarafından alınmaktadır.
 
 ``msg-prog1.c``
 
@@ -3154,7 +3155,7 @@ Aşağıdaki programda ``msg-prog1.c`` programı ``100000`` tane ``int`` değeri
        exit(EXIT_FAILURE);
    }
 
-``msg-prog1.c``
+``msg-prog2.c``
 
 .. code-block:: c
 
@@ -3199,17 +3200,15 @@ Aşağıdaki programda ``msg-prog1.c`` programı ``100000`` tane ``int`` değeri
        exit(EXIT_FAILURE);
    }
 
-Yazı Aktarımı Örneği
-~~~~~~~~~~~~~~~~~~~~
+Aşağıdaki örnekte *msg-prog1* programı klavyeden (``stdin`` dosyasından) alınan yazıları sonunda null karakter
+dahil olmak üzere mesaj kuyruğuna yazmaktadır. Klavyeden *quit* yazısı girildiğinde bu mesaj da mesaj kuyruğuna
+yazılır ve  *msg-prog1* programı sonlanır. *msg-prog2* programı da kuyruktan mesajları alarak onları ekrana
+(``stdout`` dosyasına) yazdırmaktadır. Programlarda yine mesajların tür değerleri kullanılmamaktadır, tür değerleri 
+``1`` olarak kodlanmıştır.
 
-Aşağıdaki örnekte ``prog1.c`` programı klavyeden (``stdin`` dosyasından) alınan yazıları sonunda null karakter
-dahil olmak üzere mesaj kuyruğuna yazmaktadır. Klavyeden *quit* girildiğinde bu mesaj da mesaj kuyruğuna
-yazılır ve ``prog1.c`` programı sonlanır. ``prog2.c`` programı da kuyruktan mesajları alarak onları ekrana
-(``stdout`` dosyasına) yazdırmaktadır. Programlarda yine mesajın tür değeri kullanılmamaktadır, 1 biçiminde
-kodlanmıştır.
+``msg-prog1.c``
 
 .. code-block:: c
-   :caption: msg-prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3260,8 +3259,9 @@ kodlanmıştır.
        exit(EXIT_FAILURE);
    }
 
+``msg-prog2.c``
+
 .. code-block:: c
-   :caption: msg-prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3305,14 +3305,11 @@ kodlanmıştır.
        exit(EXIT_FAILURE);
    }
 
-Mesaj Türüne Göre Öncelikli Alım Örneği
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Aşağıdaki örnekte ``msg-prog1.c`` programı döngü içerisinde önce mesaj tür değerini sonra da mesaj yazısını
-alıp kuyruğa yollamıştır. ``msg-prog2.c`` ise ``msgrcv`` fonksiyonuyla dördüncü parametrede -100 geçilerek en
-düşük mesaj tür değeri önce alınacak biçimde mesajları kuyruktan almıştır. Bu örnekte önce *msg-prog1*
-programını çalıştırınız. *quit* mesajına düşük bir öncelik (yüksek değer) veriniz. Sonra *prog2* programını
-çalıştırarak sonuçları gözden geçiriniz. Örneğin önce *msg-prog1* programında aşağıdaki girişleri yapmış
+Aşağıdaki örnekte ise *msg-prog1* programı döngü içerisinde klavyeden (``stdin`` dosyasından) önce mesaj tür 
+değerini sonra da mesaj yazısını alıp kuyruğa yollamıştır. *msg-prog2* ise ``msgrcv`` fonksiyonuyla dördüncü 
+parametrede ``-100`` geçilerek en düşük mesaj tür değeri önce alınacak biçimde mesajları kuyruktan almıştır. Bu örnekte 
+önce *msg-prog1* programını çalıştırınız. *quit* mesajına düşük bir öncelik (yüksek değer) veriniz. Sonra *msg-prog2* 
+programını çalıştırarak sonuçları gözden geçiriniz. Örneğin önce *msg-prog1* programında aşağıdaki girişleri yapmış
 olalım:
 
 .. code-block:: text
@@ -3339,8 +3336,9 @@ Sonra *msg-prog2* programını çalıştıralım. Ekranda şunları göreceğiz:
 
 Görüldüğü gibi *msg-prog2* kuyruktan mesajları sırasıyla değil, öncelik değerine göre almıştır.
 
+``msg-prog1.c``
+
 .. code-block:: c
-   :caption: msg-prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3402,8 +3400,9 @@ Görüldüğü gibi *msg-prog2* kuyruktan mesajları sırasıyla değil, önceli
            ;
    }
 
+``msg-prog2.c``
+
 .. code-block:: c
-   :caption: msg-prog2.c
 
    #include <stdio.h>
    #include <stdlib.h>
@@ -3448,54 +3447,50 @@ Görüldüğü gibi *msg-prog2* kuyruktan mesajları sırasıyla değil, önceli
    }
 
 Mesaj Kuyruklarıyla İstemci-Sunucu Haberleşmesi
------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Mesajların tür değerinin kullanıldığı tipik örnekler istemci-sunucu tarzı haberleşme örnekleridir. Şimdi mesaj
-kuyrukları kullanılarak istemci-sunucu tarzı bir haberleşme yapmak isteyelim. Bu haberleşmede istemcilerin
+Şimdi mesaj kuyrukları kullanılarak istemci-sunucu tarzı bir haberleşme yapmak isteyelim. Mesajların tür 
+değerlerinden en çok istemci-sunucu tarzı haberleşmelerde faydalanılmaktadır. Bu haberleşmede istemcilerin
 sunucudan istekte bulunması için tek bir mesaj kuyruğu yeterlidir. Benzer biçimde sunucunun da istemcilere
 yanıtı geri döndürmesi için toplamda tek bir mesaj kuyruğu yeterlidir. (Anımsanacağı isimli borularda, sunucu
-yanıtları iletirken mecburen her istemci için ayrı bir isimli boru kullanıyordu.) Haberleşmenin sistematiği
-şöyle olabilir:
+yanıtları iletirken mecburen her istemci için ayrı bir isimli boru kullanıyordu.) Haberleşme şöyle 
+gerçekleştirilebilir:
 
 - İstemci programlar kendi proses ID'lerini mesaj tür bilgisi olarak kullanıp mesajı önceden belirlenmiş mesaj
   kuyruğuna gönderir. Bu mesaj kuyruğuna *sunucu mesaj kuyruğu* diyelim.
 
 - Sunucu program sunucu mesaj kuyruğundan sıradaki mesajı okur. (``msgrcv`` fonksiyonunun dördüncü parametresi
-  0 olarak girilirse kuyruktan sıradaki mesajlar okunmaktadır.) Bunun hangi istemciden geldiğini anlar. İşlemi
+  ``0`` olarak girilirse kuyruktan sıradaki mesajlar okunmaktadır.) Bunun hangi istemciden geldiğini anlar. İşlemi
   yapar, işlemin sonucunu *istemci mesaj kuyruğu* diye isimlendirdiğimiz mesaj kuyruğuna bir mesaj olarak
   yollar. Ancak yolladığı mesajın tür değeri istemcinin proses ID değeridir.
 
-- Mesajı gönderen istemci program, istemci mesaj kuyruğundan mesaj tür bilgisi kendi proses ID'si olacak
-  biçimde ``msgrcv`` fonksiyonu ile yanıtı elde eder.
+- Mesajı gönderen istemci program, istemci mesaj kuyruğundan kendi proses ID'sini mesaj tür değeri olarak kullanıp  
+  ``msgrcv`` fonksiyonuyla yanıtı elde eder.
 
 Burada da görüldüğü gibi istemci programların hepsi ortak bir mesaj kuyruğundan sunucu yanıtlarını
 alabilmektedir. Eğer mesaj kuyruğunun böyle bir tür değeri olmasaydı ve mesaj kuyruğundan belli bir tür
 değerine ilişkin mesaj okunamasaydı bu durum mümkün olamazdı.
 
-Tek Mesaj Kuyruğu Kullanımının Sakıncaları
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Aslında klasik Sistem V (XSI) mesaj kuyruklarıyla istemci-sunucu haberleşme programı yazılırken tek bir mesaj
-kuyruğu da kullanılabilir. Örneğin bu durumda istemciler yine kendi proses ID'lerini mesaj tür değeri yaparak
+Peki klasik Sistem V (XSI) mesaj kuyruklarıyla istemci-sunucu tarzı haberleşme programı yazılırken tek bir mesaj kuyruğu 
+kullanılabilir mi?  Örneğin bu durumda istemciler yine kendi proses ID'lerini mesaj tür değeri yaparak
 kuyruğa sunucu için mesaj bırakır. Sunucu da mesajı işledikten sonra bu kez yanıtı ilgili prosesin ID'sini
-mesaj tür bilgisi yaparak kuyruğa yazar. İstemci de kuyruktan kendi mesaj tür bilgisiyle okuma yapabilir.
+mesaj tür bilgisi yaparak aynı kuyruğa yazar. İstemci de kuyruktan kendi mesaj tür bilgisiyle okuma yapabilir.
 Ancak tek bir kuyruğun kullanılması aslında iyi bir yöntem değildir. Bu durum haberleşmeyi çok kırılgan hale
 getirmektedir. Şöyle ki:
 
 - Bu durum *kilitlenme (deadlock)* denilen soruna kolaylıkla yol açabilmektedir. Mesaj kuyruklarının bir
-  kapasitesi vardır. Kuyruk dolduğunda blokeli yazmalarda kuyruğa mesaj yazacak taraf bloke olmaktadır. Bu
+  mesaj kapasitesi vardır. Kuyruk dolduğunda blokeli yazmalarda kuyruğa mesaj yazacak taraf bloke olmaktadır. Bu
   senaryoda sunucu bir istemcinin isteğini karşılamak için mesaj kuyruğuna yanıt mesajını yazacağı zaman diğer
-  istemciler istek yaparak mesaj kuyruğunu doldurmuş olabilir. Bu durumda ne istemciler kuyruğa mesaj
-  yazabilir ne de sunucu herhangi bir yanıtı kuyruğa yazabilir. İşte bu durum tipik bir *kilitlenme
-  (deadlock)* durumudur.
+  istemciler istek yaparak mesaj kuyruğunu doldurmuş olabilir. Bu durumda ne istemciler ne de sunucu kuyruğa 
+  mesaj yazabilir. İşte bu tipik bir *kilitlenme (deadlock)* durumudur.
 
 - Bu modelde istemci ilk kez sunucuya kendi proses ID'si ile mesaj gönderirken aynı proses ID ile kuyruktan
   mesaj almaya çalışacağı için kendi yazdığı mesajı da alabilir. Tabii bunu engellemenin çeşitli yolları da
   vardır. Örneğin böylesi bir durumda sunucu elde ettiği proses ID'nin başına bir bilgi ekleyebilir. İstemci
-  de okumasını buna göre yapabilir. Ancak bu çözüm de meşgul bir döngü oluşturabilecektir.
+  de okumasını buna göre yapabilir. Ancak bu çözüm de meşgul bir döngü oluşturabilmektedir.
 
-- Bu model, kilitlenme durumu aşılsa bile yavaşlık oluşturacaktır. Çünkü kuyrukların bir kapasitesi vardır. Bu
-  kapasite dolduğunda blokeler haberleşmeyi yavaşlatacaktır.
+- Bu model, kilitlenme durumu aşılsa bile yavaşlık oluşturacaktır. Çünkü kuyrukların bir mesaj kapasitesi vardır. 
+  Bu kapasite dolduğunda blokeler haberleşmeyi yavaşlatacaktır.
 
 İlk açıkladığımız, iki kuyruklu model her ne kadar *kilitlenmeye daha dirençliyse de* yine kırılgan bir yapı
 oluşmaktadır. Şöyle ki, belli bir istemci kuyruktan bilgi okumazsa (kasten bunu yapabilir ama istemci programı
@@ -3509,27 +3504,26 @@ O halde mesaj kuyruklarıyla istemci-sunucu haberleşme daha sağlam bir biçimd
 için ayrı bir mesaj kuyruğunun oluşturulması yoluna gidilebilir.
 
 0 Byte'lık Mesajlar
--------------------
+~~~~~~~~~~~~~~~~~~~
 
-Aslında mesaj kuyruklarına 0 byte'lık mesajlar da gönderilebilmektedir. Bu durumda kuyruğa yine mesaj yazılır.
-Mesajın tür değeri yine 0 byte'lık mesajı gönderen kişinin belirlediği tür değeri olarak mesajı okuyan proses
-tarafından elde edilmektedir. Yani 0 byte'lık mesajlar yine kuyruğa bir mesaj gibi yazılmaktadır. Bu tür
-mesajların uzunluğu çekirdek tarafından 1 byte mesajlarmış gibi ele alınmaktadır. Peki 0 byte'lık mesajlar
-neden gönderilebilir? İşte genellikle 0 byte uzunluğunda mesajlar *haberleşmeyi sonlandırmak amacıyla*
-gönderilmektedir. Tabii bazen gönderilecek mesaj gerçekten Yani bir taraf haberleşmeyi sonlandırmak
-istediğinde 0 byte uzunluğunda mesaj gönderebilir, diğer taraf da 0 byte uzunluğundaki mesajı aldığında
-haberleşmenin sonlandırılmak istendiğini anlayabilir. Buradaki semantiğin boru haberleşmesinin sonlandırılma
-biçimine benzediğine dikkat ediniz.
+Aslında mesaj kuyruklarına ``0`` byte'lık mesajlar da gönderilebilmektedir. Bu durumda ``0`` byte'lık mesaj kuyruğa
+yine tür değeriyle yine yazılır. Mesajı okuyan taraf mesaj boş olsa da mesajın tür değerini elde eder. (``0`` byte'lık 
+mesajlar Linux çekirdeği tarafından ``1`` byte'lık mesajlarmış gibi ele alınmaktadır.) Peki ``0`` byte'lık mesajlar
+neden gönderilebilir? İşte genellikle ``0`` byte uzunluğunda mesajlar "haberleşmeyi sonlandırmak amacıyla"
+gönderilmektedir. Yani bir taraf haberleşmeyi sonlandırmak istediğinde ``0`` byte uzunluğunda mesaj gönderebilir, 
+diğer taraf da ``0`` byte uzunluğundaki mesajı aldığında haberleşmenin sonlandırılmak istendiğini anlayabilir. 
+Buradaki semantiğin boru haberleşmesinin sonlandırılma sürecine benzediğine dikkat ediniz.
 
 Aşağıdaki örnekte *msg-prog1* programı klavyeden (``stdin`` dosyasından) aldığı yazıyı mesaj kuyruğuna
 yazmakta, *msg-prog2* programı da bunu mesaj kuyruğundan okumaktadır. İletişim sonlandırılacağı zaman
-*msg-prog1* kuyruğa 0 uzunlukta özel bir mesaj tür değeri olan ``QUIT_MSG`` mesajını bırakır. prog2'de bu özel
+*msg-prog1* kuyruğa ``0`` uzunlukta özel bir mesaj tür değeri olan ``QUIT_MSG`` mesajını bırakır. *msg-prog2*'de bu özel
 mesaj tür değerini aldığında işlemini sonlandırmaktadır. Tabii aslında sonlandırma mesajını gönderen tarafın
 (*msg-prog1*) özel bir tür değeriyle göndermesine gerek de yoktur. Alan taraf (*msg-prog2*) zaten ``msgrcv``
 fonksiyonunda 0 ile geri dönüldüğünde de döngüsünü sonlandırabilir.
 
+``msg-prog1.c``
+
 .. code-block:: c
-   :caption: msg-prog1.c
 
    #include <stdio.h>
    #include <stdlib.h>
