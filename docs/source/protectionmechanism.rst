@@ -1,7 +1,7 @@
 
-===============================
-İşlemcilerin Koruma Mekanizması
-===============================
+===================================
+**İşlemcilerin Koruma Mekanizması**
+===================================
 
 Bu mini bölümde sistem programlama ile uğraşanların mutlaka bilmesi gereken *koruma mekanizması (protection mechanism)*
 üzerinde duracağız. Koruma mekanizması ana hatlarıyla anlaşılmadan UNIX/Linux sistem programlamadaki bazı süreçlerin tam

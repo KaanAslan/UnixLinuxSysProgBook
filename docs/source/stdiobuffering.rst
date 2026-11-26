@@ -1,6 +1,6 @@
-=================================================================
-Standart C Kütüpahnesinin Uyguladığı Dosya Tamponlama Mekanizması
-=================================================================
+=====================================================================
+**Standart C Kütüpahnesinin Uyguladığı Dosya Tamponlama Mekanizması**
+=====================================================================
 
 Bu bölümde standart C'deki dosya fonksiyonlarının tamponlama mekanizması üzerinde duracağız.
 

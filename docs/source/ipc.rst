@@ -1,6 +1,6 @@
-=========================
-Proseslerarası Haberleşme
-=========================
+=============================
+**Proseslerarası Haberleşme**
+=============================
 
 Bu bölümde UNIX/Linux sistemlerinde *proseslerarası haberleşme (interprocess communication)* konusunu ele
 alacağız. Proseslerarası haberleşme oldukça önemli ve ayrıntılı bir konudur.
@@ -3936,11 +3936,11 @@ yapılmaktadır. Fonksiyonun prototipi şöyledir:
 Fonksiyonun birinci parametresi mesaj kuyruğunun ID değerini almaktadır. İkinci parametresi uygulanacak işlemi
 belirtir. Uygulanacak işlem şunlardan biri olabilir:
 
-.. code-block:: c
+.. parsed-literal::
 
-   IPC_STAT
-   IPC_SET
-   IPC_RMID
+   ``IPC_STAT``
+   ``IPC_SET``
+   ``IPC_RMID``
 
 Fonksiyonun üçüncü parametresi ``msqid_ds`` isimli yapı nesnesinin adresini almaktadır. Bu yapı
 ``<sys/msg.h>`` içerisinde tanımlanmıştır. POSIX bu yapının yalnızca olması zorunlu elemanlarını belirtmiştir.
@@ -3990,10 +3990,10 @@ kuyruğu yaratılırken Linux sistemlerinde ``MSGMNB`` değeri olarak yapıya ak
 ``msg_lspid`` ve ``msg_lrpid`` elemanları sırasıyla kuyruğa son ``msgsnd`` yapan prosesin ID değerini ve
 kuyruktan son ``msgrcv`` yapan prosesin ID değerini belirtmektedir. Yapı tanımlamasındaki ``msgqnum_t`` ve
 ``msglen_t`` tür isimleri ``<sys/msg.h>`` içerisinde işaretsiz bir tamsayı türü olarak (ama en azından
-``unsigned short`` uzunlukta) typedef edilmiş olmak zorundadır.
+``unsigned short`` uzunlukta) ``typedef`` edilmiş olmak zorundadır.
 
-Bizim mesaj kuyruğuna mesaj yazabilmemiz için mesaj kuyruğuna *w* hakkına, mesaj kuyruğundan mesaj
-okuyabilmemiz için ise *r* hakkına sahip olmamız gerekir. Buradaki erişim kontrolü tıpkı dosyalarda olduğu
+Bizim mesaj kuyruğuna mesaj yazabilmemiz için mesaj kuyruğuna ``'w'`` hakkına, mesaj kuyruğundan mesaj
+okuyabilmemiz için ise ``'r'`` hakkına sahip olmamız gerekir. Buradaki erişim kontrolü tıpkı dosyalarda olduğu
 gibi yapılmaktadır. Ancak *owner* kontrolü burada ``msqid_ds`` yapısının ``msg_perm`` yapı elemanının ``uid``
 elemanı ile ve *group* kontrolü ise aynı yapının ``gid`` elemanı ile belirlenmektedir. Normal olarak yukarıda
 da belirttiğimiz gibi mesaj kuyruğu yaratıldığında ``ipc_perm`` yapısının ``uid`` ve ``gid`` elemanları
@@ -4001,5 +4001,5 @@ da belirttiğimiz gibi mesaj kuyruğu yaratıldığında ``ipc_perm`` yapısın�
 üzere ``IPC_SET`` işlemi ile bunlar farklılaşabilirler. Tabii mesaj kuyruğunun yaratıcısına ilişkin ``cuid``
 ve ``cgid`` değerleri değiştirilememektedir.
 
-Fonksiyon başarı durumunda 0 değeri ile başarısızlık durumunda -1 değeri ile geri dönmektedir.
+Fonksiyon başarı durumunda ``0`` değeri ile başarısızlık durumunda ``-1`` değeri ile geri dönmektedir.
 

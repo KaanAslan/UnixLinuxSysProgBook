@@ -1,6 +1,6 @@
-==================================================
-İşlemcilerin Sayfalama Mekanizması ve Sanal Bellek
-==================================================
+======================================================
+**İşlemcilerin Sayfalama Mekanizması ve Sanal Bellek**
+======================================================
 
 Bu bölümde işlemcilerin sayfalama (paging) mekanizması ve *sanal bellek (virtual memory)* kavramları üzerinde duracağız.
 

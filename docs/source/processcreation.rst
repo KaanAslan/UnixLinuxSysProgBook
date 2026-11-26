@@ -1,6 +1,6 @@
-=======================================
-Proseslerin Yaratılması ve Yok Edilmesi
-=======================================
+===========================================
+**Proseslerin Yaratılması ve Yok Edilmesi**
+===========================================
 
 Anımsanacağı gibi işletim sistemlerinde çalışmakta olan programlara *proses (process)* denilmektedir. Her proses başka bir proses 
 tarafından yaratılmaktadır. Bu bölümde dikkatimizi prosesler üzerinde üzerine çevireceğiz. Proseslerin ``fork`` fonksiyonuyla 
