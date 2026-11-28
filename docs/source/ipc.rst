@@ -5394,7 +5394,7 @@ shmget Fonksiyonu
 shmat Fonksiyonu
 ~~~~~~~~~~~~~~~~
 
-2) Bundan sonra sanal bellek alanını nesnesinin prosesin sanal bellek alanında oluşturulması gerekir. Buna
+2) Bundan sonra sanal bellek alanı nesnesinin prosesin sanal bellek alanında oluşturulması gerekir. Buna
    klasik Sistem V (XSI) paylaşılan bellek alanları terminolojisinde *paylaşılan bellek alanının attach
    edilmesi* denilmektedir. Bu işlem sırasında işletim sistemi ilgili prosesin sayfa tablosunda bu paylaşılan
    bellek alanına erişmede kullanılacak sanal adresi oluşturmaktadır. Bu işlem ``shmat`` fonksiyonuyla
