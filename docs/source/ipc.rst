@@ -4003,3 +4003,2351 @@ ve ``cgid`` değerleri değiştirilememektedir.
 
 Fonksiyon başarı durumunda ``0`` değeri ile başarısızlık durumunda ``-1`` değeri ile geri dönmektedir.
 
+msgctl Fonksiyonu: IPC_STAT, IPC_SET ve IPC_RMID
+================================================
+
+IPC_STAT ile Mesaj Kuyruğu Bilgilerinin Elde Edilmesi
+-----------------------------------------------------
+
+``msgctl`` fonksiyonunun ikinci parametresi ``IPC_STAT`` geçilirse bu durumda mesaj kuyruğu bilgileri elde
+edilerek ``msqid_ds`` yapı nesnesinin içine yerleştirilmektedir. Örneğin:
+
+.. code-block:: c
+
+   struct msqid_ds msginfo;
+   ...
+
+   if (msgctl(msgid, IPC_STAT, &msginfo) == -1)
+       exit_sys("msgctl");
+
+Aşağıda bir mesaj kuyruğu yaratılıp (ya da açılıp) içerisine iki mesaj yerleştirilmiş sonra da ``msgctl``
+fonksiyonu ile ``IPC_STAT`` parametresi kullanılarak mesaj kuyruğu bilgileri elde edilmiştir.
+
+Programı çalıştırdığımızda yeni yaratılıyorsa şunları göreceğiz:
+
+.. code-block:: console
+
+   $ ./msgctl
+   Maximum number of bytes: 16384
+   Number of bytes in queue: 8
+   Maximum number of bytes: 2
+
+Aslında bu bilgileri biz "*ipcs -q*" komutuyla da elde edebilirdik:
+
+.. code-block:: console
+
+   $ ipcs -q
+
+   ------ Message Queues --------
+   key        msqid      owner      perms      used-bytes   messages
+   0x41020002 3          kaan       644        8            2
+
+.. code-block:: c
+   :caption: msgctl.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <stdint.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+   #include <sys/ipc.h>
+
+   #define KEY_NAME              "/home/kaan"
+   #define KEY_ID                123
+
+   struct MSG {
+       long mtype;
+       char buf[8192];
+   };
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       struct MSG msg;
+       key_t key;
+       struct msqid_ds msginfo;
+
+       if ((key = ftok(KEY_NAME, KEY_ID)) == -1)
+           exit_sys("ftok");
+
+       if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       msg.mtype = 1;
+       strcpy(msg.buf, "test");
+
+       if (msgsnd(msgid, &msg, 4, 0) == -1)
+           exit_sys("msgsnd");
+
+       if (msgsnd(msgid, &msg, 4, 0) == -1)
+           exit_sys("msgsnd");
+
+       if (msgctl(msgid, IPC_STAT, &msginfo) == -1)
+           exit_sys("msgctl");
+
+       printf("Maximum number of bytes: %ju\n", (uintmax_t)msginfo.msg_qbytes);        /* 16384 ama değişebilir */
+       printf("Number of bytes in queue: %lu\n", msginfo.msg_cbytes);                  /* 8 */
+       printf("Maximum number of bytes: %ju\n", (uintmax_t)msginfo.msg_qnum);          /* 2 */
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+IPC_SET ile Mesaj Kuyruğu Değerlerinin Değiştirilmesi
+-----------------------------------------------------
+
+``msgctl`` fonksiyonunun ikinci parametresi ``IPC_SET`` olarak girilirse bu durumda mesaj kuyruğuna ilişkin
+bazı değerler set edilebilmektedir. Ancak bu durumda ``msqid_ds`` yapısının tüm elemanları değil yalnızca
+aşağıda belirtilen elemanları değiştirilmektedir:
+
+- ``msg_perm.uid``
+
+- ``msg_perm.gid``
+
+- ``msg_perm.mode``
+
+- ``msg_qbytes``
+
+``IPC_SET`` işleminin yapılabilmesi için fonksiyonu çağıran prosesin etkin kullanıcı ID'sinin mesaj kuyruğunda
+belirtilen ``msg_perm.uid`` ya da ``msg_perm.cuid`` değerine eşit olması ya da prosesin uygun önceliğe sahip
+olması (örneğin root) gerekmektedir. ``IPC_SET`` işlemi yapılırken ``msqid_ds`` yapısının diğer elemanları
+zaten dikkate alınmamaktadır. Yani diğer elemanlarda geçersiz değerlerin olması önemli değildir. Tabii
+programcı yalnızca belli bir değeri değiştirecekse önce ``IPC_STAT`` yapıp ondan sonra ``IPC_SET``
+uygulamalıdır. Çünkü ``IPC_SET`` yukarıdaki elemanların hepsini değiştirmektedir. ``msqid_ds`` yapısının
+``msg_qbytes`` elemanının değiştirilmesi yalnızca uygun önceliğe sahip (örneğin root) prosesler tarafından
+yapılabilmektedir.
+
+Aşağıdaki örnekte mesaj kuyruğuna ilişkin durum bilgisi ``IPC_STAT`` parametresiyle elde edilip ``IPC_SET``
+parametresiyle kuyruğun ``msg_qbytes`` elemanı değiştirilmiştir. Ancak bunun yapılabilmesi için programın
+``sudo`` ile çalıştırılması gerekir.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <stdint.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+   #include <sys/ipc.h>
+
+   #define KEY_NAME              "/home/kaan"
+   #define KEY_ID                123
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       key_t key;
+       struct msqid_ds msginfo;
+
+       if ((key = ftok(KEY_NAME, KEY_ID)) == -1)
+           exit_sys("ftok");
+
+       if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       if (msgctl(msgid, IPC_STAT, &msginfo) == -1)
+           exit_sys("msgctl");
+
+       printf("Maximum number of bytes: %ju\n", (uintmax_t)msginfo.msg_qbytes);    /* muhtemelen 16384 */
+
+       msginfo.msg_qbytes = 30000;
+
+       if (msgctl(msgid, IPC_SET, &msginfo) == -1)
+           exit_sys("msgctl");
+
+       if (msgctl(msgid, IPC_STAT, &msginfo) == -1)
+           exit_sys("msgctl");
+
+       printf("Maximum number of bytes: %ju\n", (uintmax_t)msginfo.msg_qbytes);    /* 30000 */
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+IPC_RMID ile Mesaj Kuyruğunun Silinmesi
+---------------------------------------
+
+Mesaj kuyruğunu silmek için ``msgctl`` fonksiyonu ``IPC_RMID`` parametresiyle çağrılmalıdır. Mesaj kuyruğunun
+bu biçimde silinebilmesi için prosesin uygun önceliğe sahip olması (örneğin root olması) ya da prosesin etkin
+kullanıcı ID'sinin ``msqid_ds`` yapısındaki ``ipc_perm.uid`` ya da ``ipc_perm.cuid`` değerine eşit olması
+gerekmektedir. Yani özetle biz root değilsek başkasının mesaj kuyruğunu silemeyiz. Tabii mesaj kuyrukları bu
+biçimde silinmezse zaten reboot işleminde otomatik olarak silinmektedir. Mesaj kuyrukları silindiğinde artık o
+anda mesaj kuyruğunu kullanmakta olan prosesler hemen hata ile geri dönerler. (Yani dosya sisteminde olduğu
+gibi, gerçek silme dosyayı kullanan tüm proseslerin dosyayı kapatmasıyla değil ``IPC_RMID`` işlemi sırasında
+yapılmaktadır.) ``IPC_RMID`` parametresi kullanılırken artık üçüncü parametreye gereksinim duyulmamaktadır. Bu
+parametre ``NULL`` olarak geçilebilir. Örneğin:
+
+.. code-block:: c
+
+   if (msgctl(msgid, IPC_RMID, NULL) == -1)
+       exit_sys("msgctl");
+
+Aşağıda daha önce oluşturulmuş olan mesaj kuyruğu ``msgctl`` fonksiyonu ve ``IPC_RMID`` parametresi ile silinmiştir.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <stdint.h>
+   #include <sys/stat.h>
+   #include <sys/msg.h>
+   #include <sys/ipc.h>
+
+   #define KEY_NAME              "/home/kaan"
+   #define KEY_ID                123
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       int msgid;
+       key_t key;
+
+       if ((key = ftok(KEY_NAME, KEY_ID)) == -1)
+           exit_sys("ftok");
+
+       if ((msgid = msgget(key, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+           exit_sys("msgget");
+
+       if (msgctl(msgid, IPC_RMID, NULL) == -1)
+           exit_sys("msgctl");
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+POSIX IPC Nesneleri ve POSIX Mesaj Kuyrukları
+=============================================
+
+msgctl Fonksiyonundaki Linux'a Özgü Komutlar
+--------------------------------------------
+
+``msgctl`` fonksiyonunda Linux'a özgü bir biçimde ikinci parametrede bazı özel komut değerleri de
+kullanılabilmektedir. Bu özel değerler şunlardır:
+
+- ``IPC_INFO``
+
+- ``MSG_INFO``
+
+- ``MSG_STAT``
+
+- ``MSG_STAT_ANY``
+
+Biz kursumuzda standart olmayan bu komut değerleri üzerinde durmayacağız. Ancak ilgili man sayfalarından ya da
+başka dokümanlardan bu parametrelerin işlevleri konusunda bilgi edinebilirsiniz.
+
+ipcs ve ipcrm Komutları
+-----------------------
+
+Klasik Sistem V (XSI) IPC mekanizması için iki önemli kabuk komutu vardır: *ipcs* ve *ipcrm*. Biz daha önce
+*ipcs* komutunu görmüştük. Bu komutun ``/proc/sysvipc`` dizinindeki ``msg``, ``sem`` ve ``shm`` dosyalarını
+okuyarak işlem yaptığını belirtmiştik. İşte *ipcrm* komutu ise belli bir ipc nesnesini silmek için
+kullanılmaktadır. *ipcrm* silme işlemini anahtara göre (büyük harfli seçenekler) ya da ID'lere göre (küçük
+harfli seçenekler) yapabilmektedir. Örneğin mesaj kuyruklarının *ipcrm* ile silinmesi anahtar belirtilerek
+``-Q`` seçeneği ile ID belirtilerek ``-q`` seçeneği ile yapılabilmektedir. Tabii bu komut aslında ``msgctl``
+fonksiyonunu kullanarak yazılmıştır. Örneğin:
+
+.. code-block:: console
+
+   $ ipcrm -Q 0x7b050002
+
+ya da örneğin:
+
+.. code-block:: console
+
+   $ ipcrm -q 3
+
+POSIX IPC Nesneleri
+-------------------
+
+Daha önceden de belirttiğimiz gibi klasik Sistem V (XSI) IPC nesnelerinin 1990'lı yıllarda alternatif yeni
+biçimleri oluşturulmuştur. Bunlara halk arasında *POSIX IPC nesneleri* denilmektedir. Bu nesneler sonradan
+UNIX/Linux dünyasına katıldığı için belli bir süre taşınabilirlik problemlerine sahipti. POSIX IPC
+fonksiyonları Linux sistemlerine geç bir biçimde 2.4 ve 2.6'lı versiyonlarda eklenmiştir. Aşağıda POSIX IPC
+nesnelerinin Linux çekirdeğine ve *glibc* kütüphanesine eklendikleri versiyon numaralarını veriyoruz:
+
+.. list-table:: POSIX IPC nesnelerinin Linux çekirdeğine ve glibc kütüphanesine eklendiği versiyonlar
+   :header-rows: 1
+   :widths: 40 30 30
+   :align: center
+
+   * - Mekanizma
+     - Kernel
+     - glibc
+   * - Shared memory
+     - 2.4
+     - 2.2
+   * - Semaphore
+     - 2.6
+     - 2.3.2
+   * - Message queue
+     - 2.6.6
+     - 2.3.4
+
+Ancak artık bu nesneler de yaygın tüm UNIX/Linux sistemlerinde bulunmaktadır.
+
+POSIX IPC mekanizmasının klasik Sistem V (XSI) IPC mekanizmasından en önemli farklılıklarından biri IPC
+nesnesinin belirlenmesi için bir anahtarın değil doğrudan bir dosya isminin kullanılmasıdır. Yani adeta isimli
+borularda olduğu gibi iki proses bir dosya isminde anlaşmaktadır. POSIX IPC nesneleri birer dosya ismiyle
+temsil edilmiş olsa da bu isimler bir dizin girişi biçiminde bulundurulmamaktadır. POSIX standartlarına göre
+POSIX IPC nesnelerine ilişkin dosya isimleri *kök dizinde bir isim* belirtmelidir. Örneğin
+``/my_message_queue`` gibi. Ancak POSIX standartları eğer işletim sistemi izin verirse giriş isimlerinin kök
+dizin yerine herhangi bir dizinde de oluşturulabileceğini belirtmektedir. Yani programcı eğer ilgili işletim
+sistemi kabul ediyorsa buradaki giriş ismini kök dizin yerine bir dizinde bir giriş ismi gibi de verebilir.
+Ancak taşınabilir programların bu isimleri kök dizinde belirtmesi gerekmektedir. Linux'ta POSIX IPC
+nesnelerinin isimleri kök dizinde belirtilmek zorundadır. Her ne kadar isimlerin bile çakışması mümkün olsa da
+bu olasılık sayısal anahtarların çakışmasından çok daha düşüktür.
+
+POSIX IPC mekanizmasının Sistem V (XSI) IPC mekanizmasından diğer önemli farklılığı POSIX IPC mekanizmasının
+*dosya işlemlerine* benzetilmesidir. Yani bu işlemler adeta dosya işlemleri gibi ele alınmaktadır. Örneğin
+klasik Sistem V (XSI) mesaj kuyruğunu birisi ``msgctl`` fonksiyonu ile sildiğinde o anda bu kuyruk üzerinde
+işlem yapan fonksiyonlar başarısızlıkla geri dönerler. Ancak POSIX mesaj kuyruklarında birisi dışarıdan bu
+mesaj kuyruğunu silse bile, son proses bu mesaj kuyruğunu kapatmadan gerçek silme yapılmamaktadır. Bu durum
+adeta dosya silmedeki ``unlink``/``remove`` fonksiyonlarına benzemektedir.
+
+Hem klasik Sistem V (XSI) hem de POSIX IPC nesneleri silinene kadar ya da reboot işlemine kadar hayatta
+kalmaktadır (kernel persistent). Bu bakımdan bu iki nesne grubu birbirine benzemektedir.
+
+Klasik Sistem V (XSI) ve POSIX IPC mekanizmasını yöneten fonksiyonlarda da arayüz bakımından bazı farklılıklar
+vardır. POSIX IPC fonksiyonlarının isimlendirme tarzları da farklıdır. Örneğin mesaj kuyruklarını yaratmak
+için klasik Sistem V (XSI) mesaj kuyruklarında ``msgget`` fonksiyonu kullanılırken POSIX mesaj kuyruklarında
+``mq_open`` fonksiyonu kullanılmaktadır. Tabii isimlendirme ve genel kullanım POSIX IPC nesnelerinin arasında
+tutarlı bir biçimde oluşturulmuştur.
+
+POSIX IPC nesneleri, POSIX'in *Realtime Extension* ekleriyle standartlara dahil edilmiştir. Eskiden POSIX IPC
+fonksiyonları *librt* isimli ayrı bir kütüphane içerisinde buluyordu ve onları kullanan programların ``-lrt``
+seçeneği ile derlenmesi gerekiyordu. *glibc* 2.34 versiyonu ile birlikte bu *librt* kütüphanesi ana *libc*
+kütüphanesinin içerisine taşındı. Yani artık bu fonksiyonları kullanan programların derlenmesinde ``-lrt``
+seçeneğinin kullanılmasına gerek kalmamaktadır. Aynı durum thread kütüphanesinde ve diğer bazı kütüphanelerde
+de söz konusudur.
+
+POSIX Mesaj Kuyruklarının Kullanımı
+-----------------------------------
+
+POSIX mesaj kuyrukları aşağıdaki adımlardan geçilerek kullanılmaktadır:
+
+1) İki proses de (daha fazla proses de olabilir) mesaj kuyruğunu ``mq_open`` fonksiyonuyla ortak bir isim
+   altında anlaşarak açar. ``mq_open`` fonksiyonunun prototipi şöyledir:
+
+   .. code-block:: c
+
+      #include <mqueue.h>
+
+      mqd_t mq_open(const char *name, int oflag, ...);
+
+   Fonksiyon ya iki argümanla ya da dört argümanla çağrılmaktadır. Eğer mesaj kuyruğu zaten varsa fonksiyon
+   iki argümanla çağrılır. Ancak mesaj kuyruğunun yaratılması gibi bir durum söz konusu ise fonksiyon dört
+   argümanla çağrılmalıdır. Eğer mesaj kuyruğunun yaratılması söz konusu ise son iki parametreye sırasıyla IPC
+   nesnesinin *erişim hakları* ve *özellikleri (attribute)* girilmelidir. Yani mesaj kuyruğunun yaratılması
+   söz konusuysa adeta fonksiyonun parametrik yapısının aşağıdaki gibi olduğu varsayılmalıdır:
+
+   .. code-block:: c
+
+      mqd_t mq_open(const char *name, int oflag, mode_t mode, const struct mq_attr *attr);
+
+   Fonksiyonun birinci parametresi IPC nesnesinin kök dizindeki ismini belirtir. İkinci parametre açış
+   bayraklarını belirtmektedir. Burada ``open`` fonksiyonundaki bayrakların yalnızca bazıları
+   kullanılmaktadır. Açış bayrakları aşağıdakilerden yalnızca birini içermek zorundadır:
+
+   - ``O_RDONLY``
+
+   - ``O_WRONLY``
+
+   - ``O_RDWR``
+
+   Açış bayraklarına aşağıdaki değerlerin bir ya da birden fazlası da bit OR işlemiyle eklenebilir:
+
+   - ``O_CREAT``
+
+   - ``O_EXCL``
+
+   - ``O_NONBLOCK``
+
+   ``O_CREAT`` bayrağı yine *varsa olanı aç, yoksa yarat* anlamına gelmektedir. ``O_EXCL`` yine ``O_CREAT``
+   ile birlikte kullanılabilir. Eğer nesne zaten varsa bu durumda fonksiyonun başarısız olmasını sağlar.
+   ``O_NONBLOCK`` blokesiz okuma-yazma yapmak için kullanılmaktadır.
+
+   Eğer açış bayrağında ``O_CREAT`` belirtilmişse bu durumda programcının fonksiyona iki argüman daha girmesi
+   gerekir. Tabii eğer nesne zaten varsa bu iki argüman kullanılmayacaktır. Yani bu argüman IPC nesnesi
+   yaratılacaksa (yoksa) fonksiyon tarafından kullanılmaktadır. Mesaj kuyruğu yaratılırken erişim haklarını
+   tıpkı dosyalarda olduğu gibi kuyruğu yaratan kişi ``S_IXXX`` sembolik sabitleriyle (ya da POSIX 2008
+   sonrasında doğrudan sayısal biçimde) vermelidir. Eğer mesaj kuyruğu yaratılacaksa son parametre ``mq_attr``
+   isimli yapı türünden bir nesnenin adresi biçiminde girilmelidir. ``mq_attr`` yapısı şöyle bildirilmiştir:
+
+   .. code-block:: c
+
+      struct mq_attr {
+          long mq_flags;       /* Flags: 0 or O_NONBLOCK */
+          long mq_maxmsg;      /* Max. # of messages on queue */
+          long mq_msgsize;     /* Max. message size (bytes) */
+          long mq_curmsgs;     /* # of messages currently in queue */
+      };
+
+   Yapının ``mq_flags`` parametresi yalnızca ``O_NONBLOCK`` içerebilir. Bu eleman mesaj kuyruğu yaratılırken
+   programcı tarafından oluşturulmaz. Yapının ``mq_maxmsg`` elemanı kuyrukta tutulacak maksimum mesaj sayısını
+   belirtmektedir. Yapının ``mq_msgsize`` elemanı ise bir mesajın maksimum uzunluğunu belirtmektedir.
+   ``mq_curmsgs`` elemanı da o anda kuyrukta bulunan mesaj sayısını belirtmektedir. Programcı mesaj kuyruğunu
+   yaratırken yapının ``mq_maxmsg`` ve ``mq_msgsize`` elemanlarına uygun değerler girip mesaj kuyruğunun
+   istediği gibi yaratılmasını sağlayabilir. Yani mesaj kuyruğu yaratılırken programcı ``mq_attr`` yapısının
+   yalnızca ``mq_maxmsg`` ve ``mq_msgsize`` elemanlarını doldurur. Yapının diğer elemanları ``mq_open``
+   tarafından dikkate alınmamaktadır. ``mq_open`` fonksiyonunun bu özellik parametresi ``NULL`` adres
+   biçiminde de geçilebilir. Bu durumda mesaj kuyruğu default değerlerle yaratılır. Bu default değerler
+   değişik sistemlerde değişik biçimlerde olabilir. Linux sistemlerinde genel olarak default durumda
+   ``mq_maxmsg`` değeri 10, ``mq_msgsize`` değeri ise 8192 alınmaktadır. ``mq_open`` fonksiyonunda kuyruk
+   özelliklerini girerken ``mq_maxmsg`` ve ``mq_msgsize`` elemanlarına girilecek değerler için işletim
+   sistemleri alt ve üst limit belirlemiş olabilirler. Eğer yapının bu elemanları bu limitleri aşarsa
+   ``mq_open`` fonksiyonu başarısız olur ve ``errno`` değişkeni ``EINVAL`` olarak set edilir. Örneğin Linux
+   sistemlerinde uygun önceliğe sahip olmayan prosesler (*root* olmayan prosesler) ``mq_maxmsg`` değerini
+   10'un yukarısına çıkartamamaktadır. Ancak uygun önceliğe sahip prosesler bu değeri 10'un yukarısında
+   belirleyebilmektedir. POSIX standartları bu default limitler hakkında bir şey söylememiştir. Linux
+   sistemlerinde sonraki paragraflarda açıklanacağı gibi bu limitler *proc* dosya sisteminden elde
+   edilebilmektedir.
+
+   ``mq_open`` fonksiyonu başarı durumunda yaratılan mesaj kuyruğunu temsil eden ``mqd_t`` türünden
+   betimleyici değeriyle, başarısızlık durumunda -1 değeriyle geri dönmektedir. Fonksiyonun geri döndürdüğü
+   *mesaj kuyruğu betimleyicisi (message queue descriptor)* diğer fonksiyonlarda bir handle değeri gibi
+   kullanılmaktadır. Linux çekirdeği aslında mesaj kuyruklarını tamamen birer dosya gibi ele almaktadır. Yani
+   ``mq_open`` fonksiyonu Linux sistemlerinde dosya betimleyici tablosunda bir betimleyici tahsis edip ona
+   geri dönmektedir. Ancak POSIX standartları fonksiyonun geri dönüş değerini ``mqd_t`` türüyle temsil
+   etmiştir. Bu durum değişik çekirdeklerde mesaj kuyruklarının dosya sisteminin dışında başka biçimlerde de
+   gerçekleştirilebileceği anlamına gelmektedir. POSIX standartlarına göre ``mqd_t`` herhangi bir tür olarak
+   (yapı da dahil olmak üzere) ``<mqueue.h>`` dosyasında typedef edilebilir.
+
+   Örneğin:
+
+   .. code-block:: c
+
+      mqd_t mqdes;
+      struct mq_attr attr;
+
+      attr.mq_maxmsg = 10;
+      attr.mq_msgsize = 32;
+
+      if ((mqdes = mq_open(MSGQUEUE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, &attr)) == -1)
+          exit_sys("mq_open");
+
+   Örneğin:
+
+   .. code-block:: c
+
+      mqd_t mqdes;
+
+      if ((mqdes = mq_open(MSGQUEUE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, NULL)) == -1)
+          exit_sys("mq_open");
+
+2) POSIX mesaj kuyruğuna mesaj yollamak için ``mq_send`` fonksiyonu kullanılmaktadır. Fonksiyonun prototipi şöyledir:
+
+   .. code-block:: c
+
+      #include <mqueue.h>
+
+      int mq_send(mqd_t mqdes, const char *msg_ptr, size_t msg_len, unsigned msg_prio);
+
+   Fonksiyonun birinci parametresi mesaj kuyruğunun betimleyicisini belirtir. Fonksiyonun ikinci parametresi
+   mesajın bilgilerinin adresini almaktadır. Ancak bu parametrenin ``void`` bir adres olmadığına dikkat
+   ediniz. Eğer mesaj başka türlere ilişkinse tür dönüştürmesinin yapılması gerekmektedir. Üçüncü parametre
+   gönderilecek mesajın uzunluğunu, dördüncü parametre ise mesajın öncelik derecesini belirtmektedir. Bu
+   öncelik derecesi ``>= 0`` bir değer olarak girilmelidir. POSIX mesaj kuyruklarında öncelik derecesi yüksek 
+   olan mesajlar FIFO sırasına göre önce alınmaktadır. Bu mesaj kuyruklarının klasik Sistem V mesaj kuyruklarında
+   olduğu gibi belli bir öncelik derecesine sahip mesajları alabilme yeteneği yoktur. Buradaki öncelik
+   derecesinin ``<limits.h>`` içerisindeki ``MQ_PRIO_MAX`` değerinden küçük olması gerekmektedir.
+   ``MQ_PRIO_MAX`` değeri ise işletim sistemlerini yazanlar tarafından belirlenmektedir. Ancak bu değer
+   ``_POSIX_MQ_PRIO_MAX`` (32) değerinden düşük olamaz. Yani başka bir deyişle buradaki desteklenen değer
+   32'den küçük olamamaktadır. (Mevcut Linux sistemlerinde bu değer 32768 biçimindedir.)
+
+   Fonksiyon başarı durumunda ``0`` değerine, başarısızlık durumunda ``-1`` değerine geri döner ve ``errno`` 
+   değişkeni uygun biçimde set edilir.
+
+   ``mq_send`` fonksiyonu ile 0 uzunlukta mesaj gönderilebilmektedir. Ancak bu durumda fonksiyonun ikinci
+   parametresine geçerli bir adresin geçilmesi gerekmektedir.
+
+   POSIX mesaj kuyruklarının yukarıda da belirttiğimiz gibi belli limitleri vardır. Eğer mesaj kuyruğu dolarsa
+   ``mq_send`` fonksiyonu blokeye yol açmaktadır. Ancak açış sırasında ``O_NONBLOCK`` bayrağı belirtilmişse
+   ``mq_send`` fonksiyonu kuyruk doluysa blokeye yol açmaz, kuyruğa hiçbir şey yazmadan başarısızlıkla (``-1``
+   değeriyle) geri döner ve ``errno`` ``EAGAIN`` değeri ile set edilir.
+
+   Örneğin:
+
+   .. code-block:: c
+
+      for (int i = 0; i < 100; ++i) {
+          if (mq_send(mqdes, (const char *)&i, sizeof(int), 0) == -1)
+              exit_sys("mq_send");
+      }
+
+   Burada 0'dan 100'e kadar 100 tane ``int`` değer mesaj kuyruğuna mesaj olarak yazılmıştır.
+
+   Mesaj kuyruklarının kendi içerisinde bir senkronizasyon da içerdiğine dikkat ediniz. Kuyruğa yazan taraf
+   kuyruk dolarsa (Linux'taki default değerin 10 olduğunu anımsayınız) blokede beklemektedir. Ta ki diğer
+   taraf kuyruktan mesajı alıp kuyrukta yer açana kadar.
+
+3) POSIX mesaj kuyruklarından mesaj almak için ``mq_receive`` fonksiyonu kullanılmaktadır. Fonksiyonun
+   prototipi şöyledir:
+
+   .. code-block:: c
+
+      #include <mqueue.h>
+
+      ssize_t mq_receive(mqd_t mqdes, char *msg_ptr, size_t msg_len, unsigned *msg_prio);
+
+   Fonksiyonun birinci parametresi ``mq_open`` fonksiyonundan elde edilen mesaj kuyruğu betimleyicisidir.
+   İkinci parametre mesajın yerleştirileceği adresi belirtmektedir. Yine bu parametrenin ``void`` bir
+   gösterici olmadığına ``char`` türden bir gösterici olduğuna dikkat ediniz. Yani ``char`` türünden farklı
+   bir adres buraya geçilecekse tür dönüştürmesi uygulanmalıdır. Üçüncü parametre, ikinci parametredeki
+   mesajın yerleştirileceği alanın uzunluğunu belirtir. Ancak dikkat edilmesi gereken nokta buradaki uzunluk
+   değerinin mesaj kuyruğundaki ``mq_msgsize`` değerinden küçük olmaması gerektiğidir. Eğer bu parametreye
+   girilen değer mesaj kuyruğuna ilişkin ``mq_msgsize`` değerinden küçük ise fonksiyon hemen başarısız
+   olmaktadır. Bu durumda ``errno`` değişkeni ``EMSGSIZE`` değeri ile set edilmektedir. Peki bu değeri
+   ``mq_receive`` fonksiyonunu uygulayacak programcı nasıl bilecektir? Eğer kuyruğu kendisi yaratmışsa ve
+   yaratım sırasında ``mq_attr`` parametresiyle özellik belirtmişse programcı zaten bunu biliyor durumdadır.
+   Ancak genellikle ``mq_receive`` fonksiyonunu kullanan programcılar bunu bilmezler. Çünkü genellikle kuyruk
+   ``mq_receive`` yapan programcı tarafından yaratılmamıştır ya da kuyruk default özelliklerle yaratılmıştır.
+   Bu durumda mecburen programcı ``mq_getattr`` fonksiyonu ile bu bilgiyi elde etmek zorunda kalır. Tabii bu
+   işlem programın çalışma zamanında yapıldığına göre programcının mesajın yerleştirileceği alanı da
+   ``malloc`` fonksiyonu ile dinamik bir biçimde tahsis etmesi gerekir. ``mq_receive`` fonksiyonunun son
+   parametresi kuyruktan alınan mesajın öncelik derecesinin yerleştirileceği ``unsigned int`` türden nesnenin
+   adresini almaktadır. Ancak bu parametre ``NULL`` adres biçiminde geçilebilir. Bu durumda fonksiyon mesajın
+   öncelik derecesini yerleştirmez.
+
+   Fonksiyon başarı durumunda kuyruktaki mesajın uzunluğu ile, başarısızlık durumunda ``-1`` ile geri dönmektedir
+   ve ``errno`` değişkeni uygun biçimde set edilmektedir. Karşı taraf kuyruğa 0 uzunluklu mesaj bırakmışsa
+   ``mq_receive`` fonksiyonu ``0`` ile geri dönebilmektedir. Ancak bu durumda yine tamponun yukarıda belirttiğimiz
+   uzunlukta yaratılmış olması gerekmektedir.
+
+   Örneğin:
+
+   .. code-block:: c
+
+      char buf[MAX_MSG_SIZE];
+      ...
+      if (mq_receive(mqdes, buf, MAX_MSG_SIZE, NULL) == -1)
+              exit_sys("mq_receive");
+
+   Burada biz mesajın önceliğini almak istemedik. Bu nedenle son parametreye ``NULL`` adres geçtik. Tampon
+   uzunluğunu ``MAX_MSG_SIZE`` değeri ile temsil ettik. Aslında yukarıda da belirttiğimiz gibi ``mq_receive``
+   uyguladığımız noktada bizim tampon uzunluğunu biliyor durumda olmamız gerekir.
+
+   ``mq_receive`` fonksiyonu kuyrukta hiç mesaj yoksa blokesiz modda çalışılmıyorsa blokeye yol açmaktadır.
+   Bloke mesaj kuyruğuna diğer tarafın (ya da tarafların) mesaj bırakmasıyla sonlanmaktadır.
+
+4) Peki POSIX mesaj kuyruklarında mesaj haberleşmesi nasıl sonlandırılacaktır? Burada karşı taraf
+   betimleyiciyi kapattığında diğer taraf bunu anlayamamaktadır. O halde haberleşmenin sonlanması için
+   gönderen tarafın özel bir mesajı göndermesi ya da 0 uzunlukta bir mesajı göndermesi gerekir. Eğer 0
+   uzunluklu mesaj gönderilirse alan tarafta ``mq_receive`` fonksiyonu 0 ile geri dönecek ve alan taraf
+   haberleşmenin bittiğini anlayabilecektir.
+
+5) POSIX mesaj kuyruğu ile işlemler bitince programcı mesaj kuyruğunu ``mq_close`` fonksiyonu ile
+   kapatmalıdır. Fonksiyonun prototipi şöyledir:
+
+   .. code-block:: c
+
+      #include <mqueue.h>
+
+      int mq_close(mqd_t mqdes);
+
+   Fonksiyon parametre olarak mesaj kuyruğu betimleyicisini alır. Başarı durumunda 0 değerine, başarısızlık
+   durumunda -1 değerine geri döner. Her şeyin doğru yapıldığına inanılıyorsa başarının kontrol edilmesine
+   gerek yoktur.
+
+   Tabii eğer programcı ``mq_close`` fonksiyonunu hiç kullanmazsa proses bittiğinde otomatik olarak kapatma
+   işlemi yapılmaktadır.
+
+6) POSIX mesaj kuyrukları ``mq_unlink`` fonksiyonu ile silinmektedir. Tabii yukarıda da belirttiğimiz gibi
+   mesaj kuyruğu açıkça silinmezse reboot edilene kadar (kernel persistent) yaşamaya ve içerisindeki mesajları
+   tutmaya devam etmektedir. Bir POSIX mesaj kuyruğu ``mq_unlink`` fonksiyonu ile silindiğinde halen mesaj
+   kuyruğunu kullanan programlar varsa onlar kullanmaya devam ederler. Mesaj kuyruğu gerçek anlamda son mesaj
+   kuyruğu betimleyicisi kapatıldığında yok edilmektedir. ``mq_unlink`` fonksiyonunun prototipi şöyledir:
+
+   .. code-block:: c
+
+      #include <mqueue.h>
+
+      int mq_unlink(const char *name);
+
+   Fonksiyon mesaj kuyruğunun ismini alır. Başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri döner.
+
+   Mesaj kuyruğunu, kuyruğu yaratan tarafın silmesi en normal durumdur. Ancak kuyruğu kimin yarattığı
+   bilinmiyorsa taraflardan biri kuyruğu silebilir. Gönderen taraf az mesaj gönderip kuyruğu silerse
+   gönderilenleri karşı taraf alamayabilir. Bu durumda alan tarafın kuyruğu silmesi daha uygun olur.
+
+.. code-block:: c
+   :caption: posix-msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/test_queue"
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       struct mq_attr attr;
+
+       attr.mq_maxmsg = 10;
+       attr.mq_msgsize = sizeof(int);
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, &attr)) == -1)
+           exit_sys("mq_open");
+
+       for (int i = 0; i < 100; ++i) {
+           if (mq_send(mqdes, (const char *)&i, sizeof(int), 0) == -1)
+               exit_sys("mq_send");
+       }
+
+       mq_close(mqdes);
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: posix-msg-prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/test_queue"
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       char buf[32];
+       int val;
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_RDONLY)) == -1)
+           exit_sys("mq_open");
+
+       for (;;) {
+           if (mq_receive(mqdes, buf, 32, NULL) == -1)
+               exit_sys("mq_receive");
+           val = *(const int *)buf;
+           printf("%d ", val);
+           fflush(stdout);
+           if (val == 99)
+               break;
+       }
+       printf("\n");
+
+       mq_close(mqdes);
+
+       if (mq_unlink(MSGQUEUE_NAME) == -1)
+           exit_sys("mq_unlink");
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+0 Uzunluklu Mesajla Haberleşmenin Sonlandırılması
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yukarıdaki programı 0 uzunluklu mesaj ile iletişimi sonlandıracak biçimde yeniden yazalım.
+
+.. code-block:: c
+   :caption: posix-msg-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/test_queue"
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       struct mq_attr attr;
+
+       attr.mq_maxmsg = 10;
+       attr.mq_msgsize = sizeof(int);
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, &attr)) == -1)
+           exit_sys("mq_open");
+
+       for (int i = 0; i < 100; ++i) {
+           if (mq_send(mqdes, (const char *)&i, sizeof(int), 0) == -1)
+               exit_sys("mq_send");
+       }
+
+       if (mq_send(mqdes, "", 0, 0) == -1)
+           exit_sys("mq_send");
+
+       mq_close(mqdes);
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: posix-msg-prog2.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <sys/stat.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/test_queue"
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       int val;
+       struct mq_attr attr;
+       ssize_t result;
+
+       attr.mq_maxmsg = 10;
+       attr.mq_msgsize = sizeof(int);
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, &attr)) == -1)
+           exit_sys("mq_open");
+
+       for (;;) {
+           if ((result = mq_receive(mqdes, (char *)&val, sizeof(int), NULL)) == -1)
+               exit_sys("mq_receive");
+           if (result == 0)
+               break;
+           printf("%d ", val);
+       }
+       printf("\n");
+
+       mq_close(mqdes);
+
+       if (mq_unlink(MSGQUEUE_NAME) == -1)
+           exit_sys("mq_unlink");
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+mq_getattr Fonksiyonu
+---------------------
+
+Peki mesajı alan taraf tutacağı tamponun büyüklüğünü nasıl anlayacaktır? Çünkü oluşturulması gereken tampon
+mesaj kuyruğu yaratılırken kullanılan ``struct mq_attr`` yapısının içerisinde belirtilmektedir. Anımsanacağı
+gibi mesaj kuyruğu yaratılırken ``mq_open`` fonksiyonunda ``mq_attr`` parametresi ``NULL`` geçilirse mesaj
+kuyruğundaki mesaj uzunlukları için default değer alınmaktadır. Her ne kadar Linux sistemlerinde şu anda bu
+default değer 8192 ise de başka sistemlerde ve Linux'ta ileride bunun böyle olacağının bir garantisi yoktur.
+Yukarıdaki örnekte olduğu gibi mesaj kuyruğu yaratılırken bu değer programcı tarafından belirleniyorsa zaten
+bu değer bilinmektedir. Ancak ``mq_open`` fonksiyonunda özellik parametresi ``NULL`` geçilebilir. Ya da mesajı
+okuyacak taraf bunu bilmeyebilir. Bu durumda ``mq_getattr`` fonksiyonu ile mesaj kuyruğunun özelliklerinin
+alınması ve tamponun dinamik bir biçimde orada belirtilen ``mq_msgsize`` değeri kadar oluşturulması gerekir.
+
+``mq_getattr`` fonksiyonu mesaj kuyruğunun özellik bilgisini almak için kullanılır. Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <mqueue.h>
+
+   int mq_getattr(mqd_t mqdes, struct mq_attr *attr);
+
+Fonksiyonun birinci parametresi ``mq_open`` fonksiyonu ile elde edilen mesaj kuyruğu betimleyicisidir. İkinci
+parametresi ise mesaj kuyruğu özelliklerinin yerleştirileceği ``mq_attr`` yapısının adresini almaktadır.
+
+Fonksiyon başarı durumunda ``0``, başarısızlık durumunda ``-1`` değerine geri dönmektedir.
+
+Örneğin:
+
+.. code-block:: c
+
+   struct mq_attr attr;
+   ssize_t result;
+
+   if ((mqdes = mq_open(MSGQUEUE_NAME, O_RDONLY)) == -1)
+       exit_sys("mq_open");
+
+   if (mq_getattr(mqdes, &attr) == -1)
+       exit_sys("mq_getattr");
+
+   printf("Flags: %ld\n", attr.mq_flags);
+   printf("Max msg in  queue: %ld\n", attr.mq_maxmsg);
+   printf("Max message size: %ld\n", attr.mq_msgsize);
+   printf("Current number of messages: %ld\n", attr.mq_curmsgs);
+
+POSIX Mesaj Kuyrukları (Devam) ve Sistem V Paylaşılan Bellek Alanları
+=====================================================================
+
+mq_setattr Fonksiyonu
+---------------------
+
+Mesaj kuyruğu yaratıldıktan sonra mesaj kuyruğunun özellikleri ``mq_setattr`` fonksiyonu ile değiştirilebilir.
+Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <mqueue.h>
+
+   int mq_setattr(mqd_t mqdes, struct mq_attr *newattr, struct mq_attr *oldattr);
+
+Fonksiyonun birinci parametresi mesaj kuyruğu betimleyicisini belirtir. İkinci parametre yeni özelliklerin
+bulunduğu ``mq_attr`` yapı nesnesinin adresini, üçüncü parametre ise değiştirilmeden önceki mesaj kuyruğu
+özelliklerinin yerleştirileceği yapı nesnesinin adresini almaktadır. Bu parametre ``NULL`` adres olarak
+geçilebilir. Fonksiyon başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+``mq_setattr`` fonksiyonu ile ``mq_attr`` yapısının yalnızca ``flags`` parametresi dikkate alınmaktadır.
+Dolayısıyla değiştirilebilecek tek özellik aslında ``O_NONBLOCK`` bayrağıdır. Yapının diğer elemanları,
+fonksiyon tarafından dikkate alınmamaktadır. (Mesaj kuyruğu yaratıldıktan sonra maksimum mesaj sayısının ya da
+mesaj uzunluklarının değiştirilmesi sorunlu bir işlemdir.)
+
+Öncelikli Mesaj Örneği
+~~~~~~~~~~~~~~~~~~~~~~
+
+Aşağıdaki örnekte *posix-msg-prio-prog1* programı ``stdin`` dosyasından mesajı ve mesajın öncelik değerini
+alarak mesaj kuyruğuna yazmaktadır. *posix-msg-prio-prog2* programı da mesaj kuyruğundan bu bilgileri alarak
+``stdout`` dosyasına yazdırmaktadır. Burada öncelikteki yüksek değerlerin yüksek öncelik belirttiğine dikkat
+ediniz. Halbuki klasik Sistem V mesaj kuyruklarında yüksek değerler düşük öncelik belirtmektedir. Bu
+programları çalıştırırken öncelik testini yapabilmek için önce *posix-msg-prio-prog1* programını çalıştırıp
+kuyruğa çeşitli önceliklerde mesajlar gönderiniz. Sonra *posix-msg-prio-prog2* programını çalıştırıp durumu
+gözleyiniz. Örneğimizde programlarda mesaj kuyruğu default değerlerle yaratılmıştır. Maksimum mesaj uzunluğu
+iki programda da ``mq_getattr`` fonksiyonu ile elde edilmiştir.
+
+.. code-block:: c
+   :caption: posix-msg-prio-prog1.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/my_message_queue"
+
+   void clear_stdin(void);
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       struct mq_attr attr;
+       char *buf;
+       char *str;
+       int prio;
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, NULL)) == -1)
+           exit_sys("mq_open");
+
+       if (mq_getattr(mqdes, &attr) == -1)
+           exit_sys("mq_getattr");
+
+       if ((buf = malloc(attr.mq_msgsize)) == NULL) {
+           fprintf(stderr, "cannot allocate memory!...\n");
+           exit(EXIT_FAILURE);
+       }
+
+       for (;;) {
+           printf("Message text:");
+           fflush(stdout);
+
+           if (fgets(buf, attr.mq_msgsize, stdin) == NULL)
+               continue;
+           if ((str = strchr(buf, '\n')) != NULL)
+               *str = '\0';
+
+           printf("Priority:");
+           fflush(stdout);
+           scanf("%d", &prio);
+           clear_stdin();
+
+           if (mq_send(mqdes, buf, strlen(buf), prio) == -1)
+               exit_sys("mq_send");
+
+           if (!strcmp(buf, "quit"))
+               break;
+       }
+
+       mq_close(mqdes);
+       free(buf);
+
+       return 0;
+   }
+
+   void clear_stdin(void)
+   {
+       int ch;
+       while ((ch = getchar() != '\n') && ch != EOF)
+           ;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+.. code-block:: c
+   :caption: posix-msg-prio-prog.c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <string.h>
+   #include <sys/stat.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/my_message_queue"
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       struct mq_attr attr;
+       char *buf;
+       unsigned  prio;
+       ssize_t result;
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_RDONLY)) == -1)
+           exit_sys("mq_open");
+
+       if (mq_getattr(mqdes, &attr) == -1)
+           exit_sys("mq_getattr");
+
+       if ((buf = malloc(attr.mq_msgsize + 1)) == NULL) {
+           fprintf(stderr, "cannot allocate memory!...\n");
+           exit(EXIT_FAILURE);
+       }
+
+       for (;;) {
+           if ((result = mq_receive(mqdes, buf, attr.mq_msgsize, &prio)) == -1)
+               exit_sys("mq_receive");
+           buf[result] = '\0';
+
+           if (!strcmp(buf, "quit"))
+               break;
+
+           printf("Message: %s, Priority: %u\n", buf, prio);
+       }
+       printf("\n");
+
+       free(buf);
+       mq_close(mqdes);
+
+       if (mq_unlink(MSGQUEUE_NAME) == -1)
+           exit_sys("mq_unlink");
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+Zaman Aşımlı Gönderme ve Alma
+-----------------------------
+
+``mq_send`` ve ``mq_receive`` fonksiyonlarının *zaman aşımlı (timeout)* versiyonları da vardır. Bu zaman
+aşımlı versiyonları kuyruk doluyken ya da boşken blokeyi belirlenen zaman çerçevesinde oluşturur. Eğer bloke
+daha uzun sürerse zaman aşımından dolayı bu fonksiyonlar başarısızlıkla geri döner ve ``errno`` değişkeni
+``ETIMEDOUT`` ile set edilir. Fonksiyonların prototipleri şöyledir:
+
+.. code-block:: c
+
+   #include <time.h>
+   #include <mqueue.h>
+
+   int mq_timedsend(mqd_t mqdes, const char *msg_ptr, size_t msg_len,
+           unsigned int msg_prio, const struct timespec *abs_timeout);
+
+   ssize_t mq_timedreceive(mqd_t mqdes, char *restrict msg_ptr, size_t msg_len,
+               unsigned int *msg_prio, const struct timespec *abs_timeout);
+
+Bu fonksiyonların ``mq_send`` ve ``mq_receive`` fonksiyonlarından tek farkı zaman aşımına ilişkin bir
+parametreye sahip olmasıdır. Zaman aşımı ``<time.h>`` içerisinde tanımlanmış olan ``timespec`` yapısıyla ifade
+edilmektedir:
+
+.. code-block:: c
+
+   struct timespec {
+       time_t tv_sec;          /* seconds */
+       long tv_nsec;           /* nanoseconds */
+   };
+
+Bu yapının amacı *01/01/1970'ten geçen saniye sayısını nanosaniye mertebesinde detaylandırmaktır*. Ancak
+fonksiyonlardaki zaman aşımı değerleri göreli değil mutlaktır. Örneğin biz zaman aşımını 10 saniye tutacaksak
+buraya şimdiden 10 saniye sonraki ``timespec`` değerini girmeliyiz. Bunun için önce ``clock_gettime``
+fonksiyonu ile şimdiki zamana ilişkin ``timespec`` değeri elde edilip, sonra o değere belli bir değer toplanıp
+zaman aşımı göreli biçimde oluşturulabilir. ``clock_gettime`` fonksiyonu aynı zamanda standart bir C
+fonksiyonudur. Bu fonksiyondaki saat türünün ``CLOCK_REALTIME`` alınması uygun olur. ``clock_gettime``
+fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+   #include <time.h>
+
+   int clock_gettime(clockid_t clock_id, struct timespec *tp);
+
+Fonksiyonun birinci parametresi saatin türünü, ikinci parametresi zaman bilgisinin yerleştirileceği yapı
+nesnesinin adresini almaktadır. Örneğin:
+
+.. code-block:: c
+
+   if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
+       exit_sys("clock_gettime");
+
+   ts.tv_sec += 10;
+
+   if (mq_timedreceive(mqdes, buf, 8192, NULL, &ts) == -1)
+       if (errno == ETIMEDOUT) {
+           /* timeout oluştu başka şeyler yap */
+       }
+
+Burada ``mq_timedreceive`` fonksiyonu ile 10 saniye kadar blokede beklenebilir. Ancak zaman aşımı dolduğunda
+bloke ortadan kalkacaktır. Fonksiyon, başarısızlıkla geri dönecek ve ``errno`` ``ETIMEDOUT`` özel değeri ile
+set edilecektir. Böylece programcı arka planda başka şeyler yapabilecektir. Bu zaman aşımlı işlemleri,
+blokesiz işlemlerle karıştırmayınız. Blokesiz işlemlerde bloke hiç oluşmamaktadır. Halbuki zaman aşımlı
+işlemlerde bloke oluşur ancak en fazla belirlenen zaman aşımı kadar bloke sürer. Zaman aşımlı işlemlerde zaten
+zaman aşımı geçmişse ve kuyruk dolu ya da boşsa fonksiyon hemen başarısız olmaktadır. Fonksiyonlar zaman
+aşımına kuyruk doluysa ya da boşsa bakmaktadır. Eğer kuyruk blokesiz modda açılmışsa zaman aşımlı
+fonksiyonların zaman aşımlı olmayanlardan davranış olarak bir farkı kalmaz.
+
+Aşağıdaki örnekte bir mesaj kuyruğu okuma amaçlı yaratılmış sonra ``mq_timedreceive`` fonksiyonu ile şimdiki
+zamandan 10 saniye kadar blokeli beklenmiştir. Bu programı çalıştırdığınızda 10 saniye sonra *timeout*
+yazısının basıldığını göreceksiniz.
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+   #include <errno.h>
+   #include <sys/stat.h>
+   #include <time.h>
+   #include <mqueue.h>
+
+   #define MSGQUEUE_NAME        "/test_queue"
+
+   void exit_sys(const char *msg);
+
+   int main(void)
+   {
+       mqd_t mqdes;
+       struct mq_attr attr;
+       struct timespec ts;
+       char buf[8192];
+
+       if ((mqdes = mq_open(MSGQUEUE_NAME, O_RDONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, NULL)) == -1)
+           exit_sys("mq_open");
+
+       if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
+           exit_sys("clock_gettime");
+
+       ts.tv_sec += 10;
+
+       if (mq_timedreceive(mqdes, buf, 8192, NULL, &ts) == -1)
+           if (errno == ETIMEDOUT)
+               printf("timedout\n");
+           else
+               exit_sys("mq_timedreceive");
+
+       mq_close(mqdes);
+
+       if (mq_unlink(MSGQUEUE_NAME) == -1)
+           exit_sys("mq_unlink");
+
+       return 0;
+   }
+
+   void exit_sys(const char *msg)
+   {
+       perror(msg);
+       exit(EXIT_FAILURE);
+   }
+
+POSIX Mesaj Kuyruklarının Dosya Sistemi Olarak Mount Edilmesi
+-------------------------------------------------------------
+
+Bazı UNIX türevi sistemlerde POSIX mesaj kuyrukları özel bir dosya sistemi biçiminde mount edilebilmektedir.
+Örneğin Linux sistemlerinde mesaj kuyruklarına ilişkin dosya sistemi ``/dev/mqueue`` dizini üzerinde mount
+edilmiştir. Yani biz ``/dev/mqueue`` dizinine geçtiğimizde *ls* komutuyla o anda yaşamakta olan tüm POSIX
+mesaj kuyruklarını görüntüleyebiliriz. İstersek *rm* komutuyla onları silebiliriz. Örneğin:
+
+.. code-block:: console
+
+   $ /dev/mqueue$ ls -l
+   toplam 0
+   -rw-r--r-- 1 kaan kaan 80 Nis  8 11:25 my_message_queue
+
+Linux dağıtımları genellikle açılış sırasında bu dosya sistemini otomatik mount etmektedir. Ancak sistem
+yöneticisi isterse ``/dev/mqueue`` dizinini unmount edebilir. Örneğin:
+
+.. code-block:: console
+
+   $ sudo unmount /dev/mqueue
+
+Ya da sistem yöneticisi isterse bu dosya sistemini başka bir yere de mount edebilir. Örneğin:
+
+.. code-block:: console
+
+   $ mkdir posix-mqueue
+   $ sudo mount -t mqueue somename posix-mqueue
+
+Burada *somename* mount noktalarını görüntülerken kullanılacak bir isimdir. Mesaj kuyrukları bu biçimde mount
+edilirken dizinin *sticky* biti set edilmektedir. Böylece anımsayacağınız gibi bu dizinin birisi sahibi olsa
+da ancak oradaki dosyaları silebilmek için kişinin dosyanın sahibi olması ya da uygun önceliğe sahip olması
+gerekmektedir. Buradaki dizini şöyle unmount edebilirsiniz:
+
+.. code-block:: console
+
+   $ sudo umount posix-mqueue
+
+POSIX Mesaj Kuyruğu Limitleri
+-----------------------------
+
+Anımsanacağı gibi mesaj kuyrukları için iki önemli limit vardı: Bir mesaj kuyruğuna yazılabilecek maksimum
+mesajların sayısı (Linux'ta default 10 demiştik) ve mesaj kuyruğundaki bir mesajın maksimum uzunluğu (Linux'ta
+default 8192 demiştik). Peki bunların default değerleri nereden gelmektedir? POSIX standartları bu konuda bir
+şey söylememektedir. Ancak Linux sistemlerinde bu değerler ``/proc/sys/fs/mqueue`` dizini içerisinde çeşitli
+dosyalar tarafından temsil edilmiştir. Buradaki dosyaların ve içerisindeki değerlerin anlamları şöyledir:
+
+``msg_default``: Bu değer, ``mq_open`` ile mesaj kuyruğu yaratılırken fonksiyonun özellik parametresi ``NULL``
+geçildiğinde yaratılacak kuyruğa en fazla yerleştirilecek mesaj sayısını belirtmektedir. Bu dosyanın içini
+*cat* komutu ile yazdırırsak güncel Linux sistemlerinde 10 değerini görürüz.
+
+``msg_max``: Bu dosya, ``mq_open`` ile özellik girilerek mesaj kuyruğu yaratıldığında ``mq_attr`` yapısının
+``mq_maxmsg`` elemanına yerleştirilecek maksimum değeri belirtmektedir. Linux sistemlerinde şimdilik bu
+dosyanın içerisinde 10 yazmaktadır. Yani biz mesaj kuyruğunu yaratırken 10'dan daha fazla mesajı tutabilecek
+biçimde yaratamayız.
+
+``msgsize_default``: Bu dosya, ``mq_open`` ile mesaj kuyruğu yaratılırken özellik parametresine ``NULL``
+geçildiğinde kuyruğa yazılabilecek maksimum mesaj uzunluğunu belirtmektedir. Bu değerin zaten daha önce 8192
+olduğunu belirtmiştik. O halde, bu dosyanın içeriğini yazdırırsak 8192 değerini görürüz.
+
+``msgsize_max``: Bu dosyada da mesaj kuyruğunu yaratırken özellik bilgisinde ``mq_attr`` yapısının
+``mq_msgsize`` elemanına yerleştirilebilecek maksimum değer bulunmaktadır. Bu dosya yazdırılırsa 8192 değeri
+görülmektedir. Yani biz kuyruktaki mesajların uzunluğunu bu değerin yukarısına çekemeyiz.
+
+``queues_max``: Bu değer, sistem genelinde yaratılabilecek mesaj kuyruklarının toplam sayısını belirtmektedir.
+
+Uygun önceliğe sahip prosesler yukarıdaki limitlerden etkilenmezler. Ayrıca, buradaki değerler *proc* dosya
+sisteminden bu dosyalara yazma yapılarak değiştirilebilmektedir. Örneğin:
+
+.. code-block:: console
+
+   $ sudo echo 20 | sudo tee /proc/sys/fs/mqueue/msg_max
+
+Buradaki değerlerin ayrı bir tavan limiti de vardır. Örneğin ``msg_max`` değerinin tavan değeri çekirdeğin 3.5
+ve sonrasındaki versiyonlarında 65536 (64K = 2^16)'dır. Yine örneğin ``msgsize_max`` değerinin de tavan değeri
+çekirdeğin 3.5 ve sonrasındaki versiyonlarında 16,777,216 (16 MB = 2^24) biçimindedir. Uygun önceliğe sahip
+prosesler ``/proc/sys/fs/mqueue`` içerisindeki limitlere takılmasalar da bu tavan limitlerine takılabilirler.
+Ayrıca belli bir kullanıcının maksimum kullanacağı mesaj kuyrukları için byte düzeyinde bir limit de vardır.
+Güncel çekirdeklerde bu limit 819200 byte'tır. Yani belli bir kullanıcı *toplam mesaj kuyruklarının sayısı \*
+bir mesajdaki maksimum byte sayısını* bu değerin yukarısında set edemez. Bu konudaki detaylar için
+``mq_overview(7)`` *man sayfasına* başvurabilirsiniz. Aşağıda güncel Linux çekirdeklerindeki POSIX mesaj
+kuyruğu limitlerini bir tablo halinde veriyoruz:
+
+.. list-table:: POSIX mesaj kuyruğu limitleri
+   :header-rows: 1
+   :widths: 30 20 20 30
+   :align: center
+
+   * - Parametre
+     - Default
+     - Alt sınır
+     - Üst sınır
+   * - ``queues_max``
+     - 256
+     - 0
+     - ``INT_MAX``
+   * - ``msg_max``
+     - 10
+     - 1
+     - 65536
+   * - ``msgsize_max``
+     - 8192
+     - 128
+     - 16 MB = 16777216
+   * - ``msg_default``
+     - 10
+     - 1
+     - 64K = 65536
+   * - ``msgsize_default``
+     - 8192
+     - 128
+     - 16 MB = 16777216
+   * - ``RLIMIT_MSGQUEUE``
+     - 819200
+     - 0
+     - ``RLIM_INFINITY``
+   * - ``_SC_MQ_PRIO_MAX``
+     - 32768
+     - \-
+     - \-
+
+Uygun önceliğe sahip prosesler (örneğin *root* prosesler) için sınır kontrolleri şöyledir:
+
+.. list-table:: Uygun önceliğe sahip prosesler için sınır kontrolleri
+   :header-rows: 1
+   :widths: 24 24 32 20
+   :align: center
+
+   * - Limit
+     - Uygun Önceliğe Sahip Prosesler
+     - Tavan
+     - Hata
+   * - ``queues_max``
+     - atlanır
+     - yok
+     - ``ENOSPC``
+   * - ``msg_max``
+     - atlanır
+     - ``HARD_MSGMAX`` (64K = 65536)
+     - ``EINVAL``
+   * - ``msgsize_max``
+     - atlanır
+     - ``HARD_MSGSIZEMAX`` (16 MB = 16777216)
+     - ``EINVAL``
+   * - ``RLIMIT_MSGQUEUE``
+     - atlanmaz
+     - soft limit
+     - ``EMFILE``
+   * - ``MQ_PRIO_MAX``
+     - atlanmaz
+     - 32767
+     - ``EINVAL``
+
+Sistem V ve POSIX Mesaj Kuyruklarının Karşılaştırılması
+-------------------------------------------------------
+
+Klasik Sistem V mesaj kuyrukları ile POSIX mesaj kuyruklarını avantaj/dezavantaj bakımından şöyle karşılaştırabiliriz:
+
+- POSIX mesaj kuyrukları isimlendirme bakımından daha kullanışlı bir arayüz sunmaktadır.
+
+- Klasik Sistem V (XSI) mesaj kuyrukları daha taşınabilirdir. Ancak POSIX mesaj kuyrukları da artık büyük
+  ölçüde taşınabilir hale gelmiştir.
+
+- POSIX mesaj kuyrukları dosyalara daha çok benzemektedir.
+
+- Klasik Sistem V (XSI) mesaj kuyruklarında belli bir önceliğe ilişkin mesajlar alınabilmektedir. POSIX mesaj
+  kuyruklarında bu yapılamamaktadır.
+
+- POSIX mesaj kuyrukları silindiğinde onu kullanan prosesler mesaj kuyruğunu kullanmaya devam ederler. Ancak
+  klasik Sistem V (XSI) mesaj kuyruklarında mesaj kuyruğu silindiğinde onu kullanan prosesler artık mesaj
+  kuyruğunu kullanamaz hale gelirler.
+
+- Linux sistemlerinde POSIX mesaj kuyrukları dosya sistemi gibi mount edilebilmektedir. Dolayısıyla silme
+  işlemi komut satırında dosya siler gibi yapılabilmektedir.
+
+- Her iki mesaj kuyruğu da silinene kadar ya da sistem reboot edilene kadar yaşamaktadır.
+
+Paylaşılan Bellek Alanları (Shared Memory)
+------------------------------------------
+
+Diğer önemli proseslerarası haberleşme yöntemi de *paylaşılan bellek alanları (shared memory)* denilen
+yöntemdir. Paylaşılan bellek alanlarında işletim sistemi iki prosesin sayfa tablosundaki farklı sanal sayfa
+numaralarını aynı fiziksel sayfaya yönlendirir. Böylece iki proses, farklı sanal adreslerle aynı fiziksel
+sayfaya erişirler. Proseslerden biri oraya bir şey yazdığında diğeri onu hemen görür. Aşağıda bu durumu basit
+bir şekille betimliyoruz:
+
+.. image:: _static/ders51-paylasilan-bellek.png
+   :alt: İki prosesin farklı sanal sayfa numaralarının aynı fiziksel sayfaya yönlendirilmesi (S.S.N: sanal
+   sayfa numarası, F.S.N: fiziksel sayfa numarası)
+   :align: center
+   :width: 85%
+
+Burada iki proses farklı sanal adreslerle aynı fiziksel sayfaya erişmektedir.
+
+Paylaşılan bellek alanları ile proseslerarası haberleşme çok hızlıdır. Ancak bu yöntem kendi içerisinde bir
+senkronizasyon içermemektedir. Dolayısıyla senkronizasyonun sağlanması için semaphore gibi bir senkronizasyon
+nesnesine de gereksinim duyulmaktadır. Zaten IPC nesnelerine semaphore'lar bu nedenle eklenmiştir.
+
+Paylaşılan bellek alanları da UNIX/Linux dünyasında tıpkı mesaj kuyruklarında olduğu gibi iki arayüzle
+kullanılabilmektedir: *Klasik Sistem V (XSI) paylaşılan bellek alanları* ve *POSIX paylaşılan bellek
+alanları*. Biz de burada önce *klasik Sistem V (XSI) paylaşılan bellek alanlarını* sonra da *POSIX paylaşılan
+bellek alanlarını* göreceğiz.
+
+Klasik Sistem V paylaşılan bellek alanları aşağıdaki adımlardan geçilerek oluşturulmaktadır:
+
+shmget Fonksiyonu
+~~~~~~~~~~~~~~~~~
+
+1) Paylaşılan bellek alanı ``shmget`` fonksiyonu ile anahtar verilerek yaratılır ya da zaten yaratılmış olan
+   paylaşılan bellek alanı açılır. Yine ID değerleri sistem genelinde tektir. Yani ``shmget`` fonksiyonunun
+   verdiği ID değeri diğer prosesler tarafından biliniyorsa erişim hakları da uygunsa doğrudan kullanılabilir.
+   ``shmget`` fonksiyonunun prototipi şöyledir:
+
+   .. code-block:: c
+
+      #include <sys/shm.h>
+
+      int shmget(key_t key, size_t size, int shmflg);
+
+   Fonksiyonun birinci parametresi yine paylaşılan bellek alanının anahtar değerini belirtir. Aynı anahtar
+   için aynı ID değerleri elde edilmektedir. Fonksiyonun ikinci parametresi yaratılacak paylaşılan bellek
+   alanının büyüklüğünü belirtmektedir. Bu büyüklük normal olarak sayfa katlarına ilişkin bir değer olarak
+   girilir. Ancak POSIX standartları bunu zorunlu hale getirmemiştir. Örneğin biz bu büyüklüğü 5000 olarak
+   girdiğimizde sayfa büyüklüğü 4096 byte ise işletim sistemi 4096'lık iki sayfayı eşler. Dolayısıyla
+   genellikle burada girilen değer sayfa katlarına bakılarak yukarıya doğru yuvarlanmaktadır. (Yani biz bu
+   değeri örneğin Linux sistemlerinde 5000 girsek de fonksiyon sistem 2 \* 4096 = 8192 girmişiz gibi işlem
+   uygulamaktadır.) Yukarıda da belirttiğimiz gibi buradaki büyüklüğün sayfa katlarına yukarıya doğru
+   yuvarlanması POSIX standartlarında belirtilmemiştir. Ancak Linux dokümanlarında (Linux *man* sayfalarında)
+   belirtilmiştir. Fonksiyonun son parametresi, IPC nesnesinin erişim haklarını ve yaratım bayraklarını
+   belirtmektedir. Yaratım bayrakları tıpkı ``msgget`` fonksiyonunda olduğu gibi ``IPC_CREAT``, ya da
+   ``IPC_CREAT|IPC_EXCL`` bayraklarından oluşturulabilir. ``IPC_CREAT`` bayrağı girilmişse nesnenin
+   yaratılması söz konusu olacağı nesnenin erişim hakları da belirtilmelidir. Eğer paylaşılan bellek alanı
+   zaten yaratılmışsa bu parametrede belirtilen erişim hakları dikkate alınmamaktadır. Bu parametre 0
+   geçilebilir. Bu durumda fonksiyonun başarılı olması için paylaşılan bellek alanının yaratılmış olması
+   gerekir. Görüldüğü gibi bu parametrenin ``msgget`` fonksiyonundaki ilgili parametreden bir farkı yoktur.
+   Erişim hakları ``S_IXXX`` sembolik sabitleriyle oluşturulabilir ya da POSIX 2008 ve sonrasında doğrudan
+   sayısal değerlerle oluşturulabilir. Yine tıpkı ``msgget`` fonksiyonunda olduğu gibi birinci parametreye
+   ``IPC_PRIVATE`` değeri geçilebilir. Bu durumda nesne çakışmayan bir anahtarla yaratılır ve IPC nesnesinin
+   ID değeri elde edilir. Bu ID değeri, diğer proseslere gönderilirse onlar bu IPC nesnesini doğrudan
+   kullanabilirler.
+
+   ``shmget`` fonksiyonu başarı durumunda IPC nesnesinin ID değerine, başarısızlık durumunda -1 değerine geri
+   dönmektedir. Elde edilen bu ID değeri yine sistem genelinde paylaşılan bellek alanları içerisinde tek olan
+   (unique) bir değer belirtmektedir. Bu ID değeri başka proseslere gönderilirse onlar tarafından da
+   kullanılabilir. Fonksiyon başarısız olursa -1 değerine geri döner ve ``errno`` değişkeni uygun biçimde set
+   edilir. Linux'ta, fonksiyonun son parametresinde Linux'a özgü birkaç standart olmayan bayrak da
+   kullanılabilmektedir. Biz kursumuzda Linux'a özgü olan bu bayraklardan bahsetmeyeceğiz. Bu bayrakları
+   ilgili *man sayfalarından* inceleyebilirsiniz.
+
+   Yine sistemde o anda yaratılmış olan paylaşılan bellek alanları *ipcs* komutuyla ``-m`` seçeneği
+   kullanılarak görüntülenebilir. (*ipcs* komutunda seçenek kullanılmazsa tüm Sistem V (XSI) IPC nesnelerinin
+   hepsinin görüntülendiğini anımsayınız.) Örneğin:
+
+   .. code-block:: console
+
+      $ ipcs -m
+
+      ----- Paylaşımlı Bellek Bölütleri -----
+      anahtar    shmid      sahibi     izinler    bayt       ekSayısı durum
+      0x00000000 98305      kaan       600        4194304    2          hedef
+      0x00000000 98321      kaan       600        524288     2          hedef
+      0x00000000 19         kaan       600        67108864   2          hedef
+      0x00000000 65556      kaan       600        524288     2          hedef
+      0x00000000 131099     kaan       606        10437756   2          hedef
+      0x00000000 131100     kaan       606        10437756   2          hedef
+      0x00012345 131101     kaan       644        4096       0
+      0x00000000 65570      kaan       600        4194304    2          hedef
+      0x00000000 51         kaan       600        4194304    2          hedef
+      0x00000000 59         kaan       600        524288     2          hedef
+
+   Aslında daha önceden de belirttiğimiz gibi *ipcs* komutu bu bilgileri ``/proc/sysvipc`` dizinindeki üç
+   dosyadan elde etmektedir. Klasik Sistem V paylaşılan bellek alanları için ``/proc/sysvipc/shm`` dosyası
+   kullanılmaktadır. Örneğin:
+
+   .. code-block:: console
+
+      $ cat /proc/sysvipc/shm
+
+   ``shmget`` fonksiyonunun çağrısına şöyle bir örnek verebiliriz:
+
+   .. code-block:: c
+
+      int shmid;
+      /* ... */
+
+      if ((shmid = shmget(SHM_KEY, 4096, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|SI_IROTH)) == -1)
+          exit_sys("shmget");
+
+shmat Fonksiyonu
+~~~~~~~~~~~~~~~~
+
+2) Bundan sonra sanal bellek alanını nesnesinin prosesin sanal bellek alanında oluşturulması gerekir. Buna
+   klasik Sistem V (XSI) paylaşılan bellek alanları terminolojisinde *paylaşılan bellek alanının attach
+   edilmesi* denilmektedir. Bu işlem sırasında işletim sistemi ilgili prosesin sayfa tablosunda bu paylaşılan
+   bellek alanına erişmede kullanılacak sanal adresi oluşturmaktadır. Bu işlem ``shmat`` fonksiyonuyla
+   yapılmaktadır. (İsimdeki *at* eki *attach* sözcüğünden kısaltmadır.) ``shmat`` fonksiyonunun prototipi
+   şöyledir:
+
+   .. code-block:: c
+
+      #include <sys/shm.h>
+
+      void *shmat(int shmid, const void *shmaddr, int shmflg);
+
+   Fonksiyonun birinci parametresi paylaşılan bellek alanının ID'sini belirtmektedir. Fonksiyonun ikinci
+   parametresi önerilen (preferred) sanal adresi belirtir. Programcı işletim sistemine *şu sanal adres yoluyla
+   paylaşılan bellek alanına erişmek istiyorum* diyebilmektedir. Ancak programcının önerdiği adres
+   kullanılıyor olabilir ya da işletim sistemi tarafından kullanılamaz bir adres olabilir. Bu durumda
+   fonksiyon başarısız olur. Bu parametre ``NULL`` adres geçilebilir. Bu durumda, işletim sistemi paylaşılan
+   bellek alanına erişmek için kullanılacak sanal adresi kendisi tespit eder. Normal olarak bu adresin sayfa
+   katlarında olması beklenmektedir. Ancak programcı bu adresi sayfa katları olarak vermezse ve fonksiyonun
+   üçüncü parametresinde ``SHM_RND`` bayrağını kullanırsa bu durumda programcının verdiği adres sayfa
+   katlarına aşağıya doğru yuvarlanmaktadır. Örneğin programcı ikinci parametreye 0x4A6C324 biçiminde bir
+   adres girmiş olsun. Eğer fonksiyonun son parametresi ``SHM_RND`` olarak girilirse bu adres 4096'nın
+   katlarına aşağıya doğru yuvarlanmaktadır. Yani bu durumda adres 0x4A6C000 biçimine dönüştürülecektir. Tabii
+   programcının verdiği adres sayfa katlarında olsa bile işletim sistemi tarafından kabul edilmeyebilir. Çünkü
+   sanal adres alanı içerisinde özel bölgeler, kullanılmayan alanlar bulunabilir, verilen adres proses
+   tarafından zaten tahsis edilmiş olabilir. Eğer ikinci parametreye bir adres girilirse ve bu adres sayfa
+   katlarında değilse, üçüncü parametrede de ``SHM_RND`` girilmezse fonksiyon başarısız olacaktır. POSIX
+   standartlarında *sayfa katlarına aşağıya yuvarlama* biçiminde bir ibare bulunmamaktadır. Sayfa katları
+   yerine, standartlarda ``SHMLBA`` sembolik sabiti kullanılmıştır. Yani standartlar anlatımı *SHMLBA
+   katlarına aşağıya yuvarlama* biçiminde ifade etmektedir. ``SHMLBA`` sembolik sabiti ``<sys/shm.h>``
+   içerisinde bildirilmiştir ve tipik olarak zaten sayfa uzunluğunu belirtir.
+
+   Fonksiyonun son parametresi 0 geçilebilir ya da bazı bayraklar burada kullanılabilir. Yukarıda da
+   belirttiğimiz gibi eğer ikinci parametrede bir adres girilmişse üçüncü parametrede ``SHM_RND`` bayrağı bu
+   adresin sayfa katlarına aşağıya doğru yuvarlanacağını belirtmektedir. Üçüncü parametredeki ``SHM_RDONLY``
+   ilgili paylaşılan bellek alanına *read-only* erişim için kullanılmaktadır. Bu durumda, bu sayfaya yazma
+   yapıldığında *sayfa hatası (page fault)* oluşacak ve işletim sistemi prosesi sonlandıracaktır. Bu bayrak
+   belirtilmezse erişim *read-write* yapılır. Linux sistemlerinde son parametrede Linux'a özgü başka bayraklar
+   da kullanılabilmektedir. Biz kursumuzda Linux'a özgü bu bayrakları ele almayacağız.
+
+   İkinci parametredeki (``shmaddr``) adresin ve üçüncü parametrede (``shmflg``) ``SHM_RND`` bayrağının
+   kullanılıp kullanılmadığına göre fonksiyonun başarı durumunu aşağıdaki tabloda özetliyoruz:
+
+   .. list-table:: shmat fonksiyonunun başarı durumları
+      :header-rows: 1
+      :widths: 14 14 28 26 18
+      :align: center
+
+      * - ``shmaddr``
+        - ``SHM_RND``
+        - Ek koşul
+        - Bağlanma adresi
+        - Sonuç
+      * - ``NULL``
+        - Fark etmez
+        - Yeterli adres alanı var
+        - Sistem seçer
+        - Başarılı
+      * - ``NULL``
+        - Fark etmez
+        - Yeterli adres alanı yok
+        - \-
+        - ``ENOMEM``
+      * - ``NULL`` değil
+        - Yok
+        - ``shmaddr`` tahsis edilebilir
+        - ``shmaddr``
+        - Başarılı
+      * - ``NULL`` değil
+        - Yok
+        - ``shmaddr`` tahsis edilemez
+        - \-
+        - ``EINVAL``
+      * - ``NULL`` değil
+        - Var
+        - Yuvarlanan adres tahsis edilebilir
+        - ``shmaddr - (shmaddr % SHMLBA)``
+        - Başarılı
+      * - ``NULL`` değil
+        - Var
+        - Yuvarlanan adres tahsis edilemez
+        - \-
+        - ``EINVAL``
+
+   Proses, aynı paylaşılan bellek alanı nesnesini birden fazla ``shmat`` fonksiyonu ile birden fazla kez
+   *attach* yapabilir. Ancak genellikle böyle bir duruma gereksinim duyulmamaktadır.
+
+   Fonksiyon başarı durumunda paylaşılan bellek alanına erişmekte kullanılan sanal adrese, başarısızlık
+   durumunda ``(void *)-1`` adresine (yani en yüksek sanal bellek adresine) geri dönmektedir. Başarısızlık
+   durumunda ``errno`` değişkeni uygun biçimde set edilmektedir. Fonksiyonun ``NULL`` adrese geri dönmemesinin
+   nedeni bazı sistemlerde 0 adresinin geçerli bir biçimde kullanılabiliyor olmasındandır. Tabii fonksiyon
+   bize sayfa katlarına ilişkin bir adres vermektedir. (Yani 4096'lık sayfaların kullanıldığı sistemlerde
+   verilen sanal adreslerin düşük anlamlı 3 hex digit'i 0 olacaktır.) Örneğin:
+
+   .. code-block:: c
+
+      int shmid;
+      char *shmaddr;
+
+      if ((shmid = shmget(SHM_KEY, 4096, 0)) == -1)
+          exit_sys("shmget");
+
+      if ((shmaddr = (char *)shmat(shmid, NULL, 0)) == (void *)-1)
+          exit_sys("shmat");
+
+===================================================
+Klasik Sistem V ve POSIX Paylaşılan Bellek Alanları
+===================================================
+
+Klasik Sistem V Paylaşılan Bellek Alanları (Devam)
+==================================================
+
+3) Paylaşılan Bellek Alanının Kullanılması
+------------------------------------------
+
+Artık iki proses de muhtemelen farklı sanal adresler yoluyla aynı fiziksel sayfaya erişmektedir. Proseslerden
+biri o bölgeye bir şeyler yazarsa diğeri onu görür ve elde edebilir. Tabii burada bir senkronizasyonun
+sağlanması gerekmektedir. Daha önce görmüş olduğumuz borular ve mesaj kuyruklarında zaten bu organizasyon bu
+nesneler tarafından sağlanmaktadır. Bir tarafın paylaşılan bellek alanına bir şeyleri yazdığı diğerinin
+okuduğu bu tür senkronizasyon problemlerine *üretici tüketici problemi (producer consumer problem)*
+denilmektedir. Bu problemin çözümü *thread'ler* konusunda ele alınacaktır.
+
+4) Paylaşılan Bellek Alanının Detach Edilmesi: ``shmdt``
+--------------------------------------------------------
+
+Proses paylaşılan bellek alanının kullanımını bitirdikten sonra o alanı prosesin sanal bellek alanından
+çıkartmalıdır. Terminolojide paylaşılan bellek alanının prosesin bellek alanına iliştirilmesine *attach*
+denirken bunun tersine *detach* denilmektedir. (Yani ``shmat`` fonksiyonunu *malloc* fonksiyonuna benzetirsek
+bunun bir de *free* gibi serbest bırakan bir karşılığının olması gerekir.) İşte ``shmat`` ile yapılan işlemi
+geri almak için ``shmdt`` fonksiyonu kullanılmaktadır (buradaki *dt* eki *detach* sözcüğünden kısaltılmıştır).
+Fonksiyonun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/shm.h>
+
+    int shmdt(const void *shmaddr);
+
+Fonksiyon parametre olarak ``shmat`` fonksiyonundan elde edilen sanal adresi alır. Fonksiyon başarı
+durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir. Her şey düzgün yapılmışsa
+fonksiyonun başarısının kontrol edilmesine de gerek yoktur. Eğer programcı bu ``shmdt`` işlemini yapmazsa
+proses sonlanırken bu işlem zaten yapılmaktadır. Örneğin:
+
+.. code-block:: c
+
+    int shmid;
+    char *shmaddr;
+    /* ... */
+
+    if ((shmid = shmget(SHM_KEY, 4096, 0)) == -1)
+        exit_sys("shmget");
+
+    if ((shmaddr = (char *)shmat(shmid, NULL, 0)) == (void *)-1)
+        exit_sys("shmat");
+
+    /* ... */
+
+    if (shmdt(shmaddr) == -1)
+        exit_sys("shmdt");
+
+Proses hiç ``shmdt`` fonksiyonunu çağırmasa bile proses sonlandığında tahsis edilen paylaşılan alanlar detach
+edilmektedir.
+
+5) Detach İşlemi ve Nesnenin Ömrü
+---------------------------------
+
+Paylaşılan bellek alanlarının *detach* edilmesi ilgili nesnenin yok edileceği anlamına gelmemektedir.
+Programcı *detach* işlemi sonrasında yeniden attach işlemi yapabilir. Paylaşılan bellek alanları nesnesi,
+diğer IPC nesnelerinde olduğu gibi açıkça silinene kadar ya da reboot işlemine kadar yaşamaya devam
+etmektedir.
+
+6) Paylaşılan Bellek Alanının Kontrolü: ``shmctl``
+--------------------------------------------------
+
+Klasik Sistem V (XSI) paylaşılan bellek alanları nesneleri için işletim sistemi ``shmid_ds`` isimli bir yapı
+oluşturmaktadır. Bu yapıda paylaşılan bellek alanına ilişkin bazı önemli bilgiler tutulmaktadır. Bu bilgileri
+elde etmek için, set etmek için ya da IPC nesnesini yok etmek için ``shmctl`` isimli fonksiyon
+kullanılmaktadır. Bu fonksiyonun işlevi, klasik Sistem V (XSI) mesaj kuyruklarındaki ``msgctl`` fonksiyonuna
+benzetilebilir. ``shmctl`` fonksiyonunun parametrik yapısı şöyledir:
+
+.. code-block:: c
+
+    #include <sys/shm.h>
+
+    int shmctl(int shmid, int cmd, struct shmid_ds *buf);
+
+Fonksiyonun birinci parametresi paylaşılan bellek alanının ID değerini, ikinci parametresi ise uygulanacak
+işlemi belirtmektedir. Fonksiyonun üçüncü parametresinde belirtilen yapı şöyledir:
+
+.. code-block:: c
+
+    struct ipc_perm {
+        uid_t          uid;      /* Effective UID of owner */
+        gid_t          gid;      /* Effective GID of owner */
+        uid_t          cuid;     /* Effective UID of creator */
+        gid_t          cgid;     /* Effective GID of creator */
+        unsigned short mode;     /* Permissions + SHM_DEST and
+                                    SHM_LOCKED flags */
+    };
+
+    struct shmid_ds {
+        struct ipc_perm shm_perm;    /* Ownership and permissions */
+        size_t          shm_segsz;   /* Size of segment (bytes) */
+        time_t          shm_atime;   /* Last attach time */
+        time_t          shm_dtime;   /* Last detach time */
+        time_t          shm_ctime;   /* Creation time/time of last
+                                        modification via shmctl() */
+        pid_t           shm_cpid;    /* PID of creator */
+        pid_t           shm_lpid;    /* PID of last shmat(2)/shmdt(2) */
+        shmatt_t        shm_nattch;  /* No. of current attaches */
+    };
+
+Biz daha önce ``ipc_perm`` yapısını görmüştük. Bu yapı içerisinde IPC nesnesinin o anki kullanıcı ve grup
+ID'leri, nesneyi yaratan prosesin kullanıcı ve grup ID'leri ve nesnenin erişim hakları bulunuyordu.
+``shmid_ds`` yapısının diğer elemanları sırasıyla şu bilgileri barındırmaktadır:
+
+.. list-table:: ``shmid_ds`` yapısının elemanları
+    :header-rows: 1
+    :widths: 15 12 60
+
+    * - Eleman
+      - Tür
+      - Açıklama
+    * - ``shm_segsz``
+      - ``size_t``
+      - Alanın byte cinsinden uzunluğu (``shmget``'e verilen size değeri)
+    * - ``shm_atime``
+      - ``time_t``
+      - Son ``shmat()`` çağrısının zamanı (başlangıçta 0)
+    * - ``shm_dtime``
+      - ``time_t``
+      - Son ``shmdt()`` çağrısının zamanı (başlangıçta 0)
+    * - ``shm_ctime``
+      - ``time_t``
+      - Yaratılma zamanı ya da son ``IPC_SET`` ile değiştirilme zamanı
+    * - ``shm_cpid``
+      - ``pid_t``
+      - Alanı yaratan prosesin PID değeri
+    * - ``shm_lpid``
+      - ``pid_t``
+      - Son ``shmat()``/``shmdt()`` yapan prosesin PID değeri
+    * - ``shm_nattch``
+      - ``shmatt_t``
+      - Alanın o anda attach edildiği adres alanı sayısı
+
+``shmctl`` fonksiyonunun ikinci parametresine şunlardan biri girilebilir:
+
+``IPC_STAT``: Bu durumda paylaşılan bellek alanına ilişkin bilgiler fonksiyonun üçüncü parametresiyle
+belirtilen yapı nesnesine doldurulur.
+
+``IPC_SET``: Bu durumda ``shmid_ds`` nesnesinin adresini programcı üçüncü parametre olarak girer, yapının
+yalnızca aşağıdaki elemanları set edilmektedir:
+
+- ``shm_perm.uid``
+- ``shm_perm.gid``
+- ``shm_perm.mode``
+
+Yapının diğer elemanları dikkate alınmamaktadır. Tabii set işleminin yapılabilmesi için prosesin etkin
+kullanıcı ID'sinin ``shm_perm.uid`` ya da ``shm_perm.cuid`` değerine eşit olması ya da prosesin uygun önceliğe
+sahip olması gerekmektedir.
+
+``IPC_RMID``: Bu parametre değeri IPC nesnesini silmek için kullanılmaktadır. Benzer biçimde bu işlemin
+yapılabilmesi için de ``IPC_SET`` komutunda belirtilen koşulların sağlanması gerekmektedir. Paylaşılan bellek
+alanları nesnesini bunu yaratan prosesin silmesi uygun olur. Klasik Sistem V mesaj kuyruklarında, bir proses
+mesaj kuyruğunu silerse mesaj kuyruğu hemen siliniyordu. Dolayısıyla onu kullanan bir proses ilgili
+işlemlerde başarısızlıkla karşılaşıyordu. Ancak paylaşılan bellek alanlarında durum böyle değildir. Bir
+klasik Sistem V (XSI) paylaşılan bellek alanı, ``shmctl`` fonksiyonu ile bir proses tarafından silinse bile
+gerçek silinme onu kullanan tüm proseslerin bellek alanını *detach* yapmasıyla gerçekleşmektedir. IPC nesnesi,
+``IPC_RMID`` parametresiyle silinecekse artık fonksiyonun son parametresi kullanılmaz, ``NULL`` adres
+geçilebilir.
+
+Paylaşılan bellek alanları komut satırında *ipcrm* komutuyla da silinebilmektedir. Komutta ``-M`` seçeneği
+anahtar ile silmek için ``-m`` seçeneği ID ile silmek için kullanılmaktadır. Örneğin:
+
+.. code-block:: text
+
+    $ ipcrm -m 131135
+
+Burada 131135 ID'sine sahip paylaşılan bellek alanı silinmektedir. Tabii bize ait olmayan paylaşılan bellek
+alanlarını silmek için ``sudo`` uygulamak gerekir.
+
+``shmctl`` fonksiyonu başarı durumunda 0 değerine, başarısızlık durumunda -1 değerine geri dönmektedir.
+
+Sistem V Paylaşılan Bellek Örneği
+---------------------------------
+
+Aşağıdaki örnekte *shm-prog1* programı paylaşılan bellek alanına bir yazı yerleştirir. *shm-prog2* programı da
+bu yazıyı oradan alıp ekrana (``stdout`` dosyasına) yazdırmaktadır. Paylaşılan bellek alanı *shm-prog1*
+programı tarafından yok edilmektedir. Paylaşılan bellek alanının yaratımı *shm-prog1* programı tarafından
+yapılmaktadır. *shm-prog2* programı yaratılmış olan paylaşılan bellek alanını açmaktadır.
+
+.. code-block:: c
+    :caption: shm-prog1.c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <sys/stat.h>
+    #include <sys/shm.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        key_t shmkey;
+        int shmid;
+        void *ptr;
+
+        if ((shmkey = ftok(".", 'x')) == -1)
+            exit_sys("ftok");
+
+        if ((shmid = shmget(shmkey, 4096, IPC_CREAT|S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("shmget");
+
+        if ((ptr = shmat(shmid, NULL, 0)) == (void *)-1)
+            exit_sys("shmat");
+
+        printf("Shared memory virtual address: %p\n", ptr);
+
+        strcpy((char *)ptr, "this is a test");
+
+        printf("Press ENTER to exit...");
+        fflush(stdout);
+
+        getchar();
+
+        if (shmdt(ptr) == -1)
+            exit_sys("shmdt");
+
+        if (shmctl(shmid, IPC_RMID, NULL) == -1)
+            exit_sys("shmctl");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+.. code-block:: c
+    :caption: shm-prog2.c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <sys/stat.h>
+    #include <sys/shm.h>
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        key_t shmkey;
+        int shmid;
+        void *ptr;
+
+        if ((shmkey = ftok(".", 'x')) == -1)
+            exit_sys("ftok");
+
+        if ((shmid = shmget(shmkey, 4096, 0)) == -1)
+            exit_sys("shmget");
+
+        if ((ptr = shmat(shmid, NULL, 0)) == (void *)-1)
+            exit_sys("shmat");
+
+        printf("Shared memory virtual address: %p\n", ptr);
+
+        puts((char *)ptr);
+
+        printf("Press ENTER to exit...\n");
+        fflush(stdout);
+
+        getchar();
+
+        if (shmdt(ptr) == -1)
+            exit_sys("shmdt");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+Sistem V Paylaşılan Bellek Alanı Sınırları
+==========================================
+
+Her ne kadar POSIX standartlarında belirtilmiş olmasa da işletim sistemleri, paylaşılan bellek alanları için
+çeşitli sınır değerler oluşturmaktadır. Linux sistemlerinde paylaşılan bellek alanlarına ilişkin sınırlar
+şöyledir:
+
+``SHMALL``: Sistemdeki tüm paylaşılan bellek alanlarının kaplayabileceği toplam alanı sayfa sayısı cinsinden
+belirtmektedir. Bu değer Linux sistemlerinde ``/proc/sys/kernel/shmall`` dosyasından elde edilebilir ve
+değiştirilebilir. Buradaki default değer çok büyüktür yani adeta bir sınır olmadığını belirtmektedir.
+
+``SHMMAX``: Bu sınır belli bir prosesin ``shmget`` fonksiyonu ile oluşturabileceği maksimum paylaşılabilen
+bellek alanı büyüklüğüdür. Yani ``shmget`` fonksiyonunda belirtilen büyüklüğün üst sınırını belirtmektedir. Bu
+sınır da *proc* dosya sisteminde ``/proc/sys/kernel/shmmax`` dosyası ile elde edilebilir ve değiştirilebilir.
+Bu değer byte cinsindendir. Şu andaki Linux sistemlerindeki varsayılan değer çok büyüktür. Adeta sınırsız gibi
+ele alınabilir.
+
+``SHMMIN``: Bu sınır ``shmget`` ile oluşturulabilecek minimum bellek alanının uzunluğunu belirtmektedir.
+Şimdiki Linux sistemlerinde bu değer 1'dir. Ancak tabii biz ``shmget`` ile 1 byte alan oluşturmak istesek
+bile ``shmget`` bize en az bir sayfa tahsis etmektedir. Bunun için *proc* dosya sisteminde bir giriş
+bulunmamaktadır.
+
+``SHMMNI``: Bu sınır sistem genelinde yaratılabilecek maksimum paylaşılan bellek alanlarının sayısını
+belirtmektedir. Bu değer *proc* dosya sisteminde ``/proc/sys/kernel/shmmni`` dosyası ile elde edilebilir ve
+değiştirilebilir. Mevcut Linux sistemlerinde bu dosyada varsayılan değer olarak 4096 değeri bulunmaktadır.
+
+POSIX Paylaşılan Bellek Alanları
+================================
+
+Paylaşılan bellek alanları da *POSIX paylaşılan bellek alanları* denilen alternatif bir arayüze sahiptir.
+POSIX paylaşılan bellek alanları daha önce görmüş olduğumuz POSIX mesaj kuyruklarına benzer bir arayüz
+sunmaktadır. Yani burada farklı prosesler anahtarlarla değil yine kök dizindeki dosya isimleriyle anlaşma
+sağlarlar. POSIX arayüzü, tıpkı mesaj kuyruklarında olduğu gibi daha modern bir tasarıma sahiptir. Ayrıca
+POSIX arayüzü *bellek tabanlı dosyalar (memory-mapped files)* denilen mekanizmayla da birleştirilmiş
+durumdadır. POSIX arayüzü yine sanki nesne bir dosyaymış gibi davranmaktadır. Ancak mesaj kuyruklarında da
+belirttiğimiz gibi bir taşınabilirlik problemi burada da söz konusu olabilmektedir. Ancak pek çok UNIX türevi
+işletim sistemi artık bu arayüzü uzun süredir destekler duruma gelmiştir. Eskiden POSIX paylaşılan bellek
+alanları *librt* kütüphanesi içerisinde bulunuyordu. Bu nedenle bağlama işleminde *-lrt* seçeneğinin
+kullanılması gerekiyordu. Ancak güncel durumda daha önceden de belirttiğimiz gibi bu *librt* kütüphanesi ana
+*glibc* kütüphanesinin içerisine alındı.
+
+POSIX paylaşılan bellek alanları tipik olarak şu adımlardan geçilerek kullanılmaktadır:
+
+1) Paylaşılan Bellek Alanının Yaratılması ya da Açılması: ``shm_open``
+----------------------------------------------------------------------
+
+POSIX paylaşılan bellek alanı nesnesi iki proses tarafından ``shm_open`` fonksiyonuyla yaratılabilir ya da
+zaten var olan nesne ``shm_open`` fonksiyonu ile açılabilir. ``shm_open`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/mman.h>
+
+    int shm_open(const char *name, int oflag, mode_t mode);
+
+Fonksiyonun birinci parametresi paylaşılan bellek alanı nesnesinin ismini belirtmektedir. Tıpkı POSIX mesaj
+kuyruklarında olduğu gibi bu ismin kök dizinde bir dosya ismi gibi verilmesi gerekmektedir. (Bazı sistemlerin,
+buradaki dosya isminin başka dizinlerde olmasına izin verebildiğini belirtmiştik.) Fonksiyonun ikinci
+parametresi paylaşılan bellek alanının açış bayraklarını belirtmektedir. Bu bayraklar şunlardan birini
+içerebilir:
+
+- ``O_RDONLY``: Bu durumda paylaşılan bellek alanından yalnızca okuma yapılabilir.
+- ``O_RDWR``: Bu durumda paylaşılan bellek alanından hem okuma yapılabilir hem de oraya yazma yapılabilir.
+
+Aşağıdaki bayraklar da açış moduna eklenebilir:
+
+- ``O_CREAT``: Paylaşılan bellek alanı yoksa yaratılır, varsa olan açılır.
+- ``O_EXCL``: ``O_CREAT`` bayrağı ile birlikte kullanılabilir. Paylaşılan bellek alanı zaten varsa fonksiyon
+  başarısız olur.
+- ``O_TRUNC``: Paylaşılan bellek alanı varsa sıfırlanarak açılır. Bu bayrak ``O_RDWR`` ile birlikte
+  kullanılabilir.
+
+Fonksiyonun üçüncü parametresi paylaşılan bellek alanının erişim haklarını belirtmektedir. Tabii ancak ikinci
+parametrede ``O_CREAT`` bayrağı kullanılmışsa bu parametreye gereksinim duyulmaktadır. İkinci parametrede
+``O_CREAT`` bayrağı kullanılmamışsa üçüncü parametre fonksiyon tarafından dikkate alınmamaktadır. Ancak
+``shm_open`` fonksiyonunun bu üçüncü parametresi kullanılmayacak olsa bile girilmek zorundadır. Örneğin bu
+tür durumlarda bu parametre için 0 değerini girebilirsiniz. (``open`` fonksiyonunun üçüncü parametresinin
+eğer gerek yoksa girilmeyebileceğini anımsayınız.)
+
+``shm_open`` bize tıpkı bir disk dosyasında olduğu gibi bir dosya betimleyicisi vermektedir. (Halbuki
+``mq_open`` fonksiyonunun bir dosya betimleyicisi vermesinin zorunlu olmadığını anımsayınız.) Fonksiyon
+başarısız olursa yine -1 değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir.
+
+Örneğin:
+
+.. code-block:: c
+
+    int fdshm;
+
+    if ((fdshm = shm_open(SHM_NAME, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+        exit_sys("shm_open");
+
+2) Paylaşılan Bellek Alanına Büyüklük Verilmesi: ``ftruncate``
+--------------------------------------------------------------
+
+Paylaşılan bellek alanı yaratıldığında 0 uzunluktadır. ``ftruncate`` fonksiyonu ile ona bir büyüklük vermek
+gerekir. ``truncate`` ve ``ftruncate`` fonksiyonlarının bir dosyayı büyütmek ya da küçültmek amacıyla
+kullanıldığını anımsayınız. Örneğin:
+
+.. code-block:: c
+
+    if (ftruncate(fdshm, SHM_SIZE) == -1)
+        exit_sys("ftruncate");
+
+Tabii paylaşılan bellek alanı zaten yaratılmışsa ve biz onu açıyorsak ``ftruncate`` fonksiyonunu aynı
+uzunlukta çağırdığımızda aslında fonksiyon herhangi bir şey yapmayacaktır. Yani aslında ``ftruncate``
+fonksiyonu paylaşılan bellek alanı ilk kez yaratılırken bir kez çağrılır. Ancak yukarıda da belirttiğimiz
+gibi aynı uzunlukta uygulanan ``ftruncate`` işleminin bir etkisi yoktur.
+
+POSIX paylaşılan bellek alanı nesneleri Linux'ta dosya sisteminde ``/dev/shm`` dizini içerisinde
+görüntülenmektedir. Yani programcı isterse bu dizin içerisindeki nesneleri komut satırında *rm* komutuyla
+silebilir.
+
+3) Paylaşılan Bellek Alanının Haritalanması: ``mmap``
+-----------------------------------------------------
+
+Artık paylaşılan bellek alanı nesnesinin belleğe *haritalanması (map edilmesi)* gerekmektedir. (Klasik
+Sistem V (XSI) paylaşılan bellek alanlarında *haritalamak (mapping)* yerine *iliştirmek (attach etmek)* terimi
+kullanılmaktaydı. Bu arayüzde ise *iliştirmek (attach etmek)* yerine *haritalamak (mapping)* sözcüğü tercih
+edilmiştir.) Bunun için ``mmap`` isimli oldukça geniş bir işleve sahip olan bir POSIX fonksiyonu
+kullanılmaktadır. ``mmap`` fonksiyonu pek çok UNIX türevi sistemde bir sistem fonksiyonu olarak
+gerçekleştirilmiştir. Linux sistemlerinde ``mmap`` fonksiyonu ``sys_mmap`` isimli sistem fonksiyonunu
+çağırmaktadır. ``mmap`` fonksiyonu paylaşılan bellek alanlarının dışında başka amaçlarla da kullanılabilen
+ayrıntılı bir fonksiyondur. Bu nedenle, biz burada önce fonksiyonun paylaşılan bellek alanlarında kullanımına
+kısaca değineceğiz. Sonra bu fonksiyonu ayrıca daha ayrıntılı biçimde ele alacağız. ``mmap`` fonksiyonunun
+prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/mman.h>
+
+    void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off);
+
+Fonksiyonun birinci parametresi, *haritalama (mapping) için* önerilen (preferred) sanal adresi belirtmektedir.
+Programcı bu parametre yoluyla belli bir sanal adresin haritalama için kullanılmasını isteyebilir. Ancak POSIX
+standartlarına göre ``mmap`` fonksiyonu ``flags`` parametresinde ``MAP_FIXED`` bayrağı belirtilmemişse bu
+adresi tam (exact) olarak yani verildiği gibi kullanmayabilir. Fonksiyon bu önerilen adresin yakınlarındaki
+sayfaları tahsis edebilir ya da bu adresi hiç dikkate almayabilir. Yani buradaki adres eğer fonksiyonun
+``flags`` parametresinde ``MAP_FIXED`` bayrağı belirtilmemişse bir ipucu (hint) niteliğindedir. Eğer bu adres
+``NULL`` olarak geçilirse bu durumda haritalama işlemi işletim sisteminin kendi belirlediği bir adresten
+itibaren yapılır. Kullanıcı modundaki programlarda genellikle bu parametreye ``NULL`` adres geçilmektedir.
+Linux sistemlerinde çekirdek tarafından bu birinci adres ya olduğu gibi (yani tam olarak) kullanılmakta ya da
+hiç kullanılmamaktadır.
+
+Fonksiyonun ikinci parametresi (``len`` parametresi) ne kadarlık alanın haritalanacağını belirtmektedir. Bu
+uzunluk POSIX standartlarına göre sayfa katlarında olmak zorunda değildir. Ancak pek çok sistem bu uzunluğu
+sayfa katlarına doğru yukarı yuvarlamaktadır. Yani örneğin Linux sistemlerinde biz uzunluğu 100 byte
+verebiliriz. Ancak çekirdek bu 100 değerini sayfa uzunluğu olan ``PAGE_ALIGN`` (tipik olarak 4096) değerine
+yuvarlayarak haritalama işlemini yapacaktır.
+
+Fonksiyonun üçüncü parametresi (``prot`` parametresi), haritalama işleminin koruma özelliklerini
+belirtmektedir. Burada belirtilen koruma özelliği işlemci düzeyinde koruma özelliğinin belirlenmesinde de
+etkili olmaktadır. Bu özellikler aşağıdaki sembolik sabitlerin bit düzeyinde OR işlemine sokulmasıyla
+oluşturulabilmektedir:
+
+.. list-table:: ``prot`` parametresinin sembolik sabitleri
+    :header-rows: 1
+    :widths: 20 10 45
+
+    * - Sabit
+      - POSIX
+      - Anlamı
+    * - ``PROT_NONE``
+      - Evet
+      - Erişim yok (guard, rezervasyon)
+    * - ``PROT_READ``
+      - Evet
+      - Okuma
+    * - ``PROT_WRITE``
+      - Evet
+      - Yazma
+    * - ``PROT_EXEC``
+      - Evet
+      - Çalıştırma
+
+Yalnızca ``PROT_READ`` kullanımı sayfaların *read only* olduğunu belirtir. Anımsanacağı gibi böyle sayfalara
+yazma yapılırsa, işlemci exception oluşturur ve proses ``SIGSEGV`` sinyali ile sonlandırılır. ``PROT_WRITE``,
+sayfalara yazma yapılabileceğini belirtmektedir. Örneğin ``PROT_READ|PROT_WRITE`` hem okuma hem de yazma
+anlamına gelmektedir. ``PROT_EXEC`` ilgili sayfada bir kod varsa (örneğin oraya bir fonksiyon
+yerleştirilmişse) o kodun çalıştırılabilirliği üzerinde etkili olmaktadır. Örneğin Intel ve ARM
+işlemcilerinde, fiziksel sayfa ``PROT_EXEC`` ile özelliklendirilmemişse o sayfadaki kodlar
+çalıştırılamamaktadır. ``PROT_NONE`` o sayfaya herhangi bir erişimin mümkün olamayacağını belirtmektedir.
+Yani ``PROT_NONE`` olan bir sayfa ne okunabilir ne de yazılabilir. Bu tür sayfa özellikleri *koruma sayfası
+(guard page)* oluşturmak için kullanılmaktadır. Bir sayfanın koruma özelliği daha sonra da
+değiştirilebilmektedir. Aslında bütün işlemciler buradaki koruma özelliklerinin hepsini desteklemeyebilir.
+Örneğin Intel işlemcilerinde ``PROT_WRITE`` zaten okuma özelliğini de kapsamaktadır. Bazı işlemciler
+sayfalarda ``PROT_EXEC`` özelliğini hiç bulundurmamaktadır. Ancak ne olursa olsun programcı sanki bu
+özelliklerin hepsi kodun çalıştırıldığı işlemcide varmış gibi bu parametreyi oluşturmalıdır. Böylece kodun
+başka bir işlemcinin bulunduğu sistemde de düzgün çalışması sağlanacaktır.
+
+Fonksiyonun dördüncü parametresi (``flags`` parametresi) aşağıdaki sembolik sabitlerden
+oluşturulmaktadır:
+
+.. list-table:: ``flags`` parametresinin sembolik sabitleri
+    :header-rows: 1
+    :widths: 22 60
+
+    * - Bayrak
+      - İşlevi
+    * - ``MAP_SHARED``
+      - Haritalama diğer prosesler ile paylaşılır; yapılan değişiklikler alttaki dosyaya yansıtılır
+        (``msync`` ile senkronize edilir).
+    * - ``MAP_PRIVATE``
+      - Copy-on-write özel haritalaması; değişiklikler dosyaya ve diğer proseslere yansımaz.
+    * - ``MAP_FIXED``
+      - ``addr`` argümanı ipucu değil zorunludur; o bölgedeki mevcut haritalamalar sessizce kaldırılır.
+    * - ``MAP_ANONYMOUS``
+      - Dosyaya dayanmayan, sıfırlanmış bellek haritalaması; ``fd`` yok sayılır (-1 verilmeli), offset 0
+        olmalı (POSIX.1-2024).
+    * - ``MAP_ANON``
+      - ``MAP_ANONYMOUS`` ile eş anlamlıdır (BSD uyumluluğu için; POSIX.1-2024).
+
+Ancak Linux sistemleri daha fazla bayrağı desteklemektedir. Aşağıdaki tabloda Linux sistemleri tarafından
+desteklenen ek bayraklar verilmiştir:
+
+.. list-table:: Linux sistemlerinin desteklediği ek bayraklar
+    :header-rows: 1
+    :widths: 25 60
+
+    * - Bayrak
+      - İşlevi
+    * - ``MAP_SHARED_VALIDATE``
+      - ``MAP_SHARED`` gibidir, ancak çekirdek bilinmeyen bayrakları ``EOPNOTSUPP`` ile reddeder (Linux 4.15).
+    * - ``MAP_FIXED_NOREPLACE``
+      - ``MAP_FIXED`` gibidir, ancak bölge doluysa ``EEXIST`` ile başarısız olur (Linux 4.17).
+    * - ``MAP_FILE``
+      - Uyumluluk amaçlıdır; Linux'ta yok sayılır.
+    * - ``MAP_32BIT``
+      - Haritalamayı adres alanının ilk 2 GB'sine yerleştirir (yalnızca x86-64).
+    * - ``MAP_GROWSDOWN``
+      - Aşağı doğru büyüyen stack benzeri haritalama; guard page'e erişimde bölge genişletilir.
+    * - ``MAP_STACK``
+      - Eşlemenin stack olarak kullanılacağını belirtir; Linux'ta THP'yi devre dışı bırakır (Linux 6.7).
+    * - ``MAP_HUGETLB``
+      - Huge page kullanarak haritalama yapar; boyut ``MAP_HUGE_2MB``, ``MAP_HUGE_1GB`` vs ile seçilir.
+    * - ``MAP_LOCKED``
+      - Haritalanan sayfaları ``mlock(2)`` gibi RAM'de kilitler; ``mlock(2)``'tan farklı olarak sayfalar
+        kilitlenemezse ``mmap`` başarısız olmaz.
+    * - ``MAP_POPULATE``
+      - Sayfa tablolarını önceden doldurur (prefault); dosya haritalandırmada read-ahead tetikler.
+    * - ``MAP_NONBLOCK``
+      - ``MAP_POPULATE`` ile anlamlıdır; Linux 2.6.23'ten beri ``MAP_POPULATE``'i etkisiz kılar.
+    * - ``MAP_NORESERVE``
+      - Swap alanı rezerve edilmez; overcommit politikasına bağlı olarak ``SIGSEGV`` riski doğar.
+    * - ``MAP_SYNC``
+      - DAX dosyalarında senkron page fault semantiği sağlar; ``MAP_SHARED_VALIDATE`` ile kullanılır
+        (Linux 4.15).
+    * - ``MAP_UNINITIALIZED``
+      - Anonim sayfalar sıfırlanmaz; yalnızca ``CONFIG_MMAP_ALLOW_UNINITIALIZED`` ile (genellikle NOMMU)
+        etkindir.
+    * - ``MAP_DROPPABLE``
+      - Bellek baskısı altında çekirdeğin içeriği atabileceği özel anonim haritalama (Linux 6.11).
+    * - ``MAP_DENYWRITE``
+      - Tarihsel; yok sayılır.
+    * - ``MAP_EXECUTABLE``
+      - Tarihsel; yok sayılır.
+
+``mmap`` fonksiyonunun ``flags`` parametresinde aşağıdaki iki bayraktan yalnızca biri mutlaka kullanılmak
+zorundadır. Bu iki bayrak birlikte kullanılamaz:
+
+- ``MAP_PRIVATE``
+- ``MAP_SHARED``
+
+``MAP_PRIVATE`` ile oluşturulan haritalamaya *özel haritalama*, ``MAP_SHARED`` ile oluşturulan haritalamaya
+ise *paylaşımlı haritalama* denilmektedir. ``MAP_PRIVATE`` *copy-on-write* denilen mekanizma için
+kullanılmaktadır. *Copy-on-write* işlemi *yazma yapılana kadar sanal sayfaların aynı fiziksel sayfalara
+yönlendirilmesi, ancak yazmayla birlikte o sayfaların bir kopyalarının çıkartılıp yazmanın o prosese özel
+olarak yapılması ve yapılan yazmaların paylaşılan bellek alanına yansıtılmaması* anlamına gelmektedir. Başka
+bir deyişle ``MAP_PRIVATE`` bayrağı şunlara yol açmaktadır:
+
+- Okuma yapılınca paylaşılan bellek alanından okuma yapılmış olur.
+- Yazma yapıldığında bu yazma işlemi paylaşılan bellek alanına yansıtılmaz. O anda yazılan sayfanın bir kopyası
+  çıkartılarak yazma o kopya üzerine yapılır. Dolayısıyla başka bir proses bu yazma işlemini göremez.
+
+Bir proses ilgili paylaşılan bellek alanı nesnesini ``MAP_PRIVATE`` ile haritaladığında ve diğer proses o
+alana yazma yaptığında onun yazdığını ``MAP_PRIVATE`` yapan prosesin görüp görmeyeceği POSIX standartlarında
+belirsiz (*unspecified*) bırakılmıştır. Linux sistemlerinin *man sayfalarında* da bu durum *unspecified*
+olarak belirtilmiş olsa da mevcut Linux çekirdeklerinde başka bir proses özel haritalama yapılmış yere yazma
+yaptığında bu yazma özel haritalamanın yapıldığı proseste görülmektedir. Ancak özel haritalama yapan proses
+sayfaya yazma yaptığında artık o sayfanın kopyasından çıkartılacağı için bu yazma işleminden sonraki diğer
+prosesin yaptığı yazma işlemleri görülmemektedir. Bu durumu aşağıdaki şekil eşliğinde açıklayalım:
+
+.. code-block:: text
+
+    P1 Sayfa Tablosu                                               P2 Sayfa Tablosu
+    ┌───────┬───────┐                                              ┌───────┬───────┐
+    │ S.S.N │ F.S.N │                                              │ S.S.N │ F.S.N │
+    ├───────┼───────┤              Fiziksel Sayfa                  ├───────┼───────┤
+    │  ...  │  ...  │              ┌────────────────┐              │  ...  │  ...  │
+    │       │       │ MAP_SHARED   │                │ MAP_PRIVATE  │       │       │
+    │       │       ├─────────────►│   Paylaşılan   │◄─────────────┤       │       │
+    │  ...  │  ...  │              │     Bellek     │              │  ...  │  ...  │
+    │       │       │              │                │              │       │       │
+    └───────┴───────┘              └────────────────┘              └───────┴───────┘
+
+Burada P1 prosesinin haritalamayı ``MAP_SHARED`` bayrağıyla P2 prosesinin ise ``MAP_PRIVATE`` bayrağıyla
+yapmış olduğunu varsayalım. P2 prosesi bu paylaşılan alana yazma yaptığında ilgili sayfanın o anda kopyası
+çıkartılıp yazma işlemi o kopyaya yapılmaktadır. Linux sistemlerinde P2 prosesi sayfaya henüz yazma
+yapmamışken P1 prosesi sayfaya yazma yaparsa P2 prosesi sayfaya yazılanları görmektedir.
+
+``MAP_SHARED`` bayrağı yazma işleminin paylaşılan bellek alanına yapılacağını yani *copy-on-write*
+yapılmayacağını belirtmektedir. Dolayısıyla ``MAP_SHARED`` bir haritalamada paylaşılan alana yazılanlar diğer
+prosesler tarafından görülür. Normal olarak programcılar proseslerarası haberleşme için ``MAP_SHARED``
+bayrağını kullanırlar. ``MAP_PRIVATE`` bayrağı yalnızca bazı özel durumlarda tercih edilmektedir. Örneğin
+işletim sistemi (``exec`` fonksiyonları) çalıştırılabilir dosyanın *.data* bölümünü ``MAP_PRIVATE``
+haritalaması ile sanal belleğe yüklemektedir.
+
+Yukarıda da belirttiğimiz gibi fonksiyonun ``flags`` parametresinde ``MAP_PRIVATE`` ve ``MAP_SHARED``
+değerlerinin yalnızca biri kullanılabilir. Ancak bu değerlerden biri ile ``MAP_FIXED`` değeri bit düzeyinde
+OR işlemine sokulabilmektedir. ``MAP_FIXED`` bayrağı fonksiyonun birinci parametresindeki adres ``NULL``
+geçilmemişse bu adresin kendisinin aynen (hiç değiştirilmeden) kullanılacağını belirtmektedir. Yani bu
+adresin yakınındaki herhangi bir sayfa değil tam olarak bu adresten itibaren tahsisat yapılacak ve fonksiyon
+bu adresin aynısıyla geri dönecektir. (Tabii programcının verdiği adres uygun olmayabilir. Bu durumda
+fonksiyon da başarısız olur.) Eğer ``MAP_FIXED`` bayrağı belirtilmişse Linux sistemlerinde birinci
+parametredeki adresin sayfa katlarında olma zorunluluğu vardır. Ancak POSIX standartları son versiyonları
+*may require* ifadesiyle bunun zorunlu tutulmayacağını belirtmektedir. ``MAP_FIXED`` ile belirtilen adreste
+daha önce bir haritalama yapıldıysa ``MAP_FIXED`` bayrağı o haritalamayı sessizce kaldırıp (``munmap``
+mekanizmasıyla) tahsisatı yine yapmaktadır. Bu nedenle ``MAP_FIXED`` kullanırken dikkat etmek gerekir.
+
+Fonksiyonun son iki parametresi ``shm_open`` fonksiyonundan elde edilmiş olan dosya betimleyicisini ve bir de
+offset değerini içermektedir. Paylaşılan bellek alanının belli bir offset'ten sonraki kısmı
+haritalanabilmektedir. Örneğin paylaşılan bellek alanı nesnemiz 4 MB olsun. Biz bu nesnenin 1 MB'sinden
+itibaren 64K'lık kısmını haritalayabiliriz.
+
+Örneğin ``mmap`` fonksiyonunu şöyle çağırabiliriz:
+
+.. code-block:: c
+
+    shmaddr = mmap(NULL, SHARED_MEM_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fdshm, 0);
+
+Burada paylaşılan bellek alanı nesnesinin ``SHARED_MEM_SIZE`` kadar alanı map edilmek istenmiştir. İlgili
+sayfalar ``PROT_READ|PROT_WRITE`` özelliğine sahip olacaktır. Yani bu sayfalara yazma yapılabilecektir. Bu
+sayfalara yazma yapıldığında paylaşılan bellek alanı nesnesi bundan etkilenecek, yani aynı nesneyi kullanan
+diğer proseslerde de eğer ``MAP_SHARED`` ile haritalama yapılmışsa bu değişiklikler gözükecektir. Burada
+paylaşılan bellek alanı nesnesinin 0'ıncı offset'inden itibaren ``SHARED_MEM_SIZE`` kadar alanın map
+edildiğine dikkat ediniz.
+
+``mmap`` fonksiyonunun son parametresindeki offset değeri için de bir koşul vardır. Eğer ``flags``
+parametresinde ``MAP_FIXED`` belirtilmişse, bu offset değerinin sayfa katlarına bölümünden elde edilen kalan
+değeri ile birinci parametrede girilen adresin sayfa katlarına bölümünden elde edilen kalan değerinin aynı
+olması gerekir. (Yani örneğin POSIX standartlarında işletim sistemi eğer 5000 adresini kabul ediyorsa
+``5000 % 4096 = 4``'tür. Bu durumda son parametrenin de 4096'ya bölümünden elde edilen kalanın da 4 olması
+gerekir.) Ancak ``flags`` parametresinde ``MAP_FIXED`` belirtilmemişse POSIX standartları bu offset değerinin
+sayfa katlarında olup olmayacağını işletim sistemini yazanların isteğine bırakmıştır. Linux çekirdeklerinde
+``MAP_FIXED`` belirtilsin ya da belirtilmesin bu offset değeri her zaman sayfa katlarında olmak zorundadır.
+
+``mmap`` fonksiyonu başarı durumunda haritalanan sanal bellek adresine, başarısızlık durumunda ``MAP_FAILED``
+özel değerine geri döner. Pek çok sistemde ``MAP_FAILED`` bellekteki son adres olarak aşağıdaki biçimde
+define edilmiştir:
+
+.. code-block:: c
+
+    #define MAP_FAILED ((void *) -1)
+
+``mmap`` fonksiyonunun başarı kontrolü şöyle yapılabilir:
+
+.. code-block:: c
+
+    shmaddr = mmap(NULL, SHM_SIZE, PROT_WRITE, MAP_SHARED, fdshm, 0);
+    if (shmaddr == MAP_FAILED)
+        exit_sys("mmap");
+
+Paylaşılan bellek alanı betimleyicisi haritalama işleminden sonra ``close`` fonksiyonuyla kapatılabilir. Bu
+durum haritalamayı etkilememektedir.
+
+4) Haritalamanın Kaldırılması: ``munmap``
+-----------------------------------------
+
+Programcı paylaşılan bellek alanı ile işini bitirdikten sonra artık haritaladığı alanı prosesin sanal bellek
+alanından kaldırabilir. Bu işlem ``munmap`` POSIX fonksiyonu ile yapılmaktadır. (``mmap`` fonksiyonunu
+*malloc* gibi düşünürsek ``munmap`` fonksiyonunu da *free* gibi düşünebiliriz.) ``munmap`` fonksiyonunun
+prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/mman.h>
+
+    int munmap(void *addr, size_t len);
+
+Fonksiyonun birinci parametresi, daha önce haritalanan alan içerisindeki adresi, ikinci parametresi ise unmap
+edilecek alanın uzunluğunu belirtmektedir. Fonksiyon birinci parametresinde belirtilen adresten itibaren
+ikinci parametresinde belirtilen miktardaki byte'ı içeren sayfaları sanal bellek alanından serbest bırakır.
+(Örneğin buradaki adres bir sayfanın ortalarında ise ve uzunluk da başka bir sayfanın ortalarına kadar
+geliyorsa bu iki sayfa da tümden unmap edilmektedir.) POSIX standartları işletim sistemlerinin birinci
+parametrede belirtilen adresin sayfa katlarında olmasını zorlayabileceğini (*may require*) belirtmektedir.
+Linux'ta birinci parametrede belirtilen adres sayfa katlarında olmak zorundadır. Fonksiyon başarı durumunda
+``0`` değerine, başarısızlık durumunda ``-1`` değerine geri döner ve ``errno`` değişkeni uygun biçimde set edilir.
+``munmap`` ile zaten haritalanmamış bir alan unmap edilmeye çalışılırsa fonksiyon bir şey yapmaz. Bu durumda
+fonksiyon başarısızlıkla geri dönmemektedir.
+
+Paylaşılan bellek alanına ilişkin dosya betimleyicisi ``close`` fonksiyonu ile kapatılabilir. Paylaşılan
+bellek alanı betimleyicisi ``close`` ile kapatıldığında ``munmap`` işlemi yapılmamaktadır. Zaten paylaşılan
+bellek alanı nesnesi haritalandıktan sonra hemen ``close`` ile kapatılabilir. Bunun haritalama işlemine bir
+etkisi olmaz. Ancak proses sonlandığında tabii unmap işlemi otomatik olarak yapılmaktadır.
+
+Unmap işlemi mevcut haritalamanın bir kısmına da yapılabilmektedir. Bu durumda işletim sistemi daha önce
+haritalanmış olan alanı kendisi parçalara ayırmaktadır. Örneğin:
+
+.. code-block:: text
+
+    xxxxmmmmmmmmmxxxx
+
+Burada *m* haritalanmış sayfaları *x* ise diğer sayfaları belirtiyor olsun. Biz de haritalama içerisinde iki
+sayfayı unmap edelim:
+
+.. code-block:: text
+
+    xxxxmmmmxxmmmxxxx
+
+Görüldüğü gibi artık sanki iki ayrı haritalama yapılmış gibi bir durum oluşmaktadır.
+
+Yukarıda da belirttiğimiz gibi proses bittiğinde haritalanmış bütün alanlar zaten işletim sistemi tarafından
+unmap edilmektedir.
+
+5) Betimleyicinin Kapatılması
+-----------------------------
+
+Paylaşılan bellek alanı nesnesine ilişkin betimleyici ``close`` fonksiyonu ile sanki bir dosyaymış gibi
+kapatılır. Yukarıda da belirttiğimiz gibi bu kapatma işlemi aslında ``mmap`` işleminden hemen sonra da
+yapılabilir.
+
+6) Paylaşılan Bellek Alanının Silinmesi: ``shm_unlink``
+-------------------------------------------------------
+
+Artık paylaşılan bellek alanı nesnesi ``shm_unlink`` fonksiyonu ile silinebilir. Anımsanacağı gibi bu silme
+yapılmazsa sistem reboot edilene kadar nesne hayatta kalmaya devam edecektir (kernel persistent).
+``shm_unlink`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <sys/mman.h>
+
+    int shm_unlink(const char *name);
+
+Fonksiyon paylaşılan bellek alanı nesnesinin ismini alarak onu yok eder. Başarı durumunda 0 değerine,
+başarısızlık durumunda -1 değerine geri dönmektedir. Örneğin:
+
+.. code-block:: c
+
+    if (shm_unlink(SHM_NAME) == -1)
+        exit_sys("shm_unlink");
+
+Tıpkı POSIX mesaj kuyruklarında olduğu gibi bir proses paylaşılan bellek alanını ``shm_unlink`` fonksiyonu
+ile silse bile paylaşılan bellek alanını kullanan diğer prosesler unmap işlemi yapana kadar nesne gerçek
+anlamda silinmemektedir.
+
+POSIX Paylaşılan Bellek Örneği
+------------------------------
+
+Aşağıdaki örnekte *posix-sharedmem-prog1* programı paylaşılan bellek alanına bir yazı yazmakta
+*posix-sharedmem-prog2* programı da bu yazıyı alarak ekrana (``stdout`` dosyasına) yazdırmaktadır. Tabii
+*posix-sharedmem-prog1* programı sürekli paylaşılan bellek alanının başına eskisini ezecek biçimde yazıları
+yazar. Programı test ederken *posix-sharedmem-prog1* programında paylaşılan bellek alanına bir şeyler
+yazdıktan sonra *posix-sharedmem-prog2* programında ENTER tuşuna basarak o yazılanların alınmasını
+sağlamalısınız.
+
+.. code-block:: c
+    :caption: posix-sharedmem-prog1.c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <sys/mman.h>
+
+    #define SHM_NAME       "/posix_shared_memory"
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fdshm;
+        char *shmaddr;
+        char buf[4096];
+        char *str;
+
+        if ((fdshm = shm_open(SHM_NAME, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+            exit_sys("shm_open");
+
+        if (ftruncate(fdshm, 4096) == -1)
+            exit_sys("ftruncate");
+
+        if ((shmaddr = (char *) mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fdshm, 0)) == MAP_FAILED)
+            exit_sys("mmap");
+
+         for (;;) {
+            printf("Text:");
+            fflush(stdout);
+
+            /* okuma doğrudan paylaşılan bellek alanına da yapılabilir */
+
+            if (fgets(buf, 4096, stdin) == NULL)
+                continue;
+            if ((str = strchr(buf, '\n')) != NULL)
+                *str = '\0';
+            strcpy(shmaddr, buf);
+            if (!strcmp(buf, "quit"))
+                break;
+        }
+
+        if (munmap(shmaddr, 4096) == -1)
+            exit_sys("unmap");
+
+        close(fdshm);
+
+        if (shm_unlink(SHM_NAME) == -1)
+            exit_sys("shm_unlink");
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
+.. code-block:: c
+    :caption: posix-sharedmem-prog2.c
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <sys/mman.h>
+
+    #define SHM_NAME       "/posix_shared_memory"
+
+    void exit_sys(const char *msg);
+
+    int main(void)
+    {
+        int fdshm;
+        char  *shmaddr;
+
+        if ((fdshm = shm_open(SHM_NAME, O_RDWR, 0)) == -1)
+            exit_sys("shm_open");
+
+        if ((shmaddr = (char *)mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, fdshm, 0)) == MAP_FAILED)
+            exit_sys("mmap");
+
+        for (;;) {
+            printf("Press ENTER to read...");
+            fflush(stdout);
+
+            getchar();
+            puts(shmaddr);
+            if (!strcmp(shmaddr, "quit"))
+                break;
+        }
+
+        if (munmap(shmaddr, 4096) == -1)
+            exit_sys("unmap");
+
+        close(fdshm);
+
+        return 0;
+    }
+
+    void exit_sys(const char *msg)
+    {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+
