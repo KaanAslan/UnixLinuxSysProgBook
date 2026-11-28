@@ -813,8 +813,8 @@ kez *Ok* yazısı basılacaktır. Örneği bir bütün olarak aşağıda veriyor
         exit(EXIT_FAILURE);
     }
 
-Proseslerin Sonlandırılması: _exit, exit ve abort Fonksiyonları
-===============================================================
+Proseslerin Sonlandırılması: _exit, exit _Exit ve abort Fonksiyonları
+=====================================================================
 
 Şimdi de proseslerin nasıl sonlandırıldığını görelim. UNIX/Linux sistemlerinde prosesi sonlandırmak için
 ``_exit`` isimli POSIX fonksiyonu kullanılmaktadır. Bu fonksiyonun kullanımı C'nin standart ``exit`` fonksiyonuna
@@ -847,7 +847,7 @@ C'nin standart ``exit`` fonksiyonunun da prototipi şöyledir:
 
     #include <stdlib.h>
 
-    void exit(int status);
+    _Noreturn void exit(int status);
 
 C'nin ``exit`` fonksiyonu prosesin sonlandırılması için UNIX/Linux sistemlerinde aslında ``_exit`` POSIX
 fonksiyonunu çağırmaktadır:
@@ -863,8 +863,15 @@ fonksiyonunu çağırmaktadır:
 fonksiyonu yerine ``_exit`` POSIX fonksiyonu ile sonlandırırsanız proses sonlanırken bu işlemlerin
 hiçbiri yapılmayacaktır.
 
-C Programının Gerçek Başlangıç Noktası (start-up code)
-------------------------------------------------------
+C99 ile birlikte C standartlarına ``_Exit`` isimli bir fonksiyon da eklenmiştir. Bu fonksiyon doğrudan işletim sisteminin 
+prosesi sonlandıran sistem fonksiyonunu çağırmaktadır. UNIX/Linux sistemlerinde ``_Exit`` doğrudan ``_exit`` POSIX fonksiyonunu 
+çağırmaktadır:
+
+.. code-block:: c
+
+    #include <stdlib.h>
+
+    _Noreturn  void _Exit(int status);
 
 C'de aslında ilk çalışan kod ``main`` fonksiyonunun kodu değildir. C derleyicileri ismine *başlangıç kodu
 (start-up code)* denilen bir kodu da programa eklemektedir. Programın gerçek başlangıç noktası
@@ -910,14 +917,20 @@ bağlayıcısını yalnızca bu dosyayla değil bir grup başlangıç amaç dosy
 C'nin ``abort`` fonksiyonu ise *normal olmayan (abnormal)* sonlandırmalar için kullanılmaktadır.
 UNIX/Linux sistemlerinde ``abort`` standart C fonksiyonu ``SIGABRT`` sinyali oluşturarak programı
 sonlandırmaktadır. Programın sonlanması bu sinyal dolayısıyla gerçekleşmektedir. Sinyaller konusu ileride
-ayrı bölümde ele alınacaktır.
+ayrı bölümde ele alınacaktır. ``abort`` fonksiyonunun prototipi şöyledir:
+
+.. code-block:: c
+
+    #include <stdlib.h>
+
+    _Noreturn void abort(void);
 
 Yukarıda da belirttiğimiz gibi C'de programlar, standart ``exit`` fonksiyonu ile sonlandırılmalıdır. Çünkü
 ``exit`` fonksiyonu bazı gerekli son işlemleri de yapmaktadır. Ancak yine de bazen programın doğrudan
 ``_exit`` POSIX fonksiyonu ile sonlandırılması da gerekebilmektedir. Bu gerekliliğe ilişkin örneklerle
 sonraki konularımızda karşılaşacağız.
 
-UNIX/Linux sistemlerinde prosesler ``_exit``, ``exit`` ve ``abort`` çağrılarının dışında sinyaller (signals) yoluyla da 
+UNIX/Linux sistemlerinde prosesler ``_exit``, ``exit``` ``_Exit`` ve ``abort`` çağrılarının dışında sinyaller (signals) yoluyla da 
 sonlanmaktadır. Örneğin abort aslında sonlandırmayı böyle yapmaktadır. Sinyaller konusu kitabımızda 
 ayrı bir bölümde ele alınmaktadır. 
 
